@@ -3,6 +3,39 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Design System Variables */
+  --Gray-900: #181d27;
+  --Gray-800: #1f2937;
+  --Gray-700: #414651;
+  --Gray-600: #535862;
+  --Gray-500: #717680;
+  --Gray-400: #a4a7ae;
+  --Gray-300: #d5d7da;
+  --Gray-200: #e9eaeb;
+  --Gray-100: #f3f4f6;
+  --Gray-50: #f9fafb;
+  --White: #fff;
+  --Black: #000;
+  --Primary-Blue: #001a6e;
+  --Blue-600: #001a6e;
+  --Blue-700: #001456;
+  --Yellow-Banner: #ffcf56;
+  --sds-size-depth-0: 0px;
+  --sds-size-depth-025: 1px;
+  --sds-size-depth-100: 4px;
+  --sds-color-black-200: rgba(12, 12, 13, 0.10000000149011612);
+  --sds-color-black-100: rgba(12, 12, 13, 0.05000000074505806);
+
+  /* Profile Page Colors */
+  --Light-Solid-Color-Extra-Card-Background: #fff;
+  --Light-Solid-Color-Primary-Primary-400: #856ef7;
+  --Light-Typography-Color-Heading-Text: #4b465c;
+  --Text-Primary: #182779;
+  --Success-50: #ecfdf3;
+  --Success-700: #027a48;
+  --Indigo-50: #eef4ff;
+  --Indigo-700: #3538cd;
 }
 
 @theme inline {
@@ -10,6 +43,10 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-manrope: var(--font-manrope);
+  --font-inter: var(--font-inter);
+  --font-mulish: var(--font-mulish);
+  --font-outfit: var(--font-outfit);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,5 +59,103 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-manrope), Arial, Helvetica, sans-serif;
+}
+
+/* Placeholder styling */
+.login-input::placeholder {
+  color: #717680;
+  font-family: var(--font-manrope);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+}
+
+/* Custom utility classes */
+.shadow-card {
+  box-shadow:
+    0px 1px 4px 0px rgba(12, 12, 13, 0.10000000149011612),
+    0px 1px 4px 0px rgba(12, 12, 13, 0.05000000074505806);
+}
+
+.shadow-button {
+  box-shadow: 0px 1px 2px 0px rgba(10, 13, 18, 0.05);
+}
+
+.text-gray-900 {
+  color: var(--Gray-900);
+}
+.text-gray-700 {
+  color: var(--Gray-700);
+}
+.text-gray-600 {
+  color: var(--Gray-600);
+}
+.text-gray-500 {
+  color: var(--Gray-500);
+}
+.text-gray-400 {
+  color: var(--Gray-400);
+}
+.bg-gray-200 {
+  background-color: var(--Gray-200);
+}
+.bg-gray-300 {
+  background-color: var(--Gray-300);
+}
+.bg-gray-100 {
+  background-color: var(--Gray-100);
+}
+.bg-gray-50 {
+  background-color: var(--Gray-50);
+}
+.border-gray-300 {
+  border-color: var(--Gray-300);
+}
+.border-gray-200 {
+  border-color: var(--Gray-200);
+}
+.bg-primary-blue {
+  background-color: var(--Primary-Blue);
+}
+.text-primary-blue {
+  color: var(--Primary-Blue);
+}
+.bg-blue-600 {
+  background-color: var(--Blue-600);
+}
+.text-blue-600 {
+  color: var(--Blue-600);
+}
+.bg-blue-700 {
+  background-color: var(--Blue-700);
+}
+.text-blue-700 {
+  color: var(--Blue-700);
+}
+.bg-yellow-banner {
+  background-color: var(--Yellow-Banner);
+}
+
+/* Profile Page Utilities */
+.bg-primary-purple {
+  background-color: var(--Light-Solid-Color-Primary-Primary-400);
+}
+.text-heading {
+  color: var(--Light-Typography-Color-Heading-Text);
+}
+.text-primary-dark {
+  color: var(--Text-Primary);
+}
+.bg-success-50 {
+  background-color: var(--Success-50);
+}
+.text-success-700 {
+  color: var(--Success-700);
+}
+.bg-indigo-50 {
+  background-color: var(--Indigo-50);
+}
+.text-indigo-700 {
+  color: var(--Indigo-700);
 }
