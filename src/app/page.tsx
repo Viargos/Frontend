@@ -1,22 +1,27 @@
-import LeftSidebar from "./components/LeftSidebar";
-import RightSidebar from "./components/RightSidebar";
+import Header from "@/components/home/Header";
+import PopularJourneys from "@/components/home/PopularJourneys";
+
 
 export default function Home() {
   return (
-    <>
-      <main>
-        <div className="flex justify-between">
-          <div className="">
-            <LeftSidebar />
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <Header />
+
+        {/* Main Content Layout */}
+        <div className="flex gap-6 lg:gap-8">
+          {/* Main Journey Gallery */}
+          <div className="flex-1 max-w-3xl">
+            {/* <JourneyGallery /> */}
           </div>
-          <div className="">
-            <h1>Hi, Vraj</h1>
-          </div>
-          <div className="">
-            <RightSidebar />
+
+          {/* Sidebar */}
+          <div className="hidden lg:block w-80 flex-shrink-0">
+            <PopularJourneys />
           </div>
         </div>
-      </main>
-    </>
+      </div>
+    </div>
   );
 }
