@@ -36,10 +36,12 @@ export default function ProfilePage() {
         {/* Profile Header Card */}
         <div className="flex flex-col justify-center items-start -gap-12 w-full rounded-md bg-white shadow-lg overflow-hidden">
           {/* Hero Background Image */}
-          <img
+          <Image
             src="/london.png?format=webp&width=800"
             alt="Profile background"
             className="h-[270px] w-full object-cover"
+            width={50}
+            height={50}
           />
 
           {/* Avatar and Stats Section */}
