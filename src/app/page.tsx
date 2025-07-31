@@ -3,12 +3,10 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth.store";
-import AuthModal from "@/components/auth/AuthModal";
-import { useState } from "react";
+import Header from "@/components/home/Header";
 
 export default function Home() {
   const { user, isAuthenticated, getProfile } = useAuthStore();
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -40,31 +38,7 @@ export default function Home() {
     <>
       <div className="min-h-screen bg-gray-50">
         {/* Top Header */}
-        <header className="flex justify-between items-center w-full p-4 bg-white border-b border-gray-200">
-          {/* Logo */}
-          <div className="flex items-center">
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg mr-3">
-              V
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900">viargos</h1>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setShowAuthModal(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            >
-              Sign In
-            </button>
-            <button
-              onClick={() => setShowAuthModal(true)}
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
-            >
-              Sign Up
-            </button>
-          </div>
-        </header>
+        <Header user={user} />
 
         <div className="p-6">
           <div className="max-w-7xl mx-auto">
@@ -186,12 +160,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-
-      {/* Auth Modal */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-      />
     </>
   );
 }

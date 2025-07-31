@@ -41,7 +41,9 @@ export default function AuthModal({
   };
 
   const handleOtpSuccess = () => {
-    handleClose();
+    // After successful OTP verification, redirect to login
+    setCurrentStep("login");
+    setSignupEmail("");
   };
 
   const handleResendOtp = async () => {
