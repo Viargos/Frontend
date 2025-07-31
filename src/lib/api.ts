@@ -5,6 +5,11 @@ import {
   AuthResponse,
   ApiResponse,
 } from "@/types/auth.types";
+import {
+  Journey,
+  CreateJourneyDto,
+  UpdateJourneyDto,
+} from "@/types/journey.types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -105,6 +110,123 @@ class ApiClient {
       method: "POST",
       body: JSON.stringify(data),
     });
+  }
+
+  // Journey methods
+  async getMyJourneys(): Promise<ApiResponse<Journey[]>> {
+    return this.request<Journey[]>("/journeys/my-journeys");
+  }
+
+  async getAllJourneys(): Promise<ApiResponse<Journey[]>> {
+    return this.request<Journey[]>("/journeys");
+  }
+
+  async getJourney(id: string): Promise<ApiResponse<Journey>> {
+    return this.request<Journey>(`/journeys/${id}`);
+  }
+
+  async createJourney(data: CreateJourneyDto): Promise<ApiResponse<Journey>> {
+    return this.request<Journey>("/journeys", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateJourney(
+    id: string,
+    data: UpdateJourneyDto
+  ): Promise<ApiResponse<Journey>> {
+    return this.request<Journey>(`/journeys/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteJourney(id: string): Promise<ApiResponse<void>> {
+    return this.request<void>(`/journeys/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  // User statistics methods
+  async getUserStats(userId: string): Promise<
+    ApiResponse<{
+      posts: number;
+      journeys: number;
+      followers: number;
+      following: number;
+    }>
+  > {
+    try {
+      const [postCount, journeyCount, followerCount, followingCount] =
+        await Promise.all([
+          this.request<{ count: number }>(`/posts/user/${userId}/count`),
+          this.request<Journey[]>(`/journeys/my-journeys`),
+          this.request<{ count: number }>(
+            `/users/relationships/${userId}/followers/count`
+          ),
+          this.request<{ count: number }>(
+            `/users/relationships/${userId}/following/count`
+          ),
+        ]);
+
+      return {
+        data: {
+          posts: postCount.data?.count || 0,
+          journeys: journeyCount.data?.length || 0,
+          followers: followerCount.data?.count || 0,
+          following: followingCount.data?.count || 0,
+        },
+        statusCode: 200,
+        message: "User stats retrieved successfully",
+      };
+    } catch {
+      return {
+        data: { posts: 0, journeys: 0, followers: 0, following: 0 },
+        statusCode: 500,
+        message: "Failed to retrieve user stats",
+      };
+    }
+  }
+
+  async getCurrentUserStats(): Promise<
+    ApiResponse<{
+      posts: number;
+      journeys: number;
+      followers: number;
+      following: number;
+    }>
+  > {
+    try {
+      const [postCount, journeyCount, followerCount, followingCount] =
+        await Promise.all([
+          this.request<{ count: number }>("/posts/user/me/count"),
+          this.request<Journey[]>("/journeys/my-journeys"),
+          this.request<{ count: number }>(
+            "/users/relationships/followers/count"
+          ),
+          this.request<{ count: number }>(
+            "/users/relationships/following/count"
+          ),
+        ]);
+
+      return {
+        data: {
+          posts: postCount.data?.count || 0,
+          journeys: journeyCount.data?.length || 0,
+          followers: followerCount.data?.count || 0,
+          following: followingCount.data?.count || 0,
+        },
+        statusCode: 200,
+        message: "Current user stats retrieved successfully",
+      };
+    } catch {
+      return {
+        data: { posts: 0, journeys: 0, followers: 0, following: 0 },
+        statusCode: 500,
+        message: "Failed to retrieve current user stats",
+      };
+    }
   }
 }
 
