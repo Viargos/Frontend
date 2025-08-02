@@ -228,6 +228,73 @@ class ApiClient {
       };
     }
   }
+
+  // Image upload methods
+  async uploadProfileImage(
+    file: File
+  ): Promise<ApiResponse<{ imageUrl: string; message: string }>> {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const token = localStorage.getItem("token");
+    const url = `${this.baseURL}/users/profile-image`;
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Upload failed");
+      }
+
+      return data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error("Network error");
+    }
+  }
+
+  async uploadBannerImage(
+    file: File
+  ): Promise<ApiResponse<{ imageUrl: string; message: string }>> {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const token = localStorage.getItem("token");
+    const url = `${this.baseURL}/users/banner-image`;
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Upload failed");
+      }
+
+      return data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error("Network error");
+    }
+  }
 }
 
 const apiClient = new ApiClient(API_BASE_URL);

@@ -46,7 +46,8 @@ export const useAuthStore = create<AuthStore>()(
           }
         } catch (error: unknown) {
           const errorMessage =
-            (error as any)?.response?.data?.message || "Login failed";
+            (error as { response?: { data?: { message?: string } } })?.response
+              ?.data?.message || "Login failed";
           set({ error: errorMessage, isAuthenticated: false });
         } finally {
           set({ isLoading: false });
@@ -60,8 +61,10 @@ export const useAuthStore = create<AuthStore>()(
           await apiClient.signUp(credentials);
           console.log("signup successful - check backend console for OTP");
           set({ error: null });
-        } catch (error: any) {
-          const errorMessage = error.response?.data?.message || "Signup failed";
+        } catch (error: unknown) {
+          const errorMessage =
+            (error as { response?: { data?: { message?: string } } })?.response
+              ?.data?.message || "Signup failed";
           set({ error: errorMessage });
         } finally {
           set({ isLoading: false });
@@ -82,9 +85,10 @@ export const useAuthStore = create<AuthStore>()(
             // Get user profile
             await get().getProfile();
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           const errorMessage =
-            error.response?.data?.message || "OTP verification failed";
+            (error as { response?: { data?: { message?: string } } })?.response
+              ?.data?.message || "OTP verification failed";
           set({ error: errorMessage });
         } finally {
           set({ isLoading: false });
@@ -105,11 +109,15 @@ export const useAuthStore = create<AuthStore>()(
       getProfile: async () => {
         try {
           const response = await apiClient.getProfile();
-          const user: User = response.data;
+          const user: User | undefined = response.data;
+
+          if (!user) {
+            throw new Error("No user data received");
+          }
 
           set({ user, isAuthenticated: true });
           localStorage.setItem("user", JSON.stringify(user));
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error("Failed to get profile:", error);
           get().logout();
         }

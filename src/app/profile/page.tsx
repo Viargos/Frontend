@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth.store";
 import { useJourneyStore } from "@/store/journey.store";
 import { useRouter } from "next/navigation";
-import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
+import ProfileLayout from "@/components/layout/ProfileLayout";
 import UserStats from "../../components/UserStats";
 import ProfileActions from "../../components/ProfileActions";
 import JourneyCard from "../../components/JourneyCard";
@@ -30,6 +30,8 @@ export default function ProfilePage() {
     following: 0,
   });
   const [statsLoading, setStatsLoading] = useState(false);
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
+  const [bannerImageUrl, setBannerImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     // Check if user is authenticated on mount
@@ -44,6 +46,7 @@ export default function ProfilePage() {
     if (user && isAuthenticated) {
       fetchMyJourneys();
       fetchUserStats();
+      fetchImageUrls();
     }
   }, [user, isAuthenticated, fetchMyJourneys]);
 
@@ -60,6 +63,61 @@ export default function ProfilePage() {
       console.error("Failed to fetch user stats:", error);
     } finally {
       setStatsLoading(false);
+    }
+  };
+
+  const fetchImageUrls = async () => {
+    if (!user) return;
+
+    try {
+      // Use direct S3 URLs since images are now public
+      if (user.profileImage) {
+        setProfileImageUrl(user.profileImage);
+      }
+
+      if (user.bannerImage) {
+        setBannerImageUrl(user.bannerImage);
+      }
+    } catch (error) {
+      console.error("Failed to set image URLs:", error);
+    }
+  };
+
+  const handleProfileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    try {
+      const response = await apiClient.uploadProfileImage(file);
+      if (response.data) {
+        // Update the user profile with new image URL
+        await getProfile();
+        // Set the new image URL directly since it's public
+        setProfileImageUrl(response.data.imageUrl);
+      }
+    } catch (error) {
+      console.error("Failed to upload profile image:", error);
+    }
+  };
+
+  const handleBannerUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    try {
+      const response = await apiClient.uploadBannerImage(file);
+      if (response.data) {
+        // Update the user profile with new image URL
+        await getProfile();
+        // Set the new image URL directly since it's public
+        setBannerImageUrl(response.data.imageUrl);
+      }
+    } catch (error) {
+      console.error("Failed to upload banner image:", error);
     }
   };
 
@@ -96,18 +154,45 @@ export default function ProfilePage() {
   }));
 
   return (
-    <AuthenticatedLayout>
+    <ProfileLayout>
       <div className="flex flex-col items-start gap-6 flex-1 w-full max-w-4xl mx-auto">
         {/* Profile Header Card */}
         <div className="flex flex-col justify-center items-start -gap-12 w-full rounded-md bg-white shadow-lg overflow-hidden">
           {/* Hero Background Image */}
-          <Image
-            src="/london.png?format=webp&width=800"
-            alt="Profile background"
-            className="h-[270px] w-full object-cover"
-            width={50}
-            height={50}
-          />
+          <div className="relative h-[270px] w-full">
+            {bannerImageUrl ? (
+              <Image
+                src={bannerImageUrl}
+                alt="Profile background"
+                className="h-[270px] w-full object-cover"
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                priority
+              />
+            ) : (
+              <Image
+                src="/london.png?format=webp&width=800"
+                alt="Profile background"
+                className="h-[270px] w-full object-cover"
+                width={800}
+                height={270}
+              />
+            )}
+            {/* Banner Upload Button */}
+            <button
+              onClick={() => document.getElementById("banner-upload")?.click()}
+              className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-md text-sm hover:bg-white/30 transition-colors"
+            >
+              Change Banner
+            </button>
+            <input
+              id="banner-upload"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleBannerUpload}
+            />
+          </div>
 
           {/* Avatar and Stats Section */}
           <div className="flex h-48 pb-6 px-6 items-end gap-20 w-full -mt-12">
@@ -119,10 +204,48 @@ export default function ProfilePage() {
                   <div className="w-30 h-30 rounded-lg bg-primary-purple absolute left-0 top-0" />
                   <div className="w-24 h-24 rounded-lg bg-white bg-opacity-30 absolute left-3 top-3" />
                 </div>
-                {/* Avatar Image - using user's first initial */}
-                <div className="w-30 h-30 rounded-lg absolute left-0 top-0 bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold">
-                  {user?.username?.charAt(0).toUpperCase() || "U"}
-                </div>
+                {/* Avatar Image */}
+                {profileImageUrl ? (
+                  <Image
+                    src={profileImageUrl}
+                    alt="Profile"
+                    width={120}
+                    height={120}
+                    className="w-30 h-30 rounded-lg absolute left-0 top-0 object-cover"
+                  />
+                ) : (
+                  <div className="w-30 h-30 rounded-lg absolute left-0 top-0 bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold">
+                    {user?.username?.charAt(0).toUpperCase() || "U"}
+                  </div>
+                )}
+                {/* Profile Upload Button */}
+                <button
+                  onClick={() =>
+                    document.getElementById("profile-upload")?.click()
+                  }
+                  className="absolute -bottom-2 -right-2 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors shadow-lg"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                    />
+                  </svg>
+                </button>
+                <input
+                  id="profile-upload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleProfileUpload}
+                />
               </div>
 
               {/* Name */}
@@ -157,7 +280,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Action Buttons */}
-        <ProfileActions />
+        {/* <ProfileActions /> */}
 
         {/* Profile Navigation Tabs */}
         <div className="flex items-center gap-8 w-full border-b border-gray-200">
@@ -297,6 +420,6 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
-    </AuthenticatedLayout>
+    </ProfileLayout>
   );
 }

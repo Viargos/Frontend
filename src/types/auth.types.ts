@@ -5,6 +5,7 @@ export interface User {
   phoneNumber?: string;
   bio?: string;
   profileImage?: string;
+  bannerImage?: string;
   location?: string;
   isActive: boolean;
   createdAt: Date;
