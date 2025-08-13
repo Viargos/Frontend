@@ -38,9 +38,17 @@ export default function LoginForm({
   const onSubmit = async (data: LoginFormData) => {
     clearError();
     try {
-      await login(data);
-      onSuccess?.();
+      console.log("====----");
+      
+      const result = await login(data);
+      
+      // Only call onSuccess if login was successful
+      if (result.success) {
+        onSuccess?.();
+      }
     } catch (error) {
+      console.log(error,'------');
+      
       // Error is handled in the store
     }
   };
@@ -188,7 +196,7 @@ export default function LoginForm({
 
         <div className="text-center">
           <p className="text-sm text-gray-600">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <button
               type="button"
               onClick={onSwitchToSignup}

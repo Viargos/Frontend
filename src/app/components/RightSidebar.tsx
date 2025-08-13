@@ -48,7 +48,7 @@ const RightSidebar = () => {
 
   return (
     <div className="h-full bg-gray-100">
-      <div className="p-4">
+      <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-4">
           Popular Journey
         </h2>

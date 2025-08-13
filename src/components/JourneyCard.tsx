@@ -1,7 +1,7 @@
 import Badge from "./Badge";
 import ArrowUpRightIcon from "./icons/ArrowUpRightIcon";
 import LocationIcon from "./icons/LocationIcon";
-import BuildingMonumentIcon from "./icons/BuildingMonumentIcon";
+import { BuildingMonumentIcon } from "./icons/BuildingMonumentIcon";
 
 interface JourneyCardProps {
   image: string;

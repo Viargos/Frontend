@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import ImagePlusIcon from "../icons/ImagePlusIcon";
 import JourneyIcon from "../icons/JourneyIcon";
 import Button from "../ui/Button";
@@ -46,30 +47,36 @@ export default function Header({ user }: HeaderProps) {
     setIsAuthModalOpen(true);
   };
 
+  const handleAuthModalClose = () => {
+    setIsAuthModalOpen(false);
+    // Reset to default step when modal closes
+    setAuthStep("login");
+  };
+
   const handleLogout = () => {
     logout();
   };
 
   return (
-    <header className="flex justify-between items-center w-full p-4 bg-white border-b border-gray-200">
+    <header className="flex gap-4 justify-between items-center w-full p-4 bg-white border-b border-gray-200">
       {/* Logo */}
       <div className="flex items-center">
-        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg mr-3">
-          V
+        <div className="flex items-center justify-center text-white font-bold text-lg mr-1">
+          <Image src="/viargos.svg" alt="viargos" width={45} height={45} className="block sm:hidden" />
+          <Image src="/viargos_full.svg" alt="viargos" width={130} height={50} className="hidden sm:block" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900">viargos</h1>
       </div>
 
       {/* Search Bar */}
-      <div className="flex-1 max-w-md mx-8">
+      <div className="flex-1 max-w-md">
         <div className="relative">
           <input
             type="text"
-            placeholder="Q Search"
-            className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black placeholder-gray-500"
+            placeholder="Search"
+            className="w-full h-9 px-4 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black placeholder-gray-500 text-sm"
           />
           <svg
-            className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
+            className="absolute left-3 top-2 h-5 w-5 text-gray-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -85,7 +92,7 @@ export default function Header({ user }: HeaderProps) {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2">
         {isAuthenticated ? (
           <>
             <Button
@@ -94,7 +101,7 @@ export default function Header({ user }: HeaderProps) {
               icon={<ImagePlusIcon className="text-gray-700" />}
               iconPosition="leading"
             >
-              Add Post
+              <span className="hidden sm:inline">Add Post</span>
             </Button>
 
             <Button
@@ -103,7 +110,7 @@ export default function Header({ user }: HeaderProps) {
               icon={<JourneyIcon className="text-gray-700" />}
               iconPosition="leading"
             >
-              Create Journey
+              <span className="hidden sm:inline">Create Journey</span>
             </Button>
 
            
@@ -166,7 +173,7 @@ export default function Header({ user }: HeaderProps) {
       {/* Auth Modal */}
       <AuthModal
         isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
+        onClose={handleAuthModalClose}
         initialStep={authStep}
       />
     </header>

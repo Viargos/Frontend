@@ -48,11 +48,25 @@ class ApiClient {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "API request failed");
+        // Create an axios-like error structure for consistency
+        const apiError = new Error(data.message || "API request failed") as any;
+        apiError.response = {
+          data: data,
+          status: response.status,
+          statusText: response.statusText
+        };
+        apiError.statusCode = data.statusCode;
+        throw apiError;
       }
 
       return data;
     } catch (error) {
+      // If it's already our custom error, throw it as is
+      if (error && typeof error === 'object' && 'response' in error) {
+        throw error;
+      }
+      
+      // For network errors or other issues
       if (error instanceof Error) {
         throw error;
       }
@@ -86,6 +100,13 @@ class ApiClient {
     return this.request<AuthResponse>("/auth/verify-otp", {
       method: "POST",
       body: JSON.stringify(data),
+    });
+  }
+
+  async resendOtp(email: string): Promise<ApiResponse<{ message: string }>> {
+    return this.request<{ message: string }>("/auth/resend-otp", {
+      method: "POST",
+      body: JSON.stringify({ email }),
     });
   }
 
@@ -251,11 +272,24 @@ class ApiClient {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Upload failed");
+        // Create an axios-like error structure for consistency
+        const apiError = new Error(data.message || "Upload failed") as any;
+        apiError.response = {
+          data: data,
+          status: response.status,
+          statusText: response.statusText
+        };
+        apiError.statusCode = data.statusCode;
+        throw apiError;
       }
 
       return data;
     } catch (error) {
+      // If it's already our custom error, throw it as is
+      if (error && typeof error === 'object' && 'response' in error) {
+        throw error;
+      }
+      
       if (error instanceof Error) {
         throw error;
       }
@@ -284,11 +318,24 @@ class ApiClient {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Upload failed");
+        // Create an axios-like error structure for consistency
+        const apiError = new Error(data.message || "Upload failed") as any;
+        apiError.response = {
+          data: data,
+          status: response.status,
+          statusText: response.statusText
+        };
+        apiError.statusCode = data.statusCode;
+        throw apiError;
       }
 
       return data;
     } catch (error) {
+      // If it's already our custom error, throw it as is
+      if (error && typeof error === 'object' && 'response' in error) {
+        throw error;
+      }
+      
       if (error instanceof Error) {
         throw error;
       }

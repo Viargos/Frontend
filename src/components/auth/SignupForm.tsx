@@ -30,7 +30,7 @@ export default function SignupForm({
   onSuccess,
   onSwitchToLogin,
 }: SignupFormProps) {
-  const { signup, isLoading, error, clearError } = useAuthStore();
+  const { signup, isLoading, error } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -43,18 +43,31 @@ export default function SignupForm({
   });
 
   const onSubmit = async (data: SignupFormData) => {
-    clearError();
     try {
-      await signup({
+      console.log("Starting signup with data:", { username: data.username, email: data.email });
+      
+      const result = await signup({
         username: data.username,
         email: data.email,
         phoneNumber: data.phoneNumber,
         password: data.password,
       });
-      onSuccess?.(data.email);
+      
+      console.log("Signup result:", result); // Debug log
+      
+      // Only call onSuccess if signup was successful
+      if (result.success) {
+        console.log("Signup successful, calling onSuccess");
+        onSuccess?.(data.email);
+      } else {
+        console.log("Signup failed, not calling onSuccess");
+        console.log("Result error:", result.error);
+        // Don't proceed - the error will be displayed by the store
+        return;
+      }
     } catch (error) {
       // Error is handled in the store
-      console.log("Signup error : ", error)
+      console.log("Signup error caught in form:", error)
     }
   };
 

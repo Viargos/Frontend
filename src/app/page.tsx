@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth.store";
 import Header from "@/components/home/Header";
+import AuthModal from "@/components/auth/AuthModal";
 
 export default function Home() {
   const { user, isAuthenticated, getProfile } = useAuthStore();
   const router = useRouter();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authStep, setAuthStep] = useState<"login" | "signup">("signup");
 
   useEffect(() => {
     // Check if user is authenticated on mount
@@ -40,34 +43,43 @@ export default function Home() {
         {/* Top Header */}
         <Header user={user} />
 
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <div className="max-w-7xl mx-auto">
             {/* Hero Section */}
-            <div className="bg-white rounded-lg shadow-sm p-8 mb-8">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            <div className="bg-white rounded-lg shadow-sm p-6 sm:p-8 mb-8">
+              <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-4">
                 Discover Amazing Journeys
               </h1>
-              <p className="text-xl text-gray-600 mb-6">
+              <p className="text-lg sm:text-xl text-gray-600 mb-6">
                 Share your travel experiences and explore incredible
                 destinations with the Viargos community.
               </p>
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <button
-                  onClick={() => setShowAuthModal(true)}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  onClick={() => {
+                    setAuthStep("signup");
+                    setShowAuthModal(true);
+                  }}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
                 >
                   Get Started
                 </button>
-                <button className="px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors">
-                  Learn More
+                <button
+                  onClick={() => {
+                    setAuthStep("login");
+                    setShowAuthModal(true);
+                  }}
+                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors font-medium"
+                >
+                  Sign In
                 </button>
               </div>
             </div>
 
             {/* Main Content Layout */}
-            <div className="flex gap-6 lg:gap-8">
+            <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
               {/* Main Journey Gallery */}
-              <div className="flex-1 max-w-3xl">
+              <div className="flex-1 lg:max-w-3xl">
                 {/* Sample Content */}
                 <div className="bg-white rounded-lg shadow-sm p-6">
                   <h2 className="text-2xl font-semibold text-gray-900 mb-4">
@@ -96,7 +108,7 @@ export default function Home() {
               </div>
 
               {/* Sidebar */}
-              <div className="hidden lg:block w-80 flex-shrink-0">
+              <div className="w-full lg:w-80 lg:flex-shrink-0">
                 <div className="bg-white rounded-lg shadow-sm p-6">
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">
                     Popular Journeys
@@ -160,6 +172,13 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        initialStep={authStep}
+      />
     </>
   );
 }

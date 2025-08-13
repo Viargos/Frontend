@@ -7,6 +7,7 @@ interface ModalProps {
   onClose: () => void;
   children: ReactNode;
   className?: string;
+  showBackdrop?: boolean;
 }
 
 export default function Modal({
@@ -14,6 +15,7 @@ export default function Modal({
   onClose,
   children,
   className = "",
+  showBackdrop = true,
 }: ModalProps) {
   useEffect(() => {
     if (isOpen) {
@@ -46,13 +48,15 @@ export default function Modal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#00000060]">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black bg-opacity-50"
-        onClick={onClose}
-        aria-hidden="true"
-      />
+      {showBackdrop && (
+        <div
+          className="absolute inset-0"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
 
       {/* Modal Content */}
       <div

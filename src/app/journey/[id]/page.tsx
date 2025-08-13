@@ -12,7 +12,6 @@ import {
   NotesIcon,
 } from "@/components/icons";
 import JourneyMap from "@/components/maps/JourneyMap";
-import BannerEditModal from "@/components/journey/BannerEditModal";
 
 interface Location {
   id: string;
@@ -68,6 +67,8 @@ export default function JourneyDetailsPage() {
     null
   );
   const [isBannerEditModalOpen, setIsBannerEditModalOpen] = useState(false);
+  console.log(isBannerEditModalOpen,selectedLocation);
+  
 
   useEffect(() => {
     // Get location data from sessionStorage if available
@@ -194,14 +195,14 @@ export default function JourneyDetailsPage() {
     setSelectedLocation(location);
   };
 
-  const handleBannerSave = (bannerData: BannerData) => {
-    if (journey) {
-      setJourney({
-        ...journey,
-        banner: bannerData,
-      });
-    }
-  };
+  // const handleBannerSave = (bannerData: BannerData) => {
+  //   if (journey) {
+  //     setJourney({
+  //       ...journey,
+  //       banner: bannerData,
+  //     });
+  //   }
+  // };
 
   // Get all locations for the current day
   const getCurrentDayLocations = (): Location[] => {

@@ -5,10 +5,10 @@ import DayFilter from "../../components/DayFilter";
 import PlanningCategory from "../../components/PlanningCategory";
 import MapLocationMarker from "../../components/MapLocationMarker";
 import PlaceToStayIcon from "../../components/icons/PlaceToStayIcon";
-import TreesIcon from "../../components/icons/TreesIcon";
-import FoodIcon from "../../components/icons/FoodIcon";
-import TransportIcon from "../../components/icons/TransportIcon";
-import NotesIcon from "../../components/icons/NotesIcon";
+import { TreesIcon } from "../../components/icons/TreesIcon";
+import { FoodIcon } from "../../components/icons/FoodIcon";
+import { TransportIcon } from "../../components/icons/TransportIcon";
+import { NotesIcon } from "../../components/icons/NotesIcon";
 import Button from "@/components/ui/Button";
 
 export default function CreateJourneyPage() {

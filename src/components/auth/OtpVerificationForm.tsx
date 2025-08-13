@@ -23,12 +23,11 @@ export default function OtpVerificationForm({
   onSuccess,
   onResendOtp,
 }: OtpVerificationFormProps) {
-  const { verifyOtp, isLoading, error, clearError } = useAuthStore();
+  const { verifyOtp, isLoading, error } = useAuthStore();
   const [resendTimer, setResendTimer] = useState(0);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const {
-    register,
     handleSubmit,
     formState: { errors },
     setValue,
@@ -40,10 +39,14 @@ export default function OtpVerificationForm({
   const otpValue = watch("otp") || "";
 
   useEffect(() => {
-    if (otpValue.length === 6) {
-      handleSubmit(onSubmit)();
+    if (otpValue.length === 6 && !isLoading) {
+      // Small delay to ensure the last digit is properly set
+      const timer = setTimeout(() => {
+        handleSubmit(onSubmit)();
+      }, 100);
+      return () => clearTimeout(timer);
     }
-  }, [otpValue]);
+  }, [otpValue, isLoading]);
 
   useEffect(() => {
     if (resendTimer > 0) {
@@ -53,17 +56,31 @@ export default function OtpVerificationForm({
   }, [resendTimer]);
 
   const onSubmit = async (data: OtpFormData) => {
-    clearError();
     try {
-      await verifyOtp(email, data.otp);
-      onSuccess?.();
+      console.log("Verifying OTP for email:", email);
+      
+      const result = await verifyOtp(email, data.otp);
+      
+      console.log("OTP verification result:", result);
+      
+      // Only call onSuccess if OTP verification was successful
+      if (result.success) {
+        console.log("OTP verification successful, calling onSuccess");
+        onSuccess?.();
+      } else {
+        console.log("OTP verification failed:", result.error);
+      }
     } catch (error) {
+      console.error("OTP verification error caught in form:", error);
       // Error is handled in the store
     }
   };
 
   const handleOtpChange = (index: number, value: string) => {
     if (value.length > 1) return; // Only allow single digit
+    
+    // Only allow digits
+    if (!/^\d*$/.test(value)) return;
 
     const newOtp = otpValue.split("");
     newOtp[index] = value;
@@ -82,9 +99,13 @@ export default function OtpVerificationForm({
     }
   };
 
-  const handleResendOtp = () => {
+  const handleResendOtp = async () => {
     setResendTimer(60);
-    onResendOtp?.();
+    try {
+      await onResendOtp?.();
+    } catch (error) {
+      console.error("Error in resend OTP:", error);
+    }
   };
 
   return (
@@ -94,7 +115,7 @@ export default function OtpVerificationForm({
           Verify your email
         </h2>
         <p className="text-gray-600">
-          We've sent a verification code to{" "}
+          We&apos;ve sent a verification code to{" "}
           <span className="font-medium">{email}</span>
         </p>
       </div>
@@ -114,11 +135,21 @@ export default function OtpVerificationForm({
             {Array.from({ length: 6 }).map((_, index) => (
               <input
                 key={index}
-                ref={(el) => (inputRefs.current[index] = el)}
+                ref={(el) => {
+                  inputRefs.current[index] = el;
+                }}
                 type="text"
+                inputMode="numeric"
                 maxLength={1}
+                aria-label={`OTP digit ${index + 1}`}
                 className="w-12 h-12 text-center border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-medium"
                 onChange={(e) => handleOtpChange(index, e.target.value)}
+                onKeyPress={(e) => {
+                  // Only allow digits
+                  if (!/[0-9]/.test(e.key)) {
+                    e.preventDefault();
+                  }
+                }}
                 onKeyDown={(e) => handleKeyDown(index, e)}
                 value={otpValue[index] || ""}
               />
@@ -132,8 +163,8 @@ export default function OtpVerificationForm({
         </div>
 
         <div className="text-center">
-          <p className="text-sm text-gray-600">
-            Didn't receive the code?{" "}
+                  <p className="text-sm text-gray-600">
+          Didn&apos;t receive the code?{" "}
             {resendTimer > 0 ? (
               <span className="text-gray-500">Resend in {resendTimer}s</span>
             ) : (

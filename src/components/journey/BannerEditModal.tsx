@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import InputField from "@/components/ui/InputField";
+import Dropzone from "@/components/ui/Dropzone";
 
 interface BannerData {
   title: string;
@@ -64,6 +65,19 @@ export default function BannerEditModal({
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setImagePreview(result);
+        setBannerData((prev) => ({ ...prev, imageUrl: result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDropzoneFileSelect = (files: FileList) => {
+    const file = files[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -138,16 +152,48 @@ export default function BannerEditModal({
                   onChange={handleImageUpload}
                   className="hidden"
                 />
+                
+                {/* Black Dropzone */}
+                <Dropzone
+                  onFileSelect={handleDropzoneFileSelect}
+                  accept="image/*"
+                  className="min-h-[120px]"
+                >
+                  <div className="text-white">
+                    <svg
+                      className="mx-auto h-8 w-8 text-gray-400 mb-2"
+                      stroke="currentColor"
+                      fill="none"
+                      viewBox="0 0 48 48"
+                    >
+                      <path
+                        d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                        strokeWidth={2}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    <div className="text-sm font-medium text-white mb-1">
+                      Drop image here or click to upload
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      PNG, JPG, GIF up to 10MB
+                    </p>
+                  </div>
+                </Dropzone>
+                
+                {/* Alternative button for those who prefer it */}
                 <Button
                   type="button"
                   variant="secondary"
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full"
+                  className="w-full text-sm"
                 >
-                  Choose Image
+                  Or choose from files
                 </Button>
+                
                 {imagePreview && (
-                  <div className="text-sm text-gray-500">Image selected ✓</div>
+                  <div className="text-sm text-green-600 font-medium">✓ Image selected</div>
                 )}
               </div>
             </div>
