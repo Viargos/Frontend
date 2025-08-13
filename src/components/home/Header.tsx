@@ -11,9 +11,10 @@ import AuthModal from "../auth/AuthModal";
 
 interface HeaderProps {
   user?: User;
+  onMobileMenuOpen?: () => void;
 }
 
-export default function Header({ user }: HeaderProps) {
+export default function Header({ user, onMobileMenuOpen }: HeaderProps) {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authStep, setAuthStep] = useState<"login" | "signup">("login");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -58,25 +59,48 @@ export default function Header({ user }: HeaderProps) {
   };
 
   return (
-    <header className="flex gap-4 justify-between items-center w-full p-4 bg-white border-b border-gray-200">
-      {/* Logo */}
-      <div className="flex items-center">
-        <div className="flex items-center justify-center text-white font-bold text-lg mr-1">
-          <Image src="/viargos.svg" alt="viargos" width={45} height={45} className="block sm:hidden" />
-          <Image src="/viargos_full.svg" alt="viargos" width={130} height={50} className="hidden sm:block" />
+    <header className="flex items-center justify-between w-full p-4 bg-white border-b border-gray-200 gap-2 sm:gap-4">
+      {/* Logo with Hamburger */}
+      <div className="flex items-center flex-shrink-0 gap-1">
+        {/* Hamburger Menu - visible only on mobile when authenticated */}
+        {isAuthenticated && onMobileMenuOpen && (
+          <button
+            onClick={onMobileMenuOpen}
+            className="lg:hidden flex items-center justify-center w-8 h-8 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+            aria-label="Open menu"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+          </button>
+        )}
+        
+        <div className="flex items-center justify-center text-white font-bold text-lg">
+          <Image src="/viargos.svg" alt="viargos" width={40} height={40} className="block sm:hidden" />
+          <Image src="/viargos_full.svg" alt="viargos" width={130} height={32} className="hidden sm:block" />
         </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="flex-1 max-w-md">
-        <div className="relative">
+      {/* Desktop Search Bar */}
+      <div className="hidden md:flex flex-1 max-w-md mx-4">
+        <div className="relative w-full">
           <input
             type="text"
             placeholder="Search"
-            className="w-full h-9 px-4 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black placeholder-gray-500 text-sm"
+            className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black placeholder-gray-500 text-sm leading-5 shadow-button"
           />
           <svg
-            className="absolute left-3 top-2 h-5 w-5 text-gray-400"
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -90,6 +114,32 @@ export default function Header({ user }: HeaderProps) {
           </svg>
         </div>
       </div>
+
+      {/* Mobile Search Field - visible on sm and xs when authenticated */}
+      {isAuthenticated && (
+        <div className="md:hidden flex-1 max-w-xs mx-2">
+          <div className="relative w-full">
+            <input
+              type="text"
+              placeholder="Search"
+              className="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black placeholder-gray-500 text-sm leading-5 shadow-button"
+            />
+            <svg
+              className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </div>
+        </div>
+      )}
 
       {/* Action Buttons */}
       <div className="flex items-center gap-2">

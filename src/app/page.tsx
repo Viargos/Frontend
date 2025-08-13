@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth.store";
 import Header from "@/components/home/Header";
 import AuthModal from "@/components/auth/AuthModal";
+import { PageLoading } from "@/components/common/Loading";
+import ErrorBoundary from "@/components/common/ErrorBoundary";
 
 export default function Home() {
   const { user, isAuthenticated, getProfile } = useAuthStore();
@@ -29,16 +31,13 @@ export default function Home() {
 
   // Show loading state while checking authentication
   if (isAuthenticated === null) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
-    );
+    return <PageLoading text="Checking authentication..." />;
   }
 
   // Show unauthenticated layout (landing page)
   return (
-    <>
+    <ErrorBoundary>
+      <>
       <div className="min-h-screen bg-gray-50">
         {/* Top Header */}
         <Header user={user} />
@@ -179,6 +178,7 @@ export default function Home() {
         onClose={() => setShowAuthModal(false)}
         initialStep={authStep}
       />
-    </>
+      </>
+    </ErrorBoundary>
   );
 }

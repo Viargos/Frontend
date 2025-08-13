@@ -8,6 +8,9 @@ interface ButtonProps {
   iconPosition?: "leading" | "trailing";
   onClick?: () => void;
   className?: string;
+  disabled?: boolean;
+  loading?: boolean;
+  type?: "button" | "submit" | "reset";
 }
 
 export default function Button({
@@ -18,6 +21,9 @@ export default function Button({
   iconPosition = "leading",
   onClick,
   className = "",
+  disabled = false,
+  loading = false,
+  type = "button",
 }: ButtonProps) {
   const baseClasses =
     "inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition-colors shadow-button font-manrope";
@@ -36,17 +42,28 @@ export default function Button({
   };
 
   const iconClasses = "w-5 h-5";
+  const isDisabled = disabled || loading;
+
+  const loadingSpinner = (
+    <div className="animate-spin rounded-full border-2 border-gray-300 border-t-current w-4 h-4" />
+  );
 
   return (
     <button
+      type={type}
       onClick={onClick}
-      className={`${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${className}`}
+      disabled={isDisabled}
+      className={`${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
     >
-      {icon && iconPosition === "leading" && (
-        <span className={iconClasses}>{icon}</span>
+      {loading ? (
+        loadingSpinner
+      ) : (
+        icon && iconPosition === "leading" && (
+          <span className={iconClasses}>{icon}</span>
+        )
       )}
       {children}
-      {icon && iconPosition === "trailing" && (
+      {!loading && icon && iconPosition === "trailing" && (
         <span className={iconClasses}>{icon}</span>
       )}
     </button>

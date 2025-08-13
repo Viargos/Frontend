@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth.store";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
+import { PageLoading } from "@/components/common/Loading";
+import ErrorBoundary from "@/components/common/ErrorBoundary";
 
 export default function DashboardPage() {
   const { user, isAuthenticated, getProfile } = useAuthStore();
@@ -21,16 +23,13 @@ export default function DashboardPage() {
 
   // Show loading state while checking authentication
   if (isAuthenticated === null || !user) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
-    );
+    return <PageLoading text="Loading dashboard..." />;
   }
 
   return (
-    <AuthenticatedLayout>
-      <div className="max-w-4xl mx-auto">
+    <ErrorBoundary>
+      <AuthenticatedLayout>
+        <div className="max-w-4xl mx-auto">
         {/* Sample Post */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
           {/* Post Header */}
@@ -201,7 +200,8 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
-      </div>
-    </AuthenticatedLayout>
+        </div>
+      </AuthenticatedLayout>
+    </ErrorBoundary>
   );
 }

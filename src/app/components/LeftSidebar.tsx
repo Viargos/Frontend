@@ -8,9 +8,10 @@ import { User } from "@/types/auth.types";
 interface LeftSidebarProps {
   user: User;
   onLogout: () => void;
+  onNavigate?: () => void;
 }
 
-const LeftSidebar = ({ user, onLogout }: LeftSidebarProps) => {
+const LeftSidebar = ({ user, onLogout, onNavigate }: LeftSidebarProps) => {
   const pathname = usePathname();
 
   const navigationItems = [
@@ -149,6 +150,7 @@ const LeftSidebar = ({ user, onLogout }: LeftSidebarProps) => {
             <li key={item.name}>
               <Link
                 href={item.href}
+                onClick={onNavigate}
                 className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   isActive(item.href)
                     ? "bg-gray-200 text-gray-900"
