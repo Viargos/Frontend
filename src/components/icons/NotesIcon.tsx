@@ -1,47 +1,20 @@
-interface IconProps {
+interface NotesIconProps {
   className?: string;
-  size?: number;
 }
 
-export default function NotesIcon({ className = "", size = 25 }: IconProps) {
+export function NotesIcon({ className = "w-4 h-4" }: NotesIconProps) {
   return (
     <svg
-      width={size}
-      height={size}
-      viewBox="0 0 25 25"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
       className={className}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
     >
-      <rect
-        x="5"
-        y="3"
-        width="15"
-        height="19"
-        rx="2.5"
-        stroke="currentColor"
-        strokeWidth="2.188"
-      />
       <path
-        d="M1.875 1.99202H8.125"
-        stroke="currentColor"
-        strokeWidth="2.1875"
         strokeLinecap="round"
         strokeLinejoin="round"
-      />
-      <path
-        d="M1.875 1.15853H8.125"
-        stroke="currentColor"
-        strokeWidth="2.1875"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M1.875 1.32503H6.04167"
-        stroke="currentColor"
-        strokeWidth="2.1875"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
       />
     </svg>
   );

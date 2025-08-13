@@ -1,38 +1,22 @@
-interface IconProps {
+interface BuildingMonumentIconProps {
   className?: string;
-  size?: number;
 }
 
-export default function BuildingMonumentIcon({
-  className = "",
-  size = 12,
-}: IconProps) {
+export function BuildingMonumentIcon({
+  className = "w-4 h-4",
+}: BuildingMonumentIconProps) {
   return (
     <svg
-      width={size}
-      height={size}
-      viewBox="0 0 12 12"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
       className={className}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
     >
       <path
-        d="M1.2085 8.3999L2.2085 1.8999L3.2085 0.899902L4.2085 1.8999L5.2085 8.3999"
-        stroke="currentColor"
         strokeLinecap="round"
         strokeLinejoin="round"
-      />
-      <path
-        d="M0.708496 2.8999V1.3999H7.7085V2.8999"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M0.708496 0.899902H9.7085"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
       />
     </svg>
   );

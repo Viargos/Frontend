@@ -5,8 +5,9 @@ import { useAuthStore } from "@/store/auth.store";
 import { useJourneyStore } from "@/store/journey.store";
 import { useRouter } from "next/navigation";
 import ProfileLayout from "@/components/layout/ProfileLayout";
+import NewJourneyModal from "@/components/journey/NewJourneyModal";
 import UserStats from "../../components/UserStats";
-import ProfileActions from "../../components/ProfileActions";
+
 import JourneyCard from "../../components/JourneyCard";
 import Button from "@/components/ui/Button";
 import Image from "next/image";
@@ -32,6 +33,7 @@ export default function ProfilePage() {
   const [statsLoading, setStatsLoading] = useState(false);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const [bannerImageUrl, setBannerImageUrl] = useState<string | null>(null);
+  const [isNewJourneyModalOpen, setIsNewJourneyModalOpen] = useState(false);
 
   useEffect(() => {
     // Check if user is authenticated on mount
@@ -119,6 +121,34 @@ export default function ProfilePage() {
     } catch (error) {
       console.error("Failed to upload banner image:", error);
     }
+  };
+
+  const handleCreateJourney = (journeyData: {
+    name: string;
+    journeyDate: string;
+    location: string;
+    locationData?: {
+      id: string;
+      name: string;
+      lat: number;
+      lng: number;
+      address: string;
+    };
+  }) => {
+    console.log("Creating journey:", journeyData);
+    // TODO: Create journey via API
+    setIsNewJourneyModalOpen(false);
+
+    // Store location data in sessionStorage for the journey details page
+    if (journeyData.locationData) {
+      sessionStorage.setItem(
+        "journeyLocationData",
+        JSON.stringify(journeyData.locationData)
+      );
+    }
+
+    // Navigate to journey details page
+    router.push(`/journey/new`);
   };
 
   // Redirect unauthenticated users to home
@@ -323,7 +353,11 @@ export default function ProfilePage() {
               <h2 className="flex-1 text-black font-outfit text-2xl font-medium leading-[120%]">
                 My Journey
               </h2>
-              <Button variant="primary" size="lg">
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={() => setIsNewJourneyModalOpen(true)}
+              >
                 Create new Journey
               </Button>
             </div>
@@ -420,6 +454,13 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
+
+      {/* New Journey Modal */}
+      <NewJourneyModal
+        isOpen={isNewJourneyModalOpen}
+        onClose={() => setIsNewJourneyModalOpen(false)}
+        onSubmit={handleCreateJourney}
+      />
     </ProfileLayout>
   );
 }
