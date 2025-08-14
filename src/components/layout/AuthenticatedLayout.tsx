@@ -5,6 +5,7 @@ import { useAuthStore } from "@/store/auth.store";
 import LeftSidebar from "@/app/components/LeftSidebar";
 import RightSidebar from "@/app/components/RightSidebar";
 import Header from "@/components/home/Header";
+import AnimatedSidebar from './AnimatedSidebar';
 
 interface AuthenticatedLayoutProps {
   children: React.ReactNode;
@@ -56,53 +57,21 @@ export default function AuthenticatedLayout({
           <LeftSidebar user={user} onLogout={logout} />
         </div>
 
-        {/* Mobile Sidebar Overlay */}
-        {isMobileSidebarOpen && (
-          <div className="fixed inset-0 z-50 lg:hidden">
-            {/* Backdrop */}
-            <div
-              className="fixed inset-0"
-              style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
-              onClick={() => setIsMobileSidebarOpen(false)}
-            />
-            
-            {/* Sidebar */}
-            <div className="fixed top-0 left-0 bottom-0 w-64 bg-gray-100 shadow-xl transform transition-transform duration-300 ease-in-out">
-              {/* Close Button */}
-              <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
-                <button
-                  onClick={() => setIsMobileSidebarOpen(false)}
-                  className="w-8 h-8 flex items-center justify-center rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-200 transition-colors"
-                  aria-label="Close menu"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </div>
-              
-              {/* Sidebar Content */}
-              <div className="h-full overflow-y-auto">
-                <LeftSidebar 
-                  user={user} 
-                  onLogout={logout} 
-                  onNavigate={() => setIsMobileSidebarOpen(false)}
-                />
-              </div>
-            </div>
-          </div>
-        )}
+      {/* Mobile Sidebar with Animation */}
+      <AnimatedSidebar
+        isOpen={isMobileSidebarOpen}
+        onClose={() => setIsMobileSidebarOpen(false)}
+        title="Navigation"
+        position="left"
+        width="w-64"
+        showOnDesktop={false}
+      >
+        <LeftSidebar 
+          user={user} 
+          onLogout={logout} 
+          onNavigate={() => setIsMobileSidebarOpen(false)}
+        />
+      </AnimatedSidebar>
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col xl:flex-row">

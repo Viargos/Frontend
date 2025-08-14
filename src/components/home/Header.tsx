@@ -6,19 +6,20 @@ import ImagePlusIcon from "../icons/ImagePlusIcon";
 import JourneyIcon from "../icons/JourneyIcon";
 import Button from "../ui/Button";
 import { User } from "@/types/auth.types";
-import { useAuthStore } from "@/store/auth.store";
-import AuthModal from "../auth/AuthModal";
+import { useAuthStoreV2 } from "@/store/auth.store.v2";
+import AnimatedAuthModal from "../auth/AnimatedAuthModal";
 
 interface HeaderProps {
-  user?: User;
+  user?: User | null;
   onMobileMenuOpen?: () => void;
+  isMobileMenuOpen?: boolean;
 }
 
 export default function Header({ user, onMobileMenuOpen }: HeaderProps) {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authStep, setAuthStep] = useState<"login" | "signup">("login");
   const [showDropdown, setShowDropdown] = useState(false);
-  const { logout, isAuthenticated } = useAuthStore();
+  const { logout, isAuthenticated } = useAuthStoreV2();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -220,8 +221,8 @@ export default function Header({ user, onMobileMenuOpen }: HeaderProps) {
         )}
       </div>
 
-      {/* Auth Modal */}
-      <AuthModal
+      {/* Animated Auth Modal */}
+      <AnimatedAuthModal
         isOpen={isAuthModalOpen}
         onClose={handleAuthModalClose}
         initialStep={authStep}
