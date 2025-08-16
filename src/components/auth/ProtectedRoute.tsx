@@ -3,37 +3,46 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth.store";
+import { PageLoading } from "@/components/common/Loading";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  fallback?: React.ReactNode;
+  redirectTo?: string;
 }
 
-export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user, isAuthenticated, getProfile } = useAuthStore();
+/**
+ * ProtectedRoute - Component-level route protection
+ * Alternative to layout-based protection for specific components
+ * 
+ * Usage:
+ * <ProtectedRoute>
+ *   <YourProtectedComponent />
+ * </ProtectedRoute>
+ */
+export default function ProtectedRoute({ 
+  children, 
+  fallback,
+  redirectTo = "/" 
+}: ProtectedRouteProps) {
+  const { user, isAuthenticated } = useAuthStore();
   const router = useRouter();
 
   useEffect(() => {
-    // Check if user is authenticated on mount
-    const token = localStorage.getItem("token");
-    if (token && !user) {
-      getProfile();
-    } else if (!token) {
-      router.push("/");
+    // Redirect unauthenticated users
+    if (isAuthenticated === false) {
+      router.push(redirectTo);
     }
-  }, [getProfile, user, router]);
+  }, [isAuthenticated, router, redirectTo]);
 
-  // Show loading state while checking authentication
-  if (isAuthenticated === null || !user) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
-    );
+  // Show loading while auth state is being determined
+  if (isAuthenticated === null) {
+    return fallback || <PageLoading text="Loading..." />;
   }
 
-  // If not authenticated, don't render children
-  if (!isAuthenticated) {
-    return null;
+  // Show loading if redirecting
+  if (!isAuthenticated || !user) {
+    return fallback || <PageLoading text="Redirecting..." />;
   }
 
   return <>{children}</>;

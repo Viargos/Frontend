@@ -1,4 +1,4 @@
-import { IValidationService } from '../interfaces/auth.interface';
+import { IValidationService, ValidationResult } from '@/lib/interfaces/auth.interface';
 
 export class ValidationService implements IValidationService {
   private readonly EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

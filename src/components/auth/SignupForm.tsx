@@ -33,18 +33,22 @@ export default function SignupForm({
   const { signup, isLoading, error } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const {
     register,
     handleSubmit,
     formState: { errors },
+    setError,
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
   });
 
   const onSubmit = async (data: SignupFormData) => {
     try {
-      console.log("Starting signup with data:", { username: data.username, email: data.email });
+      
+      // Clear previous field errors
+      setFieldErrors({});
       
       const result = await signup({
         username: data.username,
@@ -53,21 +57,34 @@ export default function SignupForm({
         password: data.password,
       });
       
-      console.log("Signup result:", result); // Debug log
-      
       // Only call onSuccess if signup was successful
       if (result.success) {
-        console.log("Signup successful, calling onSuccess");
         onSuccess?.(data.email);
       } else {
-        console.log("Signup failed, not calling onSuccess");
-        console.log("Result error:", result.error);
-        // Don't proceed - the error will be displayed by the store
+        
+        // Check if the error has field-specific validation errors
+        if (result.error && typeof result.error === 'object' && 'errors' in result.error) {
+          const validationErrors = result.error.errors as Record<string, string>;
+          
+          // Set field-specific errors using react-hook-form
+          Object.entries(validationErrors).forEach(([field, message]) => {
+            if (field === 'email') {
+              setError('email', { type: 'server', message });
+            } else if (field === 'phoneNumber') {
+              setError('phoneNumber', { type: 'server', message });
+            } else if (field === 'username') {
+              setError('username', { type: 'server', message });
+            }
+          });
+          
+          // Also store them for additional display if needed
+          setFieldErrors(validationErrors);
+        }
+        
         return;
       }
     } catch (error) {
       // Error is handled in the store
-      console.log("Signup error caught in form:", error)
     }
   };
 

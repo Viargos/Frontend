@@ -1,26 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth.store";
 import Header from "@/components/home/Header";
-import AuthModal from "@/components/auth/AuthModal";
-import { PageLoading } from "@/components/common/Loading";
+import ModalContainer from "@/components/auth/ModalContainer";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 
 export default function Home() {
-  const { user, isAuthenticated, getProfile } = useAuthStore();
+  const { user, isAuthenticated, openSignup, openLogin } = useAuthStore();
   const router = useRouter();
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authStep, setAuthStep] = useState<"login" | "signup">("signup");
-
-  useEffect(() => {
-    // Check if user is authenticated on mount
-    const token = localStorage.getItem("token");
-    if (token && !user) {
-      getProfile();
-    }
-  }, [getProfile, user]);
 
   // Redirect authenticated users to dashboard
   useEffect(() => {
@@ -28,11 +17,6 @@ export default function Home() {
       router.push("/dashboard");
     }
   }, [isAuthenticated, user, router]);
-
-  // Show loading state while checking authentication
-  if (isAuthenticated === null) {
-    return <PageLoading text="Checking authentication..." />;
-  }
 
   // Show unauthenticated layout (landing page)
   return (
@@ -55,19 +39,13 @@ export default function Home() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
-                  onClick={() => {
-                    setAuthStep("signup");
-                    setShowAuthModal(true);
-                  }}
+                  onClick={openSignup}
                   className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
                 >
                   Get Started
                 </button>
                 <button
-                  onClick={() => {
-                    setAuthStep("login");
-                    setShowAuthModal(true);
-                  }}
+                  onClick={openLogin}
                   className="px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors font-medium"
                 >
                   Sign In
@@ -173,11 +151,7 @@ export default function Home() {
       </div>
 
       {/* Auth Modal */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        initialStep={authStep}
-      />
+      <ModalContainer />
       </>
     </ErrorBoundary>
   );

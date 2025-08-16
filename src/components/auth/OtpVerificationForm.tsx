@@ -38,15 +38,23 @@ export default function OtpVerificationForm({
 
   const otpValue = watch("otp") || "";
 
+  // Track if form has been submitted to prevent auto-submitting in a loop
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+
   useEffect(() => {
-    if (otpValue.length === 6 && !isLoading) {
+    // Only auto-submit when 6 digits are entered, not loading, and not previously submitted
+    if (otpValue.length === 6 && !isLoading && !hasSubmitted) {
+      setHasSubmitted(true);
       // Small delay to ensure the last digit is properly set
       const timer = setTimeout(() => {
         handleSubmit(onSubmit)();
       }, 100);
       return () => clearTimeout(timer);
+    } else if (otpValue.length < 6) {
+      // Reset submission flag when OTP is changed/cleared
+      setHasSubmitted(false);
     }
-  }, [otpValue, isLoading]);
+  }, [otpValue, isLoading, hasSubmitted]);
 
   useEffect(() => {
     if (resendTimer > 0) {
@@ -57,22 +65,19 @@ export default function OtpVerificationForm({
 
   const onSubmit = async (data: OtpFormData) => {
     try {
-      console.log("Verifying OTP for email:", email);
-      
       const result = await verifyOtp(email, data.otp);
       
-      console.log("OTP verification result:", result);
-      
-      // Only call onSuccess if OTP verification was successful
       if (result.success) {
-        console.log("OTP verification successful, calling onSuccess");
+        // Call the success callback (handles modal closing and redirect)
         onSuccess?.();
       } else {
-        console.log("OTP verification failed:", result.error);
+        // If verification failed, allow resubmission
+        setHasSubmitted(false);
       }
     } catch (error) {
-      console.error("OTP verification error caught in form:", error);
       // Error is handled in the store
+      // Allow resubmission after error
+      setHasSubmitted(false);
     }
   };
 
@@ -104,7 +109,7 @@ export default function OtpVerificationForm({
     try {
       await onResendOtp?.();
     } catch (error) {
-      console.error("Error in resend OTP:", error);
+      // Error is handled by parent component
     }
   };
 
@@ -142,7 +147,7 @@ export default function OtpVerificationForm({
                 inputMode="numeric"
                 maxLength={1}
                 aria-label={`OTP digit ${index + 1}`}
-                className="w-12 h-12 text-center border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-medium"
+                className="w-12 h-12 text-center border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-medium text-black"
                 onChange={(e) => handleOtpChange(index, e.target.value)}
                 onKeyPress={(e) => {
                   // Only allow digits

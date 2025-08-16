@@ -1,5 +1,5 @@
-import { IUserService } from '../interfaces/auth.interface';
-import { IHttpClient, ApiResponse } from '../interfaces/http-client.interface';
+import { IUserService } from '@/lib/interfaces/user.interface';
+import { IHttpClient, ApiResponse } from '@/lib/interfaces/http-client.interface';
 
 export class UserService implements IUserService {
   constructor(private httpClient: IHttpClient) {}
@@ -29,9 +29,8 @@ export class UserService implements IUserService {
     following: number;
   }>> {
     try {
-      const [postCount, journeyCount, followerCount, followingCount] = await Promise.all([
+      const [postCount, followerCount, followingCount] = await Promise.all([
         this.httpClient.get<{ count: number }>('/posts/user/me/count'),
-        this.httpClient.get<any[]>('/journeys/my-journeys'),
         this.httpClient.get<{ count: number }>('/users/relationships/followers/count'),
         this.httpClient.get<{ count: number }>('/users/relationships/following/count'),
       ]);
@@ -41,7 +40,7 @@ export class UserService implements IUserService {
         message: 'Current user stats retrieved successfully',
         data: {
           posts: postCount.data?.count || 0,
-          journeys: journeyCount.data?.length || 0,
+          journeys: 0, // Removed journeys API call
           followers: followerCount.data?.count || 0,
           following: followingCount.data?.count || 0,
         },

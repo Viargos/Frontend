@@ -1,77 +1,84 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import {
   AuthState,
   User,
   LoginCredentials,
   SignUpCredentials,
-} from "@/types/auth.types";
-import apiClient from "../lib/api";
+} from '@/types/auth.types';
+import { serviceFactory } from '@/lib/services/service-factory';
+import { ApiError } from '@/lib/interfaces/http-client.interface';
+
+export type AuthModalType = 'login' | 'signup' | 'otp' | 'none';
+
+export interface AuthResult {
+  success: boolean;
+  error?: string | any;
+}
 
 interface AuthStore extends AuthState {
-  // Actions
-  login: (credentials: LoginCredentials) => Promise<{ success: boolean; error?: string }>;
-  signup: (credentials: SignUpCredentials) => Promise<{ success: boolean; error?: string }>;
-  verifyOtp: (email: string, otp: string) => Promise<{ success: boolean; error?: string }>;
-  resendOtp: (email: string) => Promise<{ success: boolean; error?: string }>;
+  // Modal state
+  activeModal: AuthModalType;
+  signupEmail: string;
+  
+  // Auth actions
+  login: (credentials: LoginCredentials) => Promise<AuthResult>;
+  signup: (credentials: SignUpCredentials) => Promise<AuthResult>;
+  verifyOtp: (email: string, otp: string) => Promise<AuthResult>;
+  resendOtp: (email: string) => Promise<AuthResult>;
   logout: () => void;
   getProfile: () => Promise<void>;
   clearError: () => void;
   setLoading: (loading: boolean) => void;
+  
+  // Modal actions
+  openLogin: () => void;
+  openSignup: () => void;
+  openOtp: (email: string) => void;
+  closeAllModals: () => void;
+  switchToLogin: () => void;
+  switchToSignup: () => void;
+  switchToOtp: (email: string) => void;
+  
+  // Initialize auth state on app start
+  initialize: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set, get) => ({
-      // Initial state
+      // Initial state - null indicates auth state hasn't been checked yet
       user: null,
       token: null,
-      isAuthenticated: false,
+      isAuthenticated: null,
       isLoading: false,
       error: null,
+      
+      // Modal state
+      activeModal: 'none',
+      signupEmail: '',
 
       // Actions
-      login: async (credentials: LoginCredentials) => {
+      login: async (credentials: LoginCredentials): Promise<AuthResult> => {
         try {
           set({ isLoading: true, error: null });
 
-          // Validate credentials
-          if (!credentials.email || !credentials.password) {
-            const errorMessage = "Email and password are required";
-            set({ error: errorMessage, isAuthenticated: false });
-            return { success: false, error: errorMessage };
-          }
-
-          const response = await apiClient.signIn(credentials);
+          const response = await serviceFactory.authService.login(credentials);
           const { accessToken } = response.data || {};
 
           if (accessToken) {
-            localStorage.setItem("token", accessToken);
+            serviceFactory.tokenService.setToken(accessToken);
             set({ token: accessToken, isAuthenticated: true });
 
             // Get user profile
             await get().getProfile();
             return { success: true };
           }
-          return { success: false, error: "No access token received" };
-        } catch (error: unknown) {
-          let errorMessage = "Login failed";
-          
-          // Handle axios-style errors
-          if (error && typeof error === 'object' && 'response' in error) {
-            const axiosError = error as { response?: { data?: { message?: string } } };
-            errorMessage = axiosError.response?.data?.message || "Login failed";
-          }
-          // Handle direct Error objects
-          else if (error instanceof Error) {
-            errorMessage = error.message || "Login failed";
-          }
-          // Handle any other error formats
-          else if (typeof error === 'string') {
-            errorMessage = error;
-          }
-          
-          console.error('Login error:', error);
+
+          return { success: false, error: 'No access token received' };
+        } catch (error) {
+          const authStore = get();
+          const errorMessage = authStore.extractErrorMessage(error);
           set({ error: errorMessage, isAuthenticated: false });
           return { success: false, error: errorMessage };
         } finally {
@@ -79,112 +86,65 @@ export const useAuthStore = create<AuthStore>()(
         }
       },
 
-      signup: async (credentials: SignUpCredentials) => {
+      signup: async (credentials: SignUpCredentials): Promise<AuthResult> => {
         try {
           set({ isLoading: true, error: null });
+
+          await serviceFactory.authService.signup(credentials);
           
-          // Validate credentials
-          if (!credentials.username || !credentials.email || !credentials.password) {
-            const errorMessage = "Username, email, and password are required";
-            set({ error: errorMessage });
-            return { success: false, error: errorMessage };
-          }
-
-          if (credentials.username.length < 3) {
-            const errorMessage = "Username must be at least 3 characters";
-            set({ error: errorMessage });
-            return { success: false, error: errorMessage };
-          }
-
-          if (credentials.password.length < 6) {
-            const errorMessage = "Password must be at least 6 characters";
-            set({ error: errorMessage });
-            return { success: false, error: errorMessage };
-          }
-
-          console.log("Inside the signup function");
-          const response = await apiClient.signUp(credentials);
-          console.log("signup API response:", response);
-          console.log("signup successful - check backend console for OTP");
           set({ error: null });
           return { success: true };
-        } catch (error: unknown) {
-          console.log("Signup caught error:", error);
-          let errorMessage = "Signup failed";
+        } catch (error: any) {
           
-          // Handle axios-style errors
-          if (error && typeof error === 'object' && 'response' in error) {
-            const axiosError = error as { response?: { data?: { message?: string } } };
-            errorMessage = axiosError.response?.data?.message || "Signup failed";
-            console.log("Axios-style error, message:", errorMessage);
-          }
-          // Handle direct Error objects
-          else if (error instanceof Error) {
-            errorMessage = error.message || "Signup failed";
-            console.log("Direct Error object, message:", errorMessage);
-          }
-          // Handle any other error formats
-          else if (typeof error === 'string') {
-            errorMessage = error;
-            console.log("String error:", errorMessage);
+          let errorMessage = 'An unexpected error occurred';
+          let fullError = error;
+          
+          // Handle ApiError with field-specific validation
+          if (error instanceof ApiError) {
+            errorMessage = error.message;
+            // If the error has field-specific details, pass the full error object
+            if (error.details && typeof error.details === 'object' && error.details.errors) {
+              fullError = error.details;
+            }
+          } else if (error?.response?.data) {
+            // Handle axios-style errors
+            const responseData = error.response.data;
+            errorMessage = responseData.message || 'Signup failed';
+            // If we have field-specific errors, return them
+            if (responseData.errors && typeof responseData.errors === 'object') {
+              fullError = responseData;
+            }
+          } else if (error?.message) {
+            errorMessage = error.message;
           }
           
-          console.error('Signup error:', error);
-          console.log('Setting error in store:', errorMessage);
           set({ error: errorMessage });
-          return { success: false, error: errorMessage };
+          return { success: false, error: fullError };
         } finally {
           set({ isLoading: false });
         }
       },
 
-      verifyOtp: async (email: string, otp: string) => {
+      verifyOtp: async (email: string, otp: string): Promise<AuthResult> => {
         try {
           set({ isLoading: true, error: null });
 
-          // Validate inputs
-          if (!email || !otp) {
-            const errorMessage = "Email and OTP are required";
-            set({ error: errorMessage });
-            return { success: false, error: errorMessage };
-          }
-
-          if (otp.length !== 6) {
-            const errorMessage = "OTP must be 6 digits";
-            set({ error: errorMessage });
-            return { success: false, error: errorMessage };
-          }
-
-          const response = await apiClient.verifyOtp({ email, otp });
+          const response = await serviceFactory.authService.verifyOtp(email, otp);
           const { accessToken } = response.data || {};
 
           if (accessToken) {
-            localStorage.setItem("token", accessToken);
+            serviceFactory.tokenService.setToken(accessToken);
             set({ token: accessToken, isAuthenticated: true });
 
             // Get user profile
             await get().getProfile();
             return { success: true };
           }
-          return { success: false, error: "No access token received" };
-        } catch (error: unknown) {
-          let errorMessage = "OTP verification failed";
-          
-          // Handle axios-style errors
-          if (error && typeof error === 'object' && 'response' in error) {
-            const axiosError = error as { response?: { data?: { message?: string } } };
-            errorMessage = axiosError.response?.data?.message || "OTP verification failed";
-          }
-          // Handle direct Error objects
-          else if (error instanceof Error) {
-            errorMessage = error.message || "OTP verification failed";
-          }
-          // Handle any other error formats
-          else if (typeof error === 'string') {
-            errorMessage = error;
-          }
-          
-          console.error('OTP verification error:', error);
+
+          return { success: false, error: 'No access token received' };
+        } catch (error) {
+          const authStore = get();
+          const errorMessage = authStore.extractErrorMessage(error);
           set({ error: errorMessage });
           return { success: false, error: errorMessage };
         } finally {
@@ -192,39 +152,16 @@ export const useAuthStore = create<AuthStore>()(
         }
       },
 
-      resendOtp: async (email: string) => {
+      resendOtp: async (email: string): Promise<AuthResult> => {
         try {
           set({ isLoading: true, error: null });
 
-          // Validate email
-          if (!email) {
-            const errorMessage = "Email is required";
-            set({ error: errorMessage });
-            return { success: false, error: errorMessage };
-          }
-
-          // Call the API to resend OTP
-          await apiClient.resendOtp(email);
+          await serviceFactory.authService.resendOtp(email);
           set({ error: null });
           return { success: true };
-        } catch (error: unknown) {
-          let errorMessage = "Failed to resend OTP";
-          
-          // Handle axios-style errors
-          if (error && typeof error === 'object' && 'response' in error) {
-            const axiosError = error as { response?: { data?: { message?: string } } };
-            errorMessage = axiosError.response?.data?.message || "Failed to resend OTP";
-          }
-          // Handle direct Error objects
-          else if (error instanceof Error) {
-            errorMessage = error.message || "Failed to resend OTP";
-          }
-          // Handle any other error formats
-          else if (typeof error === 'string') {
-            errorMessage = error;
-          }
-          
-          console.error('Resend OTP error:', error);
+        } catch (error) {
+          const authStore = get();
+          const errorMessage = authStore.extractErrorMessage(error);
           set({ error: errorMessage });
           return { success: false, error: errorMessage };
         } finally {
@@ -233,8 +170,10 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       logout: () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
+        serviceFactory.tokenService.removeToken();
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('user');
+        }
         set({
           user: null,
           token: null,
@@ -243,21 +182,22 @@ export const useAuthStore = create<AuthStore>()(
         });
       },
 
-      getProfile: async () => {
+      getProfile: async (): Promise<void> => {
         try {
-          const response = await apiClient.getProfile();
+          const response = await serviceFactory.authService.getProfile();
           const user: User | undefined = response.data;
 
           if (!user) {
-            throw new Error("No user data received");
+            throw new Error('No user data received');
           }
 
           set({ user, isAuthenticated: true });
-          localStorage.setItem("user", JSON.stringify(user));
-        } catch (error: unknown) {
-          console.error("Failed to get profile:", error);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('user', JSON.stringify(user));
+          }
+        } catch (error) {
+          console.error('Failed to get profile:', error);
           // If we can't get the profile, the token might be invalid
-          // Logout the user to clear invalid state
           get().logout();
         }
       },
@@ -269,9 +209,73 @@ export const useAuthStore = create<AuthStore>()(
       setLoading: (loading: boolean) => {
         set({ isLoading: loading });
       },
+
+      initialize: async (): Promise<void> => {
+        const token = serviceFactory.tokenService.getToken();
+        
+        if (!token || serviceFactory.tokenService.isTokenExpired(token)) {
+          get().logout();
+          return;
+        }
+
+        set({ token, isAuthenticated: true });
+        
+        try {
+          await get().getProfile();
+        } catch (error) {
+          console.error('Failed to initialize auth state:', error);
+          get().logout();
+        }
+      },
+      
+      // Modal actions
+      openLogin: () => {
+        set({ activeModal: 'login', signupEmail: '', error: null });
+      },
+      
+      openSignup: () => {
+        set({ activeModal: 'signup', signupEmail: '', error: null });
+      },
+      
+      openOtp: (email: string) => {
+        set({ activeModal: 'otp', signupEmail: email, error: null });
+      },
+      
+      closeAllModals: () => {
+        set({ activeModal: 'none', signupEmail: '', error: null });
+      },
+      
+      switchToLogin: () => {
+        set({ activeModal: 'login', error: null });
+      },
+      
+      switchToSignup: () => {
+        set({ activeModal: 'signup', error: null });
+      },
+      
+      switchToOtp: (email: string) => {
+        set({ activeModal: 'otp', signupEmail: email, error: null });
+      },
+
+      // Helper method to extract error messages consistently
+      extractErrorMessage: (error: unknown): string => {
+        if (error instanceof ApiError) {
+          return error.message;
+        }
+        
+        if (error instanceof Error) {
+          return error.message;
+        }
+        
+        if (typeof error === 'string') {
+          return error;
+        }
+        
+        return 'An unexpected error occurred';
+      },
     }),
     {
-      name: "auth-storage",
+      name: 'viargos-auth-storage',
       partialize: (state) => ({
         user: state.user,
         token: state.token,

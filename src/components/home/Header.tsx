@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import Image from "next/image";
-import ImagePlusIcon from "../icons/ImagePlusIcon";
-import JourneyIcon from "../icons/JourneyIcon";
-import Button from "../ui/Button";
+import ImagePlusIcon from "@/components/icons/ImagePlusIcon";
+import JourneyIcon from "@/components/icons/JourneyIcon";
+import Button from "@/components/ui/Button";
 import { User } from "@/types/auth.types";
-import { useAuthStoreV2 } from "@/store/auth.store.v2";
-import AnimatedAuthModal from "../auth/AnimatedAuthModal";
+import { useAuthStore } from "@/store/auth.store";
+import { useClickOutside } from "@/hooks/useClickOutside";
+import ModalContainer from "@/components/auth/ModalContainer";
 
 interface HeaderProps {
   user?: User | null;
@@ -16,43 +17,20 @@ interface HeaderProps {
 }
 
 export default function Header({ user, onMobileMenuOpen }: HeaderProps) {
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authStep, setAuthStep] = useState<"login" | "signup">("login");
   const [showDropdown, setShowDropdown] = useState(false);
-  const { logout, isAuthenticated } = useAuthStoreV2();
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setShowDropdown(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+  const { logout, isAuthenticated, openLogin, openSignup } = useAuthStore();
+  
+  // Close dropdown when clicking outside using custom hook
+  const dropdownRef = useClickOutside<HTMLDivElement>(() => {
+    setShowDropdown(false);
+  });
 
   const handleLoginClick = () => {
-    setAuthStep("login");
-    setIsAuthModalOpen(true);
+    openLogin();
   };
 
   const handleSignupClick = () => {
-    setAuthStep("signup");
-    setIsAuthModalOpen(true);
-  };
-
-  const handleAuthModalClose = () => {
-    setIsAuthModalOpen(false);
-    // Reset to default step when modal closes
-    setAuthStep("login");
+    openSignup();
   };
 
   const handleLogout = () => {
@@ -67,7 +45,7 @@ export default function Header({ user, onMobileMenuOpen }: HeaderProps) {
         {isAuthenticated && onMobileMenuOpen && (
           <button
             onClick={onMobileMenuOpen}
-            className="lg:hidden flex items-center justify-center w-8 h-8 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+            className="lg:hidden flex items-center justify-center w-8 h-8 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer"
             aria-label="Open menu"
           >
             <svg
@@ -167,7 +145,7 @@ export default function Header({ user, onMobileMenuOpen }: HeaderProps) {
            
 
             {/* Messages Icon */}
-            <button className="p-2 text-gray-600 hover:text-gray-900 transition-colors">
+            <button className="p-2 text-gray-600 hover:text-gray-900 transition-colors cursor-pointer">
               <svg
                 className="w-6 h-6"
                 fill="none"
@@ -187,7 +165,7 @@ export default function Header({ user, onMobileMenuOpen }: HeaderProps) {
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setShowDropdown(!showDropdown)}
-                className="w-10 h-10 bg-gradient-to-r from-blue-500 to-yellow-500 rounded-full flex items-center justify-center text-white font-medium hover:opacity-80 transition-opacity"
+                className="w-10 h-10 bg-gradient-to-r from-blue-500 to-yellow-500 rounded-full flex items-center justify-center text-white font-medium hover:opacity-80 transition-opacity cursor-pointer"
               >
                 {user?.username?.charAt(0).toUpperCase() || "U"}
               </button>
@@ -201,7 +179,7 @@ export default function Header({ user, onMobileMenuOpen }: HeaderProps) {
                   </div>
                   <button
                     onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
                   >
                     Logout
                   </button>
@@ -221,12 +199,8 @@ export default function Header({ user, onMobileMenuOpen }: HeaderProps) {
         )}
       </div>
 
-      {/* Animated Auth Modal */}
-      <AnimatedAuthModal
-        isOpen={isAuthModalOpen}
-        onClose={handleAuthModalClose}
-        initialStep={authStep}
-      />
+      {/* Auth Modal */}
+      <ModalContainer />
     </header>
   );
 }

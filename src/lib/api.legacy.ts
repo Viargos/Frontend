@@ -133,10 +133,7 @@ class ApiClient {
     });
   }
 
-  // Journey methods
-  async getMyJourneys(): Promise<ApiResponse<Journey[]>> {
-    return this.request<Journey[]>("/journeys/my-journeys");
-  }
+  // Journey methods (removed getMyJourneys)
 
   async getAllJourneys(): Promise<ApiResponse<Journey[]>> {
     return this.request<Journey[]>("/journeys");
@@ -182,7 +179,8 @@ class ApiClient {
       const [postCount, journeyCount, followerCount, followingCount] =
         await Promise.all([
           this.request<{ count: number }>(`/posts/user/${userId}/count`),
-          this.request<Journey[]>(`/journeys/my-journeys`),
+          // Removed journeys count API call
+          Promise.resolve({ data: [], statusCode: 200, message: 'Journeys not loaded' }),
           this.request<{ count: number }>(
             `/users/relationships/${userId}/followers/count`
           ),
@@ -222,7 +220,8 @@ class ApiClient {
       const [postCount, journeyCount, followerCount, followingCount] =
         await Promise.all([
           this.request<{ count: number }>("/posts/user/me/count"),
-          this.request<Journey[]>("/journeys/my-journeys"),
+          // Removed journeys count API call
+          Promise.resolve({ data: [], statusCode: 200, message: 'Journeys not loaded' }),
           this.request<{ count: number }>(
             "/users/relationships/followers/count"
           ),

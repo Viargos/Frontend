@@ -8,6 +8,7 @@ import {
   Outfit,
 } from "next/font/google";
 import "./globals.css";
+import AuthInitializer from "@/components/auth/AuthInitializer";
 
 
 const geistSans = Geist({
@@ -55,7 +56,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${manrope.variable} ${inter.variable} ${mulish.variable} ${outfit.variable} antialiased`}
       >
-        {children}
+        <AuthInitializer>{children}</AuthInitializer>
       </body>
     </html>
   );

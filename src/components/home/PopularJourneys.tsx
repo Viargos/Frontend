@@ -1,6 +1,6 @@
-import ArrowDownIcon from "../icons/ArrowDownIcon";
-import Button from "../ui/Button";
-import JourneyItem from "./JourneyItem";
+import ArrowDownIcon from "@/components/icons/ArrowDownIcon";
+import Button from "@/components/ui/Button";
+import JourneyItem from "@/components/home/JourneyItem";
 
 export default function PopularJourneys() {
   const journeys = [

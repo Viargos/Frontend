@@ -1,5 +1,5 @@
-import { IAuthService, IValidationService } from '../interfaces/auth.interface';
-import { IHttpClient, ApiResponse } from '../interfaces/http-client.interface';
+import { IAuthService, IValidationService } from '@/lib/interfaces/auth.interface';
+import { IHttpClient, ApiResponse } from '@/lib/interfaces/http-client.interface';
 import { LoginCredentials, SignUpCredentials, User, AuthResponse } from '@/types/auth.types';
 
 export class AuthService implements IAuthService {

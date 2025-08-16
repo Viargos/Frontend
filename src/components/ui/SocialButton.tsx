@@ -99,7 +99,7 @@ export default function SocialButton({
   return (
     <button
       onClick={onClick}
-      className="flex px-4 py-2.5 justify-center items-center gap-3 w-full rounded-lg border border-gray-300 bg-white shadow-button hover:bg-gray-50 transition-colors"
+      className="flex px-4 py-2.5 justify-center items-center gap-3 w-full rounded-lg border border-gray-300 bg-white shadow-button hover:bg-gray-50 transition-colors cursor-pointer"
     >
       <IconComponent />
       <span className="text-gray-700 font-manrope text-base font-semibold leading-6">

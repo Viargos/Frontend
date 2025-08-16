@@ -1,6 +1,8 @@
 "use client";
 
-import { ReactNode, useEffect } from "react";
+import { ReactNode } from "react";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
+import { useEscapeKey } from "@/hooks/useKeyboardShortcut";
 
 interface ModalProps {
   isOpen: boolean;
@@ -17,33 +19,11 @@ export default function Modal({
   className = "",
   showBackdrop = true,
 }: ModalProps) {
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [isOpen]);
-
-  useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener("keydown", handleEscape);
-    }
-
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [isOpen, onClose]);
+  // Lock body scroll when modal is open
+  useBodyScrollLock(isOpen);
+  
+  // Close modal on Escape key
+  useEscapeKey(onClose, isOpen);
 
   if (!isOpen) return null;
 

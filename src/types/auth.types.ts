@@ -15,7 +15,7 @@ export interface User {
 export interface AuthState {
   user: User | null;
   token: string | null;
-  isAuthenticated: boolean;
+  isAuthenticated: boolean | null; // null = not initialized, true = authenticated, false = not authenticated
   isLoading: boolean;
   error: string | null;
 }

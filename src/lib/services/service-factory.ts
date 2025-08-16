@@ -1,10 +1,14 @@
-import { HttpClientService } from './http-client.service';
-import { TokenService, tokenService } from './token.service';
-import { ValidationService, validationService } from './validation.service';
-import { AuthService } from './auth.service';
-import { UserService } from './user.service';
-import { IAuthService, IUserService, IValidationService } from '../interfaces/auth.interface';
-import { IHttpClient } from '../interfaces/http-client.interface';
+import { HttpClientService } from '@/lib/services/http-client.service';
+import { TokenService, tokenService } from '@/lib/services/token.service';
+import { AuthService } from '@/lib/services/auth.service';
+import { UserService } from '@/lib/services/user.service';
+import { ValidationService, validationService } from '@/lib/services/validation.service';
+import { ProfileService } from '@/lib/services/profile.service';
+import { JourneyService } from './journey.service';
+import { IAuthService, IUserService, IValidationService } from '@/lib/interfaces/auth.interface';
+import { IProfileService } from '@/lib/interfaces/profile.interface';
+import { IJourneyService } from '@/lib/interfaces/journey.interface';
+import { IHttpClient } from '@/lib/interfaces/http-client.interface';
 import { ITokenService } from './token.service';
 
 class ServiceFactory {
@@ -12,6 +16,8 @@ class ServiceFactory {
   private _httpClient?: IHttpClient;
   private _authService?: IAuthService;
   private _userService?: IUserService;
+  private _profileService?: IProfileService;
+  private _journeyService?: IJourneyService;
 
   private constructor() {}
 
@@ -52,11 +58,27 @@ class ServiceFactory {
     return this._userService;
   }
 
+  get profileService(): IProfileService {
+    if (!this._profileService) {
+      this._profileService = new ProfileService(this.httpClient);
+    }
+    return this._profileService;
+  }
+
+  get journeyService(): IJourneyService {
+    if (!this._journeyService) {
+      this._journeyService = new JourneyService();
+    }
+    return this._journeyService;
+  }
+
   // Method to reset services (useful for testing)
   reset(): void {
     this._httpClient = undefined;
     this._authService = undefined;
     this._userService = undefined;
+    this._profileService = undefined;
+    this._journeyService = undefined;
   }
 }
 
@@ -69,4 +91,6 @@ export const {
   validationService: validationSvc,
   authService,
   userService,
+  profileService,
+  journeyService,
 } = serviceFactory;

@@ -1,4 +1,4 @@
-import { IHttpClient, RequestConfig, ApiResponse, ApiError } from '../interfaces/http-client.interface';
+import { IHttpClient, RequestConfig, ApiResponse, ApiError } from '@/lib/interfaces/http-client.interface';
 import { ITokenService } from './token.service';
 
 export class HttpClientService implements IHttpClient {
