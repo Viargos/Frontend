@@ -42,14 +42,26 @@ export default function AnimatedSidebar({
       document.body.style.width = '100%';
       
       return () => {
-        document.body.style.overflow = 'unset';
-        document.body.style.position = 'unset';
-        document.body.style.top = 'unset';
-        document.body.style.width = 'unset';
+        // Use empty string instead of 'unset' for better browser compatibility
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
         window.scrollTo(0, scrollY);
       };
     }
   }, [isOpen]);
+  
+  // Ensure cleanup on unmount to prevent stuck states
+  useEffect(() => {
+    return () => {
+      // Final cleanup to ensure body styles are reset
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+    };
+  }, []);
 
   // Close sidebar on window resize if switching to desktop
   useEffect(() => {

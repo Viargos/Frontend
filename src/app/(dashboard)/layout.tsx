@@ -31,18 +31,18 @@ export default function DashboardLayout({
     }
   }, [isAuthenticated, router]);
 
-  // Handle body scroll lock when mobile sidebar is open
-  useEffect(() => {
-    if (isMobileSidebarOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
+  // Note: Body overflow is now managed by AnimatedSidebar component to avoid conflicts
 
+  // Ensure body overflow is reset when component mounts (after login/redirect)
+  useEffect(() => {
+    // Reset any potentially stuck overflow styles
+    document.body.style.overflow = '';
+    
+    // Also cleanup on unmount
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = '';
     };
-  }, [isMobileSidebarOpen]);
+  }, []);
 
   // Close mobile sidebar on resize
   useEffect(() => {
@@ -73,9 +73,11 @@ export default function DashboardLayout({
         <Header user={user} onMobileMenuOpen={() => setIsMobileSidebarOpen(true)} />
 
         <div className="flex flex-col lg:flex-row">
-          {/* Desktop Left Sidebar */}
-          <div className="hidden lg:block w-64 bg-gray-100 min-h-screen flex-shrink-0">
-            <LeftSidebar user={user} onLogout={logout} />
+          {/* Desktop Left Sidebar - Sticky Position */}
+          <div className="hidden lg:block w-64 bg-gray-100 flex-shrink-0">
+            <div className="sticky top-0 w-64 h-screen bg-gray-100">
+              <LeftSidebar user={user} onLogout={logout} />
+            </div>
           </div>
 
           {/* Mobile Sidebar with Animation */}
@@ -99,9 +101,9 @@ export default function DashboardLayout({
             {children}
 
             {/* Right Sidebar - Hidden on mobile and tablet, shown on desktop */}
-            <div className="hidden xl:block w-80 bg-gray-100 p-6 flex-shrink-0">
+            {/* <div className="hidden xl:block w-80 bg-gray-100 p-6 flex-shrink-0">
               <RightSidebar />
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

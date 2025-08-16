@@ -5,17 +5,30 @@ interface NotesIconProps {
 export function NotesIcon({ className = "w-4 h-4" }: NotesIconProps) {
   return (
     <svg
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-      />
-    </svg>
+    xmlns="http://www.w3.org/2000/svg"
+    width={26}
+    height={26}
+    fill="none"
+    className={className}
+  >
+    <rect
+      width={14.583}
+      height={18.75}
+      x={5.709}
+      y={3.225}
+      stroke="#182779"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2.188}
+      rx={2.5}
+    />
+    <path
+      stroke="#182779"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2.188}
+      d="M9.875 7.392h6.25M9.875 11.558h6.25M9.875 15.725h4.167"
+    />
+  </svg>
   );
 }

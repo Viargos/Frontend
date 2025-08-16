@@ -9,6 +9,7 @@ import {
   Journey,
   CreateJourneyDto,
   UpdateJourneyDto,
+  CreateComprehensiveJourneyDto,
 } from "@/types/journey.types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
@@ -139,12 +140,23 @@ class ApiClient {
     return this.request<Journey[]>("/journeys");
   }
 
+  async getMyJourneys(): Promise<ApiResponse<Journey[]>> {
+    return this.request<Journey[]>("/journeys/my");
+  }
+
   async getJourney(id: string): Promise<ApiResponse<Journey>> {
     return this.request<Journey>(`/journeys/${id}`);
   }
 
   async createJourney(data: CreateJourneyDto): Promise<ApiResponse<Journey>> {
     return this.request<Journey>("/journeys", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async createComprehensiveJourney(data: CreateComprehensiveJourneyDto): Promise<ApiResponse<Journey>> {
+    return this.request<Journey>("/journeys/comprehensive", {
       method: "POST",
       body: JSON.stringify(data),
     });

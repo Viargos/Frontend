@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import ImagePlusIcon from "@/components/icons/ImagePlusIcon";
 import JourneyIcon from "@/components/icons/JourneyIcon";
 import Button from "@/components/ui/Button";
@@ -19,6 +20,7 @@ interface HeaderProps {
 export default function Header({ user, onMobileMenuOpen }: HeaderProps) {
   const [showDropdown, setShowDropdown] = useState(false);
   const { logout, isAuthenticated, openLogin, openSignup } = useAuthStore();
+  const router = useRouter();
   
   // Close dropdown when clicking outside using custom hook
   const dropdownRef = useClickOutside<HTMLDivElement>(() => {
@@ -138,6 +140,7 @@ export default function Header({ user, onMobileMenuOpen }: HeaderProps) {
               size="sm"
               icon={<JourneyIcon className="text-gray-700" />}
               iconPosition="leading"
+              onClick={() => router.push('/create-journey')}
             >
               <span className="hidden sm:inline">Create Journey</span>
             </Button>

@@ -1,3 +1,11 @@
+export enum PlaceType {
+  STAY = 'STAY',
+  ACTIVITY = 'ACTIVITY',
+  FOOD = 'FOOD',
+  TRANSPORT = 'TRANSPORT',
+  NOTE = 'NOTE',
+}
+
 export interface Journey {
   id: string;
   title: string;
@@ -14,9 +22,21 @@ export interface Journey {
 
 export interface JourneyDay {
   id: string;
+  dayNumber: number;
   date: string;
+  notes?: string;
   journey: Journey;
-  places?: JourneyDayPlace[];
+  places?: JourneyPlace[];
+}
+
+export interface JourneyPlace {
+  id: string;
+  type: PlaceType;
+  name: string;
+  description?: string;
+  startTime?: string;
+  endTime?: string;
+  day: JourneyDay;
 }
 
 export interface JourneyDayPlace {
@@ -165,4 +185,35 @@ export interface JourneySettings {
   language: string;
   units: 'metric' | 'imperial';
   visibility: 'private' | 'public' | 'friends';
+}
+
+// New types for comprehensive journey creation
+export interface CreateJourneyPlace {
+  type: PlaceType;
+  name: string;
+  description?: string;
+  startTime?: string;
+  endTime?: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+export interface CreateJourneyDay {
+  dayNumber: number;
+  date: string; // ISO date string
+  notes?: string;
+  places: CreateJourneyPlace[];
+}
+
+export interface CreateComprehensiveJourneyDto {
+  title: string;
+  description?: string;
+  days: CreateJourneyDay[];
+}
+
+export interface JourneyFormData {
+  title: string;
+  description: string;
+  days: CreateJourneyDay[];
 }

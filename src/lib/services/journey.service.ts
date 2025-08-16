@@ -3,6 +3,7 @@ import {
   Journey, 
   CreateJourneyDto, 
   UpdateJourneyDto,
+  CreateComprehensiveJourneyDto,
   JourneyFilters,
   JourneyStats,
   DetailedJourney,
@@ -113,6 +114,81 @@ export class JourneyService implements IJourneyService {
       return response.data;
     } catch (error: any) {
       const errorMessage = error?.response?.data?.message || error?.message || 'Failed to create journey';
+      throw new Error(errorMessage);
+    }
+  }
+
+  async createComprehensiveJourney(data: CreateComprehensiveJourneyDto): Promise<Journey> {
+    try {
+      // Validate input data
+      if (!data.title || typeof data.title !== 'string' || data.title.trim().length === 0) {
+        throw new Error('Journey title is required');
+      }
+
+      if (data.title.length > 100) {
+        throw new Error('Journey title cannot exceed 100 characters');
+      }
+
+      if (data.description && data.description.length > 500) {
+        throw new Error('Journey description cannot exceed 500 characters');
+      }
+
+      if (!data.days || !Array.isArray(data.days) || data.days.length === 0) {
+        throw new Error('At least one day is required for the journey');
+      }
+
+      // Validate each day
+      data.days.forEach((day, index) => {
+        if (!day.date || typeof day.date !== 'string') {
+          throw new Error(`Day ${index + 1} must have a valid date`);
+        }
+        
+        if (day.dayNumber <= 0) {
+          throw new Error(`Day ${index + 1} must have a valid day number`);
+        }
+
+        if (!day.places || !Array.isArray(day.places)) {
+          throw new Error(`Day ${index + 1} must have a places array`);
+        }
+
+        // Validate each place
+        day.places.forEach((place, placeIndex) => {
+          if (!place.name || typeof place.name !== 'string' || place.name.trim().length === 0) {
+            throw new Error(`Day ${index + 1}, Place ${placeIndex + 1} must have a valid name`);
+          }
+          
+          if (!Object.values(['STAY', 'ACTIVITY', 'FOOD', 'TRANSPORT', 'NOTE']).includes(place.type)) {
+            throw new Error(`Day ${index + 1}, Place ${placeIndex + 1} must have a valid type`);
+          }
+        });
+      });
+
+      const journeyData = {
+        title: data.title.trim(),
+        description: data.description?.trim() || undefined,
+        days: data.days.map(day => ({
+          ...day,
+          places: day.places.map(place => ({
+            ...place,
+            name: place.name.trim(),
+            description: place.description?.trim() || undefined,
+          }))
+        }))
+      };
+
+      const response = await apiClient.createComprehensiveJourney(journeyData);
+      
+      if (response.statusCode !== 201 && response.statusCode !== 200) {
+        throw new Error(response.message || 'Failed to create comprehensive journey');
+      }
+
+      if (!response.data) {
+        throw new Error('No journey data returned from server');
+      }
+
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to create comprehensive journey';
       throw new Error(errorMessage);
     }
   }

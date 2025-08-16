@@ -5,17 +5,27 @@ interface TreesIconProps {
 export function TreesIcon({ className = "w-4 h-4" }: TreesIconProps) {
   return (
     <svg
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-      />
-    </svg>
+    xmlns="http://www.w3.org/2000/svg"
+    width={26}
+    height={26}
+    fill="none"
+    className={className}
+  >
+    <path
+      stroke="#182779"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2.188}
+      d="m17.366 5.309 3.125 3.125-2.083 1.041 4.166 4.167-3.125 1.042 4.167 4.166h-9.375M16.325 21.975V18.85M9.034 13.642 6.95 11.559M9.034 12.6l2.083-2.083M9.034 21.975V8.434"
+    />
+    <path
+      stroke="#182779"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2.188}
+      d="M6.767 16.762a3.125 3.125 0 0 1-2.857-3.844 3.123 3.123 0 0 1 .317-5.035 3.125 3.125 0 0 1 4.807-3.861 3.125 3.125 0 0 1 4.806 3.861 3.122 3.122 0 0 1 .318 5.035 3.125 3.125 0 0 1-3.04 3.849H6.95l-.184-.005Z"
+      clipRule="evenodd"
+    />
+  </svg>
   );
 }

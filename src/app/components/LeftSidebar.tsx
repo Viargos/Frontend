@@ -142,7 +142,7 @@ const LeftSidebar = ({ user, onLogout, onNavigate }: LeftSidebarProps) => {
   };
 
   return (
-    <div className="h-screen bg-gray-100 flex flex-col">
+    <div className="h-full bg-gray-100 flex flex-col">
       {/* Navigation */}
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
