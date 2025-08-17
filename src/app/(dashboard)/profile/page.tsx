@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileTabs from "@/components/profile/ProfileTabs";
 import NewJourneyModal from "@/components/journey/NewJourneyModal";
-import JourneyCard from "@/components/journeys/JourneyCard";
+import ProfileJourneyCard from "@/components/profile/ProfileJourneyCard";
 import Button from "@/components/ui/Button";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { convertRecentJourneysToJourneys } from "@/utils/journey.utils";
@@ -166,9 +166,9 @@ export default function ProfilePage() {
                   <LoadingSpinner size="lg" />
                 </div>
               ) : journeys.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                <div className="flex flex-col gap-4 w-full">
                   {journeys.map((journey, index) => (
-                    <JourneyCard
+                    <ProfileJourneyCard
                       key={journey.id}
                       journey={journey}
                       index={index}

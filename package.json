@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.864.0",
+    "@aws-sdk/s3-request-presigner": "^3.864.0",
     "@hookform/resolvers": "^5.2.1",
     "@react-google-maps/api": "^2.20.7",
     "axios": "^1.11.0",
