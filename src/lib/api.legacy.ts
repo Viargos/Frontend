@@ -9,7 +9,6 @@ import {
   Journey,
   CreateJourneyDto,
   UpdateJourneyDto,
-  CreateComprehensiveJourneyDto,
 } from "@/types/journey.types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
@@ -175,12 +174,7 @@ class ApiClient {
     });
   }
 
-  async createComprehensiveJourney(data: CreateComprehensiveJourneyDto): Promise<ApiResponse<Journey>> {
-    return this.request<Journey>("/journeys/comprehensive", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
-  }
+
 
   async updateJourney(
     id: string,

@@ -3,23 +3,68 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Calendar, User, ChevronRight, X, Search } from 'lucide-react';
-import { useJourneyStore } from '@/store/journey.store';
+import apiClient from '@/lib/api.legacy';
 import ExploreMap from '@/components/maps/ExploreMap';
 import { Journey } from '@/types/journey.types';
 import { PlaceType } from '@/types/journey.types';
 import { PageLoading } from '@/components/common/Loading';
 
 export default function ExplorePage() {
-  const { journeys, isLoading, error, fetchMyJourneys } = useJourneyStore();
+  const [journeys, setJourneys] = useState<Journey[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedJourney, setSelectedJourney] = useState<Journey | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Handle responsive sidebar behavior
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) { // lg breakpoint
+        setIsSidebarOpen(true);
+      } else {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    // Set initial state based on screen size
+    handleResize();
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | PlaceType>('all');
 
+  // Function to fetch journeys directly from API
+  const fetchJourneys = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      console.log('📡 ExplorePage: Calling apiClient.getMyJourneys() directly');
+      const response = await apiClient.getMyJourneys();
+      
+      console.log('📦 ExplorePage: Raw API response:', response);
+      
+      if (response && response.data) {
+        console.log('✅ ExplorePage: Setting journeys data:', response.data);
+        setJourneys(response.data);
+      } else {
+        console.log('⚠️ ExplorePage: No data in response');
+        setJourneys([]);
+      }
+    } catch (err: any) {
+      console.log('💥 ExplorePage: Error fetching journeys:', err);
+      setError(err.message || 'Failed to load journeys');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Fetch journeys on component mount
   useEffect(() => {
-    fetchMyJourneys();
-  }, [fetchMyJourneys]);
+    fetchJourneys();
+  }, []);
 
   // Filter journeys based on search query
   const filteredJourneys = journeys.filter(journey =>
@@ -81,7 +126,7 @@ export default function ExplorePage() {
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Journeys</h3>
           <p className="text-gray-600 mb-4">{error}</p>
           <button
-            onClick={() => fetchMyJourneys()}
+            onClick={fetchJourneys}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             Retry
@@ -94,7 +139,7 @@ export default function ExplorePage() {
   return (
     <div className="h-screen flex bg-gray-50 relative overflow-hidden">
       {/* Map Container */}
-      <div className={`flex-1 relative transition-all duration-300 ${isSidebarOpen ? 'mr-96' : 'mr-0'}`}>
+      <div className={`flex-1 relative transition-all duration-300 ${isSidebarOpen ? 'lg:mr-96' : 'mr-0'}`}>
         <ExploreMap
           journeys={journeys}
           selectedJourney={selectedJourney}
@@ -125,7 +170,9 @@ export default function ExplorePage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
-              className="absolute bottom-4 left-4 right-4 bg-white rounded-lg shadow-lg p-4 z-10"
+              className={`absolute bottom-4 left-4 bg-white rounded-lg shadow-lg p-4 z-10 transition-all duration-300 ${
+                isSidebarOpen ? 'lg:right-[25rem]' : 'right-4'
+              }`}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">

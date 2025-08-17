@@ -206,11 +206,6 @@ export interface CreateJourneyDay {
   places: CreateJourneyPlace[];
 }
 
-export interface CreateComprehensiveJourneyDto {
-  title: string;
-  description?: string;
-  days: CreateJourneyDay[];
-}
 
 export interface JourneyFormData {
   title: string;
