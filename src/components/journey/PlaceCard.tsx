@@ -16,6 +16,8 @@ interface PlaceCardProps {
   onToggleExpansion: () => void;
   onRemove: () => void;
   onUpdateField: (field: keyof CreateJourneyPlace, value: string | number) => void;
+  onAddPhoto: (photoKey: string) => void;
+  onRemovePhoto: (photoIndex: number) => void;
 }
 
 export const PlaceCard: React.FC<PlaceCardProps> = ({
@@ -25,7 +27,9 @@ export const PlaceCard: React.FC<PlaceCardProps> = ({
   isExpanded,
   onToggleExpansion,
   onRemove,
-  onUpdateField
+  onUpdateField,
+  onAddPhoto,
+  onRemovePhoto
 }) => {
   const getPlaceIcon = () => {
     switch (place.type) {
@@ -140,6 +144,8 @@ export const PlaceCard: React.FC<PlaceCardProps> = ({
                 dayKey={dayKey}
                 index={index}
                 onUpdateField={onUpdateField}
+                onAddPhoto={onAddPhoto}
+                onRemovePhoto={onRemovePhoto}
               />
             </motion.div>
           </motion.div>

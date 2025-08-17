@@ -31,8 +31,8 @@ const StatItem = ({ value, label }: { value: number; label: string }) => {
 
   return (
     <div className="flex flex-col items-center gap-1 cursor-pointer hover:scale-105 transition-transform">
-      <span className="text-lg font-bold text-gray-900">{formatCount(value)}</span>
-      <span className="text-sm text-gray-600">{label}</span>
+      <span className="text-base sm:text-lg font-bold text-gray-900">{formatCount(value)}</span>
+      <span className="text-xs sm:text-sm text-gray-600">{label}</span>
     </div>
   );
 };
@@ -121,7 +121,7 @@ export default function ProfileHeader({
       </div>
 
       {/* Avatar and Info Section */}
-      <div className="flex sm:h-34 pb-6 px-6 items-end w-full -mt-12 sm:justify-start sm:gap-10 sm:flex-row flex-col sm:items-end items-start h-[250px] justify-start gap-5">
+      <div className="flex pb-6 px-4 sm:px-6 items-end w-full -mt-12 sm:justify-start sm:gap-10 xl:gap-16 sm:flex-row flex-col sm:items-end items-start h-[200px] sm:h-[220px] md:h-[240px] lg:h-[250px] justify-start gap-5">
         <div className="flex flex-col justify-center items-center gap-2">
           {/* Avatar Container */}
           <div className="w-30 h-30 rounded-lg relative">
@@ -224,22 +224,22 @@ export default function ProfileHeader({
         
         {/* Stats Display */}
         <motion.div 
-          className="flex items-center gap-8"
+          className="flex items-center gap-4 sm:gap-6 lg:gap-8"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
         >
           {isStatsLoading ? (
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3 sm:gap-4 md:gap-6">
               {Array.from({ length: 4 }).map((_, index) => (
                 <div key={index} className="flex flex-col items-center gap-1">
-                  <div className="animate-pulse bg-gray-200 h-6 w-12 rounded"></div>
-                  <div className="animate-pulse bg-gray-200 h-4 w-16 rounded"></div>
+                  <div className="animate-pulse bg-gray-200 h-5 sm:h-6 w-8 sm:w-12 rounded"></div>
+                  <div className="animate-pulse bg-gray-200 h-3 sm:h-4 w-12 sm:w-16 rounded"></div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3 sm:gap-4 md:gap-6">
               <StatItem label="Posts" value={stats?.posts || 0} />
               <StatItem label="Journeys" value={stats?.journeys || 0} />
               <StatItem label="Followers" value={stats?.followers || 0} />

@@ -367,6 +367,142 @@ class ApiClient {
       throw new Error("Network error");
     }
   }
+
+  // Journey image upload methods
+  async uploadJourneyImage(
+    journeyId: string,
+    file: File
+  ): Promise<ApiResponse<{ imageUrl: string; message: string }>> {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const token = localStorage.getItem("viargos_auth_token");
+    const url = `${this.baseURL}/journeys/${journeyId}/image`;
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const apiError = new Error(data.message || "Upload failed") as any;
+        apiError.response = {
+          data: data,
+          status: response.status,
+          statusText: response.statusText
+        };
+        apiError.statusCode = data.statusCode;
+        throw apiError;
+      }
+
+      return data;
+    } catch (error) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        throw error;
+      }
+      
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error("Network error");
+    }
+  }
+
+  async uploadJourneyCoverImage(
+    journeyId: string,
+    file: File
+  ): Promise<ApiResponse<{ imageUrl: string; message: string }>> {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const token = localStorage.getItem("viargos_auth_token");
+    const url = `${this.baseURL}/journeys/${journeyId}/cover-image`;
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const apiError = new Error(data.message || "Upload failed") as any;
+        apiError.response = {
+          data: data,
+          status: response.status,
+          statusText: response.statusText
+        };
+        apiError.statusCode = data.statusCode;
+        throw apiError;
+      }
+
+      return data;
+    } catch (error) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        throw error;
+      }
+      
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error("Network error");
+    }
+  }
+
+  async uploadUserProfileImage(
+    userId: string,
+    file: File
+  ): Promise<ApiResponse<{ imageUrl: string; message: string }>> {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const token = localStorage.getItem("viargos_auth_token");
+    const url = `${this.baseURL}/users/${userId}/profileimage`;
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const apiError = new Error(data.message || "Upload failed") as any;
+        apiError.response = {
+          data: data,
+          status: response.status,
+          statusText: response.statusText
+        };
+        apiError.statusCode = data.statusCode;
+        throw apiError;
+      }
+
+      return data;
+    } catch (error) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        throw error;
+      }
+      
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error("Network error");
+    }
+  }
 }
 
 const apiClient = new ApiClient(API_BASE_URL);

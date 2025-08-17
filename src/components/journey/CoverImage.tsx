@@ -1,45 +1,48 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { useMediaUpload } from '@/hooks/useMediaUpload';
 
 interface CoverImageProps {
-  coverImageUrl: string | null;
-  onImageChange: (url: string | null) => void;
+  imageUrl: string | null;
+  onImageUpload: (url: string, key?: string) => void;
 }
 
 export const CoverImage: React.FC<CoverImageProps> = ({ 
-  coverImageUrl, 
-  onImageChange 
+  imageUrl, 
+  onImageUpload 
 }) => {
   const coverInputRef = useRef<HTMLInputElement>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const { uploadSingle, isUploading } = useMediaUpload();
 
   const handleCoverUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    setIsUploading(true);
     try {
-      // Create a temporary URL for immediate display
-      const temporaryUrl = URL.createObjectURL(file);
-      onImageChange(temporaryUrl);
+      const result = await uploadSingle(file, {
+        folder: 'journey-covers',
+        fileType: 'images',
+      });
 
-      // Here you would typically upload to your server/cloud storage
-      // For now, we'll simulate an upload delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      console.log('Cover image uploaded:', file.name);
+      if (result.success && result.url && result.key) {
+        onImageUpload(result.url, result.key);
+      } else {
+        console.error('Failed to upload cover image:', result.error);
+      }
     } catch (error) {
       console.error('Failed to upload cover image:', error);
-      onImageChange(null);
-    } finally {
-      setIsUploading(false);
+    }
+
+    // Reset the input to allow re-selecting the same file
+    if (event.target) {
+      event.target.value = '';
     }
   };
 
   return (
     <div className="relative w-full flex-1">
       <img
-        src={coverImageUrl || "/london.png?format=webp&width=800"}
+        src={imageUrl || "/london.png?format=webp&width=800"}
         alt="Journey destination"
         className="w-full h-full rounded-lg object-cover"
       />

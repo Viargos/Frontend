@@ -197,6 +197,7 @@ export interface CreateJourneyPlace {
   address?: string;
   latitude?: number;
   longitude?: number;
+  photos?: string[]; // Array of S3 keys for uploaded photos
 }
 
 export interface CreateJourneyDay {

@@ -7,6 +7,8 @@ export interface JourneyFormData {
   description: string;
   startDate: Date;
   coverImageUrl: string | null;
+  coverImageKey: string | null;
+  photos: string[]; // Array of S3 keys
 }
 
 export interface UseJourneyFormReturn {
@@ -29,6 +31,9 @@ export interface UseJourneyFormReturn {
   addPlaceToActiveDay: (type: PlaceType) => void;
   removePlaceFromActiveDay: (index: number) => void;
   updatePlaceField: (index: number, field: keyof CreateJourneyPlace, value: string | number) => void;
+  updatePlacePhotos: (index: number, photos: string[]) => void;
+  addPhotoToPlace: (index: number, photoKey: string) => void;
+  removePhotoFromPlace: (index: number, photoIndex: number) => void;
   
   // UI state
   expandedPlaces: { [key: string]: boolean };
@@ -48,7 +53,9 @@ export const useJourneyForm = (): UseJourneyFormReturn => {
     title: "A Wonderful Trip to Paris",
     description: "An exciting 2-day itinerary exploring the best of Paris, from iconic landmarks to charming neighborhoods.",
     startDate: new Date(),
-    coverImageUrl: null
+    coverImageUrl: null,
+    coverImageKey: null,
+    photos: []
   });
 
   const [days, setDays] = useState(["Day 1"]);
@@ -167,7 +174,8 @@ export const useJourneyForm = (): UseJourneyFormReturn => {
       endTime: '10:00',
       latitude: 0,
       longitude: 0,
-      address: ''
+      address: '',
+      photos: []
     };
 
     setJourneyPlaces(prev => ({
@@ -188,6 +196,36 @@ export const useJourneyForm = (): UseJourneyFormReturn => {
       ...prev,
       [activeDay]: (prev[activeDay] || []).map((place, i) => 
         i === index ? { ...place, [field]: value } : place
+      )
+    }));
+  }, [activeDay]);
+
+  const updatePlacePhotos = useCallback((index: number, photos: string[]) => {
+    setJourneyPlaces(prev => ({
+      ...prev,
+      [activeDay]: (prev[activeDay] || []).map((place, i) => 
+        i === index ? { ...place, photos } : place
+      )
+    }));
+  }, [activeDay]);
+
+  const addPhotoToPlace = useCallback((index: number, photoKey: string) => {
+    setJourneyPlaces(prev => ({
+      ...prev,
+      [activeDay]: (prev[activeDay] || []).map((place, i) => 
+        i === index ? { ...place, photos: [...(place.photos || []), photoKey] } : place
+      )
+    }));
+  }, [activeDay]);
+
+  const removePhotoFromPlace = useCallback((index: number, photoIndex: number) => {
+    setJourneyPlaces(prev => ({
+      ...prev,
+      [activeDay]: (prev[activeDay] || []).map((place, i) => 
+        i === index ? {
+          ...place, 
+          photos: (place.photos || []).filter((_, pIndex) => pIndex !== photoIndex)
+        } : place
       )
     }));
   }, [activeDay]);
@@ -326,6 +364,9 @@ export const useJourneyForm = (): UseJourneyFormReturn => {
     addPlaceToActiveDay,
     removePlaceFromActiveDay,
     updatePlaceField,
+    updatePlacePhotos,
+    addPhotoToPlace,
+    removePhotoFromPlace,
     expandedPlaces,
     togglePlaceExpansion,
     isPlaceExpanded,

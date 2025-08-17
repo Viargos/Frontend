@@ -16,6 +16,7 @@ import { JourneyHeader } from '@/components/journey/JourneyHeader';
 import { ErrorAlert } from '@/components/ui/ErrorAlert';
 import { CoverImage } from '@/components/journey/CoverImage';
 import { PlaceCard } from '@/components/journey/PlaceCard';
+import PhotoGallery from '@/components/media/PhotoGallery';
 
 export default function CreateJourneyPage() {
   const router = useRouter();
@@ -34,6 +35,8 @@ export default function CreateJourneyPage() {
     addPlaceToActiveDay,
     removePlaceFromActiveDay,
     updatePlaceField,
+    addPhotoToPlace,
+    removePhotoFromPlace,
     togglePlaceExpansion,
     isPlaceExpanded,
     isSubmitting,
@@ -130,6 +133,20 @@ export default function CreateJourneyPage() {
     }
   }, [activePlaceType, activeDay, addPlaceToActiveDay, getActiveDayPlaces, togglePlaceExpansion]);
 
+  // Handle cover image upload with key storage
+  const handleCoverImageUpload = useCallback((url: string, key?: string) => {
+    updateFormData({ 
+      coverImageUrl: url,
+      coverImageKey: key || null
+    });
+  }, [updateFormData]);
+
+  // Handle photo removal
+  const handleRemovePhoto = useCallback((index: number) => {
+    const updatedPhotos = formData.photos.filter((_, i) => i !== index);
+    updateFormData({ photos: updatedPhotos });
+  }, [formData.photos, updateFormData]);
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -137,7 +154,7 @@ export default function CreateJourneyPage() {
         {/* Hero Cover Image */}
         <CoverImage
           imageUrl={formData.coverImageUrl}
-          onImageUpload={(url) => updateFormData({ coverImageUrl: url })}
+          onImageUpload={handleCoverImageUpload}
         />
 
         {/* Main Content */}
@@ -188,7 +205,7 @@ export default function CreateJourneyPage() {
                     </div>
 
                     {/* Planning Categories */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-4">
                       <PlanningCategory
                         icon={<PlaceToStayIcon />}
                         label="Place to stay"
@@ -239,6 +256,8 @@ export default function CreateJourneyPage() {
                         onToggleExpansion={() => togglePlaceExpansion(activeDay, index)}
                         onRemove={() => removePlaceFromActiveDay(index)}
                         onUpdateField={(field, value) => updatePlaceField(index, field, value)}
+                        onAddPhoto={(photoKey) => addPhotoToPlace(index, photoKey)}
+                        onRemovePhoto={(photoIndex) => removePhotoFromPlace(index, photoIndex)}
                       />
                     ))}
                   </div>
@@ -248,6 +267,18 @@ export default function CreateJourneyPage() {
                 {getActiveDayPlaces().length === 0 && (
                   <div className="w-full">
                     {/* Empty state - users can add places using the category buttons above */}
+                  </div>
+                )}
+
+                {/* Photo Gallery */}
+                {formData.photos.length > 0 && (
+                  <div className="w-full">
+                    <PhotoGallery
+                      photos={formData.photos}
+                      onRemovePhoto={handleRemovePhoto}
+                      showRemoveButton={true}
+                      className="bg-white p-4 rounded-lg border border-gray-200"
+                    />
                   </div>
                 )}
               </div>

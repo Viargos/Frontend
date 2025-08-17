@@ -1,19 +1,24 @@
 import React from 'react';
 import { CreateJourneyPlace, PlaceType } from '@/types/journey.types';
 import { useGooglePlaces } from '@/hooks/useGooglePlaces';
+import { PlacePhotoSection } from './PlacePhotoSection';
 
 interface PlaceFormProps {
   place: CreateJourneyPlace;
   dayKey: string;
   index: number;
   onUpdateField: (field: keyof CreateJourneyPlace, value: string | number) => void;
+  onAddPhoto?: (photoKey: string) => void;
+  onRemovePhoto?: (photoIndex: number) => void;
 }
 
 export const PlaceForm: React.FC<PlaceFormProps> = ({
   place,
   dayKey,
   index,
-  onUpdateField
+  onUpdateField,
+  onAddPhoto,
+  onRemovePhoto
 }) => {
   const {
     placeSuggestions,
@@ -174,6 +179,16 @@ export const PlaceForm: React.FC<PlaceFormProps> = ({
           </p>
         )}
       </div>
+
+      {/* Photo Section */}
+      {onAddPhoto && onRemovePhoto && (
+        <PlacePhotoSection
+          photos={place.photos || []}
+          placeId={`${dayKey}-${index}`}
+          onAddPhoto={onAddPhoto}
+          onRemovePhoto={onRemovePhoto}
+        />
+      )}
     </>
   );
 };

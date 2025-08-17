@@ -8,11 +8,16 @@ const AWS_CONFIG = {
     accessKeyId: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID || '',
     secretAccessKey: process.env.NEXT_PUBLIC_AWS_SECRET_ACCESS_KEY || '',
   },
+  // Add browser-specific configuration to prevent stream issues
+  requestHandler: {
+    // Use fetch-based request handler for browser compatibility
+    requestTimeout: 30000,
+  },
 };
 
 const BUCKET_NAME = process.env.NEXT_PUBLIC_S3_BUCKET_NAME || '';
 
-// Initialize S3 Client
+// Initialize S3 Client with browser-compatible settings
 const s3Client = new S3Client(AWS_CONFIG);
 
 // File type configurations
@@ -121,13 +126,16 @@ export const uploadToS3 = async (
     const fileName = options.customFileName || generateUniqueFileName(file.name, options.folder);
     const contentType = getContentType(file);
 
+    // Convert File to ArrayBuffer for better browser compatibility
+    const fileBuffer = await file.arrayBuffer();
+    
     // Create upload command
     const uploadCommand = new PutObjectCommand({
       Bucket: BUCKET_NAME,
       Key: fileName,
-      Body: file,
+      Body: new Uint8Array(fileBuffer), // Use Uint8Array instead of File directly
       ContentType: contentType,
-      ACL: 'public-read', // Make the file publicly accessible
+      ContentLength: file.size,
       Metadata: {
         originalName: file.name,
         uploadedAt: new Date().toISOString(),
