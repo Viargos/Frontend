@@ -229,7 +229,7 @@ export default function ExplorePage() {
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-gray-900">
-                  My Journeys
+                  Popular Journey this area
                 </h2>
                 <button
                   onClick={() => setIsSidebarOpen(false)}
@@ -238,103 +238,105 @@ export default function ExplorePage() {
                   <X className="w-5 h-5 text-gray-400" />
                 </button>
               </div>
-
-              {/* Search Bar */}
-              <div className="relative mb-4">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder="Search journeys..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              {/* Stats */}
-              <div className="flex items-center justify-between text-sm text-gray-600">
-                <span>{filteredJourneys.length} journeys found</span>
-                {selectedJourney && (
-                  <button
-                    onClick={handleShowAllJourneys}
-                    className="text-blue-600 hover:text-blue-700 font-medium"
-                  >
-                    Show all
-                  </button>
-                )}
-              </div>
             </div>
 
-            {/* Journey List */}
+            {/* Popular Journeys List */}
             <div className="flex-1 overflow-y-auto">
               {filteredJourneys.length === 0 ? (
                 <div className="p-6 text-center">
                   <MapPin className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No journeys found</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No popular journeys</h3>
                   <p className="text-gray-600">
-                    {searchQuery ? 'Try adjusting your search terms.' : 'Start creating your first journey!'}
+                    Explore the map to discover amazing places in this area!
                   </p>
                 </div>
               ) : (
-                <div className="p-4 space-y-4">
-                  {filteredJourneys.map((journey, index) => (
-                    <motion.div
-                      key={journey.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      onClick={() => handleJourneyClick(journey)}
-                      className={`bg-gray-50 rounded-lg p-4 cursor-pointer transition-all duration-200 hover:bg-gray-100 border-2 ${
-                        selectedJourney?.id === journey.id
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-transparent'
-                      }`}
-                    >
-                      <h3 className="font-semibold text-gray-900 mb-2 line-clamp-1">
-                        {journey.title}
-                      </h3>
-                      
-                      {journey.description && (
-                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                          {journey.description}
-                        </p>
-                      )}
+                <div className="p-4 space-y-3">
+                  {filteredJourneys.map((journey, index) => {
+                    const getJourneyLocation = () => {
+                      if (journey.days && journey.days.length > 0) {
+                        const firstDay = journey.days[0];
+                        if (firstDay.places && firstDay.places.length > 0) {
+                          const location = firstDay.places[0].location;
+                          const parts = location.split(',');
+                          if (parts.length >= 2) {
+                            return parts[parts.length - 1].trim();
+                          }
+                          return location;
+                        }
+                      }
+                      return 'Unknown location';
+                    };
 
-                      <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-                        <span>By {journey.user.username}</span>
-                        <span>{formatDate(journey.createdAt)}</span>
-                      </div>
+                    const getJourneyCategory = () => {
+                      if (journey.days && journey.days.length > 0) {
+                        for (const day of journey.days) {
+                          if (day.places && day.places.length > 0) {
+                            const categories = day.places.map(place => place.type.toLowerCase());
+                            if (categories.includes('activity')) return 'Amusement & Theme Parks';
+                            if (categories.includes('stay')) return 'Hotels & Resorts';
+                            if (categories.includes('food')) return 'Restaurants & Cafes';
+                            if (categories.includes('transport')) return 'Transportation';
+                          }
+                        }
+                      }
+                      return 'Travel Experience';
+                    };
 
-                      {/* Places Preview */}
-                      {journey.days && journey.days.length > 0 && (
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between text-xs font-medium text-gray-700">
-                            <span>Places ({journey.days.reduce((total, day) => total + (day.places?.length || 0), 0)})</span>
-                            <span>{journey.days.length} days</span>
+                    const gradients = [
+                      'from-purple-400 via-pink-400 to-blue-400',
+                      'from-blue-400 via-purple-400 to-pink-400',
+                      'from-pink-400 via-purple-400 to-indigo-400',
+                      'from-indigo-400 via-blue-400 to-purple-400',
+                      'from-purple-500 via-blue-400 to-indigo-400',
+                      'from-blue-500 via-indigo-400 to-purple-400',
+                    ];
+
+                    const gradient = gradients[index % gradients.length];
+
+                    return (
+                      <motion.div
+                        key={journey.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        onClick={() => handleJourneyClick(journey)}
+                        className={`bg-white rounded-lg cursor-pointer transition-all duration-200 hover:shadow-md border ${
+                          selectedJourney?.id === journey.id
+                            ? 'border-blue-500 shadow-md'
+                            : 'border-gray-100 hover:border-gray-200'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 p-3">
+                          {/* Journey Image/Gradient */}
+                          <div className={`w-16 h-16 rounded-lg bg-gradient-to-br ${gradient} flex-shrink-0 flex items-center justify-center`}>
+                            <div className="text-white text-lg font-semibold">
+                              {journey.title.charAt(0).toUpperCase()}
+                            </div>
                           </div>
-                          
-                          <div className="flex flex-wrap gap-1">
-                            {journey.days.slice(0, 2).map((day) =>
-                              day.places?.slice(0, 3).map((place) => (
-                                <span
-                                  key={place.id}
-                                  className="inline-flex items-center gap-1 px-2 py-1 bg-white rounded-full text-xs text-gray-600"
-                                >
-                                  <span>{getPlaceTypeIcon(place.type)}</span>
-                                  <span className="truncate max-w-20">{place.name}</span>
+
+                          {/* Journey Info */}
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-gray-900 text-sm mb-1 truncate">
+                              {journey.title}
+                            </h3>
+                            <p className="text-xs text-gray-500 mb-1">
+                              {getJourneyCategory()}
+                            </p>
+                            {/* Optional: Show journey stats */}
+                            <div className="text-xs text-gray-400">
+                              {journey.days && journey.days.length > 0 && (
+                                <span>
+                                  {journey.days.reduce((total, day) => total + (day.places?.length || 0), 0)} places • 
+                                  {journey.days.length} days
                                 </span>
-                              ))
-                            )}
-                            {journey.days.reduce((total, day) => total + (day.places?.length || 0), 0) > 6 && (
-                              <span className="text-xs text-gray-400">
-                                +{journey.days.reduce((total, day) => total + (day.places?.length || 0), 0) - 6} more
-                              </span>
-                            )}
+                              )}
+                            </div>
                           </div>
                         </div>
-                      )}
-                    </motion.div>
-                  ))}
+                      </motion.div>
+                    );
+                  })}
                 </div>
               )}
             </div>
