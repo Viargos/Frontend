@@ -12,9 +12,9 @@ import { TransportIcon } from "@/components/icons/TransportIcon";
 import { NotesIcon } from "@/components/icons/NotesIcon";
 import Button from "@/components/ui/Button";
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { PlaceType, CreateComprehensiveJourneyDto, CreateJourneyPlace } from '@/types/journey.types';
-import { JourneyService } from '@/lib/services/journey.service';
+import { PlaceType, CreateJourneyDto, CreateJourneyPlace, CreateComprehensiveJourneyDto, CreateJourneyDay } from '@/types/journey.types';
 import JourneyMap from '@/components/maps/JourneyMap';
+import apiClient from '@/lib/api.legacy';
 
 export default function CreateJourneyPage() {
   const router = useRouter();
@@ -37,8 +37,7 @@ export default function CreateJourneyPage() {
   const [expandedPlaces, setExpandedPlaces] = useState<{
     [key: string]: boolean;
   }>({});
-
-  const journeyService = new JourneyService();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleCategorySelect = (category: PlaceType) => {
     setActivePlaceType(activePlaceType === category ? null : category);
@@ -120,27 +119,79 @@ export default function CreateJourneyPage() {
 
   const handleReviewPost = async () => {
     setIsSubmitting(true);
+    setErrorMessage(null); // Clear any previous errors
+    
     try {
-      // Convert the journey data to the API format
-      const journeyData: CreateComprehensiveJourneyDto = {
+      // Debug: Check if token exists
+      const token = localStorage.getItem('viargos_auth_token');
+      console.log('Token in localStorage:', token ? 'EXISTS' : 'MISSING');
+      console.log('Token length:', token ? token.length : 0);
+      
+      // Build comprehensive journey data with all days and places
+      const journeyDays: CreateJourneyDay[] = days.map((dayLabel, index) => {
+        const dayNumber = parseInt(dayLabel.split(' ')[1]); // Extract day number from "Day 1", "Day 2", etc.
+        const dayDate = new Date(startDate);
+        dayDate.setDate(startDate.getDate() + index); // Add index days to start date
+        
+        // Get places for this day (excluding NOTE type places as they should be day notes)
+        const dayPlaces = (journeyPlaces[dayLabel] || []).filter(place => place.type !== PlaceType.NOTE);
+        
+        // Get notes for this day (NOTE type places become day notes)
+        const notePlace = (journeyPlaces[dayLabel] || []).find(place => place.type === PlaceType.NOTE);
+        const dayNotes = notePlace ? notePlace.description || '' : '';
+        
+        return {
+          dayNumber: dayNumber - 1, // API expects 0-based day numbers
+          date: dayDate.toISOString(),
+          notes: dayNotes,
+          places: dayPlaces.map(place => ({
+            type: place.type,
+            name: place.name,
+            description: place.description || '',
+            startTime: place.startTime || '',
+            endTime: place.endTime || '',
+            address: place.address || '',
+            latitude: place.latitude || null,
+            longitude: place.longitude || null
+          }))
+        };
+      });
+      
+      const journeyData = {
         title,
         description,
-        days: days.map((dayLabel, index) => ({
-          dayNumber: index + 1,
-          date: new Date(Date.now() + index * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          notes: index === 0 ? "First day in Paris! Focus on seeing the main sights and enjoying the local food." : 
-                 index === 1 ? "Day of art and exploration. Wear comfortable shoes for walking in Montmartre." : "",
-          places: journeyPlaces[dayLabel] || []
-        }))
+        days: journeyDays
       };
+      
+      console.log('Sending comprehensive journey data:', journeyData);
 
-      const journey = await journeyService.createComprehensiveJourney(journeyData);
+      const response = await apiClient.createJourney(journeyData as any);
+      console.log('API Response:', response);
+      
+      // Check if we have a successful response
+      if (!response || (!response.data && response.statusCode !== 200 && response.statusCode !== 201)) {
+        throw new Error(response?.message || 'Failed to create journey');
+      }
+
+      // Check if we have journey data
+      if (!response.data || !response.data.id) {
+        throw new Error('No journey data or ID returned from server');
+      }
+      
+      console.log('Journey created successfully:', response.data);
       
       // Navigate to the created journey
-      router.push(`/journey/${journey.id}`);
+      router.push(`/journey/${response.data.id}`);
     } catch (error: any) {
       console.error('Failed to create journey:', error);
-      alert('Failed to create journey: ' + (error.message || 'Unknown error'));
+      console.log('Error details:', {
+        message: error.message,
+        response: error.response,
+        status: error.response?.status,
+        statusCode: error.statusCode
+      });
+      const errorMessage = error?.response?.data?.message || error?.message || 'An error occurred while creating your journey. Please try again.';
+      setErrorMessage(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -321,6 +372,7 @@ export default function CreateJourneyPage() {
               [activeDay]: (prev[activeDay] || []).map((p, i) => 
                 i === placeIndex ? {
                   ...p,
+                  name: place.name || description, // Update the place name
                   latitude: location.lat(),
                   longitude: location.lng(),
                   address: place.formatted_address || description
@@ -595,6 +647,44 @@ export default function CreateJourneyPage() {
                 {isSubmitting ? 'Creating...' : 'Review & Post'}
               </Button>
             </div>
+
+            {/* Error Display */}
+            {errorMessage && (
+              <AnimatePresence>
+                <motion.div 
+                  className="w-full bg-red-50 border border-red-200 rounded-lg p-4"
+                  initial={{ opacity: 0, y: -20, height: 0 }}
+                  animate={{ opacity: 1, y: 0, height: "auto" }}
+                  exit={{ opacity: 0, y: -20, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0">
+                      <svg className="w-5 h-5 text-red-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-red-800 font-medium text-sm mb-1">
+                        Unable to create journey
+                      </h4>
+                      <p className="text-red-700 text-sm">
+                        {errorMessage}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setErrorMessage(null)}
+                      className="flex-shrink-0 p-1 hover:bg-red-100 rounded transition-colors"
+                      title="Dismiss error"
+                    >
+                      <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            )}
 
             {/* Day Filter */}
             <DayFilter

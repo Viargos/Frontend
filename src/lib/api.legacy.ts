@@ -27,6 +27,15 @@ class ApiClient {
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`;
 
+    // Debug logging - Remove these after confirming fix works
+    // console.log('API Request Debug:', {
+    //   endpoint,
+    //   url,
+    //   method: options.method || 'GET',
+    //   windowExists: typeof window !== 'undefined',
+    //   localStorageExists: typeof localStorage !== 'undefined'
+    // });
+
     const config: RequestInit = {
       headers: {
         "Content-Type": "application/json",
@@ -35,14 +44,25 @@ class ApiClient {
       ...options,
     };
 
-    // Add auth token if available
-    const token = localStorage.getItem("token");
+    // Add auth token if available - using same key as TokenService
+    const token = localStorage.getItem("viargos_auth_token");
+    // console.log('Token retrieval debug:', {
+    //   hasToken: !!token,
+    //   tokenLength: token?.length || 0,
+    //   tokenPreview: token ? token.substring(0, 10) + '...' : 'NO TOKEN'
+    // });
+    
     if (token) {
       config.headers = {
         ...config.headers,
         Authorization: `Bearer ${token}`,
       };
+      // console.log('Added Authorization header with token');
+    } else {
+      // console.log('No token found - Authorization header not added');
     }
+
+    // console.log('Final request headers:', config.headers);
 
     try {
       const response = await fetch(url, config);
@@ -141,7 +161,7 @@ class ApiClient {
   }
 
   async getMyJourneys(): Promise<ApiResponse<Journey[]>> {
-    return this.request<Journey[]>("/journeys/my");
+    return this.request<Journey[]>("/journeys/my-journeys");
   }
 
   async getJourney(id: string): Promise<ApiResponse<Journey>> {
@@ -268,7 +288,7 @@ class ApiClient {
     const formData = new FormData();
     formData.append("image", file);
 
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("viargos_auth_token");
     const url = `${this.baseURL}/users/profile-image`;
 
     try {
@@ -314,7 +334,7 @@ class ApiClient {
     const formData = new FormData();
     formData.append("image", file);
 
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("viargos_auth_token");
     const url = `${this.baseURL}/users/banner-image`;
 
     try {

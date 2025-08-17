@@ -1,7 +1,7 @@
 import { IProfileService } from '@/lib/interfaces/profile.interface';
 import { IHttpClient, ApiResponse } from '@/lib/interfaces/http-client.interface';
 import { User } from '@/types/auth.types';
-import { UserStats, UserProfile } from '@/types/profile.types';
+import { UserStats, UserProfile, RecentJourney } from '@/types/profile.types';
 
 export class ProfileService implements IProfileService {
   constructor(private httpClient: IHttpClient) {}
@@ -88,6 +88,57 @@ export class ProfileService implements IProfileService {
     }
   }
 
+  async getCurrentUserProfileWithJourneys(): Promise<ApiResponse<{ profile: UserProfile; stats: UserStats; recentJourneys: RecentJourney[] }>> {
+    try {
+      const response = await this.httpClient.get<any>('/users/profile/me');
+      
+      // Extract user data
+      const apiUser = this.extractUserFromResponse(response);
+      this.validateUserData(apiUser);
+      
+      const transformedProfile: UserProfile = {
+        id: apiUser.id,
+        username: apiUser.username,
+        email: apiUser.email,
+        phoneNumber: apiUser.phoneNumber,
+        profileImage: apiUser.profileImage,
+        bannerImage: apiUser.bannerImage,
+        createdAt: new Date(apiUser.createdAt),
+        updatedAt: new Date(apiUser.updatedAt),
+        bio: '',
+        location: '',
+        isActive: true,
+      };
+      
+      // Extract stats
+      const apiStats = this.extractStatsFromResponse(response);
+      const transformedStats: UserStats = {
+        posts: apiStats?.postsCount || apiStats?.posts || 0,
+        journeys: apiStats?.journeysCount || apiStats?.journeys || 0,
+        followers: apiStats?.followersCount || apiStats?.followers || 0,
+        following: apiStats?.followingCount || apiStats?.following || 0,
+      };
+      
+      // Extract recent journeys
+      const recentJourneys = this.extractRecentJourneysFromResponse(response);
+
+      return {
+        statusCode: response.statusCode || 200,
+        message: response.message || 'Profile data retrieved successfully',
+        data: {
+          profile: transformedProfile,
+          stats: transformedStats,
+          recentJourneys
+        },
+      };
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Failed to fetch complete profile data');
+    }
+  }
+
   async deleteProfileImage(): Promise<ApiResponse<{ message: string }>> {
     return this.httpClient.delete<{ message: string }>('/users/profile-image');
   }
@@ -137,6 +188,36 @@ export class ProfileService implements IProfileService {
       return response.stats;
     }
     return null;
+  }
+
+  private extractRecentJourneysFromResponse(response: any): RecentJourney[] {
+    let recentJourneys: any[] = [];
+    
+    // Try different possible paths for recentJourneys
+    if (response.data?.data?.recentJourneys) {
+      recentJourneys = response.data.data.recentJourneys;
+    } else if (response.data?.recentJourneys) {
+      recentJourneys = response.data.recentJourneys;
+    } else if (response.recentJourneys) {
+      recentJourneys = response.recentJourneys;
+    }
+    
+    // Transform the raw journey data to match our RecentJourney interface
+    return recentJourneys.map(journey => ({
+      id: journey.id,
+      title: journey.title,
+      description: journey.description,
+      coverImage: journey.coverImage,
+      daysCount: journey.daysCount,
+      createdAt: journey.createdAt,
+      author: {
+        id: journey.author.id,
+        username: journey.author.username,
+        profileImage: journey.author.profileImage
+      },
+      previewPlaces: journey.previewPlaces || [],
+      type: journey.type
+    })) || [];
   }
 
   private validateUserData(apiUser: any): void {

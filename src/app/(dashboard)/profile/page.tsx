@@ -8,14 +8,17 @@ import { motion } from "framer-motion";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileTabs from "@/components/profile/ProfileTabs";
 import NewJourneyModal from "@/components/journey/NewJourneyModal";
+import JourneyCard from "@/components/journeys/JourneyCard";
 import Button from "@/components/ui/Button";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { convertRecentJourneysToJourneys } from "@/utils/journey.utils";
 
 export default function ProfilePage() {
   const { user, isAuthenticated } = useAuthStore();
   const {
     profile,
     stats,
+    recentJourneys,
     profileImageUrl,
     bannerImageUrl,
     isLoading,
@@ -35,10 +38,13 @@ export default function ProfilePage() {
   // Load profile and stats when component mounts
   useEffect(() => {
     if (isAuthenticated && user) {
-      // Use optimized method that loads both profile and stats in one call
+      // Use optimized method that loads both profile, stats, and recent journeys in one call
       loadProfileAndStats();
     }
   }, [isAuthenticated, user, loadProfileAndStats]);
+
+  // Convert recent journeys to journey format for JourneyCard component
+  const journeys = convertRecentJourneysToJourneys(recentJourneys);
 
   // Handle image uploads
   const handleProfileImageUpload = async (file: File) => {
@@ -153,26 +159,49 @@ export default function ProfilePage() {
               </Button>
             </div>
 
-            {/* Journey Cards - Removed journey loading functionality */}
+            {/* Journey Cards */}
             <div className="flex flex-col items-start gap-3 w-full">
-              <div className="w-full text-center py-8">
-                <svg
-                  className="w-16 h-16 mx-auto mb-4 text-gray-300"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m0 0L9 7"
-                  />
-                </svg>
-                <p className="text-gray-500">
-                  Journeys functionality has been disabled.
-                </p>
-              </div>
+              {isLoading ? (
+                <div className="flex items-center justify-center py-8 w-full">
+                  <LoadingSpinner size="lg" />
+                </div>
+              ) : journeys.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                  {journeys.map((journey, index) => (
+                    <JourneyCard
+                      key={journey.id}
+                      journey={journey}
+                      index={index}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="w-full text-center py-8">
+                  <svg
+                    className="w-16 h-16 mx-auto mb-4 text-gray-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m0 0L9 7"
+                    />
+                  </svg>
+                  <p className="text-gray-500 mb-4">
+                    No journeys yet. Create your first journey to get started!
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => setIsNewJourneyModalOpen(true)}
+                  >
+                    Create Your First Journey
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}

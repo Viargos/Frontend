@@ -1,3 +1,5 @@
+import { useId } from "react";
+
 interface InputFieldProps {
   label?: string;
   placeholder: string;
@@ -21,11 +23,10 @@ export default function InputField({
   className,
   required,
 }: InputFieldProps) {
-  const inputId =
-    id ||
-    (label
-      ? `input-${label.toLowerCase().replace(/\s+/g, "-")}`
-      : `input-${Math.random().toString(36).substr(2, 9)}`);
+  const reactId = useId();
+  const inputId = id || (label
+    ? `input-${label.toLowerCase().replace(/\s+/g, "-")}-${reactId}`
+    : `input-${reactId}`);
 
   return (
     <div className="flex flex-col gap-1.5 w-full">

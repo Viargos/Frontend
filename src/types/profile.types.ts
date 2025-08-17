@@ -5,6 +5,22 @@ export interface UserStats {
   following: number;
 }
 
+export interface RecentJourney {
+  id: string;
+  title: string;
+  description: string;
+  coverImage: string | null;
+  daysCount: number;
+  createdAt: string;
+  author: {
+    id: string;
+    username: string;
+    profileImage: string | null;
+  };
+  previewPlaces: string[];
+  type: string;
+}
+
 export interface UserProfile {
   id: string;
   username: string;
@@ -22,6 +38,7 @@ export interface UserProfile {
 export interface ProfileState {
   profile: UserProfile | null;
   stats: UserStats | null;
+  recentJourneys: RecentJourney[];
   profileImageUrl: string | null;
   bannerImageUrl: string | null;
   isLoading: boolean;

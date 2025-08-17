@@ -32,6 +32,7 @@ interface ProfileStore extends ProfileState {
 const initialState: ProfileState = {
   profile: null,
   stats: null,
+  recentJourneys: [],
   profileImageUrl: null,
   bannerImageUrl: null,
   isLoading: false,
@@ -56,26 +57,19 @@ export const useProfileStore = create<ProfileStore>()(
         try {
           set({ isLoading: true, isStatsLoading: true, error: null });
 
-          const [profileResponse, statsResponse] = await Promise.allSettled([
-            serviceFactory.profileService.getCurrentUserProfile(),
-            serviceFactory.profileService.getCurrentUserStats(),
-          ]);
-
-          // Handle profile response
-          if (profileResponse.status === 'fulfilled' && profileResponse.value.data) {
-            const profile = profileResponse.value.data;
+          const response = await serviceFactory.profileService.getCurrentUserProfileWithJourneys();
+          
+          if (response.data) {
+            const { profile, stats, recentJourneys } = response.data;
             set({
               profile,
+              stats,
+              recentJourneys,
               profileImageUrl: profile.profileImage || null,
               bannerImageUrl: profile.bannerImage || null,
             });
           } else {
             throw new Error('Failed to load profile data');
-          }
-
-          // Handle stats response (don't fail if stats loading fails)
-          if (statsResponse.status === 'fulfilled' && statsResponse.value.data) {
-            set({ stats: statsResponse.value.data });
           }
         } catch (error) {
           const errorMessage = get().extractErrorMessage(error);
