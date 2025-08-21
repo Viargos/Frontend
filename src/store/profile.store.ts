@@ -1,14 +1,14 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import {
   ProfileState,
   ProfileTab,
   UserProfile,
   ProfileUpdateData,
   ImageUploadResult,
-} from '@/types/profile.types';
-import { serviceFactory } from '@/lib/services/service-factory';
-import { ApiError } from '@/lib/interfaces/http-client.interface';
+} from "@/types/profile.types";
+import { serviceFactory } from "@/lib/services/service-factory";
+import { ApiError } from "@/lib/interfaces/http-client.interface";
 
 interface ProfileStore extends ProfileState {
   // Actions
@@ -16,11 +16,16 @@ interface ProfileStore extends ProfileState {
   loadProfile: () => Promise<void>;
   loadStats: () => Promise<void>;
   loadProfileAndStats: () => Promise<void>;
-  updateProfile: (data: ProfileUpdateData) => Promise<{ success: boolean; error?: string }>;
+  updateProfile: (
+    data: ProfileUpdateData
+  ) => Promise<{ success: boolean; error?: string }>;
   uploadProfileImage: (file: File) => Promise<ImageUploadResult>;
   uploadBannerImage: (file: File) => Promise<ImageUploadResult>;
   deleteProfileImage: () => Promise<{ success: boolean; error?: string }>;
   deleteBannerImage: () => Promise<{ success: boolean; error?: string }>;
+  deleteJourney: (
+    journeyId: string
+  ) => Promise<{ success: boolean; error?: string }>;
   clearError: () => void;
   setLoading: (loading: boolean) => void;
   reset: () => void;
@@ -39,7 +44,7 @@ const initialState: ProfileState = {
   isStatsLoading: false,
   isImageUploading: false,
   error: null,
-  activeTab: 'journey',
+  activeTab: "journey",
 };
 
 export const useProfileStore = create<ProfileStore>()(
@@ -57,8 +62,9 @@ export const useProfileStore = create<ProfileStore>()(
         try {
           set({ isLoading: true, isStatsLoading: true, error: null });
 
-          const response = await serviceFactory.profileService.getCurrentUserProfileWithJourneys();
-          
+          const response =
+            await serviceFactory.profileService.getCurrentUserProfileWithJourneys();
+
           if (response.data) {
             const { profile, stats, recentJourneys } = response.data;
             set({
@@ -69,7 +75,7 @@ export const useProfileStore = create<ProfileStore>()(
               bannerImageUrl: profile.bannerImage || null,
             });
           } else {
-            throw new Error('Failed to load profile data');
+            throw new Error("Failed to load profile data");
           }
         } catch (error) {
           const errorMessage = get().extractErrorMessage(error);
@@ -84,8 +90,9 @@ export const useProfileStore = create<ProfileStore>()(
         try {
           set({ isLoading: true, error: null });
 
-          const response = await serviceFactory.profileService.getCurrentUserProfile();
-          
+          const response =
+            await serviceFactory.profileService.getCurrentUserProfile();
+
           if (response.data) {
             const profile = response.data as UserProfile;
             set({
@@ -107,8 +114,9 @@ export const useProfileStore = create<ProfileStore>()(
         try {
           set({ isStatsLoading: true, error: null });
 
-          const response = await serviceFactory.profileService.getCurrentUserStats();
-          
+          const response =
+            await serviceFactory.profileService.getCurrentUserStats();
+
           if (response.data) {
             set({ stats: response.data });
           }
@@ -121,19 +129,23 @@ export const useProfileStore = create<ProfileStore>()(
       },
 
       // Profile updates
-      updateProfile: async (data: ProfileUpdateData): Promise<{ success: boolean; error?: string }> => {
+      updateProfile: async (
+        data: ProfileUpdateData
+      ): Promise<{ success: boolean; error?: string }> => {
         try {
           set({ isLoading: true, error: null });
 
-          const response = await serviceFactory.profileService.updateProfile(data);
-          
+          const response = await serviceFactory.profileService.updateProfile(
+            data
+          );
+
           if (response.data) {
             const updatedProfile = response.data as UserProfile;
             set({ profile: updatedProfile });
             return { success: true };
           }
 
-          return { success: false, error: 'Failed to update profile' };
+          return { success: false, error: "Failed to update profile" };
         } catch (error) {
           const errorMessage = get().extractErrorMessage(error);
           set({ error: errorMessage });
@@ -148,24 +160,25 @@ export const useProfileStore = create<ProfileStore>()(
         try {
           set({ isImageUploading: true, error: null });
 
-          const response = await serviceFactory.profileService.uploadProfileImage(file);
-          
+          const response =
+            await serviceFactory.profileService.uploadProfileImage(file);
+
           if (response.data) {
             const { imageUrl } = response.data;
             set({ profileImageUrl: imageUrl });
-            
+
             // Update profile object if it exists
             const currentProfile = get().profile;
             if (currentProfile) {
               set({
-                profile: { ...currentProfile, profileImage: imageUrl }
+                profile: { ...currentProfile, profileImage: imageUrl },
               });
             }
 
             return { success: true, imageUrl };
           }
 
-          return { success: false, error: 'Failed to upload profile image' };
+          return { success: false, error: "Failed to upload profile image" };
         } catch (error) {
           const errorMessage = get().extractErrorMessage(error);
           set({ error: errorMessage });
@@ -179,24 +192,25 @@ export const useProfileStore = create<ProfileStore>()(
         try {
           set({ isImageUploading: true, error: null });
 
-          const response = await serviceFactory.profileService.uploadBannerImage(file);
-          
+          const response =
+            await serviceFactory.profileService.uploadBannerImage(file);
+
           if (response.data) {
             const { imageUrl } = response.data;
             set({ bannerImageUrl: imageUrl });
-            
+
             // Update profile object if it exists
             const currentProfile = get().profile;
             if (currentProfile) {
               set({
-                profile: { ...currentProfile, bannerImage: imageUrl }
+                profile: { ...currentProfile, bannerImage: imageUrl },
               });
             }
 
             return { success: true, imageUrl };
           }
 
-          return { success: false, error: 'Failed to upload banner image' };
+          return { success: false, error: "Failed to upload banner image" };
         } catch (error) {
           const errorMessage = get().extractErrorMessage(error);
           set({ error: errorMessage });
@@ -207,19 +221,22 @@ export const useProfileStore = create<ProfileStore>()(
       },
 
       // Image deletions
-      deleteProfileImage: async (): Promise<{ success: boolean; error?: string }> => {
+      deleteProfileImage: async (): Promise<{
+        success: boolean;
+        error?: string;
+      }> => {
         try {
           set({ isImageUploading: true, error: null });
 
           await serviceFactory.profileService.deleteProfileImage();
-          
+
           set({ profileImageUrl: null });
-          
+
           // Update profile object if it exists
           const currentProfile = get().profile;
           if (currentProfile) {
             set({
-              profile: { ...currentProfile, profileImage: undefined }
+              profile: { ...currentProfile, profileImage: undefined },
             });
           }
 
@@ -233,19 +250,22 @@ export const useProfileStore = create<ProfileStore>()(
         }
       },
 
-      deleteBannerImage: async (): Promise<{ success: boolean; error?: string }> => {
+      deleteBannerImage: async (): Promise<{
+        success: boolean;
+        error?: string;
+      }> => {
         try {
           set({ isImageUploading: true, error: null });
 
           await serviceFactory.profileService.deleteBannerImage();
-          
+
           set({ bannerImageUrl: null });
-          
+
           // Update profile object if it exists
           const currentProfile = get().profile;
           if (currentProfile) {
             set({
-              profile: { ...currentProfile, bannerImage: undefined }
+              profile: { ...currentProfile, bannerImage: undefined },
             });
           }
 
@@ -256,6 +276,33 @@ export const useProfileStore = create<ProfileStore>()(
           return { success: false, error: errorMessage };
         } finally {
           set({ isImageUploading: false });
+        }
+      },
+
+      // Journey management
+      deleteJourney: async (
+        journeyId: string
+      ): Promise<{ success: boolean; error?: string }> => {
+        try {
+          set({ isLoading: true, error: null });
+
+          await serviceFactory.journeyService.deleteJourney(journeyId);
+
+          // Remove the journey from recentJourneys list
+          const currentJourneys = get().recentJourneys;
+          const updatedJourneys = currentJourneys.filter(
+            (journey) => journey.id !== journeyId
+          );
+
+          set({ recentJourneys: updatedJourneys });
+
+          return { success: true };
+        } catch (error) {
+          const errorMessage = get().extractErrorMessage(error);
+          set({ error: errorMessage });
+          return { success: false, error: errorMessage };
+        } finally {
+          set({ isLoading: false });
         }
       },
 
@@ -277,20 +324,20 @@ export const useProfileStore = create<ProfileStore>()(
         if (error instanceof ApiError) {
           return error.message;
         }
-        
+
         if (error instanceof Error) {
           return error.message;
         }
-        
-        if (typeof error === 'string') {
+
+        if (typeof error === "string") {
           return error;
         }
-        
-        return 'An unexpected error occurred';
+
+        return "An unexpected error occurred";
       },
     }),
     {
-      name: 'viargos-profile-storage',
+      name: "viargos-profile-storage",
       partialize: (state) => ({
         activeTab: state.activeTab,
         // Don't persist sensitive data like profile images URLs

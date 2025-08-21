@@ -91,7 +91,7 @@ export class JourneyService implements IJourneyService {
 
       const response = await apiClient.getJourney(id);
 
-      if (response.statusCode !== 200 || !response.data) {
+      if (response.statusCode !== 10000 || !response.data) {
         throw new Error(response.message || "Failed to fetch journey");
       }
 

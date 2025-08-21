@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import Image from "next/image";
 import Button from "@/components/ui/Button";
 import {
   BuildingMonumentIcon,
@@ -11,6 +12,8 @@ import {
   NotesIcon,
 } from "@/components/icons";
 import JourneyMap from "@/components/maps/JourneyMap";
+import { serviceFactory } from "@/lib/services/service-factory";
+import { Journey } from "@/types/journey.types";
 
 interface Location {
   id: string;
@@ -21,40 +24,6 @@ interface Location {
   address?: string;
 }
 
-interface JourneyDay {
-  id: string;
-  dayNumber: number;
-  date: string;
-  activities: {
-    placeToStay: Location[];
-    placesToGo: Location[];
-    food: Location[];
-    transport: Location[];
-    notes: Location[];
-  };
-}
-
-interface BannerData {
-  title: string;
-  subtitle: string;
-  description: string;
-  imageUrl: string;
-  gradientColors: {
-    from: string;
-    via: string;
-    to: string;
-  };
-}
-
-interface Journey {
-  id: string;
-  name: string;
-  location: string;
-  startDate: string;
-  days: JourneyDay[];
-  banner?: BannerData;
-}
-
 export default function JourneyDetailsPage() {
   const params = useParams();
   const journeyId = params.id as string;
@@ -62,127 +31,72 @@ export default function JourneyDetailsPage() {
   const [journey, setJourney] = useState<Journey | null>(null);
   const [activeDay, setActiveDay] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(
     null
   );
   const [isBannerEditModalOpen, setIsBannerEditModalOpen] = useState(false);
-  console.log(isBannerEditModalOpen,selectedLocation);
-  
+  console.log(isBannerEditModalOpen, selectedLocation);
 
   useEffect(() => {
-    // Get location data from sessionStorage if available
-    const storedLocationData = sessionStorage.getItem("journeyLocationData");
-    let journeyLocation = "Hyderabad, India";
-    let journeyLocationData = null;
-
-    if (storedLocationData) {
+    const fetchJourney = async () => {
       try {
-        journeyLocationData = JSON.parse(storedLocationData);
-        journeyLocation = journeyLocationData.name;
-        // Don't clear the stored data yet - we need it for the map
+        setIsLoading(true);
+        setError(null);
+
+        console.log("Fetching journey with ID:", journeyId);
+        console.log("Journey ID type:", typeof journeyId);
+        console.log("Journey ID length:", journeyId?.length);
+
+        if (!journeyId) {
+          throw new Error("No journey ID provided");
+        }
+
+        const journeyService = serviceFactory.journeyService;
+        console.log("Journey service initialized:", !!journeyService);
+
+        const fetchedJourney = await journeyService.getJourneyById(journeyId);
+
+        console.log("Fetched journey:", fetchedJourney);
+        console.log("Journey data structure:", {
+          hasTitle: !!fetchedJourney?.title,
+          hasDescription: !!fetchedJourney?.description,
+          hasDays: !!fetchedJourney?.days,
+          daysCount: fetchedJourney?.days?.length || 0,
+          hasUser: !!fetchedJourney?.user,
+          hasCoverImage: !!fetchedJourney?.coverImage,
+          coverImageUrl: fetchedJourney?.coverImage,
+        });
+
+        setJourney(fetchedJourney);
+
+        // Set active day to 1 if there are days, or the first available day
+        if (fetchedJourney.days && fetchedJourney.days.length > 0) {
+          setActiveDay(fetchedJourney.days[0].dayNumber);
+        }
       } catch (error) {
-        console.error("Error parsing location data:", error);
+        console.error("Error fetching journey:", error);
+        console.error("Error details:", {
+          message: error instanceof Error ? error.message : "Unknown error",
+          stack: error instanceof Error ? error.stack : "No stack trace",
+          errorType: typeof error,
+          errorObject: error,
+        });
+        setError(
+          error instanceof Error ? error.message : "Failed to load journey"
+        );
+      } finally {
+        setIsLoading(false);
       }
-    }
-
-    // TODO: Fetch journey details from API
-    // For now, using mock data
-    setJourney({
-      id: journeyId,
-      name: "Hyderabad Adventure",
-      location: journeyLocation,
-      startDate: "2024-02-15",
-      banner: {
-        title: "Hyderabad Adventure",
-        subtitle: journeyLocation,
-        description: "Journey Details • Plan Your Adventure",
-        imageUrl: "",
-        gradientColors: {
-          from: "#2563eb",
-          via: "#9333ea",
-          to: "#4338ca",
-        },
-      },
-      days: [
-        {
-          id: "1",
-          dayNumber: 1,
-          date: "Saturday 15 Feb",
-          activities: {
-            placeToStay: [
-              {
-                id: "1",
-                name: "Taj Krishna Hotel",
-                lat: 17.385,
-                lng: 78.4867,
-                type: "placeToStay",
-                address: "Road No. 1, Banjara Hills, Hyderabad",
-              },
-            ],
-            placesToGo: [
-              {
-                id: "2",
-                name: "Charminar",
-                lat: 17.3616,
-                lng: 78.4747,
-                type: "placesToGo",
-                address: "Charminar, Hyderabad, Telangana",
-              },
-              {
-                id: "3",
-                name: "Golconda Fort",
-                lat: 17.3833,
-                lng: 78.4011,
-                type: "placesToGo",
-                address: "Golconda, Hyderabad, Telangana",
-              },
-            ],
-            food: [
-              {
-                id: "4",
-                name: "Paradise Biryani",
-                lat: 17.385,
-                lng: 78.4867,
-                type: "food",
-                address: "Banjara Hills, Hyderabad",
-              },
-            ],
-            transport: [],
-            notes: [],
-          },
-        },
-        {
-          id: "2",
-          dayNumber: 2,
-          date: "Saturday 16 Feb",
-          activities: {
-            placeToStay: [],
-            placesToGo: [],
-            food: [],
-            transport: [],
-            notes: [],
-          },
-        },
-        {
-          id: "3",
-          dayNumber: 3,
-          date: "Saturday 17 Feb",
-          activities: {
-            placeToStay: [],
-            placesToGo: [],
-            food: [],
-            transport: [],
-            notes: [],
-          },
-        },
-      ],
-    });
-    setIsLoading(false);
-
-    // Cleanup function to clear sessionStorage when component unmounts
-    return () => {
-      sessionStorage.removeItem("journeyLocationData");
     };
+
+    if (journeyId) {
+      fetchJourney();
+    } else {
+      console.error("No journey ID found in URL params");
+      setError("Invalid journey URL - no ID provided");
+      setIsLoading(false);
+    }
   }, [journeyId]);
 
   const handleAddActivity = (category: string) => {
@@ -192,6 +106,51 @@ export default function JourneyDetailsPage() {
 
   const handleLocationClick = (location: Location) => {
     setSelectedLocation(location);
+  };
+
+  // Helper function to organize places by type
+  const getPlacesByType = (day: any) => {
+    const places = day?.places || [];
+    const organized = {
+      placeToStay: [] as Location[],
+      placesToGo: [] as Location[],
+      food: [] as Location[],
+      transport: [] as Location[],
+      notes: [] as Location[],
+    };
+
+    places.forEach((place: any) => {
+      const location: Location = {
+        id: place.id,
+        name: place.name,
+        lat: place.latitude ? parseFloat(place.latitude) : 0,
+        lng: place.longitude ? parseFloat(place.longitude) : 0,
+        type: place.type,
+        address: place.address || place.description,
+      };
+
+      switch (place.type) {
+        case "STAY":
+          organized.placeToStay.push(location);
+          break;
+        case "ACTIVITY":
+          organized.placesToGo.push(location);
+          break;
+        case "FOOD":
+          organized.food.push(location);
+          break;
+        case "TRANSPORT":
+          organized.transport.push(location);
+          break;
+        case "NOTE":
+          organized.notes.push(location);
+          break;
+        default:
+          organized.placesToGo.push(location);
+      }
+    });
+
+    return organized;
   };
 
   // const handleBannerSave = (bannerData: BannerData) => {
@@ -207,27 +166,10 @@ export default function JourneyDetailsPage() {
   const getCurrentDayLocations = (): Location[] => {
     const allLocations: Location[] = [];
 
-    // Add journey location as the main pin
-    const storedLocationData = sessionStorage.getItem("journeyLocationData");
-    if (storedLocationData) {
-      try {
-        const locationData = JSON.parse(storedLocationData);
-        allLocations.push({
-          id: "journey-location",
-          name: locationData.name,
-          lat: locationData.lat,
-          lng: locationData.lng,
-          type: "journeyLocation",
-          address: locationData.address,
-        });
-      } catch (error) {
-        console.error("Error parsing location data:", error);
-      }
-    }
-
     // Add day-specific activities
     if (currentDay) {
-      Object.values(currentDay.activities).forEach((activityList) => {
+      const organizedPlaces = getPlacesByType(currentDay);
+      Object.values(organizedPlaces).forEach((activityList) => {
         allLocations.push(...activityList);
       });
     }
@@ -237,71 +179,131 @@ export default function JourneyDetailsPage() {
 
   // Get journey center location for map
   const getJourneyCenter = () => {
-    const storedLocationData = sessionStorage.getItem("journeyLocationData");
-    if (storedLocationData) {
-      try {
-        const locationData = JSON.parse(storedLocationData);
-        return { lat: locationData.lat, lng: locationData.lng };
-      } catch (error) {
-        console.error("Error parsing location data:", error);
+    // If we have locations from the current day, center on the first one
+    const locations = getCurrentDayLocations();
+    if (
+      locations.length > 0 &&
+      locations[0].lat !== 0 &&
+      locations[0].lng !== 0
+    ) {
+      return { lat: locations[0].lat, lng: locations[0].lng };
+    }
+
+    // If we have any locations with valid coordinates, use the first one
+    if (journey?.days) {
+      for (const day of journey.days) {
+        const organizedPlaces = getPlacesByType(day);
+        const allPlaces = Object.values(organizedPlaces).flat();
+        const validLocation = allPlaces.find(
+          (loc) => loc.lat !== 0 && loc.lng !== 0
+        );
+        if (validLocation) {
+          return { lat: validLocation.lat, lng: validLocation.lng };
+        }
       }
     }
-    // Default to Hyderabad if no location data
-    return { lat: 17.385, lng: 78.4867 };
+
+    // Default to Montreal based on the sample data
+    return { lat: 45.5017, lng: -73.5673 }; // Montreal as default
   };
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="flex-1 bg-gray-50 p-4 sm:p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading journey...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex-1 bg-gray-50 p-4 sm:p-6">
+        <div className="text-center py-8">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
+            <div className="text-red-600 mb-2">
+              <svg
+                className="w-8 h-8 mx-auto"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-red-800 mb-2">
+              Failed to load journey
+            </h3>
+            <p className="text-red-600 mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (!journey) {
     return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">Journey not found</p>
+      <div className="flex-1 bg-gray-50 p-4 sm:p-6">
+        <div className="text-center py-8">
+          <p className="text-gray-500">Journey not found</p>
+        </div>
       </div>
     );
   }
 
-  const currentDay = journey.days.find((day) => day.dayNumber === activeDay);
+  const currentDay = journey.days?.find((day) => day.dayNumber === activeDay);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="flex-1 bg-gray-50 p-4 sm:p-6 max-w-none">
       {/* Banner Section */}
-      <div className="relative h-64 w-full mb-6 overflow-hidden rounded-lg group">
-        {/* Background with gradient overlay */}
-        {journey?.banner?.imageUrl ? (
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${journey.banner.imageUrl})` }}
-          >
-            <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-          </div>
-        ) : (
-          <div
-            className="absolute inset-0"
-            style={{
-              background: `linear-gradient(to bottom right, ${
-                journey?.banner?.gradientColors?.from || "#2563eb"
-              }, ${journey?.banner?.gradientColors?.via || "#9333ea"}, ${
-                journey?.banner?.gradientColors?.to || "#4338ca"
-              })`,
-            }}
-          >
-            <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-          </div>
-        )}
+      <div className="relative h-48 sm:h-56 md:h-64 lg:h-72 w-full mb-4 sm:mb-6 overflow-hidden rounded-lg group">
+        {/* Background Image */}
+        <Image
+          src={journey?.coverImage || "/london.png"}
+          alt="Journey cover"
+          fill
+          className="object-cover"
+          style={{ zIndex: 1 }}
+          priority
+          onLoad={() => {
+            console.log(
+              "Cover image loaded successfully:",
+              journey?.coverImage
+            );
+          }}
+          onError={() => {
+            console.error("Cover image failed to load:", journey?.coverImage);
+          }}
+        />
+
+        {/* Black Overlay */}
+        <div
+          className="absolute inset-0 bg-black/40"
+          style={{ zIndex: 2 }}
+        ></div>
 
         {/* Edit Button */}
         <button
           onClick={() => setIsBannerEditModalOpen(true)}
-          className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white bg-opacity-20 hover:bg-opacity-30 text-white p-2 rounded-lg backdrop-blur-sm"
+          className="absolute top-2 right-2 sm:top-4 sm:right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white/20 backdrop-blur-sm text-white px-2 py-1 sm:px-3 sm:py-2 rounded-md text-xs sm:text-sm hover:bg-white/30 flex items-center gap-1 sm:gap-2"
         >
           <svg
-            className="w-5 h-5"
+            className="w-3 h-3 sm:w-4 sm:h-4"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -313,191 +315,285 @@ export default function JourneyDetailsPage() {
               d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
             />
           </svg>
+          <span className="hidden sm:inline">Edit</span>
         </button>
 
-        {/* Decorative elements */}
-        <div className="absolute top-4 left-4">
-          <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-            <svg
-              className="w-8 h-8 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+        {/* Journey Name and Subtitle Overlay */}
+        <div
+          className="absolute inset-0 flex flex-col items-center justify-center text-center px-4"
+          style={{ zIndex: 3 }}
+        >
+          {/* Journey Name */}
+          <div className="w-full max-w-4xl mb-2">
+            <h1
+              className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white"
+              style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.7)" }}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m0 0L9 7"
-              />
-            </svg>
-          </div>
-        </div>
-
-        <div className="absolute bottom-4 left-4">
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-white rounded-full"></div>
-            <div className="w-3 h-3 bg-white bg-opacity-60 rounded-full"></div>
-            <div className="w-3 h-3 bg-white bg-opacity-30 rounded-full"></div>
-          </div>
-        </div>
-
-        {/* Main content */}
-        <div className="relative h-full flex items-center justify-center">
-          <div className="text-center text-white">
-            <div className="mb-4">
-              <svg
-                className="w-16 h-16 mx-auto text-white opacity-80"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m0 0L9 7"
-                />
-              </svg>
-            </div>
-            <h1 className="text-4xl font-bold mb-2 drop-shadow-lg">
-              {journey?.banner?.title || journey?.name}
+              {journey?.title || "Journey"}
             </h1>
-            <p className="text-xl opacity-90 mb-1">
-              {journey?.banner?.subtitle || journey?.location}
+          </div>
+
+          {/* Subtitle/Description */}
+          <div className="w-full max-w-xl">
+            <p
+              className="text-sm sm:text-base lg:text-lg text-white/90"
+              style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.7)" }}
+            >
+              {journey?.description || "Explore amazing places"}
             </p>
-            <div className="flex items-center justify-center space-x-4 text-sm opacity-75">
-              {journey?.banner?.description ? (
-                <span>{journey.banner.description}</span>
-              ) : (
-                <>
-                  <span>•</span>
-                  <span>Journey Details</span>
-                  <span>•</span>
-                  <span>Plan Your Adventure</span>
-                </>
-              )}
-            </div>
           </div>
         </div>
       </div>
 
-      <div className="flex h-[calc(100vh-16rem)]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 min-h-[calc(100vh-16rem)]">
         {/* Left Content */}
-        <div className="flex-1 p-6 overflow-y-auto">
+        <div className="lg:col-span-2 bg-white rounded-lg p-4 sm:p-6 overflow-y-auto shadow-sm">
           {/* Header */}
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-4">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">
-                Plan Your Journey
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+                Journey Details
               </h2>
-              <p className="text-gray-600 mt-1">
-                Organize your activities by day
-              </p>
             </div>
-            <Button variant="primary">Review & Post</Button>
           </div>
 
           {/* Day Tabs */}
-          <div className="flex space-x-2 mb-6">
-            {journey.days.map((day) => (
-              <button
-                key={day.id}
-                onClick={() => setActiveDay(day.dayNumber)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  activeDay === day.dayNumber
-                    ? "bg-blue-600 text-white"
-                    : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-                }`}
-              >
-                Day {day.dayNumber}
-              </button>
-            ))}
-          </div>
+          {journey.days && journey.days.length > 0 ? (
+            <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
+              {journey.days.map((day) => (
+                <button
+                  key={day.id}
+                  onClick={() => setActiveDay(day.dayNumber)}
+                  className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
+                    activeDay === day.dayNumber
+                      ? "bg-blue-600 text-white shadow-md"
+                      : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 shadow-sm"
+                  }`}
+                >
+                  Day {day.dayNumber + 1}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 sm:mb-6">
+              <p className="text-yellow-800">
+                This journey doesn&apos;t have any days planned yet.
+              </p>
+            </div>
+          )}
 
           {/* Day Content */}
           {currentDay && (
             <div>
-              <h2 className="text-xl font-semibold mb-4">
+              <h2 className="text-lg sm:text-xl font-semibold mb-4">
                 Day {currentDay.dayNumber} - {currentDay.date}
               </h2>
 
               {/* Activity Categories */}
-              <div className="grid grid-cols-5 gap-4 mb-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 mb-6">
                 <button
                   onClick={() => handleAddActivity("placeToStay")}
-                  className="flex flex-col items-center p-4 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
+                  className="flex flex-col items-center p-3 sm:p-4 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors shadow-sm hover:shadow-md"
                 >
-                  <BuildingMonumentIcon className="w-8 h-8 text-gray-600 mb-2" />
-                  <span className="text-sm text-gray-700">Place to stay</span>
+                  <BuildingMonumentIcon className="w-6 h-6 sm:w-8 sm:h-8 text-gray-600 mb-1 sm:mb-2" />
+                  <span className="text-xs sm:text-sm text-gray-700 text-center">
+                    Place to stay
+                  </span>
                 </button>
 
                 <button
                   onClick={() => handleAddActivity("placesToGo")}
-                  className="flex flex-col items-center p-4 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
+                  className="flex flex-col items-center p-3 sm:p-4 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors shadow-sm hover:shadow-md"
                 >
-                  <TreesIcon className="w-8 h-8 text-gray-600 mb-2" />
-                  <span className="text-sm text-gray-700">Places to go</span>
+                  <TreesIcon className="w-6 h-6 sm:w-8 sm:h-8 text-gray-600 mb-1 sm:mb-2" />
+                  <span className="text-xs sm:text-sm text-gray-700 text-center">
+                    Places to go
+                  </span>
                 </button>
 
                 <button
                   onClick={() => handleAddActivity("food")}
-                  className="flex flex-col items-center p-4 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
+                  className="flex flex-col items-center p-3 sm:p-4 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors shadow-sm hover:shadow-md"
                 >
-                  <FoodIcon className="w-8 h-8 text-gray-600 mb-2" />
-                  <span className="text-sm text-gray-700">Food</span>
+                  <FoodIcon className="w-6 h-6 sm:w-8 sm:h-8 text-gray-600 mb-1 sm:mb-2" />
+                  <span className="text-xs sm:text-sm text-gray-700 text-center">
+                    Food
+                  </span>
                 </button>
 
                 <button
                   onClick={() => handleAddActivity("transport")}
-                  className="flex flex-col items-center p-4 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
+                  className="flex flex-col items-center p-3 sm:p-4 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors shadow-sm hover:shadow-md"
                 >
-                  <TransportIcon className="w-8 h-8 text-gray-600 mb-2" />
-                  <span className="text-sm text-gray-700">Transport</span>
+                  <TransportIcon className="w-6 h-6 sm:w-8 sm:h-8 text-gray-600 mb-1 sm:mb-2" />
+                  <span className="text-xs sm:text-sm text-gray-700 text-center">
+                    Transport
+                  </span>
                 </button>
 
                 <button
                   onClick={() => handleAddActivity("notes")}
-                  className="flex flex-col items-center p-4 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
+                  className="flex flex-col items-center p-3 sm:p-4 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors shadow-sm hover:shadow-md"
                 >
-                  <NotesIcon className="w-8 h-8 text-gray-600 mb-2" />
-                  <span className="text-sm text-gray-700">Notes</span>
+                  <NotesIcon className="w-6 h-6 sm:w-8 sm:h-8 text-gray-600 mb-1 sm:mb-2" />
+                  <span className="text-xs sm:text-sm text-gray-700 text-center">
+                    Notes
+                  </span>
                 </button>
               </div>
 
-              {/* Things to do section */}
-              <div className="bg-white rounded-lg p-4 border border-gray-200">
-                <div className="flex justify-between items-center mb-3">
-                  <div className="flex items-center">
-                    <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2">
-                      <span className="text-blue-600 text-xs">~</span>
+              {/* Places Display */}
+              {currentDay &&
+              currentDay.places &&
+              currentDay.places.length > 0 ? (
+                <div className="space-y-4">
+                  {/* All places combined in reference design style */}
+                  {[
+                    ...getPlacesByType(currentDay).placeToStay,
+                    ...getPlacesByType(currentDay).placesToGo,
+                    ...getPlacesByType(currentDay).food,
+                    ...getPlacesByType(currentDay).transport,
+                  ].map((place) => (
+                    <div
+                      key={place.id}
+                      className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex">
+                        {/* Image placeholder - matching reference design */}
+                        <div className="w-24 h-20 sm:w-32 sm:h-24 bg-gray-100 flex items-center justify-center flex-shrink-0">
+                          <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center">
+                            {place.type === "STAY" && (
+                              <span className="text-white text-xs">🏨</span>
+                            )}
+                            {place.type === "ACTIVITY" && (
+                              <span className="text-white text-xs">📍</span>
+                            )}
+                            {place.type === "FOOD" && (
+                              <span className="text-white text-xs">🍽️</span>
+                            )}
+                            {place.type === "TRANSPORT" && (
+                              <span className="text-white text-xs">🚗</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-gray-900 text-base mb-1 truncate">
+                                {place.name}
+                              </h3>
+                              <div className="flex items-center text-sm text-gray-600 mb-2">
+                                <svg
+                                  className="w-4 h-4 mr-1 text-gray-400"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                                  />
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                                  />
+                                </svg>
+                                <span className="truncate">
+                                  {place.type === "STAY" &&
+                                    "Accommodation & Theme Parks"}
+                                  {place.type === "ACTIVITY" &&
+                                    "Attractions & Activities"}
+                                  {place.type === "FOOD" &&
+                                    "Restaurants & Dining"}
+                                  {place.type === "TRANSPORT" &&
+                                    "Transportation"}
+                                </span>
+                              </div>
+                              {place.address && (
+                                <p className="text-sm text-gray-500 line-clamp-2">
+                                  {place.address}
+                                </p>
+                              )}
+                            </div>
+
+                            {/* View Images button - matching reference */}
+                            <button
+                              onClick={() => handleLocationClick(place)}
+                              className="ml-4 flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors flex-shrink-0"
+                            >
+                              <svg
+                                className="w-4 h-4 mr-1"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                />
+                              </svg>
+                              View Images
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <h3 className="font-medium text-gray-900">Things to do</h3>
+                  ))}
+
+                  {currentDay.notes && (
+                    <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+                      <div className="flex items-start">
+                        <div className="text-yellow-600 mr-2">📝</div>
+                        <div>
+                          <h4 className="font-medium text-yellow-800 mb-1">
+                            Notes
+                          </h4>
+                          <p className="text-sm text-yellow-700">
+                            {currentDay.notes}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-white rounded-lg p-6 border border-gray-200 text-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <span className="text-blue-600 text-xl">📍</span>
                   </div>
-                  <button className="text-blue-600 text-sm hover:underline">
-                    Add Locations
+                  <h3 className="font-medium text-gray-900 mb-1">
+                    No places added yet
+                  </h3>
+                  <p className="text-gray-500 text-sm mb-4">
+                    Start planning your day by adding places to visit,
+                    restaurants, or accommodations.
+                  </p>
+                  <button className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors">
+                    Add Your First Place
                   </button>
                 </div>
-                <p className="text-gray-500 text-sm">
-                  Pick a thing to do on your first day in town
-                </p>
-              </div>
-
-              {/* Add Hotel link */}
-              <button className="text-blue-600 text-sm hover:underline mt-4">
-                Add Hotel
-              </button>
+              )}
             </div>
           )}
         </div>
 
         {/* Right Side - Google Maps */}
-        <div className="w-1/2 bg-gray-100">
-          <JourneyMap
-            locations={getCurrentDayLocations()}
-            center={getJourneyCenter()}
-            onLocationClick={handleLocationClick}
-          />
+        <div className="lg:col-span-1 bg-gray-100 rounded-lg overflow-hidden shadow-sm">
+          <div className="h-[400px] sm:h-[500px] lg:h-full">
+            <JourneyMap
+              locations={getCurrentDayLocations()}
+              center={getJourneyCenter()}
+              onLocationClick={handleLocationClick}
+            />
+          </div>
         </div>
       </div>
     </div>

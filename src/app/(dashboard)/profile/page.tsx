@@ -30,6 +30,7 @@ export default function ProfilePage() {
     loadProfileAndStats,
     uploadProfileImage,
     uploadBannerImage,
+    deleteJourney,
     clearError,
   } = useProfileStore();
   const router = useRouter();
@@ -58,6 +59,15 @@ export default function ProfilePage() {
     const result = await uploadBannerImage(file);
     if (!result.success && result.error) {
       console.error("Banner image upload failed:", result.error);
+    }
+  };
+
+  // Handle journey deletion
+  const handleDeleteJourney = async (journeyId: string) => {
+    const result = await deleteJourney(journeyId);
+    if (!result.success && result.error) {
+      console.error("Journey deletion failed:", result.error);
+      // You could show a toast notification here
     }
   };
 
@@ -166,12 +176,13 @@ export default function ProfilePage() {
                 <LoadingSpinner size="lg" />
               </div>
             ) : journeys.length > 0 ? (
-              <div className="flex flex-col gap-4 w-full">
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 w-full">
                 {journeys.map((journey, index) => (
                   <ProfileJourneyCard
                     key={journey.id}
                     journey={journey}
                     index={index}
+                    onDelete={handleDeleteJourney}
                   />
                 ))}
               </div>
