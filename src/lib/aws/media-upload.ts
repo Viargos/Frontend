@@ -1,12 +1,17 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+  GetObjectCommand,
+} from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 // AWS Configuration
 const AWS_CONFIG = {
-  region: process.env.NEXT_PUBLIC_AWS_REGION || 'us-east-1',
+  region: process.env.NEXT_PUBLIC_AWS_REGION || "us-east-1",
   credentials: {
-    accessKeyId: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.NEXT_PUBLIC_AWS_SECRET_ACCESS_KEY || '',
+    accessKeyId: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.NEXT_PUBLIC_AWS_SECRET_ACCESS_KEY || "",
   },
   // Add browser-specific configuration to prevent stream issues
   requestHandler: {
@@ -15,16 +20,21 @@ const AWS_CONFIG = {
   },
 };
 
-const BUCKET_NAME = process.env.NEXT_PUBLIC_S3_BUCKET_NAME || '';
+const BUCKET_NAME = process.env.NEXT_PUBLIC_S3_BUCKET_NAME || "";
 
 // Initialize S3 Client with browser-compatible settings
 const s3Client = new S3Client(AWS_CONFIG);
 
 // File type configurations
 const ALLOWED_FILE_TYPES = {
-  images: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'],
-  videos: ['video/mp4', 'video/webm', 'video/mpeg', 'video/quicktime'],
-  documents: ['application/pdf', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+  images: ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"],
+  videos: ["video/mp4", "video/webm", "video/mpeg", "video/quicktime"],
+  documents: [
+    "application/pdf",
+    "text/plain",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ],
 };
 
 const MAX_FILE_SIZES = {
@@ -35,7 +45,7 @@ const MAX_FILE_SIZES = {
 
 export interface UploadOptions {
   folder?: string;
-  fileType?: 'images' | 'videos' | 'documents';
+  fileType?: "images" | "videos" | "documents";
   maxSize?: number;
   customFileName?: string;
 }
@@ -57,45 +67,56 @@ export interface UploadProgress {
 }
 
 // Utility functions
-const validateFile = (file: File, options: UploadOptions): { isValid: boolean; error?: string } => {
+const validateFile = (
+  file: File,
+  options: UploadOptions
+): { isValid: boolean; error?: string } => {
   // Check file type
   if (options.fileType) {
     const allowedTypes = ALLOWED_FILE_TYPES[options.fileType];
     if (!allowedTypes.includes(file.type)) {
       return {
         isValid: false,
-        error: `File type ${file.type} is not allowed. Allowed types: ${allowedTypes.join(', ')}`
+        error: `File type ${
+          file.type
+        } is not allowed. Allowed types: ${allowedTypes.join(", ")}`,
       };
     }
   }
 
   // Check file size
-  const maxSize = options.maxSize || MAX_FILE_SIZES[options.fileType || 'images'];
+  const maxSize =
+    options.maxSize || MAX_FILE_SIZES[options.fileType || "images"];
   if (file.size > maxSize) {
     const maxSizeMB = Math.round(maxSize / (1024 * 1024));
     return {
       isValid: false,
-      error: `File size ${Math.round(file.size / (1024 * 1024))}MB exceeds maximum allowed size of ${maxSizeMB}MB`
+      error: `File size ${Math.round(
+        file.size / (1024 * 1024)
+      )}MB exceeds maximum allowed size of ${maxSizeMB}MB`,
     };
   }
 
   return { isValid: true };
 };
 
-const generateUniqueFileName = (originalName: string, folder?: string): string => {
+const generateUniqueFileName = (
+  originalName: string,
+  folder?: string
+): string => {
   const timestamp = Date.now();
   const randomString = Math.random().toString(36).substring(2, 15);
-  const extension = originalName.split('.').pop();
-  const baseName = originalName.split('.').slice(0, -1).join('.');
-  const sanitizedBaseName = baseName.replace(/[^a-zA-Z0-9]/g, '-');
-  
+  const extension = originalName.split(".").pop();
+  const baseName = originalName.split(".").slice(0, -1).join(".");
+  const sanitizedBaseName = baseName.replace(/[^a-zA-Z0-9]/g, "-");
+
   const fileName = `${sanitizedBaseName}-${timestamp}-${randomString}.${extension}`;
-  
+
   return folder ? `${folder}/${fileName}` : fileName;
 };
 
 const getContentType = (file: File): string => {
-  return file.type || 'application/octet-stream';
+  return file.type || "application/octet-stream";
 };
 
 // Main upload function
@@ -106,10 +127,15 @@ export const uploadToS3 = async (
 ): Promise<UploadResult> => {
   try {
     // Validate environment variables
-    if (!BUCKET_NAME || !AWS_CONFIG.credentials.accessKeyId || !AWS_CONFIG.credentials.secretAccessKey) {
+    if (
+      !BUCKET_NAME ||
+      !AWS_CONFIG.credentials.accessKeyId ||
+      !AWS_CONFIG.credentials.secretAccessKey
+    ) {
       return {
         success: false,
-        error: 'AWS configuration is missing. Please check environment variables.'
+        error:
+          "AWS configuration is missing. Please check environment variables.",
       };
     }
 
@@ -118,17 +144,19 @@ export const uploadToS3 = async (
     if (!validation.isValid) {
       return {
         success: false,
-        error: validation.error
+        error: validation.error,
       };
     }
 
     // Generate unique file name
-    const fileName = options.customFileName || generateUniqueFileName(file.name, options.folder);
+    const fileName =
+      options.customFileName ||
+      generateUniqueFileName(file.name, options.folder);
     const contentType = getContentType(file);
 
     // Convert File to ArrayBuffer for better browser compatibility
     const fileBuffer = await file.arrayBuffer();
-    
+
     // Create upload command
     const uploadCommand = new PutObjectCommand({
       Bucket: BUCKET_NAME,
@@ -142,19 +170,13 @@ export const uploadToS3 = async (
       },
     });
 
-    // Upload progress tracking (simulated since AWS SDK doesn't provide real-time progress for browser uploads)
+    // Upload progress tracking (simulated)
     if (onProgress) {
-      const progressInterval = setInterval(() => {
-        // Simulate progress - in real implementation you might use a different approach
-        onProgress({
-          loaded: file.size * Math.random(),
-          total: file.size,
-          percentage: Math.min(95, Math.random() * 95)
-        });
-      }, 100);
-
-      // Clear interval after upload
-      setTimeout(() => clearInterval(progressInterval), 1000);
+      onProgress({
+        loaded: file.size * 0.5,
+        total: file.size,
+        percentage: 50,
+      });
     }
 
     // Execute upload
@@ -165,7 +187,7 @@ export const uploadToS3 = async (
       onProgress({
         loaded: file.size,
         total: file.size,
-        percentage: 100
+        percentage: 100,
       });
     }
 
@@ -178,14 +200,13 @@ export const uploadToS3 = async (
       key: fileName,
       fileName: file.name,
       fileSize: file.size,
-      fileType: file.type
+      fileType: file.type,
     };
-
   } catch (error: any) {
-    console.error('S3 Upload Error:', error);
+    console.error("S3 Upload Error:", error);
     return {
       success: false,
-      error: error.message || 'Failed to upload file to S3'
+      error: error.message || "Failed to upload file to S3",
     };
   }
 };
@@ -212,12 +233,19 @@ export const uploadMultipleToS3 = async (
 };
 
 // Delete file from S3
-export const deleteFromS3 = async (key: string): Promise<{ success: boolean; error?: string }> => {
+export const deleteFromS3 = async (
+  key: string
+): Promise<{ success: boolean; error?: string }> => {
   try {
-    if (!BUCKET_NAME || !AWS_CONFIG.credentials.accessKeyId || !AWS_CONFIG.credentials.secretAccessKey) {
+    if (
+      !BUCKET_NAME ||
+      !AWS_CONFIG.credentials.accessKeyId ||
+      !AWS_CONFIG.credentials.secretAccessKey
+    ) {
       return {
         success: false,
-        error: 'AWS configuration is missing. Please check environment variables.'
+        error:
+          "AWS configuration is missing. Please check environment variables.",
       };
     }
 
@@ -230,10 +258,10 @@ export const deleteFromS3 = async (key: string): Promise<{ success: boolean; err
 
     return { success: true };
   } catch (error: any) {
-    console.error('S3 Delete Error:', error);
+    console.error("S3 Delete Error:", error);
     return {
       success: false,
-      error: error.message || 'Failed to delete file from S3'
+      error: error.message || "Failed to delete file from S3",
     };
   }
 };
@@ -247,7 +275,7 @@ export const getPresignedUrl = async (
     if (!BUCKET_NAME) {
       return {
         success: false,
-        error: 'S3 bucket name is missing'
+        error: "S3 bucket name is missing",
       };
     }
 
@@ -260,13 +288,13 @@ export const getPresignedUrl = async (
 
     return {
       success: true,
-      url: signedUrl
+      url: signedUrl,
     };
   } catch (error: any) {
-    console.error('Presigned URL Error:', error);
+    console.error("Presigned URL Error:", error);
     return {
       success: false,
-      error: error.message || 'Failed to generate presigned URL'
+      error: error.message || "Failed to generate presigned URL",
     };
   }
 };
@@ -275,38 +303,38 @@ export const getPresignedUrl = async (
 export const extractS3KeyFromUrl = (url: string): string | null => {
   try {
     const parsedUrl = new URL(url);
-    
+
     // Handle different S3 URL formats
-    if (parsedUrl.hostname.includes('s3.amazonaws.com')) {
+    if (parsedUrl.hostname.includes("s3.amazonaws.com")) {
       // https://bucket-name.s3.region.amazonaws.com/key
       return parsedUrl.pathname.substring(1); // Remove leading slash
-    } else if (parsedUrl.hostname === 's3.amazonaws.com') {
+    } else if (parsedUrl.hostname === "s3.amazonaws.com") {
       // https://s3.amazonaws.com/bucket-name/key
-      const pathParts = parsedUrl.pathname.substring(1).split('/');
-      return pathParts.slice(1).join('/'); // Remove bucket name
+      const pathParts = parsedUrl.pathname.substring(1).split("/");
+      return pathParts.slice(1).join("/"); // Remove bucket name
     }
-    
+
     return null;
   } catch (error) {
-    console.error('Error extracting S3 key from URL:', error);
+    console.error("Error extracting S3 key from URL:", error);
     return null;
   }
 };
 
 // Utility function to format file size
 export const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes';
-  
+  if (bytes === 0) return "0 Bytes";
+
   const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const sizes = ["Bytes", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 };
 
 // Utility function to get file extension
 export const getFileExtension = (fileName: string): string => {
-  return fileName.split('.').pop()?.toLowerCase() || '';
+  return fileName.split(".").pop()?.toLowerCase() || "";
 };
 
 // Check if file is an image
@@ -320,7 +348,10 @@ export const isVideoFile = (file: File): boolean => {
 };
 
 // Generate thumbnail URL (assuming you have a thumbnail generation service)
-export const generateThumbnailUrl = (originalUrl: string, size: string = '150x150'): string => {
+export const generateThumbnailUrl = (
+  originalUrl: string,
+  size: string = "150x150"
+): string => {
   // This would depend on your thumbnail generation service
   // For now, return the original URL
   return originalUrl;

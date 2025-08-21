@@ -39,6 +39,7 @@ export default function NewJourneyModal({
   const [locationData, setLocationData] = useState<Location | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
+    console.log(formData);
     e.preventDefault();
     if (formData.name && formData.journeyDate && formData.location) {
       onSubmit({
@@ -89,6 +90,7 @@ export default function NewJourneyModal({
                 onChange={(value) => handleInputChange("journeyDate", value)}
                 required
                 className="pl-10"
+                placeholder="Select Journey Date"
               />
               <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             </div>
@@ -113,24 +115,20 @@ export default function NewJourneyModal({
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button
+            <button
               type="button"
-              variant="secondary"
               onClick={onClose}
-              className="flex-1"
+              className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition-colors shadow-button font-manrope px-3.5 py-2 text-sm leading-5 bg-primary-blue border border-primary-blue text-white hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Close
-            </Button>
-            <Button
+            </button>
+            <button
               type="submit"
-              variant="primary"
-              className="flex-1"
-              disabled={
-                !formData.name || !formData.journeyDate || !formData.location
-              }
+              onClick={handleSubmit}
+              className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition-colors shadow-button font-manrope px-3.5 py-2 text-sm leading-5 bg-primary-blue border border-primary-blue text-white "
             >
               Save
-            </Button>
+            </button>
           </div>
         </form>
       </div>

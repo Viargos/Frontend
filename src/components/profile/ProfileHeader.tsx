@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useRef } from 'react';
-import Image from 'next/image';
-import { motion } from 'framer-motion';
-import { UserProfile, UserStats } from '@/types/profile.types';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { useRef } from "react";
+import Image from "next/image";
+import { motion } from "framer-motion";
+import { UserProfile, UserStats } from "@/types/profile.types";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 interface ProfileHeaderProps {
   profile: UserProfile;
@@ -30,9 +30,13 @@ const StatItem = ({ value, label }: { value: number; label: string }) => {
   };
 
   return (
-    <div className="flex flex-col items-center gap-1 cursor-pointer hover:scale-105 transition-transform">
-      <span className="text-base sm:text-lg font-bold text-gray-900">{formatCount(value)}</span>
-      <span className="text-xs sm:text-sm text-gray-600">{label}</span>
+    <div className="flex flex-col items-center gap-1 cursor-pointer hover:scale-105 transition-transform min-w-0">
+      <span className="text-sm sm:text-base lg:text-lg font-bold text-gray-900">
+        {formatCount(value)}
+      </span>
+      <span className="text-xs sm:text-sm text-gray-600 whitespace-nowrap">
+        {label}
+      </span>
     </div>
   );
 };
@@ -65,19 +69,19 @@ export default function ProfileHeader({
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="flex flex-col justify-center items-start w-full rounded-md bg-white shadow-lg overflow-hidden"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
     >
       {/* Hero Background Image */}
-      <div className="relative h-[180px] w-full">
+      <div className="relative h-32 sm:h-40 md:h-48 lg:h-56 w-full">
         {bannerImageUrl ? (
           <Image
             src={bannerImageUrl}
             alt="Profile background"
-            className="h-[180px] w-full object-cover"
+            className="h-full w-full object-cover"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             priority
@@ -86,17 +90,17 @@ export default function ProfileHeader({
           <Image
             src="/london.png?format=webp&width=800"
             alt="Profile background"
-            className="h-[180px] w-full object-cover"
+            className="h-full w-full object-cover"
             width={800}
-            height={180}
+            height={224}
           />
         )}
-        
+
         {/* Banner Upload Button */}
         <motion.button
           onClick={() => bannerInputRef.current?.click()}
           disabled={isImageUploading}
-          className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-md text-sm hover:bg-white/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-white/20 backdrop-blur-sm text-white px-2 py-1 sm:px-3 sm:py-2 rounded-md text-xs sm:text-sm hover:bg-white/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-2"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -106,10 +110,10 @@ export default function ProfileHeader({
               Uploading...
             </>
           ) : (
-            'Change Banner'
+            "Change Banner"
           )}
         </motion.button>
-        
+
         <input
           ref={bannerInputRef}
           type="file"
@@ -121,36 +125,36 @@ export default function ProfileHeader({
       </div>
 
       {/* Avatar and Info Section */}
-      <div className="flex pb-6 px-4 sm:px-6 items-end w-full -mt-12 sm:justify-start sm:gap-10 xl:gap-16 sm:flex-row flex-col sm:items-end items-start h-[200px] sm:h-[220px] md:h-[240px] lg:h-[250px] justify-start gap-5">
-        <div className="flex flex-col justify-center items-center gap-2">
+      <div className="flex pb-4 sm:pb-6 px-4 sm:px-6 w-full -mt-12 sm:justify-between flex-col sm:flex-row items-center sm:items-end justify-start gap-4 sm:gap-6 lg:gap-10 xl:gap-16">
+        <div className="flex flex-col justify-center items-center sm:items-start gap-2 sm:gap-3">
           {/* Avatar Container */}
-          <div className="w-30 h-30 rounded-lg relative">
+          <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-lg relative">
             {/* Background with gradient */}
-            <div className="w-30 h-30 absolute left-0 top-0">
-              <div className="w-30 h-30 rounded-lg bg-primary-purple absolute left-0 top-0" />
-              <div className="w-24 h-24 rounded-lg bg-white bg-opacity-30 absolute left-3 top-3" />
+            <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 absolute left-0 top-0">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-lg bg-primary-purple absolute left-0 top-0" />
+              <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 rounded-lg bg-white bg-opacity-30 absolute left-2 top-2" />
             </div>
-            
+
             {/* Avatar Image */}
             {profileImageUrl ? (
               <Image
                 src={profileImageUrl}
                 alt="Profile"
-                width={120}
-                height={120}
-                className="w-30 h-30 rounded-lg absolute left-0 top-0 object-cover"
+                width={128}
+                height={128}
+                className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-lg absolute left-0 top-0 object-cover"
               />
             ) : (
-              <div className="w-30 h-30 rounded-lg absolute left-0 top-0 bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold">
-                {profile.username?.charAt(0).toUpperCase() || 'U'}
+              <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-lg absolute left-0 top-0 bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white text-lg sm:text-xl lg:text-2xl font-bold">
+                {profile.username?.charAt(0).toUpperCase() || "U"}
               </div>
             )}
-            
+
             {/* Profile Upload Button */}
             <motion.button
               onClick={() => profileInputRef.current?.click()}
               disabled={isImageUploading}
-              className="absolute -bottom-2 -right-2 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 bg-blue-600 text-white p-1.5 sm:p-2 rounded-full hover:bg-blue-700 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
             >
@@ -158,7 +162,7 @@ export default function ProfileHeader({
                 <LoadingSpinner size="xs" />
               ) : (
                 <svg
-                  className="w-4 h-4"
+                  className="w-3 h-3 sm:w-4 sm:h-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -172,7 +176,7 @@ export default function ProfileHeader({
                 </svg>
               )}
             </motion.button>
-            
+
             <input
               ref={profileInputRef}
               type="file"
@@ -184,8 +188,8 @@ export default function ProfileHeader({
           </div>
 
           {/* Name */}
-          <motion.h1 
-            className="text-heading font-mulish text-[22px] font-bold leading-7"
+          <motion.h1
+            className="text-heading font-mulish text-xl sm:text-2xl lg:text-3xl font-bold leading-tight text-center sm:text-left"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
@@ -195,8 +199,8 @@ export default function ProfileHeader({
 
           {/* Bio */}
           {profile.bio && (
-            <motion.p 
-              className="text-gray-600 text-sm text-center max-w-xs"
+            <motion.p
+              className="text-gray-600 text-sm sm:text-base text-center sm:text-left max-w-xs sm:max-w-sm lg:max-w-md"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
@@ -207,39 +211,54 @@ export default function ProfileHeader({
 
           {/* Location */}
           {profile.location && (
-            <motion.div 
-              className="flex items-center gap-1 text-gray-500 text-sm"
+            <motion.div
+              className="flex items-center gap-1 text-gray-500 text-sm sm:text-base"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              <svg
+                className="w-4 h-4 sm:w-5 sm:h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                />
               </svg>
               {profile.location}
             </motion.div>
           )}
         </div>
-        
+
         {/* Stats Display */}
-        <motion.div 
-          className="flex items-center gap-4 sm:gap-6 lg:gap-8"
+        <motion.div
+          className="flex items-center justify-center sm:justify-start gap-4 sm:gap-6 lg:gap-8 w-full sm:w-auto"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
         >
           {isStatsLoading ? (
-            <div className="flex items-center gap-3 sm:gap-4 md:gap-6">
+            <div className="flex items-center gap-3 sm:gap-4 md:gap-6 lg:gap-8">
               {Array.from({ length: 4 }).map((_, index) => (
                 <div key={index} className="flex flex-col items-center gap-1">
-                  <div className="animate-pulse bg-gray-200 h-5 sm:h-6 w-8 sm:w-12 rounded"></div>
-                  <div className="animate-pulse bg-gray-200 h-3 sm:h-4 w-12 sm:w-16 rounded"></div>
+                  <div className="animate-pulse bg-gray-200 h-4 sm:h-5 lg:h-6 w-6 sm:w-8 lg:w-12 rounded"></div>
+                  <div className="animate-pulse bg-gray-200 h-3 sm:h-4 w-10 sm:w-12 lg:w-16 rounded"></div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="flex items-center gap-3 sm:gap-4 md:gap-6">
+            <div className="flex items-center gap-3 sm:gap-4 md:gap-6 lg:gap-8">
               <StatItem label="Posts" value={stats?.posts || 0} />
               <StatItem label="Journeys" value={stats?.journeys || 0} />
               <StatItem label="Followers" value={stats?.followers || 0} />

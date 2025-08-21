@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from "react";
 
 type KeyboardShortcutHandler = (event: KeyboardEvent) => void;
 
 interface UseKeyboardShortcutOptions {
   preventDefault?: boolean;
   stopPropagation?: boolean;
-  eventType?: 'keydown' | 'keyup' | 'keypress';
+  eventType?: "keydown" | "keyup" | "keypress";
   target?: EventTarget | null;
 }
 
@@ -22,15 +22,18 @@ export function useKeyboardShortcut(
   const {
     preventDefault = false,
     stopPropagation = false,
-    eventType = 'keydown',
-    target = null
+    eventType = "keydown",
+    target = null,
   } = options;
 
   const handleKeyEvent = useCallback(
     (event: KeyboardEvent) => {
+      // Check if event.key exists to avoid runtime errors
+      if (!event.key) return;
+
       const keyArray = Array.isArray(keys) ? keys : [keys];
       const pressedKey = event.key.toLowerCase();
-      
+
       if (keyArray.includes(pressedKey)) {
         if (preventDefault) event.preventDefault();
         if (stopPropagation) event.stopPropagation();
@@ -45,7 +48,10 @@ export function useKeyboardShortcut(
     eventTarget.addEventListener(eventType, handleKeyEvent as EventListener);
 
     return () => {
-      eventTarget.removeEventListener(eventType, handleKeyEvent as EventListener);
+      eventTarget.removeEventListener(
+        eventType,
+        handleKeyEvent as EventListener
+      );
     };
   }, [handleKeyEvent, eventType, target]);
 }
@@ -55,8 +61,8 @@ export function useKeyboardShortcut(
  */
 export function useEscapeKey(handler: () => void, isActive: boolean = true) {
   useKeyboardShortcut(
-    'escape',
-    handler,
+    "escape",
+    isActive ? handler : () => {}, // Only call handler if active
     { preventDefault: true }
   );
 }
@@ -77,15 +83,27 @@ export function useKeyboardCombo(
 ) {
   const handleKeyEvent = useCallback(
     (event: KeyboardEvent) => {
-      const { key, ctrl = false, shift = false, alt = false, meta = false } = combo;
-      
+      const {
+        key,
+        ctrl = false,
+        shift = false,
+        alt = false,
+        meta = false,
+      } = combo;
+
       const keyMatches = event.key.toLowerCase() === key.toLowerCase();
       const ctrlMatches = event.ctrlKey === ctrl;
       const shiftMatches = event.shiftKey === shift;
       const altMatches = event.altKey === alt;
       const metaMatches = event.metaKey === meta;
-      
-      if (keyMatches && ctrlMatches && shiftMatches && altMatches && metaMatches) {
+
+      if (
+        keyMatches &&
+        ctrlMatches &&
+        shiftMatches &&
+        altMatches &&
+        metaMatches
+      ) {
         if (options.preventDefault) event.preventDefault();
         if (options.stopPropagation) event.stopPropagation();
         handler(event);
@@ -96,12 +114,15 @@ export function useKeyboardCombo(
 
   useEffect(() => {
     const eventTarget = options.target || document;
-    const eventType = options.eventType || 'keydown';
-    
+    const eventType = options.eventType || "keydown";
+
     eventTarget.addEventListener(eventType, handleKeyEvent as EventListener);
 
     return () => {
-      eventTarget.removeEventListener(eventType, handleKeyEvent as EventListener);
+      eventTarget.removeEventListener(
+        eventType,
+        handleKeyEvent as EventListener
+      );
     };
   }, [handleKeyEvent, options.target, options.eventType]);
 }
@@ -118,58 +139,39 @@ export function useCommonShortcuts(shortcuts: {
   onRedo?: () => void;
   onSelectAll?: () => void;
 }) {
-  const {
-    onSave,
-    onCancel,
-    onCopy,
-    onPaste,
-    onUndo,
-    onRedo,
-    onSelectAll
-  } = shortcuts;
+  const { onSave, onCancel, onCopy, onPaste, onUndo, onRedo, onSelectAll } =
+    shortcuts;
 
   // Save: Ctrl+S / Cmd+S
-  useKeyboardCombo(
-    { key: 's', ctrl: true },
-    onSave || (() => {}),
-    { preventDefault: !!onSave }
-  );
+  useKeyboardCombo({ key: "s", ctrl: true }, onSave || (() => {}), {
+    preventDefault: !!onSave,
+  });
 
   // Cancel: Escape
-  useKeyboardShortcut('escape', onCancel || (() => {}));
+  useKeyboardShortcut("escape", onCancel || (() => {}));
 
   // Copy: Ctrl+C / Cmd+C
-  useKeyboardCombo(
-    { key: 'c', ctrl: true },
-    onCopy || (() => {}),
-    { preventDefault: !!onCopy }
-  );
+  useKeyboardCombo({ key: "c", ctrl: true }, onCopy || (() => {}), {
+    preventDefault: !!onCopy,
+  });
 
   // Paste: Ctrl+V / Cmd+V
-  useKeyboardCombo(
-    { key: 'v', ctrl: true },
-    onPaste || (() => {}),
-    { preventDefault: !!onPaste }
-  );
+  useKeyboardCombo({ key: "v", ctrl: true }, onPaste || (() => {}), {
+    preventDefault: !!onPaste,
+  });
 
   // Undo: Ctrl+Z / Cmd+Z
-  useKeyboardCombo(
-    { key: 'z', ctrl: true },
-    onUndo || (() => {}),
-    { preventDefault: !!onUndo }
-  );
+  useKeyboardCombo({ key: "z", ctrl: true }, onUndo || (() => {}), {
+    preventDefault: !!onUndo,
+  });
 
   // Redo: Ctrl+Y / Cmd+Y or Ctrl+Shift+Z / Cmd+Shift+Z
-  useKeyboardCombo(
-    { key: 'y', ctrl: true },
-    onRedo || (() => {}),
-    { preventDefault: !!onRedo }
-  );
+  useKeyboardCombo({ key: "y", ctrl: true }, onRedo || (() => {}), {
+    preventDefault: !!onRedo,
+  });
 
   // Select All: Ctrl+A / Cmd+A
-  useKeyboardCombo(
-    { key: 'a', ctrl: true },
-    onSelectAll || (() => {}),
-    { preventDefault: !!onSelectAll }
-  );
+  useKeyboardCombo({ key: "a", ctrl: true }, onSelectAll || (() => {}), {
+    preventDefault: !!onSelectAll,
+  });
 }

@@ -73,8 +73,7 @@ body {
 
 /* Custom utility classes */
 .shadow-card {
-  box-shadow:
-    0px 1px 4px 0px rgba(12, 12, 13, 0.10000000149011612),
+  box-shadow: 0px 1px 4px 0px rgba(12, 12, 13, 0.10000000149011612),
     0px 1px 4px 0px rgba(12, 12, 13, 0.05000000074505806);
 }
 
@@ -162,9 +161,17 @@ body {
 
 /* Scrollbar hide utility */
 .scrollbar-hide {
-  -ms-overflow-style: none;  /* Internet Explorer 10+ */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none; /* Firefox */
 }
 .scrollbar-hide::-webkit-scrollbar {
-  display: none;  /* Safari and Chrome */
+  display: none; /* Safari and Chrome */
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }

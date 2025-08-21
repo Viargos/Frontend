@@ -1,26 +1,26 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import {
   AuthState,
   User,
   LoginCredentials,
   SignUpCredentials,
-} from '@/types/auth.types';
-import { serviceFactory } from '@/lib/services/service-factory';
-import { ApiError } from '@/lib/interfaces/http-client.interface';
+} from "@/types/auth.types";
+import { serviceFactory } from "@/lib/services/service-factory";
+import { ApiError } from "@/lib/interfaces/http-client.interface";
 
-export type AuthModalType = 'login' | 'signup' | 'otp' | 'none';
+export type AuthModalType = "login" | "signup" | "otp" | "none";
 
 export interface AuthResult {
   success: boolean;
-  error?: string | any;
+  error?: string | unknown;
 }
 
 interface AuthStore extends AuthState {
   // Modal state
   activeModal: AuthModalType;
   signupEmail: string;
-  
+
   // Auth actions
   login: (credentials: LoginCredentials) => Promise<AuthResult>;
   signup: (credentials: SignUpCredentials) => Promise<AuthResult>;
@@ -30,7 +30,7 @@ interface AuthStore extends AuthState {
   getProfile: () => Promise<void>;
   clearError: () => void;
   setLoading: (loading: boolean) => void;
-  
+
   // Modal actions
   openLogin: () => void;
   openSignup: () => void;
@@ -39,9 +39,12 @@ interface AuthStore extends AuthState {
   switchToLogin: () => void;
   switchToSignup: () => void;
   switchToOtp: (email: string) => void;
-  
+
   // Initialize auth state on app start
   initialize: () => Promise<void>;
+
+  // Helper methods
+  extractErrorMessage: (error: unknown) => string;
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -53,10 +56,10 @@ export const useAuthStore = create<AuthStore>()(
       isAuthenticated: null,
       isLoading: false,
       error: null,
-      
+
       // Modal state
-      activeModal: 'none',
-      signupEmail: '',
+      activeModal: "none",
+      signupEmail: "",
 
       // Actions
       login: async (credentials: LoginCredentials): Promise<AuthResult> => {
@@ -75,10 +78,9 @@ export const useAuthStore = create<AuthStore>()(
             return { success: true };
           }
 
-          return { success: false, error: 'No access token received' };
+          return { success: false, error: "No access token received" };
         } catch (error) {
-          const authStore = get();
-          const errorMessage = authStore.extractErrorMessage(error);
+          const errorMessage = get().extractErrorMessage(error);
           set({ error: errorMessage, isAuthenticated: false });
           return { success: false, error: errorMessage };
         } finally {
@@ -91,33 +93,39 @@ export const useAuthStore = create<AuthStore>()(
           set({ isLoading: true, error: null });
 
           await serviceFactory.authService.signup(credentials);
-          
+
           set({ error: null });
           return { success: true };
-        } catch (error: any) {
-          
-          let errorMessage = 'An unexpected error occurred';
+        } catch (error: unknown) {
+          let errorMessage = "An unexpected error occurred";
           let fullError = error;
-          
+
           // Handle ApiError with field-specific validation
           if (error instanceof ApiError) {
             errorMessage = error.message;
             // If the error has field-specific details, pass the full error object
-            if (error.details && typeof error.details === 'object' && error.details.errors) {
-              fullError = error.details;
+            if (
+              (error as any).details &&
+              typeof (error as any).details === "object" &&
+              (error as any).details.errors
+            ) {
+              fullError = (error as any).details;
             }
-          } else if (error?.response?.data) {
+          } else if ((error as any)?.response?.data) {
             // Handle axios-style errors
-            const responseData = error.response.data;
-            errorMessage = responseData.message || 'Signup failed';
+            const responseData = (error as any).response.data;
+            errorMessage = responseData.message || "Signup failed";
             // If we have field-specific errors, return them
-            if (responseData.errors && typeof responseData.errors === 'object') {
+            if (
+              responseData.errors &&
+              typeof responseData.errors === "object"
+            ) {
               fullError = responseData;
             }
-          } else if (error?.message) {
-            errorMessage = error.message;
+          } else if ((error as any)?.message) {
+            errorMessage = (error as any).message;
           }
-          
+
           set({ error: errorMessage });
           return { success: false, error: fullError };
         } finally {
@@ -129,7 +137,10 @@ export const useAuthStore = create<AuthStore>()(
         try {
           set({ isLoading: true, error: null });
 
-          const response = await serviceFactory.authService.verifyOtp(email, otp);
+          const response = await serviceFactory.authService.verifyOtp(
+            email,
+            otp
+          );
           const { accessToken } = response.data || {};
 
           if (accessToken) {
@@ -140,11 +151,9 @@ export const useAuthStore = create<AuthStore>()(
             await get().getProfile();
             return { success: true };
           }
-
-          return { success: false, error: 'No access token received' };
+          return { success: false, error: "No access token received" };
         } catch (error) {
-          const authStore = get();
-          const errorMessage = authStore.extractErrorMessage(error);
+          const errorMessage = get().extractErrorMessage(error);
           set({ error: errorMessage });
           return { success: false, error: errorMessage };
         } finally {
@@ -160,8 +169,7 @@ export const useAuthStore = create<AuthStore>()(
           set({ error: null });
           return { success: true };
         } catch (error) {
-          const authStore = get();
-          const errorMessage = authStore.extractErrorMessage(error);
+          const errorMessage = get().extractErrorMessage(error);
           set({ error: errorMessage });
           return { success: false, error: errorMessage };
         } finally {
@@ -171,8 +179,8 @@ export const useAuthStore = create<AuthStore>()(
 
       logout: () => {
         serviceFactory.tokenService.removeToken();
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('user');
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("user");
         }
         set({
           user: null,
@@ -188,15 +196,15 @@ export const useAuthStore = create<AuthStore>()(
           const user: User | undefined = response.data;
 
           if (!user) {
-            throw new Error('No user data received');
+            throw new Error("No user data received");
           }
 
           set({ user, isAuthenticated: true });
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('user', JSON.stringify(user));
+          if (typeof window !== "undefined") {
+            localStorage.setItem("user", JSON.stringify(user));
           }
         } catch (error) {
-          console.error('Failed to get profile:', error);
+          console.error("Failed to get profile:", error);
           // If we can't get the profile, the token might be invalid
           get().logout();
         }
@@ -212,49 +220,49 @@ export const useAuthStore = create<AuthStore>()(
 
       initialize: async (): Promise<void> => {
         const token = serviceFactory.tokenService.getToken();
-        
+
         if (!token || serviceFactory.tokenService.isTokenExpired(token)) {
           get().logout();
           return;
         }
 
         set({ token, isAuthenticated: true });
-        
+
         try {
           await get().getProfile();
         } catch (error) {
-          console.error('Failed to initialize auth state:', error);
+          console.error("Failed to initialize auth state:", error);
           get().logout();
         }
       },
-      
+
       // Modal actions
       openLogin: () => {
-        set({ activeModal: 'login', signupEmail: '', error: null });
+        set({ activeModal: "login", signupEmail: "", error: null });
       },
-      
+
       openSignup: () => {
-        set({ activeModal: 'signup', signupEmail: '', error: null });
+        set({ activeModal: "signup", signupEmail: "", error: null });
       },
-      
+
       openOtp: (email: string) => {
-        set({ activeModal: 'otp', signupEmail: email, error: null });
+        set({ activeModal: "otp", signupEmail: email, error: null });
       },
-      
+
       closeAllModals: () => {
-        set({ activeModal: 'none', signupEmail: '', error: null });
+        set({ activeModal: "none", signupEmail: "", error: null });
       },
-      
+
       switchToLogin: () => {
-        set({ activeModal: 'login', error: null });
+        set({ activeModal: "login", error: null });
       },
-      
+
       switchToSignup: () => {
-        set({ activeModal: 'signup', error: null });
+        set({ activeModal: "signup", error: null });
       },
-      
+
       switchToOtp: (email: string) => {
-        set({ activeModal: 'otp', signupEmail: email, error: null });
+        set({ activeModal: "otp", signupEmail: email, error: null });
       },
 
       // Helper method to extract error messages consistently
@@ -262,20 +270,20 @@ export const useAuthStore = create<AuthStore>()(
         if (error instanceof ApiError) {
           return error.message;
         }
-        
+
         if (error instanceof Error) {
           return error.message;
         }
-        
-        if (typeof error === 'string') {
+
+        if (typeof error === "string") {
           return error;
         }
-        
-        return 'An unexpected error occurred';
+
+        return "An unexpected error occurred";
       },
     }),
     {
-      name: 'viargos-auth-storage',
+      name: "viargos-auth-storage",
       partialize: (state) => ({
         user: state.user,
         token: state.token,

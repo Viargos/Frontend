@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useJsApiLoader } from "@react-google-maps/api";
 import InputField from "@/components/ui/InputField";
 
 interface Location {
@@ -24,62 +23,31 @@ export default function LocationSearch({
   className = "",
 }: LocationSearchProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [suggestions, setSuggestions] = useState<
+    google.maps.places.AutocompletePrediction[]
+  >([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const autocompleteService = useRef<any>(null);
-  const placesService = useRef<any>(null);
+  const autocompleteService =
+    useRef<google.maps.places.AutocompleteService | null>(null);
+  const placesService = useRef<google.maps.places.PlacesService | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
 
-  // Load Google Maps API with Places library
-  const { isLoaded, loadError } = useJsApiLoader({
-    id: "google-map-script",
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
-    libraries: ["places"],
-    // Add these options to help with debugging
-    version: "weekly",
-    language: "en",
-    region: "US",
-  });
-
-  // Debug logging (only log once when status changes)
   useEffect(() => {
-    console.log(
-      "LocationSearch - API Key:",
-      process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ? "Present" : "Missing"
-    );
-    console.log("LocationSearch - isLoaded:", isLoaded);
-    if (loadError) {
-      console.error("LocationSearch - Load Error:", loadError);
-    }
-  }, [isLoaded, loadError]);
-
-  useEffect(() => {
-    // Initialize Google Places services only when API is loaded
-    if (
-      isLoaded &&
-      window.google &&
-      window.google.maps &&
-      !autocompleteService.current
-    ) {
-      console.log("Initializing Google Places services...");
-      try {
-        autocompleteService.current =
-          new window.google.maps.places.AutocompleteService();
-        if (mapRef.current) {
-          placesService.current = new window.google.maps.places.PlacesService(
-            mapRef.current
-          );
-        }
-        console.log("Google Places services initialized successfully");
-      } catch (error) {
-        console.error("Failed to initialize Google Places services:", error);
+    // Initialize Google Places services
+    if (window.google && window.google.maps) {
+      autocompleteService.current =
+        new window.google.maps.places.AutocompleteService();
+      if (mapRef.current) {
+        placesService.current = new window.google.maps.places.PlacesService(
+          mapRef.current
+        );
       }
     }
-  }, [isLoaded]);
+  }, []);
 
   useEffect(() => {
-    if (!searchTerm.trim() || !autocompleteService.current || !isLoaded) {
+    if (!searchTerm.trim() || !autocompleteService.current) {
       setSuggestions([]);
       setShowSuggestions(false);
       return;
@@ -87,24 +55,21 @@ export default function LocationSearch({
 
     const searchPlaces = async () => {
       setIsLoading(true);
-      console.log("Searching for:", searchTerm);
       try {
         autocompleteService.current!.getPlacePredictions(
           {
             input: searchTerm,
             types: ["geocode", "establishment"],
           },
-          (predictions: any, status: string) => {
+          (predictions, status) => {
             setIsLoading(false);
-            console.log("Search results:", {
-              status,
-              count: predictions?.length || 0,
-            });
-            if (status === "OK" && predictions) {
+            if (
+              status === window.google.maps.places.PlacesServiceStatus.OK &&
+              predictions
+            ) {
               setSuggestions(predictions);
               setShowSuggestions(true);
             } else {
-              console.warn("No results or error:", status);
               setSuggestions([]);
               setShowSuggestions(false);
             }
@@ -118,9 +83,11 @@ export default function LocationSearch({
 
     const debounceTimer = setTimeout(searchPlaces, 300);
     return () => clearTimeout(debounceTimer);
-  }, [searchTerm, isLoaded]);
+  }, [searchTerm]);
 
-  const handleSuggestionClick = (prediction: any) => {
+  const handleSuggestionClick = (
+    prediction: google.maps.places.AutocompletePrediction
+  ) => {
     if (!placesService.current) return;
 
     placesService.current.getDetails(
@@ -128,8 +95,11 @@ export default function LocationSearch({
         placeId: prediction.place_id,
         fields: ["name", "geometry", "formatted_address"],
       },
-      (place: any, status: string) => {
-        if (status === "OK" && place) {
+      (place, status) => {
+        if (
+          status === window.google.maps.places.PlacesServiceStatus.OK &&
+          place
+        ) {
           const location: Location = {
             id: prediction.place_id,
             name: place.name || prediction.description,
@@ -152,40 +122,6 @@ export default function LocationSearch({
       setShowSuggestions(false);
     }
   };
-
-  // Show error state if Google Maps API failed to load
-  if (loadError) {
-    return (
-      <div className={`relative ${className}`}>
-        <InputField
-          placeholder="Location search unavailable"
-          value=""
-          onChange={() => {}}
-          className="w-full opacity-50 pointer-events-none"
-        />
-        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-          <span className="text-red-500 text-sm">⚠️</span>
-        </div>
-      </div>
-    );
-  }
-
-  // Show loading state while Google Maps API is loading
-  if (!isLoaded) {
-    return (
-      <div className={`relative ${className}`}>
-        <InputField
-          placeholder="Loading location search..."
-          value=""
-          onChange={() => {}}
-          className="w-full opacity-50 pointer-events-none"
-        />
-        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className={`relative ${className}`}>
