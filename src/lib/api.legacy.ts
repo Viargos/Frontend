@@ -13,6 +13,15 @@ import {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
+import { serviceFactory } from "@/lib/services/service-factory";
+
+// Local typed error used to attach response/status metadata without using `any`
+type ApiClientError = Error & {
+  response?: { data?: unknown; status?: number; statusText?: string };
+  statusCode?: number | string;
+  isAuthError?: boolean;
+};
+
 class ApiClient {
   private baseURL: string;
 
@@ -43,8 +52,8 @@ class ApiClient {
       ...options,
     };
 
-    // Add auth token if available - using same key as TokenService
-    const token = localStorage.getItem("viargos_auth_token");
+    // Add auth token if available - use centralized TokenService (handles window checks)
+    const token = serviceFactory.tokenService.getToken();
     console.log("Token retrieval debug:", {
       hasToken: !!token,
       tokenLength: token?.length || 0,
@@ -71,8 +80,8 @@ class ApiClient {
 
         // Only remove token if it's significantly expired (more than 5 minutes)
         if (payload.exp < currentTime) {
-          console.warn("Token is expired! Removing from localStorage.");
-          localStorage.removeItem("viargos_auth_token");
+          console.warn("Token is expired! Removing token via TokenService.");
+          serviceFactory.tokenService.removeToken();
           throw new Error(
             "Authentication token has expired. Please log in again."
           );
@@ -82,7 +91,10 @@ class ApiClient {
       } catch (tokenError) {
         console.error("Token validation failed:", tokenError);
         // Only throw error if it's specifically about expiration
-        if (tokenError.message && tokenError.message.includes("expired")) {
+        if (
+          tokenError instanceof Error &&
+          tokenError.message.includes("expired")
+        ) {
           throw tokenError;
         }
         // For other token parsing errors, continue with the request
@@ -129,13 +141,15 @@ class ApiClient {
 
         // Handle authentication errors specifically
         if (response.status === 401 || data.statusCode === 10001) {
-          console.warn("Authentication failed, removing token");
-          localStorage.removeItem("viargos_auth_token");
+          console.warn(
+            "Authentication failed, removing token via TokenService"
+          );
+          serviceFactory.tokenService.removeToken();
 
           // Create a more user-friendly error message
           const authError = new Error(
             "Your session has expired. Please log in again."
-          ) as any;
+          ) as ApiClientError;
           authError.response = {
             data: data,
             status: response.status,
@@ -147,7 +161,9 @@ class ApiClient {
         }
 
         // Create an axios-like error structure for consistency
-        const apiError = new Error(data.message || "API request failed") as any;
+        const apiError = new Error(
+          data.message || "API request failed"
+        ) as ApiClientError;
         apiError.response = {
           data: data,
           status: response.status,
@@ -366,8 +382,7 @@ class ApiClient {
   ): Promise<ApiResponse<{ imageUrl: string; message: string }>> {
     const formData = new FormData();
     formData.append("image", file);
-
-    const token = localStorage.getItem("viargos_auth_token");
+    const token = serviceFactory.tokenService.getToken();
     const url = `${this.baseURL}/users/profile-image`;
 
     try {
@@ -383,7 +398,9 @@ class ApiClient {
 
       if (!response.ok) {
         // Create an axios-like error structure for consistency
-        const apiError = new Error(data.message || "Upload failed") as any;
+        const apiError = new Error(
+          data.message || "Upload failed"
+        ) as ApiClientError;
         apiError.response = {
           data: data,
           status: response.status,
@@ -412,8 +429,7 @@ class ApiClient {
   ): Promise<ApiResponse<{ imageUrl: string; message: string }>> {
     const formData = new FormData();
     formData.append("image", file);
-
-    const token = localStorage.getItem("viargos_auth_token");
+    const token = serviceFactory.tokenService.getToken();
     const url = `${this.baseURL}/users/banner-image`;
 
     try {
@@ -429,7 +445,9 @@ class ApiClient {
 
       if (!response.ok) {
         // Create an axios-like error structure for consistency
-        const apiError = new Error(data.message || "Upload failed") as any;
+        const apiError = new Error(
+          data.message || "Upload failed"
+        ) as ApiClientError;
         apiError.response = {
           data: data,
           status: response.status,
@@ -460,8 +478,7 @@ class ApiClient {
   ): Promise<ApiResponse<{ imageUrl: string; message: string }>> {
     const formData = new FormData();
     formData.append("image", file);
-
-    const token = localStorage.getItem("viargos_auth_token");
+    const token = serviceFactory.tokenService.getToken();
     const url = `${this.baseURL}/journeys/${journeyId}/image`;
 
     try {
@@ -476,7 +493,9 @@ class ApiClient {
       const data = await response.json();
 
       if (!response.ok) {
-        const apiError = new Error(data.message || "Upload failed") as any;
+        const apiError = new Error(
+          data.message || "Upload failed"
+        ) as ApiClientError;
         apiError.response = {
           data: data,
           status: response.status,
@@ -505,8 +524,7 @@ class ApiClient {
   ): Promise<ApiResponse<{ imageUrl: string; message: string }>> {
     const formData = new FormData();
     formData.append("image", file);
-
-    const token = localStorage.getItem("viargos_auth_token");
+    const token = serviceFactory.tokenService.getToken();
     const url = `${this.baseURL}/journeys/${journeyId}/cover-image`;
 
     try {
@@ -521,7 +539,9 @@ class ApiClient {
       const data = await response.json();
 
       if (!response.ok) {
-        const apiError = new Error(data.message || "Upload failed") as any;
+        const apiError = new Error(
+          data.message || "Upload failed"
+        ) as ApiClientError;
         apiError.response = {
           data: data,
           status: response.status,
@@ -550,8 +570,7 @@ class ApiClient {
   ): Promise<ApiResponse<{ imageUrl: string; message: string }>> {
     const formData = new FormData();
     formData.append("image", file);
-
-    const token = localStorage.getItem("viargos_auth_token");
+    const token = serviceFactory.tokenService.getToken();
     const url = `${this.baseURL}/users/${userId}/profileimage`;
 
     try {
@@ -566,7 +585,9 @@ class ApiClient {
       const data = await response.json();
 
       if (!response.ok) {
-        const apiError = new Error(data.message || "Upload failed") as any;
+        const apiError = new Error(
+          data.message || "Upload failed"
+        ) as ApiClientError;
         apiError.response = {
           data: data,
           status: response.status,
