@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Plus, Search, Filter } from 'lucide-react';
 import { useJourneyStore } from '@/store/journey.store';
 import NewJourneyModal from '@/components/journey/NewJourneyModal';
+import { useRouter } from 'next/navigation';
 
 interface JourneysHeaderProps {
   onCreateJourney?: () => void;
@@ -19,6 +20,7 @@ export default function JourneysHeader({
 }: JourneysHeaderProps) {
   const [showNewJourneyModal, setShowNewJourneyModal] = useState(false);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const router = useRouter();
   
   const {
     searchQuery,
@@ -38,10 +40,11 @@ export default function JourneysHeader({
   };
 
   const handleCreateJourney = () => {
+    // Redirect to the create journey page
+    router.push('/create-journey');
+    // Optionally notify parent if needed
     if (onCreateJourney) {
       onCreateJourney();
-    } else {
-      setShowNewJourneyModal(true);
     }
   };
 

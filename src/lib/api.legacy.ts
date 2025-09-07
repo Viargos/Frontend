@@ -10,6 +10,10 @@ import {
   CreateJourneyDto,
   UpdateJourneyDto,
 } from "@/types/journey.types";
+import {
+  NearbyJourneysParams,
+  NearbyJourneysResponse,
+} from "@/types/user.types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -70,13 +74,7 @@ class ApiClient {
         const bufferTime = 5 * 60;
         const isExpired = payload.exp < currentTime + bufferTime;
 
-        console.log("Token validation:", {
-          isExpired,
-          expiresAt: new Date(payload.exp * 1000).toISOString(),
-          currentTime: new Date(currentTime * 1000).toISOString(),
-          userId: payload.id,
-          timeUntilExpiry: payload.exp - currentTime,
-        });
+        // Token validation (removed console logs)
 
         // Only remove token if it's significantly expired (more than 5 minutes)
         if (payload.exp < currentTime) {
@@ -85,11 +83,8 @@ class ApiClient {
           throw new Error(
             "Authentication token has expired. Please log in again."
           );
-        } else if (isExpired) {
-          console.warn("Token will expire soon, but continuing with request");
         }
       } catch (tokenError) {
-        console.error("Token validation failed:", tokenError);
         // Only throw error if it's specifically about expiration
         if (
           tokenError instanceof Error &&
@@ -98,46 +93,24 @@ class ApiClient {
           throw tokenError;
         }
         // For other token parsing errors, continue with the request
-        console.log("Token parsing failed, but continuing with request");
       }
 
       config.headers = {
         ...config.headers,
         Authorization: `Bearer ${token}`,
       };
-      console.log(
-        "Added Authorization header with token for endpoint:",
-        endpoint
-      );
     } else {
-      console.log(
-        "No token found - Authorization header not added for endpoint:",
-        endpoint
-      );
       throw new Error("No authentication token found. Please log in.");
     }
 
-    console.log("Final request headers:", config.headers);
+    // Request headers configured
 
     try {
       const response = await fetch(url, config);
-      console.log(
-        "Response status:",
-        response.status,
-        "for endpoint:",
-        endpoint
-      );
 
       const data = await response.json();
 
       if (!response.ok) {
-        console.log("API Error Response:", {
-          status: response.status,
-          statusText: response.statusText,
-          url: response.url,
-          data: data,
-          endpoint: endpoint,
-        });
 
         // Handle authentication errors specifically
         if (response.status === 401 || data.statusCode === 10001) {
@@ -173,7 +146,6 @@ class ApiClient {
         throw apiError;
       }
 
-      console.log("API Success Response for", endpoint, ":", data);
       return data;
     } catch (error) {
       // If it's already our custom error, throw it as is
@@ -283,6 +255,18 @@ class ApiClient {
     return this.request<void>(`/journeys/${id}`, {
       method: "DELETE",
     });
+  }
+
+  async getNearbyJourneys(params: NearbyJourneysParams): Promise<NearbyJourneysResponse> {
+    const { latitude, longitude, radius, limit = 20 } = params;
+    const queryParams = new URLSearchParams({
+      latitude: latitude.toString(),
+      longitude: longitude.toString(),
+      radius: radius.toString(),
+      limit: limit.toString(),
+    });
+    
+    return this.request<any[]>(`/journeys/nearby?${queryParams.toString()}`);
   }
 
   // User statistics methods
@@ -609,6 +593,7 @@ class ApiClient {
       throw new Error("Network error");
     }
   }
+
 }
 
 const apiClient = new ApiClient(API_BASE_URL);

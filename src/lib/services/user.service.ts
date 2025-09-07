@@ -1,5 +1,6 @@
 import { IUserService } from '@/lib/interfaces/user.interface';
 import { IHttpClient, ApiResponse } from '@/lib/interfaces/http-client.interface';
+import { User, UserSearchResponse, UserSearchParams, UserDetailsResponse } from '@/types/user.types';
 
 export class UserService implements IUserService {
   constructor(private httpClient: IHttpClient) {}
@@ -20,6 +21,47 @@ export class UserService implements IUserService {
       file,
       'image'
     );
+  }
+
+  async searchUsers(params: UserSearchParams): Promise<UserSearchResponse> {
+    try {
+      const queryParams = new URLSearchParams({
+        q: params.q,
+        limit: (params.limit || 10).toString()
+      });
+      
+      const response = await this.httpClient.get<UserSearchResponse>(
+        `/users/search/quick?${queryParams.toString()}`
+      );
+      
+      return {
+        statusCode: response.statusCode || 200,
+        message: response.message || 'Users retrieved successfully',
+        data: response.data || []
+      };
+    } catch (error: any) {
+      return {
+        statusCode: error.statusCode || 500,
+        message: error.message || 'Failed to search users',
+        data: []
+      };
+    }
+  }
+
+  async getUserDetails(userId: string): Promise<UserDetailsResponse> {
+    try {
+      const response = await this.httpClient.get<UserDetailsResponse>(
+        `/users/${userId}`
+      );
+      
+      return {
+        statusCode: response.statusCode || 200,
+        message: response.message || 'User details retrieved successfully',
+        data: response.data
+      };
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to fetch user details');
+    }
   }
 
   async getCurrentUserStats(): Promise<ApiResponse<{

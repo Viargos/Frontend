@@ -30,7 +30,7 @@ class ServiceFactory {
 
   get httpClient(): IHttpClient {
     if (!this._httpClient) {
-      const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
       this._httpClient = new HttpClientService(baseURL, tokenService);
     }
     return this._httpClient;

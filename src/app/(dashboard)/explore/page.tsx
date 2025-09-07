@@ -2,19 +2,36 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Calendar, User, ChevronRight, X, Search } from 'lucide-react';
+import { MapPin, Calendar, User, ChevronRight, X, Search, Navigation, RefreshCw } from 'lucide-react';
 import apiClient from '@/lib/api.legacy';
 import ExploreMap from '@/components/maps/ExploreMap';
 import { Journey } from '@/types/journey.types';
 import { PlaceType } from '@/types/journey.types';
 import { PageLoading } from '@/components/common/Loading';
+import { useGeolocation } from '@/hooks/useGeolocation';
+import { useNearbyJourneys } from '@/hooks/useNearbyJourneys';
 
 export default function ExplorePage() {
-  const [journeys, setJourneys] = useState<Journey[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedJourney, setSelectedJourney] = useState<Journey | null>(null);
+  const [selectedJourney, setSelectedJourney] = useState<any | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [currentRadius, setCurrentRadius] = useState(50);
+
+  // Location and journeys hooks
+  const {
+    coordinates,
+    isLoading: locationLoading,
+    error: locationError,
+    getCurrentLocation,
+    clearError: clearLocationError,
+  } = useGeolocation();
+
+  const {
+    journeys,
+    isLoading: journeysLoading,
+    error: journeysError,
+    fetchByLocation,
+    clearError: clearJourneysError,
+  } = useNearbyJourneys();
 
   // Handle responsive sidebar behavior
   useEffect(() => {
@@ -32,47 +49,35 @@ export default function ExplorePage() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | PlaceType>('all');
 
-  // Function to fetch journeys directly from API
-  const fetchJourneys = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      console.log('📡 ExplorePage: Calling apiClient.getMyJourneys() directly');
-      const response = await apiClient.getMyJourneys();
-      
-      console.log('📦 ExplorePage: Raw API response:', response);
-      
-      if (response && response.data) {
-        console.log('✅ ExplorePage: Setting journeys data:', response.data);
-        setJourneys(response.data);
-      } else {
-        console.log('⚠️ ExplorePage: No data in response');
-        setJourneys([]);
-      }
-    } catch (err: any) {
-      console.log('💥 ExplorePage: Error fetching journeys:', err);
-      setError(err.message || 'Failed to load journeys');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Fetch journeys on component mount
+  // Get user location on mount and fetch journeys when location is available
   useEffect(() => {
-    fetchJourneys();
+    getCurrentLocation();
   }, []);
+
+  // Fetch journeys when location becomes available or radius changes
+  useEffect(() => {
+    if (coordinates) {
+      fetchByLocation(coordinates, currentRadius);
+    }
+  }, [coordinates, currentRadius]);
+
+  // Handle zoom changes to fetch journeys with different radius
+  const handleRadiusChange = (newRadius: number) => {
+    setCurrentRadius(newRadius);
+    // The useEffect will automatically trigger fetchByLocation when currentRadius changes
+  };
 
   // Filter journeys based on search query
   const filteredJourneys = journeys.filter(journey =>
-    journey.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    journey.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     journey.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleJourneyClick = (journey: Journey) => {
+  const handleJourneyClick = (journey: any) => {
     setSelectedJourney(journey);
   };
 
@@ -85,6 +90,17 @@ export default function ExplorePage() {
       handleJourneyClick(location.journey);
     }
   };
+
+  // Handle location retry
+  const handleLocationRetry = async () => {
+    clearLocationError();
+    clearJourneysError();
+    await getCurrentLocation();
+  };
+
+  // Determine loading state
+  const isLoading = locationLoading || journeysLoading;
+  const error = locationError || journeysError;
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'No date';
@@ -113,7 +129,8 @@ export default function ExplorePage() {
   };
 
   if (isLoading) {
-    return <PageLoading text="Loading journeys..." />;
+    const loadingText = locationLoading ? 'Getting your location...' : 'Loading nearby journeys...';
+    return <PageLoading text={loadingText} />;
   }
 
   if (error) {
@@ -121,16 +138,36 @@ export default function ExplorePage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="text-red-500 mb-4">
-            <MapPin className="w-12 h-12 mx-auto mb-2" />
+            {locationError ? (
+              <Navigation className="w-12 h-12 mx-auto mb-2" />
+            ) : (
+              <MapPin className="w-12 h-12 mx-auto mb-2" />
+            )}
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Journeys</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            {locationError ? 'Location Access Required' : 'Error Loading Journeys'}
+          </h3>
           <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={fetchJourneys}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Retry
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              onClick={handleLocationRetry}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Retry
+            </button>
+            {locationError && (
+              <button
+                onClick={() => {
+                  // Fallback to default location (example: Ahmedabad)
+                  fetchByLocation({ latitude: 23.0225, longitude: 72.5714 }, currentRadius);
+                }}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Use Default Location
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -147,7 +184,7 @@ export default function ExplorePage() {
         />
         
         {/* Map Controls */}
-        <div className="absolute top-4 left-4 z-10">
+        <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
           <motion.button
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -160,6 +197,23 @@ export default function ExplorePage() {
             >
               <ChevronRight className="w-5 h-5 text-gray-600" />
             </motion.div>
+          </motion.button>
+          
+          {/* Location Controls */}
+          <motion.button
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+            onClick={getCurrentLocation}
+            disabled={locationLoading}
+            className="bg-white rounded-lg shadow-lg p-3 hover:shadow-xl transition-all duration-200 disabled:opacity-50"
+            title="Get current location"
+          >
+            {locationLoading ? (
+              <RefreshCw className="w-5 h-5 text-gray-600 animate-spin" />
+            ) : (
+              <Navigation className="w-5 h-5 text-gray-600" />
+            )}
           </motion.button>
         </div>
 
@@ -228,9 +282,16 @@ export default function ExplorePage() {
             {/* Sidebar Header */}
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-gray-900">
-                  Popular Journey this area
-                </h2>
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Nearby Journeys
+                  </h2>
+                  {coordinates && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      Within {currentRadius}km radius
+                    </p>
+                  )}
+                </div>
                 <button
                   onClick={() => setIsSidebarOpen(false)}
                   className="p-1 rounded-full hover:bg-gray-100 transition-colors lg:hidden"
@@ -238,22 +299,68 @@ export default function ExplorePage() {
                   <X className="w-5 h-5 text-gray-400" />
                 </button>
               </div>
+              
+              {/* Radius Controls */}
+              {coordinates && (
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-sm text-gray-600">Radius:</span>
+                  <div className="flex gap-1">
+                    {[10, 25, 50, 100].map((radius) => (
+                      <button
+                        key={radius}
+                        onClick={() => handleRadiusChange(radius)}
+                        disabled={journeysLoading}
+                        className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                          currentRadius === radius
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        } disabled:opacity-50`}
+                      >
+                        {radius}km
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Popular Journeys List */}
+            {/* Nearby Journeys List */}
             <div className="flex-1 overflow-y-auto">
-              {filteredJourneys.length === 0 ? (
+              {journeysLoading ? (
+                <div className="p-6 text-center">
+                  <RefreshCw className="w-8 h-8 text-gray-400 mx-auto mb-4 animate-spin" />
+                  <p className="text-gray-600">Loading nearby journeys...</p>
+                </div>
+              ) : filteredJourneys.length === 0 ? (
                 <div className="p-6 text-center">
                   <MapPin className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No popular journeys</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    {!coordinates ? 'Location access required' : 'No nearby journeys'}
+                  </h3>
                   <p className="text-gray-600">
-                    Explore the map to discover amazing places in this area!
+                    {!coordinates 
+                      ? 'Please allow location access to find journeys near you'
+                      : `No journeys found within ${currentRadius}km of your location`
+                    }
                   </p>
+                  {!coordinates && (
+                    <button
+                      onClick={getCurrentLocation}
+                      className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 mx-auto"
+                    >
+                      <Navigation className="w-4 h-4" />
+                      Get Location
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="p-4 space-y-3">
                   {filteredJourneys.map((journey, index) => {
                     const getJourneyLocation = () => {
+                      // Handle both old journey structure and new nearby journey structure
+                      if (journey.location) {
+                        return journey.location;
+                      }
                       if (journey.days && journey.days.length > 0) {
                         const firstDay = journey.days[0];
                         if (firstDay.places && firstDay.places.length > 0) {
@@ -269,6 +376,10 @@ export default function ExplorePage() {
                     };
 
                     const getJourneyCategory = () => {
+                      // Handle category from nearby journeys API or fallback to days analysis
+                      if (journey.category) {
+                        return journey.category;
+                      }
                       if (journey.days && journey.days.length > 0) {
                         for (const day of journey.days) {
                           if (day.places && day.places.length > 0) {
@@ -281,6 +392,13 @@ export default function ExplorePage() {
                         }
                       }
                       return 'Travel Experience';
+                    };
+
+                    const getDistance = () => {
+                      if (journey.distance !== undefined) {
+                        return `${journey.distance.toFixed(1)}km away`;
+                      }
+                      return null;
                     };
 
                     const gradients = [
@@ -323,13 +441,19 @@ export default function ExplorePage() {
                             <p className="text-xs text-gray-500 mb-1">
                               {getJourneyCategory()}
                             </p>
-                            {/* Optional: Show journey stats */}
-                            <div className="text-xs text-gray-400">
+                            {/* Journey stats and distance */}
+                            <div className="text-xs text-gray-400 space-y-1">
+                              {getDistance() && (
+                                <div>{getDistance()}</div>
+                              )}
                               {journey.days && journey.days.length > 0 && (
-                                <span>
+                                <div>
                                   {journey.days.reduce((total, day) => total + (day.places?.length || 0), 0)} places • 
                                   {journey.days.length} days
-                                </span>
+                                </div>
+                              )}
+                              {journey.author && (
+                                <div>by {journey.author.username || journey.user?.username}</div>
                               )}
                             </div>
                           </div>

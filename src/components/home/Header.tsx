@@ -1,15 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import ImagePlusIcon from "@/components/icons/ImagePlusIcon";
 import JourneyIcon from "@/components/icons/JourneyIcon";
 import Button from "@/components/ui/Button";
 import { User } from "@/types/auth.types";
+import { User as SearchUser } from "@/types/user.types";
 import { useAuthStore } from "@/store/auth.store";
 import { useClickOutside } from "@/hooks/useClickOutside";
+import { useUserSearch } from "@/hooks/useUserSearch";
 import ModalContainer from "@/components/auth/ModalContainer";
+import UserSearchResults from "@/components/search/UserSearchResults";
 
 interface HeaderProps {
   user?: User | null;
@@ -20,8 +23,13 @@ interface HeaderProps {
 export default function Header({ user, onMobileMenuOpen }: HeaderProps) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearchResults, setShowSearchResults] = useState(false);
   const { logout, isAuthenticated, openLogin, openSignup } = useAuthStore();
   const router = useRouter();
+  
+  // User search functionality
+  const { results, isLoading, clearResults } = useUserSearch(searchQuery);
 
   // Mock notification data - replace with real data from your notification store
   const [notificationCount, setNotificationCount] = useState(3);
@@ -55,6 +63,14 @@ export default function Header({ user, onMobileMenuOpen }: HeaderProps) {
   const notificationsRef = useClickOutside<HTMLDivElement>(() => {
     setShowNotifications(false);
   });
+  
+  // Close search results when clicking outside (with small delay to allow clicks)
+  const searchRef = useClickOutside<HTMLDivElement>(() => {
+    // Small delay to allow click events to fire first
+    setTimeout(() => {
+      setShowSearchResults(false);
+    }, 100);
+  });
 
   const handleLoginClick = () => {
     openLogin();
@@ -66,6 +82,30 @@ export default function Header({ user, onMobileMenuOpen }: HeaderProps) {
 
   const handleLogout = () => {
     logout();
+  };
+  
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setShowSearchResults(value.trim().length > 0);
+  };
+  
+  const handleSearchFocus = () => {
+    if (searchQuery.trim().length > 0) {
+      setShowSearchResults(true);
+    }
+  };
+  
+  const handleUserClick = (selectedUser: SearchUser) => {
+    setShowSearchResults(false);
+    setSearchQuery('');
+    clearResults();
+    router.push(`/user/${selectedUser.id}`);
+  };
+  
+  const handleSearchClear = () => {
+    setSearchQuery('');
+    setShowSearchResults(false);
+    clearResults();
   };
 
   return (
@@ -114,37 +154,61 @@ export default function Header({ user, onMobileMenuOpen }: HeaderProps) {
       </div>
 
       {/* Desktop Search Bar */}
-      <div className="hidden md:flex flex-1 max-w-md mx-4">
-        <div className="relative w-full">
-          <input
-            type="text"
-            placeholder="Search"
-            className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black placeholder-gray-500 text-sm leading-5 shadow-button"
-          />
-          <svg
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-        </div>
-      </div>
-
-      {/* Mobile Search Field - visible on sm and xs when authenticated */}
       {isAuthenticated && (
-        <div className="md:hidden flex-1 max-w-xs mx-2">
+        <div className="hidden md:flex flex-1 max-w-md mx-4" ref={searchRef}>
           <div className="relative w-full">
             <input
               type="text"
-              placeholder="Search"
-              className="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black placeholder-gray-500 text-sm leading-5 shadow-button"
+              placeholder="Search users..."
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              onFocus={handleSearchFocus}
+              className="w-full px-4 py-2 pl-10 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black placeholder-gray-500 text-sm leading-5 shadow-button"
+            />
+            <svg
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            {searchQuery && (
+              <button
+                onClick={handleSearchClear}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                ×
+              </button>
+            )}
+            
+            {/* Search Results */}
+            <UserSearchResults
+              results={results}
+              isVisible={showSearchResults}
+              isLoading={isLoading}
+              onUserClick={handleUserClick}
+              onClose={() => setShowSearchResults(false)}
+            />
+          </div>
+        </div>
+      )}
+      {/* Mobile Search Field - visible on sm and xs when authenticated */}
+      {isAuthenticated && (
+        <div className="md:hidden flex-1 max-w-xs mx-2" ref={searchRef}>
+          <div className="relative w-full">
+            <input
+              type="text"
+              placeholder="Search users..."
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              onFocus={handleSearchFocus}
+              className="w-full px-3 py-2 pl-8 pr-8 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black placeholder-gray-500 text-sm leading-5 shadow-button"
             />
             <svg
               className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400"
@@ -159,6 +223,23 @@ export default function Header({ user, onMobileMenuOpen }: HeaderProps) {
                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
               />
             </svg>
+            {searchQuery && (
+              <button
+                onClick={handleSearchClear}
+                className="absolute right-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg"
+              >
+                ×
+              </button>
+            )}
+            
+            {/* Mobile Search Results */}
+            <UserSearchResults
+              results={results}
+              isVisible={showSearchResults}
+              isLoading={isLoading}
+              onUserClick={handleUserClick}
+              onClose={() => setShowSearchResults(false)}
+            />
           </div>
         </div>
       )}
