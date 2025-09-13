@@ -13,6 +13,7 @@ import Button from "@/components/ui/Button";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { convertRecentJourneysToJourneys } from "@/utils/journey.utils";
 import PostsList from "@/components/post/PostsList";
+import ProfilePostsGrid from "@/components/profile/ProfilePostsGrid";
 
 export default function ProfilePage() {
   const { user, isAuthenticated } = useAuthStore();
@@ -223,7 +224,16 @@ export default function ProfilePage() {
           <h2 className="text-black font-outfit text-2xl font-medium leading-[120%]">
             My Posts
           </h2>
-          <PostsList userId="me" />
+          <ProfilePostsGrid
+            userId="me"
+            onEditPost={(postId) => {
+              // TODO: Implement edit functionality
+              console.log("Edit post:", postId);
+            }}
+            onDeletePost={(postId) => {
+              console.log("Post deleted:", postId);
+            }}
+          />
         </div>
       )}
 

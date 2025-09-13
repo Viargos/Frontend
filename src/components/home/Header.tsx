@@ -13,6 +13,7 @@ import { useClickOutside } from "@/hooks/useClickOutside";
 import { useUserSearch } from "@/hooks/useUserSearch";
 import ModalContainer from "@/components/auth/ModalContainer";
 import UserSearchResults from "@/components/search/UserSearchResults";
+import CreatePostModal from "@/components/post/CreatePostModal";
 
 interface HeaderProps {
   user?: User | null;
@@ -23,11 +24,12 @@ interface HeaderProps {
 export default function Header({ user, onMobileMenuOpen }: HeaderProps) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const [showCreatePostModal, setShowCreatePostModal] = useState(false);
   const { logout, isAuthenticated, openLogin, openSignup } = useAuthStore();
   const router = useRouter();
-  
+
   // User search functionality
   const { results, isLoading, clearResults } = useUserSearch(searchQuery);
 
@@ -63,7 +65,7 @@ export default function Header({ user, onMobileMenuOpen }: HeaderProps) {
   const notificationsRef = useClickOutside<HTMLDivElement>(() => {
     setShowNotifications(false);
   });
-  
+
   // Close search results when clicking outside (with small delay to allow clicks)
   const searchRef = useClickOutside<HTMLDivElement>(() => {
     // Small delay to allow click events to fire first
@@ -83,29 +85,38 @@ export default function Header({ user, onMobileMenuOpen }: HeaderProps) {
   const handleLogout = () => {
     logout();
   };
-  
+
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
     setShowSearchResults(value.trim().length > 0);
   };
-  
+
   const handleSearchFocus = () => {
     if (searchQuery.trim().length > 0) {
       setShowSearchResults(true);
     }
   };
-  
+
   const handleUserClick = (selectedUser: SearchUser) => {
     setShowSearchResults(false);
-    setSearchQuery('');
+    setSearchQuery("");
     clearResults();
     router.push(`/user/${selectedUser.id}`);
   };
-  
+
   const handleSearchClear = () => {
-    setSearchQuery('');
+    setSearchQuery("");
     setShowSearchResults(false);
     clearResults();
+  };
+
+  const handleCreatePost = () => {
+    setShowCreatePostModal(true);
+  };
+
+  const handlePostSuccess = (postId: string) => {
+    console.log("Post created successfully:", postId);
+    // Optionally redirect to the post or refresh the page
   };
 
   return (
@@ -186,7 +197,7 @@ export default function Header({ user, onMobileMenuOpen }: HeaderProps) {
                 ×
               </button>
             )}
-            
+
             {/* Search Results */}
             <UserSearchResults
               results={results}
@@ -231,7 +242,7 @@ export default function Header({ user, onMobileMenuOpen }: HeaderProps) {
                 ×
               </button>
             )}
-            
+
             {/* Mobile Search Results */}
             <UserSearchResults
               results={results}
@@ -253,6 +264,7 @@ export default function Header({ user, onMobileMenuOpen }: HeaderProps) {
               size="sm"
               icon={<ImagePlusIcon className="text-gray-700" />}
               iconPosition="leading"
+              onClick={handleCreatePost}
             >
               <span className="hidden sm:inline">Add Post</span>
             </Button>
@@ -531,6 +543,13 @@ export default function Header({ user, onMobileMenuOpen }: HeaderProps) {
 
       {/* Auth Modal */}
       <ModalContainer />
+
+      {/* Create Post Modal */}
+      <CreatePostModal
+        isOpen={showCreatePostModal}
+        onClose={() => setShowCreatePostModal(false)}
+        onSuccess={handlePostSuccess}
+      />
     </header>
   );
 }

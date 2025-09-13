@@ -5,7 +5,6 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { UserProfile, UserStats } from "@/types/profile.types";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
-import ProfileActions from "./ProfileActions";
 
 interface ProfileHeaderProps {
   profile: UserProfile;
@@ -268,16 +267,6 @@ export default function ProfileHeader({
           )}
         </motion.div>
       </div>
-
-      {/* Profile Actions */}
-      <motion.div
-        className="px-4 sm:px-6 pb-4 w-full"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
-      >
-        <ProfileActions />
-      </motion.div>
     </motion.div>
   );
 }

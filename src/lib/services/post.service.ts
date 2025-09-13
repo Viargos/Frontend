@@ -26,6 +26,11 @@ export interface IPostService {
     filters?: PostFilters
   ): Promise<ApiResponse<Post[]>>;
   getPostCount(userId: string): Promise<ApiResponse<{ count: number }>>;
+  deletePost(postId: string): Promise<ApiResponse<void>>;
+  updatePost(
+    postId: string,
+    updateData: CreatePostDto
+  ): Promise<ApiResponse<Post>>;
   likePost(postId: string): Promise<ApiResponse<void>>;
   unlikePost(postId: string): Promise<ApiResponse<void>>;
   addComment(
@@ -132,6 +137,38 @@ export class PostService implements IPostService {
       };
     } catch (error: any) {
       throw new Error(error.message || "Failed to fetch post count");
+    }
+  }
+
+  async deletePost(postId: string): Promise<ApiResponse<void>> {
+    try {
+      const response = await this.httpClient.delete<void>(`/posts/${postId}`);
+      return {
+        statusCode: response.statusCode || 200,
+        message: response.message || "Post deleted successfully",
+        data: response.data,
+      };
+    } catch (error: any) {
+      throw new Error(error.message || "Failed to delete post");
+    }
+  }
+
+  async updatePost(
+    postId: string,
+    updateData: CreatePostDto
+  ): Promise<ApiResponse<Post>> {
+    try {
+      const response = await this.httpClient.patch<Post>(
+        `/posts/${postId}`,
+        updateData
+      );
+      return {
+        statusCode: response.statusCode || 200,
+        message: response.message || "Post updated successfully",
+        data: response.data,
+      };
+    } catch (error: any) {
+      throw new Error(error.message || "Failed to update post");
     }
   }
 
