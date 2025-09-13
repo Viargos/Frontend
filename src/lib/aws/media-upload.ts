@@ -305,7 +305,7 @@ export const extractS3KeyFromUrl = (url: string): string | null => {
     const parsedUrl = new URL(url);
 
     // Handle different S3 URL formats
-    if (parsedUrl.hostname.includes("s3.amazonaws.com")) {
+    if (parsedUrl.hostname && parsedUrl.hostname.includes("s3.amazonaws.com")) {
       // https://bucket-name.s3.region.amazonaws.com/key
       return parsedUrl.pathname.substring(1); // Remove leading slash
     } else if (parsedUrl.hostname === "s3.amazonaws.com") {

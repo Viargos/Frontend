@@ -1,6 +1,2 @@
-import React from "react";
-
-const Postcard = () => {
-  return <div>Postcard</div>;
-};
-export default Postcard;
+// This file is deprecated. Use @/components/post/PostCard.tsx instead
+export { default } from "@/components/post/PostCard";

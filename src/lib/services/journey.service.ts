@@ -20,8 +20,9 @@ export class JourneyService implements IJourneyService {
   async getMyJourneys(filters?: JourneyFilters): Promise<Journey[]> {
     try {
       const response = await apiClient.getMyJourneys();
-
-      if (response.statusCode !== 200) {
+      // Handle double-wrapped response structure
+      // Check if we have the expected success response (10000 indicates success from API client)
+      if (response.statusCode !== 10000 && response.statusCode !== 200) {
         throw new Error(response.message || "Failed to fetch journeys");
       }
 
@@ -29,7 +30,17 @@ export class JourneyService implements IJourneyService {
         throw new Error("No data received from server");
       }
 
-      let journeys = response.data;
+      // Extract the actual journey data from nested structure
+      let journeys;
+      if (response.data.data && Array.isArray(response.data.data)) {
+        // Double-wrapped: response.data.data contains the journeys
+        journeys = response.data.data;
+      } else if (Array.isArray(response.data)) {
+        // Single-wrapped: response.data contains the journeys
+        journeys = response.data;
+      } else {
+        throw new Error("Invalid response format: journeys data not found");
+      }
 
       // Apply client-side filters if provided
       if (filters) {

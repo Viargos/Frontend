@@ -12,7 +12,7 @@ interface ModalProps {
   showBackdrop?: boolean;
 }
 
-export default function Modal({
+export function Modal({
   isOpen,
   onClose,
   children,
@@ -21,7 +21,7 @@ export default function Modal({
 }: ModalProps) {
   // Lock body scroll when modal is open
   useBodyScrollLock(isOpen);
-  
+
   // Close modal on Escape key
   useEscapeKey(onClose, isOpen);
 
@@ -50,3 +50,5 @@ export default function Modal({
     </div>
   );
 }
+
+export default Modal;

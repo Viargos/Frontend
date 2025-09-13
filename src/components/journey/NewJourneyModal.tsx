@@ -6,14 +6,7 @@ import Button from "@/components/ui/Button";
 import InputField from "@/components/ui/InputField";
 import LocationSearch from "./LocationSearch";
 import { CalendarIcon } from "@/components/icons/CalendarIcon";
-
-interface Location {
-  id: string;
-  name: string;
-  lat: number;
-  lng: number;
-  address: string;
-}
+import { Location } from "@/types/journey.types";
 
 interface NewJourneyModalProps {
   isOpen: boolean;

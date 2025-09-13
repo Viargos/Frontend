@@ -1,15 +1,23 @@
-import { HttpClientService } from '@/lib/services/http-client.service';
-import { TokenService, tokenService } from '@/lib/services/token.service';
-import { AuthService } from '@/lib/services/auth.service';
-import { UserService } from '@/lib/services/user.service';
-import { ValidationService, validationService } from '@/lib/services/validation.service';
-import { ProfileService } from '@/lib/services/profile.service';
-import { JourneyService } from './journey.service';
-import { IAuthService, IUserService, IValidationService } from '@/lib/interfaces/auth.interface';
-import { IProfileService } from '@/lib/interfaces/profile.interface';
-import { IJourneyService } from '@/lib/interfaces/journey.interface';
-import { IHttpClient } from '@/lib/interfaces/http-client.interface';
-import { ITokenService } from './token.service';
+import { HttpClientService } from "@/lib/services/http-client.service";
+import { TokenService, tokenService } from "@/lib/services/token.service";
+import { AuthService } from "@/lib/services/auth.service";
+import { UserService } from "@/lib/services/user.service";
+import {
+  ValidationService,
+  validationService,
+} from "@/lib/services/validation.service";
+import { ProfileService } from "@/lib/services/profile.service";
+import { JourneyService } from "./journey.service";
+import { PostService, IPostService } from "./post.service";
+import {
+  IAuthService,
+  IUserService,
+  IValidationService,
+} from "@/lib/interfaces/auth.interface";
+import { IProfileService } from "@/lib/interfaces/profile.interface";
+import { IJourneyService } from "@/lib/interfaces/journey.interface";
+import { IHttpClient } from "@/lib/interfaces/http-client.interface";
+import { ITokenService } from "./token.service";
 
 class ServiceFactory {
   private static instance: ServiceFactory;
@@ -18,6 +26,7 @@ class ServiceFactory {
   private _userService?: IUserService;
   private _profileService?: IProfileService;
   private _journeyService?: IJourneyService;
+  private _postService?: IPostService;
 
   private constructor() {}
 
@@ -30,7 +39,8 @@ class ServiceFactory {
 
   get httpClient(): IHttpClient {
     if (!this._httpClient) {
-      const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const baseURL =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
       this._httpClient = new HttpClientService(baseURL, tokenService);
     }
     return this._httpClient;
@@ -46,7 +56,10 @@ class ServiceFactory {
 
   get authService(): IAuthService {
     if (!this._authService) {
-      this._authService = new AuthService(this.httpClient, this.validationService);
+      this._authService = new AuthService(
+        this.httpClient,
+        this.validationService
+      );
     }
     return this._authService;
   }
@@ -72,6 +85,13 @@ class ServiceFactory {
     return this._journeyService;
   }
 
+  get postService(): IPostService {
+    if (!this._postService) {
+      this._postService = new PostService(this.httpClient);
+    }
+    return this._postService;
+  }
+
   // Method to reset services (useful for testing)
   reset(): void {
     this._httpClient = undefined;
@@ -79,6 +99,7 @@ class ServiceFactory {
     this._userService = undefined;
     this._profileService = undefined;
     this._journeyService = undefined;
+    this._postService = undefined;
   }
 }
 
@@ -93,4 +114,5 @@ export const {
   userService,
   profileService,
   journeyService,
+  postService,
 } = serviceFactory;

@@ -1,15 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useJsApiLoader } from "@react-google-maps/api";
 import InputField from "@/components/ui/InputField";
+import { Location } from "@/types/journey.types";
 
-interface Location {
-  id: string;
-  name: string;
-  lat: number;
-  lng: number;
-  address: string;
-}
+// Static libraries array to prevent LoadScript reloading
+const GOOGLE_MAPS_LIBRARIES: "places"[] = ["places"];
 
 interface LocationSearchProps {
   onLocationSelect: (location: Location) => void;
@@ -33,9 +30,16 @@ export default function LocationSearch({
   const placesService = useRef<google.maps.places.PlacesService | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
 
+  // Load Google Maps API
+  const { isLoaded } = useJsApiLoader({
+    id: "google-map-script",
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+    libraries: GOOGLE_MAPS_LIBRARIES,
+  });
+
   useEffect(() => {
-    // Initialize Google Places services
-    if (window.google && window.google.maps) {
+    // Initialize Google Places services only when API is loaded
+    if (isLoaded && window.google && window.google.maps) {
       autocompleteService.current =
         new window.google.maps.places.AutocompleteService();
       if (mapRef.current) {
@@ -44,7 +48,7 @@ export default function LocationSearch({
         );
       }
     }
-  }, []);
+  }, [isLoaded]);
 
   useEffect(() => {
     if (!searchTerm.trim() || !autocompleteService.current) {
@@ -103,8 +107,8 @@ export default function LocationSearch({
           const location: Location = {
             id: prediction.place_id,
             name: place.name || prediction.description,
-            lat: place.geometry?.location?.lat() || 0,
-            lng: place.geometry?.location?.lng() || 0,
+            latitude: place.geometry?.location?.lat() || 0,
+            longitude: place.geometry?.location?.lng() || 0,
             address: place.formatted_address || prediction.description,
           };
 
@@ -122,6 +126,21 @@ export default function LocationSearch({
       setShowSuggestions(false);
     }
   };
+
+  // Show loading state if Google Maps API is not loaded
+  if (!isLoaded) {
+    return (
+      <div className={`relative ${className}`}>
+        <InputField
+          placeholder="Loading location search..."
+          value=""
+          onChange={() => {}}
+          className="w-full"
+          disabled
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={`relative ${className}`}>
