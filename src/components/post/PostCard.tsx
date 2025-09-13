@@ -10,6 +10,8 @@ import MapIcon from "@/components/icons/MapIcon";
 import JourneyIcon from "@/components/icons/JourneyIcon";
 import Button from "@/components/ui/Button";
 import { postService } from "@/lib/services/service-factory";
+import MediaCarousel from "./MediaCarousel";
+import Image from "next/image";
 
 interface PostCardProps {
   post: Post;
@@ -82,21 +84,23 @@ export default function PostCard({
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3">
             {post.user.profileImage ? (
-              <img
+              <Image
                 src={post.user.profileImage}
-                alt={post.user.name}
+                alt={post.user.username}
+                width={40}
+                height={40}
                 className="w-10 h-10 rounded-full object-cover"
               />
             ) : (
               <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
                 <span className="text-gray-600 font-medium text-sm">
-                  {post.user.name.charAt(0).toUpperCase()}
+                  {post.user.username.charAt(0).toUpperCase()}
                 </span>
               </div>
             )}
             <div>
               <h4 className="font-medium text-gray-900 text-sm">
-                {post.user.name}
+                {post.user.username}
               </h4>
               <p className="text-xs text-gray-500">
                 {formatDistanceToNow(new Date(post.createdAt), {
@@ -120,61 +124,9 @@ export default function PostCard({
           )}
         </div>
       </div>
-
       {/* Media */}
       {post.media && post.media.length > 0 && (
-        <div className="relative">
-          {post.media.length === 1 ? (
-            <div className="aspect-square">
-              {post.media[0].type === "image" ? (
-                <img
-                  src={post.media[0].url}
-                  alt="Post media"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <video
-                  src={post.media[0].url}
-                  poster={post.media[0].thumbnailUrl}
-                  controls
-                  className="w-full h-full object-cover"
-                />
-              )}
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-1 aspect-square">
-              {post.media.slice(0, 4).map((media, index) => (
-                <div
-                  key={media.id}
-                  className={`relative ${
-                    post.media.length === 3 && index === 0 ? "row-span-2" : ""
-                  }`}
-                >
-                  {media.type === "image" ? (
-                    <img
-                      src={media.url}
-                      alt={`Post media ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <video
-                      src={media.url}
-                      poster={media.thumbnailUrl}
-                      className="w-full h-full object-cover"
-                    />
-                  )}
-                  {index === 3 && post.media.length > 4 && (
-                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                      <span className="text-white font-medium">
-                        +{post.media.length - 4}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <MediaCarousel media={post.media} />
       )}
 
       {/* Content */}

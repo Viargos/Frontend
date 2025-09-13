@@ -13,6 +13,7 @@ import JourneyIcon from "@/components/icons/JourneyIcon";
 import HeartIcon from "@/components/icons/HeartIcon";
 import ChatIcon from "@/components/icons/ChatIcon";
 import EditPostModal from "@/components/post/EditPostModal";
+import MediaCarousel from "@/components/post/MediaCarousel";
 
 interface ProfilePostsGridProps {
   userId?: string;
@@ -178,28 +179,7 @@ export default function ProfilePostsGrid({
                 {/* Post Image/Media */}
                 <div className="relative aspect-square bg-gray-100">
                   {post.media && post.media.length > 0 ? (
-                    <div className="relative w-full h-full">
-                      {post.media[0].type === "image" ? (
-                        <img
-                          src={post.media[0].url}
-                          alt="Post media"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <video
-                          src={post.media[0].url}
-                          poster={post.media[0].thumbnailUrl}
-                          className="w-full h-full object-cover"
-                        />
-                      )}
-
-                      {/* Multiple media indicator */}
-                      {post.media.length > 1 && (
-                        <div className="absolute top-2 right-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-full">
-                          +{post.media.length - 1}
-                        </div>
-                      )}
-                    </div>
+                    <MediaCarousel media={post.media} />
                   ) : (
                     // Placeholder for posts without media
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
