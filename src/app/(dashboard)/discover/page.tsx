@@ -1,17 +1,26 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Calendar, User, ChevronRight, X, Search, Navigation, RefreshCw } from 'lucide-react';
-import apiClient from '@/lib/api.legacy';
-import ExploreMap from '@/components/maps/ExploreMap';
-import { Journey } from '@/types/journey.types';
-import { PlaceType } from '@/types/journey.types';
-import { PageLoading } from '@/components/common/Loading';
-import { useGeolocation } from '@/hooks/useGeolocation';
-import { useNearbyJourneys } from '@/hooks/useNearbyJourneys';
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  MapPin,
+  Calendar,
+  User,
+  ChevronRight,
+  X,
+  Search,
+  Navigation,
+  RefreshCw,
+} from "lucide-react";
+import apiClient from "@/lib/api.legacy";
+import ExploreMap from "@/components/maps/ExploreMap";
+import { Journey } from "@/types/journey.types";
+import { PlaceType } from "@/types/journey.types";
+import { PageLoading } from "@/components/common/Loading";
+import { useGeolocation } from "@/hooks/useGeolocation";
+import { useNearbyJourneys } from "@/hooks/useNearbyJourneys";
 
-export default function ExplorePage() {
+export default function DiscoverPage() {
   const [selectedJourney, setSelectedJourney] = useState<any | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentRadius, setCurrentRadius] = useState(50);
@@ -36,7 +45,8 @@ export default function ExplorePage() {
   // Handle responsive sidebar behavior
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 1024) { // lg breakpoint
+      if (window.innerWidth >= 1024) {
+        // lg breakpoint
         setIsSidebarOpen(true);
       } else {
         setIsSidebarOpen(false);
@@ -45,18 +55,22 @@ export default function ExplorePage() {
 
     // Set initial state based on screen size
     handleResize();
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState<'all' | PlaceType>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState<"all" | PlaceType>("all");
 
   // Get user location on mount and fetch journeys when location is available
   useEffect(() => {
-    getCurrentLocation();
-  }, []);
+    getCurrentLocation().catch(() => {
+      // If location fails, use default location (Ahmedabad, Gujarat)
+      const defaultLocation = { latitude: 23.0225, longitude: 72.5714 };
+      fetchByLocation(defaultLocation, currentRadius);
+    });
+  }, [getCurrentLocation, fetchByLocation, currentRadius]);
 
   // Fetch journeys when location becomes available or radius changes
   useEffect(() => {
@@ -72,9 +86,10 @@ export default function ExplorePage() {
   };
 
   // Filter journeys based on search query
-  const filteredJourneys = journeys.filter(journey =>
-    journey.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    journey.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredJourneys = journeys.filter(
+    (journey) =>
+      journey.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      journey.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleJourneyClick = (journey: any) => {
@@ -98,56 +113,55 @@ export default function ExplorePage() {
     await getCurrentLocation();
   };
 
-  // Determine loading state
-  const isLoading = locationLoading || journeysLoading;
+  // Determine loading state - only show loading if we're actually fetching journeys
+  const isLoading = journeysLoading;
   const error = locationError || journeysError;
 
   const formatDate = (dateString?: string) => {
-    if (!dateString) return 'No date';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+    if (!dateString) return "No date";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
   const getPlaceTypeIcon = (type: string) => {
     switch (type.toLowerCase()) {
-      case 'stay':
-        return '🏨';
-      case 'activity':
-        return '🎯';
-      case 'food':
-        return '🍽️';
-      case 'transport':
-        return '🚗';
-      case 'note':
-        return '📝';
+      case "stay":
+        return "🏨";
+      case "activity":
+        return "🎯";
+      case "food":
+        return "🍽️";
+      case "transport":
+        return "🚗";
+      case "note":
+        return "📝";
       default:
-        return '📍';
+        return "📍";
     }
   };
 
-  if (isLoading) {
-    const loadingText = locationLoading ? 'Getting your location...' : 'Loading nearby journeys...';
+  if (isLoading && !journeys.length) {
+    const loadingText = locationLoading
+      ? "Getting your location..."
+      : "Loading nearby journeys...";
     return <PageLoading text={loadingText} />;
   }
 
-  if (error) {
+  // Only show error if it's a journeys error, not location error
+  if (journeysError && !locationError) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="text-red-500 mb-4">
-            {locationError ? (
-              <Navigation className="w-12 h-12 mx-auto mb-2" />
-            ) : (
-              <MapPin className="w-12 h-12 mx-auto mb-2" />
-            )}
+            <MapPin className="w-12 h-12 mx-auto mb-2" />
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            {locationError ? 'Location Access Required' : 'Error Loading Journeys'}
+            Error Loading Journeys
           </h3>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <p className="text-gray-600 mb-4">{journeysError}</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
               onClick={handleLocationRetry}
@@ -156,17 +170,18 @@ export default function ExplorePage() {
               <RefreshCw className="w-4 h-4" />
               Retry
             </button>
-            {locationError && (
-              <button
-                onClick={() => {
-                  // Fallback to default location (example: Ahmedabad)
-                  fetchByLocation({ latitude: 23.0225, longitude: 72.5714 }, currentRadius);
-                }}
-                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-              >
-                Use Default Location
-              </button>
-            )}
+            <button
+              onClick={() => {
+                // Fallback to default location (example: Ahmedabad)
+                fetchByLocation(
+                  { latitude: 23.0225, longitude: 72.5714 },
+                  currentRadius
+                );
+              }}
+              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              Use Default Location
+            </button>
           </div>
         </div>
       </div>
@@ -176,13 +191,17 @@ export default function ExplorePage() {
   return (
     <div className="h-screen flex bg-gray-50 relative overflow-hidden">
       {/* Map Container */}
-      <div className={`flex-1 relative transition-all duration-300 ${isSidebarOpen ? 'lg:mr-96' : 'mr-0'}`}>
+      <div
+        className={`flex-1 relative transition-all duration-300 ${
+          isSidebarOpen ? "lg:mr-96" : "mr-0"
+        }`}
+      >
         <ExploreMap
           journeys={journeys}
           selectedJourney={selectedJourney}
           onLocationClick={handleLocationClick}
         />
-        
+
         {/* Map Controls */}
         <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
           <motion.button
@@ -198,7 +217,7 @@ export default function ExplorePage() {
               <ChevronRight className="w-5 h-5 text-gray-600" />
             </motion.div>
           </motion.button>
-          
+
           {/* Location Controls */}
           <motion.button
             initial={{ opacity: 0, x: -20 }}
@@ -225,7 +244,7 @@ export default function ExplorePage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
               className={`absolute bottom-4 left-4 bg-white rounded-lg shadow-lg p-4 z-10 transition-all duration-300 ${
-                isSidebarOpen ? 'lg:right-[25rem]' : 'right-4'
+                isSidebarOpen ? "lg:right-[25rem]" : "right-4"
               }`}
             >
               <div className="flex items-start justify-between">
@@ -251,7 +270,11 @@ export default function ExplorePage() {
                       <div className="flex items-center gap-1">
                         <MapPin className="w-4 h-4" />
                         <span>
-                          {selectedJourney.days.reduce((total, day) => total + (day.places?.length || 0), 0)} places
+                          {selectedJourney.days.reduce(
+                            (total, day) => total + (day.places?.length || 0),
+                            0
+                          )}{" "}
+                          places
                         </span>
                       </div>
                     )}
@@ -299,7 +322,7 @@ export default function ExplorePage() {
                   <X className="w-5 h-5 text-gray-400" />
                 </button>
               </div>
-              
+
               {/* Radius Controls */}
               {coordinates && (
                 <div className="flex items-center gap-2 mb-4">
@@ -312,8 +335,8 @@ export default function ExplorePage() {
                         disabled={journeysLoading}
                         className={`px-3 py-1 text-xs rounded-full transition-colors ${
                           currentRadius === radius
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            ? "bg-blue-600 text-white"
+                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                         } disabled:opacity-50`}
                       >
                         {radius}km
@@ -335,15 +358,20 @@ export default function ExplorePage() {
                 <div className="p-6 text-center">
                   <MapPin className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    {!coordinates ? 'Location access required' : 'No nearby journeys'}
+                    {!coordinates && locationError
+                      ? "Using default location"
+                      : !coordinates
+                      ? "Location access required"
+                      : "No nearby journeys"}
                   </h3>
                   <p className="text-gray-600">
-                    {!coordinates 
-                      ? 'Please allow location access to find journeys near you'
-                      : `No journeys found within ${currentRadius}km of your location`
-                    }
+                    {!coordinates && locationError
+                      ? "Location access was denied. Showing journeys from Ahmedabad, Gujarat."
+                      : !coordinates
+                      ? "Please allow location access to find journeys near you"
+                      : `No journeys found within ${currentRadius}km of your location`}
                   </p>
-                  {!coordinates && (
+                  {!coordinates && !locationError && (
                     <button
                       onClick={getCurrentLocation}
                       className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 mx-auto"
@@ -351,6 +379,20 @@ export default function ExplorePage() {
                       <Navigation className="w-4 h-4" />
                       Get Location
                     </button>
+                  )}
+                  {!coordinates && locationError && (
+                    <div className="mt-4 space-y-2">
+                      <button
+                        onClick={getCurrentLocation}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 mx-auto"
+                      >
+                        <Navigation className="w-4 h-4" />
+                        Try Again
+                      </button>
+                      <p className="text-xs text-gray-500">
+                        Or continue with default location
+                      </p>
+                    </div>
                   )}
                 </div>
               ) : (
@@ -365,14 +407,14 @@ export default function ExplorePage() {
                         const firstDay = journey.days[0];
                         if (firstDay.places && firstDay.places.length > 0) {
                           const location = firstDay.places[0].location;
-                          const parts = location.split(',');
+                          const parts = location.split(",");
                           if (parts.length >= 2) {
                             return parts[parts.length - 1].trim();
                           }
                           return location;
                         }
                       }
-                      return 'Unknown location';
+                      return "Unknown location";
                     };
 
                     const getJourneyCategory = () => {
@@ -383,15 +425,21 @@ export default function ExplorePage() {
                       if (journey.days && journey.days.length > 0) {
                         for (const day of journey.days) {
                           if (day.places && day.places.length > 0) {
-                            const categories = day.places.map(place => place.type.toLowerCase());
-                            if (categories.includes('activity')) return 'Amusement & Theme Parks';
-                            if (categories.includes('stay')) return 'Hotels & Resorts';
-                            if (categories.includes('food')) return 'Restaurants & Cafes';
-                            if (categories.includes('transport')) return 'Transportation';
+                            const categories = day.places.map((place) =>
+                              place.type.toLowerCase()
+                            );
+                            if (categories.includes("activity"))
+                              return "Amusement & Theme Parks";
+                            if (categories.includes("stay"))
+                              return "Hotels & Resorts";
+                            if (categories.includes("food"))
+                              return "Restaurants & Cafes";
+                            if (categories.includes("transport"))
+                              return "Transportation";
                           }
                         }
                       }
-                      return 'Travel Experience';
+                      return "Travel Experience";
                     };
 
                     const getDistance = () => {
@@ -402,12 +450,12 @@ export default function ExplorePage() {
                     };
 
                     const gradients = [
-                      'from-purple-400 via-pink-400 to-blue-400',
-                      'from-blue-400 via-purple-400 to-pink-400',
-                      'from-pink-400 via-purple-400 to-indigo-400',
-                      'from-indigo-400 via-blue-400 to-purple-400',
-                      'from-purple-500 via-blue-400 to-indigo-400',
-                      'from-blue-500 via-indigo-400 to-purple-400',
+                      "from-purple-400 via-pink-400 to-blue-400",
+                      "from-blue-400 via-purple-400 to-pink-400",
+                      "from-pink-400 via-purple-400 to-indigo-400",
+                      "from-indigo-400 via-blue-400 to-purple-400",
+                      "from-purple-500 via-blue-400 to-indigo-400",
+                      "from-blue-500 via-indigo-400 to-purple-400",
                     ];
 
                     const gradient = gradients[index % gradients.length];
@@ -421,13 +469,15 @@ export default function ExplorePage() {
                         onClick={() => handleJourneyClick(journey)}
                         className={`bg-white rounded-lg cursor-pointer transition-all duration-200 hover:shadow-md border ${
                           selectedJourney?.id === journey.id
-                            ? 'border-blue-500 shadow-md'
-                            : 'border-gray-100 hover:border-gray-200'
+                            ? "border-blue-500 shadow-md"
+                            : "border-gray-100 hover:border-gray-200"
                         }`}
                       >
                         <div className="flex items-center gap-3 p-3">
                           {/* Journey Image/Gradient */}
-                          <div className={`w-16 h-16 rounded-lg bg-gradient-to-br ${gradient} flex-shrink-0 flex items-center justify-center`}>
+                          <div
+                            className={`w-16 h-16 rounded-lg bg-gradient-to-br ${gradient} flex-shrink-0 flex items-center justify-center`}
+                          >
                             <div className="text-white text-lg font-semibold">
                               {journey.title.charAt(0).toUpperCase()}
                             </div>
@@ -443,17 +493,23 @@ export default function ExplorePage() {
                             </p>
                             {/* Journey stats and distance */}
                             <div className="text-xs text-gray-400 space-y-1">
-                              {getDistance() && (
-                                <div>{getDistance()}</div>
-                              )}
+                              {getDistance() && <div>{getDistance()}</div>}
                               {journey.days && journey.days.length > 0 && (
                                 <div>
-                                  {journey.days.reduce((total, day) => total + (day.places?.length || 0), 0)} places • 
-                                  {journey.days.length} days
+                                  {journey.days.reduce(
+                                    (total, day) =>
+                                      total + (day.places?.length || 0),
+                                    0
+                                  )}{" "}
+                                  places •{journey.days.length} days
                                 </div>
                               )}
                               {journey.author && (
-                                <div>by {journey.author.username || journey.user?.username}</div>
+                                <div>
+                                  by{" "}
+                                  {journey.author.username ||
+                                    journey.user?.username}
+                                </div>
                               )}
                             </div>
                           </div>

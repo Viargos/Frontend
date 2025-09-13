@@ -31,6 +31,7 @@ export interface IPostService {
     postId: string,
     updateData: CreatePostDto
   ): Promise<ApiResponse<Post>>;
+  getPublicPosts(limit?: number): Promise<ApiResponse<Post[]>>;
   likePost(postId: string): Promise<ApiResponse<void>>;
   unlikePost(postId: string): Promise<ApiResponse<void>>;
   addComment(
@@ -169,6 +170,21 @@ export class PostService implements IPostService {
       };
     } catch (error: any) {
       throw new Error(error.message || "Failed to update post");
+    }
+  }
+
+  async getPublicPosts(limit: number = 10): Promise<ApiResponse<Post[]>> {
+    try {
+      const response = await this.httpClient.get<Post[]>(
+        `/posts/public?limit=${limit}`
+      );
+      return {
+        statusCode: response.statusCode || 200,
+        message: response.message || "Public posts fetched successfully",
+        data: response.data,
+      };
+    } catch (error: any) {
+      throw new Error(error.message || "Failed to fetch public posts");
     }
   }
 

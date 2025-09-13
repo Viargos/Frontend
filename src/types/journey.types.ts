@@ -6,15 +6,6 @@ export enum PlaceType {
   NOTE = "NOTE",
 }
 
-export interface Location {
-  id: string;
-  name: string;
-  latitude: number;
-  longitude: number;
-  address?: string;
-  country?: string;
-}
-
 export interface Journey {
   id: string;
   title: string;
