@@ -8,6 +8,7 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import Button from "@/components/ui/Button";
 import { useAuthStore } from "@/store/auth.store";
 import { postService } from "@/lib/services/service-factory";
+import { ApiResponse } from "@/types/auth.types";
 
 interface GuestPostsListProps {
   className?: string;
@@ -16,7 +17,7 @@ interface GuestPostsListProps {
 
 export default function GuestPostsList({
   className = "",
-  maxPosts = 5,
+  maxPosts = 10,
 }: GuestPostsListProps) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,8 +36,28 @@ export default function GuestPostsList({
         // You might need to create a public endpoint for this
         const response = await postService.getPublicPosts(maxPosts + 2); // Get a few extra
 
-        if (response.data) {
-          setPosts(response.data.slice(0, maxPosts));
+        // Handle API response format
+        let postsData;
+        if (response.statusCode === 10000 && response.data) {
+          // API client wrapper - extract the nested data
+          const nestedResponse = response.data as unknown as ApiResponse<Post[]>;
+          if (nestedResponse.statusCode === 200 && nestedResponse.data) {
+            postsData = nestedResponse.data;
+          } else {
+            throw new Error(nestedResponse.message || "Failed to fetch posts");
+          }
+        } else if (response.statusCode === 200 && response.data) {
+          // Direct backend response
+          postsData = response.data;
+        } else {
+          throw new Error(response.message || "Failed to fetch posts");
+        }
+
+        if (Array.isArray(postsData)) {
+          setPosts(postsData.slice(0, maxPosts));
+        } else {
+          console.error("Posts data is not an array:", postsData);
+          setError("Invalid posts data format");
         }
       } catch (err: any) {
         console.error("Error fetching guest posts:", err);
@@ -97,7 +118,7 @@ export default function GuestPostsList({
       <div className={`text-center py-12 ${className}`}>
         <div className="bg-red-50 border border-red-200 rounded-lg p-6">
           <p className="text-red-600 mb-4">{error}</p>
-          <Button variant="outline" onClick={() => window.location.reload()}>
+          <Button variant="secondary-color" onClick={() => window.location.reload()}>
             Try again
           </Button>
         </div>
@@ -131,7 +152,7 @@ export default function GuestPostsList({
           <Button variant="primary" onClick={openSignup}>
             Sign Up
           </Button>
-          <Button variant="outline" onClick={openLogin}>
+          <Button variant="secondary-color" onClick={openLogin}>
             Sign In
           </Button>
         </div>
@@ -202,7 +223,7 @@ export default function GuestPostsList({
                   Sign Up Free
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="secondary-color"
                   onClick={openLogin}
                   className="flex-1 sm:flex-none"
                 >
@@ -231,7 +252,7 @@ export default function GuestPostsList({
           className="bg-gray-50 border border-gray-200 rounded-xl p-6 text-center"
         >
           <h4 className="font-medium text-gray-900 mb-2">
-            You've reached the preview limit
+            You&apos;ve reached the preview limit
           </h4>
           <p className="text-gray-600 text-sm mb-4">
             Sign up to see unlimited posts and join the community!
@@ -240,7 +261,7 @@ export default function GuestPostsList({
             <Button variant="primary" size="sm" onClick={openSignup}>
               Sign Up
             </Button>
-            <Button variant="outline" size="sm" onClick={openLogin}>
+            <Button variant="secondary-color" size="sm" onClick={openLogin}>
               Sign In
             </Button>
           </div>
