@@ -25,6 +25,7 @@ export default function Header({ user }: HeaderProps) {
     const [searchQuery, setSearchQuery] = useState("");
     const [showSearchResults, setShowSearchResults] = useState(false);
     const [showCreatePostModal, setShowCreatePostModal] = useState(false);
+    const [isSearchExpanded, setIsSearchExpanded] = useState(false);
     const { logout, isAuthenticated, openLogin, openSignup } = useAuthStore();
     const router = useRouter();
 
@@ -106,6 +107,23 @@ export default function Header({ user }: HeaderProps) {
         setSearchQuery("");
         setShowSearchResults(false);
         clearResults();
+        setIsSearchExpanded(false);
+    };
+
+    const handleSearchToggle = () => {
+        setIsSearchExpanded(!isSearchExpanded);
+        if (!isSearchExpanded) {
+            // Focus on search input after a brief delay to allow animation
+            setTimeout(() => {
+                const searchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
+                if (searchInput) {
+                    searchInput.focus();
+                }
+            }, 150);
+        } else {
+            // Clear search when collapsing
+            handleSearchClear();
+        }
     };
 
     const handleCreatePost = () => {
@@ -140,104 +158,103 @@ export default function Header({ user }: HeaderProps) {
                 </div>
             </div>
 
-            {/* Desktop Search Bar */}
-            {isAuthenticated && (
-                <div
-                    className="hidden md:flex flex-1 max-w-md mx-4"
-                    ref={searchRef}
-                >
-                    <div className="relative w-full">
-                        <input
-                            type="text"
-                            placeholder="Search users..."
-                            value={searchQuery}
-                            onChange={(e) => handleSearchChange(e.target.value)}
-                            onFocus={handleSearchFocus}
-                            className="w-full px-4 py-2 pl-10 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black placeholder-gray-500 text-sm leading-5 shadow-button"
-                        />
-                        <svg
-                            className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                            />
-                        </svg>
-                        {searchQuery && (
-                            <button
-                                onClick={handleSearchClear}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors"
-                            >
-                                ×
-                            </button>
-                        )}
-
-                        {/* Search Results */}
-                        <UserSearchResults
-                            results={results}
-                            isVisible={showSearchResults}
-                            isLoading={isLoading}
-                            onUserClick={handleUserClick}
-                            onClose={() => setShowSearchResults(false)}
-                        />
-                    </div>
-                </div>
-            )}
-            {/* Mobile Search Field - visible on sm and xs when authenticated */}
-            {isAuthenticated && (
-                <div className="md:hidden flex-1 max-w-xs mx-2" ref={searchRef}>
-                    <div className="relative w-full">
-                        <input
-                            type="text"
-                            placeholder="Search users..."
-                            value={searchQuery}
-                            onChange={(e) => handleSearchChange(e.target.value)}
-                            onFocus={handleSearchFocus}
-                            className="w-full px-3 py-2 pl-8 pr-8 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black placeholder-gray-500 text-sm leading-5 shadow-button"
-                        />
-                        <svg
-                            className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                            />
-                        </svg>
-                        {searchQuery && (
-                            <button
-                                onClick={handleSearchClear}
-                                className="absolute right-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg"
-                            >
-                                ×
-                            </button>
-                        )}
-
-                        {/* Mobile Search Results */}
-                        <UserSearchResults
-                            results={results}
-                            isVisible={showSearchResults}
-                            isLoading={isLoading}
-                            onUserClick={handleUserClick}
-                            onClose={() => setShowSearchResults(false)}
-                        />
-                    </div>
-                </div>
-            )}
 
             {/* Action Buttons */}
             <div className="flex items-center gap-2">
                 {isAuthenticated ? (
                     <>
+                        {/* Search Container - Always rendered for smooth animation */}
+                        <div 
+                            className={`relative overflow-hidden transition-all duration-500 ease-in-out ${
+                                isSearchExpanded 
+                                    ? 'w-64 md:w-80' 
+                                    : 'w-10'
+                            }`}
+                            ref={searchRef}
+                        >
+                            {/* Search Button (when not expanded) */}
+                            {!isSearchExpanded && (
+                                <button
+                                    onClick={handleSearchToggle}
+                                    className="w-10 h-10 p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg border border-gray-300 hover:border-gray-400 transition-all duration-200 shadow-button flex items-center justify-center"
+                                    aria-label="Search"
+                                >
+                                    <svg
+                                        className="h-5 w-5 transition-transform duration-200 hover:scale-110"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                        />
+                                    </svg>
+                                </button>
+                            )}
+
+                            {/* Expanded Search Input */}
+                            {isSearchExpanded && (
+                                <div className={`transition-all duration-300 delay-200 ease-out ${
+                                    isSearchExpanded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+                                }`}>
+                                    <input
+                                        type="text"
+                                        placeholder="Search users..."
+                                        value={searchQuery}
+                                        onChange={(e) => handleSearchChange(e.target.value)}
+                                        onFocus={handleSearchFocus}
+                                        className="w-full h-10 px-4 py-2 pl-10 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black placeholder-gray-500 text-sm leading-5 shadow-button bg-white transition-all duration-200"
+                                    />
+                                    
+                                    {/* Search Icon */}
+                                    <svg
+                                        className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 transition-all duration-300 delay-300 ${
+                                            isSearchExpanded ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
+                                        }`}
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                        />
+                                    </svg>
+                                    
+                                    {/* Close Button */}
+                                    <button
+                                        onClick={handleSearchToggle}
+                                        className={`absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-all duration-200 hover:scale-110 ${
+                                            isSearchExpanded ? 'opacity-100 scale-100 delay-400' : 'opacity-0 scale-75'
+                                        }`}
+                                        aria-label="Close search"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Search Results */}
+                            {isSearchExpanded && (
+                                <div className={`transition-all duration-200 delay-500 ${
+                                    isSearchExpanded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
+                                }`}>
+                                    <UserSearchResults
+                                        results={results}
+                                        isVisible={showSearchResults}
+                                        isLoading={isLoading}
+                                        onUserClick={handleUserClick}
+                                        onClose={() => setShowSearchResults(false)}
+                                    />
+                                </div>
+                            )}
+                        </div>
+
                         <Button
                             variant="secondary"
                             size="sm"
@@ -245,7 +262,7 @@ export default function Header({ user }: HeaderProps) {
                             iconPosition="leading"
                             onClick={handleCreatePost}
                         >
-                            <span className="hidden sm:inline">Add Post</span>
+                            <span className="hidden lg:inline">Add Post</span>
                         </Button>
 
                         <Button
@@ -255,7 +272,7 @@ export default function Header({ user }: HeaderProps) {
                             iconPosition="leading"
                             onClick={() => router.push("/create-journey")}
                         >
-                            <span className="hidden sm:inline">
+                            <span className="hidden lg:inline">
                                 Create Journey
                             </span>
                         </Button>

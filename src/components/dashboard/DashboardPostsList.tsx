@@ -108,7 +108,7 @@ export default function DashboardPostsList({
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4, delay: 0.2 }}
           >
-            Loading your feed...
+            Loading you feeds...
           </motion.p>
         </div>
       </motion.div>
