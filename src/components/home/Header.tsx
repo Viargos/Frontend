@@ -255,30 +255,36 @@ export default function Header({ user }: HeaderProps) {
                             )}
                         </div>
 
-                        <Button
-                            variant="secondary"
-                            size="sm"
-                            icon={<ImagePlusIcon className="text-gray-700" />}
-                            iconPosition="leading"
-                            onClick={handleCreatePost}
-                        >
-                            <span className="hidden lg:inline">Add Post</span>
-                        </Button>
+                        {/* Action Buttons - Hidden on xs when search is expanded */}
+                        <div className={`flex items-center gap-2 transition-all duration-300 ${
+                            isSearchExpanded 
+                                ? 'max-[639px]:opacity-0 max-[639px]:scale-95 max-[639px]:pointer-events-none max-[639px]:hidden sm:opacity-100 sm:scale-100 sm:pointer-events-auto' 
+                                : 'opacity-100 scale-100 pointer-events-auto'
+                        }`}>
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                icon={<ImagePlusIcon className="text-gray-700" />}
+                                iconPosition="leading"
+                                onClick={handleCreatePost}
+                            >
+                                <span className="hidden lg:inline">Add Post</span>
+                            </Button>
 
-                        <Button
-                            variant="secondary"
-                            size="sm"
-                            icon={<JourneyIcon className="text-gray-700" />}
-                            iconPosition="leading"
-                            onClick={() => router.push("/create-journey")}
-                        >
-                            <span className="hidden lg:inline">
-                                Create Journey
-                            </span>
-                        </Button>
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                icon={<JourneyIcon className="text-gray-700" />}
+                                iconPosition="leading"
+                                onClick={() => router.push("/create-journey")}
+                            >
+                                <span className="hidden lg:inline">
+                                    Create Journey
+                                </span>
+                            </Button>
 
-                        {/* Notifications Icon */}
-                        <div className="relative" ref={notificationsRef}>
+                            {/* Notifications Icon */}
+                            <div className="relative" ref={notificationsRef}>
                             <button
                                 onClick={() =>
                                     setShowNotifications(!showNotifications)
@@ -397,8 +403,8 @@ export default function Header({ user }: HeaderProps) {
                             )}
                         </div>
 
-                        {/* User Profile Dropdown */}
-                        <div className="relative" ref={dropdownRef}>
+                            {/* User Profile Dropdown */}
+                            <div className="relative" ref={dropdownRef}>
                             <button
                                 onClick={() => setShowDropdown(!showDropdown)}
                                 className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-300 hover:border-gray-400 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -543,6 +549,7 @@ export default function Header({ user }: HeaderProps) {
                                     </div>
                                 </div>
                             )}
+                            </div>
                         </div>
                     </>
                 ) : (
