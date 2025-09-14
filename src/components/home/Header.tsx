@@ -17,11 +17,9 @@ import CreatePostModal from "@/components/post/CreatePostModal";
 
 interface HeaderProps {
     user?: User | null;
-    onMobileMenuOpen?: () => void;
-    isMobileMenuOpen?: boolean;
 }
 
-export default function Header({ user, onMobileMenuOpen }: HeaderProps) {
+export default function Header({ user }: HeaderProps) {
     const [showDropdown, setShowDropdown] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
@@ -120,32 +118,9 @@ export default function Header({ user, onMobileMenuOpen }: HeaderProps) {
     };
 
     return (
-        <header className="flex items-center justify-between w-full py-4 bg-white gap-2 sm:gap-4">
-            {/* Logo with Hamburger */}
-            <div className="flex items-center flex-shrink-0 gap-1">
-                {/* Hamburger Menu - visible only on mobile when authenticated */}
-                {isAuthenticated && onMobileMenuOpen && (
-                    <button
-                        onClick={onMobileMenuOpen}
-                        className="lg:hidden flex items-center justify-center w-8 h-8 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer"
-                        aria-label="Open menu"
-                    >
-                        <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M4 6h16M4 12h16M4 18h16"
-                            />
-                        </svg>
-                    </button>
-                )}
-
+        <header className="flex items-center justify-between w-full py-4 bg-white gap-2 sm:gap-4 px-4">
+            {/* Logo */}
+            <div className="flex items-center flex-shrink-0">
                 <div className="flex items-center justify-center text-white font-bold text-lg">
                     <Image
                         src="/viargos.svg"
@@ -160,6 +135,7 @@ export default function Header({ user, onMobileMenuOpen }: HeaderProps) {
                         width={130}
                         height={32}
                         className="hidden sm:block"
+                        style={{ width: 'auto', height: 'auto' }}
                     />
                 </div>
             </div>

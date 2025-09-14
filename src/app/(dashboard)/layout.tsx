@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import { useAuthStore } from "@/store/auth.store";
 import { PageLoading } from "@/components/common/Loading";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
@@ -9,6 +10,7 @@ import LeftSidebar from "@/app/components/LeftSidebar";
 import RightSidebar from "@/app/components/RightSidebar";
 import Header from "@/components/home/Header";
 import AnimatedSidebar from "@/components/layout/AnimatedSidebar";
+import BottomNavigation from "@/components/navigation/BottomNavigation";
 
 /**
  * Dashboard Layout - Layout for all authenticated routes
@@ -22,7 +24,6 @@ export default function DashboardLayout({
 }) {
   const { user, isAuthenticated, logout } = useAuthStore();
   const router = useRouter();
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     // Redirect unauthenticated users to home
@@ -44,17 +45,6 @@ export default function DashboardLayout({
     };
   }, []);
 
-  // Close mobile sidebar on resize
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 1024) { // lg breakpoint
-        setIsMobileSidebarOpen(false);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   // Show loading while auth state is being determined
   if (isAuthenticated === null) {
@@ -68,37 +58,40 @@ export default function DashboardLayout({
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gray-50">
-        {/* Top Header with integrated mobile menu */}
-        <Header user={user} onMobileMenuOpen={() => setIsMobileSidebarOpen(true)} />
+      <div className="h-screen bg-gray-50 flex flex-col">
+        {/* Fixed Top Header */}
+        <motion.div
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="sticky top-0 z-50 bg-white border-b border-gray-200"
+        >
+          <Header user={user} />
+        </motion.div>
 
-        <div className="flex flex-col lg:flex-row">
-          {/* Desktop Left Sidebar - Sticky Position */}
-          <div className="hidden lg:block w-64 bg-gray-100 flex-shrink-0">
-            <div className="sticky top-0 w-64 h-screen bg-gray-100">
+        {/* Main Layout Container */}
+        <div className="flex flex-1 overflow-hidden">
+          {/* Fixed Left Sidebar - Full width on lg+, narrow on md */}
+          <motion.div 
+            initial={{ x: -20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="hidden sm:block w-16 lg:w-64 bg-gray-100 flex-shrink-0"
+          >
+            <div className="w-16 lg:w-64 bg-gray-100 h-full">
               <LeftSidebar user={user} onLogout={logout} />
             </div>
-          </div>
+          </motion.div>
 
-          {/* Mobile Sidebar with Animation */}
-          <AnimatedSidebar
-            isOpen={isMobileSidebarOpen}
-            onClose={() => setIsMobileSidebarOpen(false)}
-            title="Viargos"
-            position="left"
-            width="w-64"
-            showOnDesktop={false}
-          >
-            <LeftSidebar 
-              user={user} 
-              onLogout={logout} 
-              onNavigate={() => setIsMobileSidebarOpen(false)}
-            />
-          </AnimatedSidebar>
 
-          {/* Main Content */}
-          <div className="flex-1 flex flex-col xl:flex-row">
-            {children}
+          {/* Scrollable Main Content Area */}
+          <div className="flex-1 overflow-y-auto">
+            {/* Add bottom padding on small screens only to account for bottom navigation */}
+            <div className="pb-20 sm:pb-0 flex justify-center">
+              <div className="w-full">
+                {children}
+              </div>
+            </div>
 
             {/* Right Sidebar - Hidden on mobile and tablet, shown on desktop */}
             {/* <div className="hidden xl:block w-80 bg-gray-100 p-6 flex-shrink-0">
@@ -106,6 +99,9 @@ export default function DashboardLayout({
             </div> */}
           </div>
         </div>
+
+        {/* Bottom Navigation for Mobile */}
+        <BottomNavigation user={user} onLogout={logout} />
       </div>
     </ErrorBoundary>
   );

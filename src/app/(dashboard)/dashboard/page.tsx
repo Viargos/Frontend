@@ -1,6 +1,7 @@
 "use client";
 
-import PostsList from "@/components/post/PostsList";
+import { motion } from "framer-motion";
+import DashboardPostsList from "@/components/dashboard/DashboardPostsList";
 
 /**
  * Dashboard Page - Main authenticated user dashboard
@@ -9,19 +10,23 @@ import PostsList from "@/components/post/PostsList";
  */
 export default function DashboardPage() {
   return (
-    <div className="flex-1 p-4 sm:p-6 max-w-none">
-      <div className="max-w-4xl mx-auto">
-        {/* Page Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Home</h1>
-          <p className="text-gray-600">
-            Discover amazing travel experiences from the community
-          </p>
-        </div>
-
-        {/* Posts Feed */}
-        <PostsList />
+    <motion.div 
+      className="flex-1 p-4 sm:p-6 w-full flex justify-center"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+    >
+      <div className="w-full max-w-6xl">
+        {/* Posts Feed with staggered animation */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+          className="flex justify-center"
+        >
+          <DashboardPostsList />
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }

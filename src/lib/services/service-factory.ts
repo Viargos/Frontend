@@ -9,6 +9,7 @@ import {
 import { ProfileService } from "@/lib/services/profile.service";
 import { JourneyService } from "./journey.service";
 import { PostService, IPostService } from "./post.service";
+import { DashboardService, IDashboardService } from "./dashboard.service";
 import {
   IAuthService,
   IUserService,
@@ -27,6 +28,7 @@ class ServiceFactory {
   private _profileService?: IProfileService;
   private _journeyService?: IJourneyService;
   private _postService?: IPostService;
+  private _dashboardService?: IDashboardService;
 
   private constructor() {}
 
@@ -92,6 +94,13 @@ class ServiceFactory {
     return this._postService;
   }
 
+  get dashboardService(): IDashboardService {
+    if (!this._dashboardService) {
+      this._dashboardService = new DashboardService(this.httpClient);
+    }
+    return this._dashboardService;
+  }
+
   // Method to reset services (useful for testing)
   reset(): void {
     this._httpClient = undefined;
@@ -100,6 +109,7 @@ class ServiceFactory {
     this._profileService = undefined;
     this._journeyService = undefined;
     this._postService = undefined;
+    this._dashboardService = undefined;
   }
 }
 
@@ -115,4 +125,5 @@ export const {
   profileService,
   journeyService,
   postService,
+  dashboardService,
 } = serviceFactory;
