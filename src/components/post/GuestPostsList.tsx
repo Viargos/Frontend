@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Post } from "@/types/post.types";
-import PostCard from "./PostCard";
+import CompactPostCard from "./CompactPostCard";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import Button from "@/components/ui/Button";
 import { useAuthStore } from "@/store/auth.store";
@@ -172,7 +172,7 @@ export default function GuestPostsList({
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.4, delay: index * 0.1 }}
           >
-            <PostCard
+            <CompactPostCard
               post={post}
               onLikeChange={handleLikeChange}
               onCommentClick={handleCommentClick}

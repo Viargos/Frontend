@@ -19,9 +19,12 @@ import { PlaceType } from "@/types/journey.types";
 import { PageLoading } from "@/components/common/Loading";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useNearbyJourneys } from "@/hooks/useNearbyJourneys";
+import JourneyDetailsModal from "@/components/discover/JourneyDetailsModal";
 
 export default function DiscoverPage() {
   const [selectedJourney, setSelectedJourney] = useState<any | null>(null);
+  const [isJourneyModalOpen, setIsJourneyModalOpen] = useState(false);
+  const [modalJourney, setModalJourney] = useState<any | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentRadius, setCurrentRadius] = useState(50);
 
@@ -94,6 +97,16 @@ export default function DiscoverPage() {
 
   const handleJourneyClick = (journey: any) => {
     setSelectedJourney(journey);
+  };
+
+  const handleJourneyModalOpen = (journey: any) => {
+    setModalJourney(journey);
+    setIsJourneyModalOpen(true);
+  };
+
+  const handleJourneyModalClose = () => {
+    setIsJourneyModalOpen(false);
+    setModalJourney(null);
   };
 
   const handleShowAllJourneys = () => {
@@ -280,12 +293,20 @@ export default function DiscoverPage() {
                     )}
                   </div>
                 </div>
-                <button
-                  onClick={handleShowAllJourneys}
-                  className="p-1 rounded-full hover:bg-gray-100 transition-colors"
-                >
-                  <X className="w-5 h-5 text-gray-400" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleJourneyModalOpen(selectedJourney)}
+                    className="px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-medium hover:bg-blue-700 transition-colors"
+                  >
+                    View Details
+                  </button>
+                  <button
+                    onClick={handleShowAllJourneys}
+                    className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                  >
+                    <X className="w-5 h-5 text-gray-400" />
+                  </button>
+                </div>
               </div>
             </motion.div>
           )}
@@ -467,6 +488,7 @@ export default function DiscoverPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
                         onClick={() => handleJourneyClick(journey)}
+                        onDoubleClick={() => handleJourneyModalOpen(journey)}
                         className={`bg-white rounded-lg cursor-pointer transition-all duration-200 hover:shadow-md border ${
                           selectedJourney?.id === journey.id
                             ? "border-blue-500 shadow-md"
@@ -534,6 +556,13 @@ export default function DiscoverPage() {
           className="fixed inset-0 bg-black/20 z-10 lg:hidden"
         />
       )}
+
+      {/* Journey Details Modal */}
+      <JourneyDetailsModal
+        isOpen={isJourneyModalOpen}
+        onClose={handleJourneyModalClose}
+        journey={modalJourney}
+      />
     </div>
   );
 }

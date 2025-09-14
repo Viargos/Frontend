@@ -251,6 +251,36 @@ export const useAuthStore = create<AuthStore>()(
 
       closeAllModals: () => {
         set({ activeModal: "none", signupEmail: "", error: null });
+        
+        // Aggressive scroll restoration
+        setTimeout(() => {
+          if (typeof window !== "undefined") {
+            const body = document.body;
+            const html = document.documentElement;
+            
+            // Reset all scroll-related styles aggressively
+            body.style.overflow = "";
+            body.style.position = "";
+            body.style.top = "";
+            body.style.width = "";
+            body.style.height = "";
+            html.style.overflow = "";
+            html.style.position = "";
+            html.style.top = "";
+            html.style.width = "";
+            html.style.height = "";
+            
+            // Force reflow
+            body.offsetHeight;
+            
+            // Remove any potential CSS classes that might lock scroll
+            body.classList.remove('modal-open', 'scroll-locked', 'overflow-hidden');
+            html.classList.remove('modal-open', 'scroll-locked', 'overflow-hidden');
+            
+            // Force another reflow
+            document.documentElement.scrollTop = document.documentElement.scrollTop;
+          }
+        }, 10);
       },
 
       switchToLogin: () => {

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Modal Scroll Test</title>
+    <style>
+        body {
+            height: 200vh; /* Make the page tall enough to scroll */
+            background: linear-gradient(to bottom, lightblue, lightgreen, lightcoral);
+            font-family: Arial, sans-serif;
+        }
+        .test-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .content {
+            padding: 50px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <button class="test-button" onclick="resetScroll()">Reset Scroll (Emergency)</button>
+    
+    <div class="content">
+        <h1>Modal Scroll Fix Test Page</h1>
+        <p>This is a test page to verify that the modal scroll lock issue has been fixed.</p>
+        
+        <h2>Instructions:</h2>
+        <ol>
+            <li>Scroll down on this page to verify scrolling works normally</li>
+            <li>Go to your main site (http://localhost:3000)</li>
+            <li>Open a login or signup modal</li>
+            <li>Close the modal</li>
+            <li>Try to scroll - it should work properly now</li>
+            <li>If scroll gets stuck, click the "Reset Scroll" button on this page</li>
+        </ol>
+        
+        <h2>What was fixed:</h2>
+        <ul>
+            <li>Replaced complex body scroll lock with simpler implementation</li>
+            <li>Added resetBodyScroll() calls to all modal close handlers</li>
+            <li>Enhanced Modal component with failsafe scroll restoration</li>
+            <li>Updated all auth modals (Login, Signup, OTP) with scroll fixes</li>
+        </ul>
+        
+        <p>Scroll down to see more content...</p>
+        <div style="height: 100vh; background: rgba(255,255,255,0.5); margin: 50px 0; padding: 50px; border-radius: 10px;">
+            <h3>More Content Section</h3>
+            <p>This section demonstrates that the page has enough content to scroll. The modal scroll lock should not interfere with normal page scrolling.</p>
+        </div>
+        
+        <div style="height: 100vh; background: rgba(255,255,255,0.3); margin: 50px 0; padding: 50px; border-radius: 10px;">
+            <h3>Final Section</h3>
+            <p>If you can see this section by scrolling, then the page scrolling is working correctly!</p>
+        </div>
+    </div>
+
+    <script>
+        function resetScroll() {
+            // Emergency scroll reset function
+            const body = document.body;
+            const html = document.documentElement;
+            
+            // Reset all scroll-related styles
+            body.style.overflow = '';
+            body.style.position = '';
+            body.style.top = '';
+            body.style.width = '';
+            html.style.overflow = '';
+            
+            // Force a reflow
+            body.offsetHeight;
+            
+            alert('Scroll has been reset! You should be able to scroll normally now.');
+        }
+        
+        // Log scroll events for debugging
+        window.addEventListener('scroll', function() {
+            console.log('Page scrolled to:', window.scrollY);
+        });
+    </script>
+</body>
+</html>
