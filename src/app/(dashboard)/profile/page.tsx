@@ -14,6 +14,7 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { convertRecentJourneysToJourneys } from "@/utils/journey.utils";
 import PostsList from "@/components/post/PostsList";
 import ProfilePostsGrid from "@/components/profile/ProfilePostsGrid";
+import UserPostsGrid from "@/components/user/UserPostsGrid";
 
 export default function ProfilePage() {
   const { user, isAuthenticated } = useAuthStore();
@@ -21,6 +22,7 @@ export default function ProfilePage() {
     profile,
     stats,
     recentJourneys,
+    recentPosts,
     profileImageUrl,
     bannerImageUrl,
     isLoading,

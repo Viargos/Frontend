@@ -165,7 +165,7 @@ export default function Header({ user }: HeaderProps) {
                     <>
                         {/* Search Container - Always rendered for smooth animation */}
                         <div 
-                            className={`relative overflow-hidden transition-all duration-500 ease-in-out ${
+                            className={`relative transition-all duration-500 ease-in-out ${
                                 isSearchExpanded 
                                     ? 'w-64 md:w-80' 
                                     : 'w-10'

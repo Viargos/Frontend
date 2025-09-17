@@ -7,6 +7,7 @@ import {
   ProfileUpdateData,
   ImageUploadResult,
 } from "@/types/profile.types";
+import { RecentPost } from "@/types/user.types";
 import { serviceFactory } from "@/lib/services/service-factory";
 import { ApiError } from "@/lib/interfaces/http-client.interface";
 
@@ -38,6 +39,7 @@ const initialState: ProfileState = {
   profile: null,
   stats: null,
   recentJourneys: [],
+  recentPosts: [],
   profileImageUrl: null,
   bannerImageUrl: null,
   isLoading: false,
@@ -66,11 +68,12 @@ export const useProfileStore = create<ProfileStore>()(
             await serviceFactory.profileService.getCurrentUserProfileWithJourneys();
 
           if (response.data) {
-            const { profile, stats, recentJourneys } = response.data;
+            const { profile, stats, recentJourneys, recentPosts } = response.data;
             set({
               profile,
               stats,
               recentJourneys,
+              recentPosts,
               profileImageUrl: profile.profileImage || null,
               bannerImageUrl: profile.bannerImage || null,
             });

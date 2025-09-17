@@ -39,6 +39,7 @@ export interface ProfileState {
   profile: UserProfile | null;
   stats: UserStats | null;
   recentJourneys: RecentJourney[];
+  recentPosts: import('@/types/user.types').RecentPost[];
   profileImageUrl: string | null;
   bannerImageUrl: string | null;
   isLoading: boolean;

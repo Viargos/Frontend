@@ -17,7 +17,7 @@ const tabConfigs: ProfileTabConfig[] = [
 export default function ProfileTabs({ activeTab, onTabChange }: ProfileTabsProps) {
   return (
     <motion.div 
-      className="flex items-center gap-8 w-full border-b border-gray-200"
+      className="flex items-center gap-8 w-full border-b border-gray-200 px-4 sm:px-6"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
@@ -28,7 +28,7 @@ export default function ProfileTabs({ activeTab, onTabChange }: ProfileTabsProps
           onClick={() => onTabChange(tab.id)}
           className={`pb-3 px-1 border-b-2 font-medium transition-colors relative ${
             activeTab === tab.id
-              ? 'border-blue-600 text-blue-600'
+              ? 'border-transparent text-blue-600'
               : 'border-transparent text-gray-500 hover:text-gray-700'
           }`}
           initial={{ opacity: 0, y: 10 }}

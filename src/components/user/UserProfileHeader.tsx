@@ -2,11 +2,17 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { User, UserStats } from "@/types/user.types";
+import { useState } from "react";
+import { User, UserStats, RelationshipStatus } from "@/types/user.types";
+import Button from "@/components/ui/Button";
+import { UserPlus, UserMinus, UserCheck } from "lucide-react";
+import { userService } from "@/lib/services/service-factory";
 
 interface UserProfileHeaderProps {
   user: User;
   stats: UserStats;
+  relationshipStatus: RelationshipStatus;
+  onFollowChange?: (isFollowing: boolean) => void;
 }
 
 // Stat item component for use within the header
@@ -33,7 +39,57 @@ const StatItem = ({ value, label }: { value: number; label: string }) => {
   );
 };
 
-export default function UserProfileHeader({ user, stats }: UserProfileHeaderProps) {
+export default function UserProfileHeader({ user, stats, relationshipStatus, onFollowChange }: UserProfileHeaderProps) {
+  const [isFollowing, setIsFollowing] = useState(relationshipStatus.isFollowing);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleFollowClick = async () => {
+    if (isLoading) return;
+    
+    setIsLoading(true);
+    try {
+      if (isFollowing) {
+        // Unfollow user
+        await userService.unfollowUser(user.id);
+        setIsFollowing(false);
+        onFollowChange?.(false);
+      } else {
+        // Follow user
+        await userService.followUser(user.id);
+        setIsFollowing(true);
+        onFollowChange?.(true);
+      }
+    } catch (error: any) {
+      console.error('Error updating follow status:', error);
+      // Optionally show a toast notification here
+      alert(error.message || 'Failed to update follow status. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getFollowButtonProps = () => {
+    if (isFollowing) {
+      return {
+        variant: "secondary" as const,
+        text: "Following",
+        icon: <UserCheck className="w-4 h-4" />,
+        hoverText: "Unfollow",
+        hoverIcon: <UserMinus className="w-4 h-4" />
+      };
+    } else {
+      return {
+        variant: "primary" as const,
+        text: "Follow",
+        icon: <UserPlus className="w-4 h-4" />,
+        hoverText: "Follow",
+        hoverIcon: <UserPlus className="w-4 h-4" />
+      };
+    }
+  };
+
+  const buttonProps = getFollowButtonProps();
+
   return (
     <motion.div
       className="flex flex-col justify-center items-start w-full rounded-md bg-white shadow-lg overflow-hidden"
@@ -125,13 +181,43 @@ export default function UserProfileHeader({ user, stats }: UserProfileHeaderProp
           </motion.p>
         </div>
 
-        {/* Stats Display */}
+        {/* Right Section: Follow Button + Stats */}
         <motion.div
-          className="flex items-center justify-center sm:justify-start gap-4 sm:gap-6 lg:gap-8 w-full sm:w-auto"
+          className="flex flex-col items-center sm:items-end gap-4 w-full sm:w-auto"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
         >
+          {/* Follow Button */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.6, duration: 0.3 }}
+          >
+            <Button
+              variant={buttonProps.variant}
+              size="sm"
+              onClick={handleFollowClick}
+              disabled={isLoading}
+              loading={isLoading}
+              icon={buttonProps.icon}
+              iconPosition="leading"
+              className="min-w-[100px] group"
+            >
+              <span className={`transition-all duration-200 ${
+                isFollowing ? 'group-hover:hidden' : ''
+              }`}>
+                {buttonProps.text}
+              </span>
+              {isFollowing && (
+                <span className="hidden group-hover:inline transition-all duration-200">
+                  {buttonProps.hoverText}
+                </span>
+              )}
+            </Button>
+          </motion.div>
+
+          {/* Stats Display */}
           <div className="flex items-center gap-3 sm:gap-4 md:gap-6 lg:gap-8">
             <StatItem label="Posts" value={stats?.postsCount || 0} />
             <StatItem label="Journeys" value={stats?.journeysCount || 0} />

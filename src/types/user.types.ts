@@ -43,12 +43,27 @@ export interface RecentJourney {
   type: string;
 }
 
+export interface RelationshipStatus {
+  isFollowing: boolean;
+  isFollowedBy: boolean;
+}
+
+export interface RecentPost {
+  id: string;
+  description: string;
+  likeCount: number;
+  commentCount: number;
+  createdAt: string;
+  mediaUrls: string[];
+}
+
 export interface UserDetailsData {
   user: User;
   stats: UserStats;
+  relationshipStatus: RelationshipStatus;
   recentFollowers: User[];
   recentFollowing: User[];
-  recentPosts: any[];
+  recentPosts: RecentPost[];
   recentJourneys: RecentJourney[];
 }
 

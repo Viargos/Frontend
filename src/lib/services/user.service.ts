@@ -96,6 +96,39 @@ export class UserService implements IUserService {
     }
   }
 
+  async followUser(userId: string): Promise<ApiResponse<{ message: string }>> {
+    try {
+      const response = await this.httpClient.post<ApiResponse<{ message: string }>>(
+        '/users/relationships/follow',
+        { userId }
+      );
+      
+      return {
+        statusCode: response.statusCode || 200,
+        message: response.message || 'User followed successfully',
+        data: response.data
+      };
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to follow user');
+    }
+  }
+
+  async unfollowUser(userId: string): Promise<ApiResponse<{ message: string }>> {
+    try {
+      const response = await this.httpClient.delete<ApiResponse<{ message: string }>>(
+        `/users/relationships/unfollow/${userId}`
+      );
+      
+      return {
+        statusCode: response.statusCode || 200,
+        message: response.message || 'User unfollowed successfully',
+        data: response.data
+      };
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to unfollow user');
+    }
+  }
+
   private validateImageFile(file: File): void {
     const maxSize = 5 * 1024 * 1024; // 5MB
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];

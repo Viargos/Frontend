@@ -2,6 +2,7 @@ import { IProfileService } from '@/lib/interfaces/profile.interface';
 import { IHttpClient, ApiResponse } from '@/lib/interfaces/http-client.interface';
 import { User } from '@/types/auth.types';
 import { UserStats, UserProfile, RecentJourney } from '@/types/profile.types';
+import { RecentPost } from '@/types/user.types';
 
 export class ProfileService implements IProfileService {
   constructor(private httpClient: IHttpClient) {}
@@ -88,7 +89,7 @@ export class ProfileService implements IProfileService {
     }
   }
 
-  async getCurrentUserProfileWithJourneys(): Promise<ApiResponse<{ profile: UserProfile; stats: UserStats; recentJourneys: RecentJourney[] }>> {
+  async getCurrentUserProfileWithJourneys(): Promise<ApiResponse<{ profile: UserProfile; stats: UserStats; recentJourneys: RecentJourney[]; recentPosts: RecentPost[] }>> {
     try {
       const response = await this.httpClient.get<any>('/users/profile/me');
       
@@ -121,6 +122,9 @@ export class ProfileService implements IProfileService {
       
       // Extract recent journeys
       const recentJourneys = this.extractRecentJourneysFromResponse(response);
+      
+      // Extract recent posts
+      const recentPosts = this.extractRecentPostsFromResponse(response);
 
       return {
         statusCode: response.statusCode || 200,
@@ -128,7 +132,8 @@ export class ProfileService implements IProfileService {
         data: {
           profile: transformedProfile,
           stats: transformedStats,
-          recentJourneys
+          recentJourneys,
+          recentPosts
         },
       };
     } catch (error) {
@@ -218,6 +223,41 @@ export class ProfileService implements IProfileService {
       previewPlaces: journey.previewPlaces || [],
       type: journey.type
     })) || [];
+  }
+
+  private extractRecentPostsFromResponse(response: any): RecentPost[] {
+    console.log('ProfileService extractRecentPostsFromResponse - Full response:', response);
+    
+    let recentPosts: any[] = [];
+    
+    // Try different possible paths for recentPosts
+    if (response.data?.data?.recentPosts) {
+      recentPosts = response.data.data.recentPosts;
+      console.log('Found recentPosts in response.data.data.recentPosts:', recentPosts);
+    } else if (response.data?.recentPosts) {
+      recentPosts = response.data.recentPosts;
+      console.log('Found recentPosts in response.data.recentPosts:', recentPosts);
+    } else if (response.recentPosts) {
+      recentPosts = response.recentPosts;
+      console.log('Found recentPosts in response.recentPosts:', recentPosts);
+    } else {
+      console.log('No recentPosts found in response');
+    }
+    
+    console.log('Raw recentPosts array:', recentPosts);
+    
+    // Transform the raw posts data to match our RecentPost interface
+    const transformedPosts = recentPosts.map(post => ({
+      id: post.id,
+      description: post.description,
+      likeCount: post.likeCount || 0,
+      commentCount: post.commentCount || 0,
+      createdAt: post.createdAt,
+      mediaUrls: post.mediaUrls || []
+    })) || [];
+    
+    console.log('Transformed recentPosts:', transformedPosts);
+    return transformedPosts;
   }
 
   private validateUserData(apiUser: any): void {
