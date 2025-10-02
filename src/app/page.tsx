@@ -20,6 +20,8 @@ import { PlaceType, CreateJourneyPlace } from "@/types/journey.types";
 import JourneyMap from "@/components/maps/JourneyMap";
 import { PlaceCard } from "@/components/journey/PlaceCard";
 import "@/lib/scroll-utils"; // Import scroll reset utility
+import Lottie from "lottie-react";
+import planeAnimation from "@/lib/animation/plane.json";
 
 export default function Home() {
     const { user, isAuthenticated, openSignup, openLogin } = useAuthStore();
@@ -332,6 +334,16 @@ export default function Home() {
                             variants={heroVariants}
                             className="relative overflow-hidden min-h-[700px] sm:min-h-[800px] w-full"
                         >
+                            {/* Plane Animation Background */}
+                            <div className="absolute inset-0 z-0">
+                                <Lottie
+                                    animationData={planeAnimation}
+                                    loop={true}
+                                    autoplay={true}
+                                    className="w-full h-[65%] object-cover opacity-20"
+                                />
+                            </div>
+
                             <div
                                 style={{
                                     backgroundImage: "url(/hero.svg)",
@@ -366,7 +378,7 @@ export default function Home() {
                                 </motion.p>
 
                                 <motion.div
-                                    className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+                                    className="flex flex-row gap-3 sm:gap-4 justify-center items-center"
                                     variants={itemVariants}
                                     initial="hidden"
                                     animate={showContent ? "visible" : "hidden"}
@@ -376,7 +388,7 @@ export default function Home() {
                                         variants={buttonVariants}
                                         whileHover="hover"
                                         whileTap="tap"
-                                        className="px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all font-semibold text-lg shadow-lg"
+                                        className="px-4 py-3 sm:px-8 sm:py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all font-semibold text-sm sm:text-lg shadow-lg cursor-pointer"
                                     >
                                         Start Your Journey
                                     </motion.button>
@@ -386,7 +398,7 @@ export default function Home() {
                                         variants={buttonVariants}
                                         whileHover="hover"
                                         whileTap="tap"
-                                        className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all font-semibold text-lg"
+                                        className="px-4 py-3 sm:px-8 sm:py-4 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all font-semibold text-sm sm:text-lg cursor-pointer"
                                     >
                                         Sign In
                                     </motion.button>
@@ -461,7 +473,7 @@ export default function Home() {
                                                         </span>
                                                         <motion.button
                                                             onClick={openSignup}
-                                                            className="ml-auto px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+                                                            className="ml-auto px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer"
                                                             whileHover={{
                                                                 scale: 1.02,
                                                             }}
