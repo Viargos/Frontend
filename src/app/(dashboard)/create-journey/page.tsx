@@ -1,30 +1,30 @@
-"use client";
+'use client';
 
-import { useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import DayFilter from "@/components/journey/DayFilter";
-import PlanningCategory from "@/components/journey/PlanningCategory";
-import PlaceToStayIcon from "@/components/icons/PlaceToStayIcon";
-import { TreesIcon } from "@/components/icons/TreesIcon";
-import { FoodIcon } from "@/components/icons/FoodIcon";
-import { TransportIcon } from "@/components/icons/TransportIcon";
-import { NotesIcon } from "@/components/icons/NotesIcon";
-import { PlaceType, CreateJourneyPlace } from "@/types/journey.types";
-import JourneyMap from "@/components/maps/JourneyMap";
-import { useJourneyForm } from "@/hooks/useJourneyForm";
-import { JourneyHeader } from "@/components/journey/JourneyHeader";
-import { ErrorAlert } from "@/components/ui/ErrorAlert";
-import { CoverImage } from "@/components/journey/CoverImage";
-import { PlaceCard } from "@/components/journey/PlaceCard";
-import PhotoGallery from "@/components/media/PhotoGallery";
+import { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import DayFilter from '@/components/journey/DayFilter';
+import PlanningCategory from '@/components/journey/PlanningCategory';
+import PlaceToStayIcon from '@/components/icons/PlaceToStayIcon';
+import { TreesIcon } from '@/components/icons/TreesIcon';
+import { FoodIcon } from '@/components/icons/FoodIcon';
+import { TransportIcon } from '@/components/icons/TransportIcon';
+import { NotesIcon } from '@/components/icons/NotesIcon';
+import { PlaceType, CreateJourneyPlace } from '@/types/journey.types';
+import JourneyMap from '@/components/maps/JourneyMap';
+import { useJourneyForm } from '@/hooks/useJourneyForm';
+import { JourneyHeader } from '@/components/journey/JourneyHeader';
+import { ErrorAlert } from '@/components/ui/ErrorAlert';
+import { CoverImage } from '@/components/journey/CoverImage';
+import { PlaceCard } from '@/components/journey/PlaceCard';
+import PhotoGallery from '@/components/media/PhotoGallery';
 
 export default function CreateJourneyPage() {
   const router = useRouter();
   const [activePlaceType, setActivePlaceType] = useState<PlaceType | null>(
     null
   );
-  const [journeyName, setJourneyName] = useState("");
-  const [subtitle, setSubtitle] = useState("");
+  const [journeyName, setJourneyName] = useState('');
+  const [subtitle, setSubtitle] = useState('');
 
   const {
     formData,
@@ -52,7 +52,7 @@ export default function CreateJourneyPage() {
 
   // Handle form submission
   const handleSubmit = async () => {
-    console.log("handleSubmit called");
+    console.log('handleSubmit called');
 
     // Update form data with journey name and subtitle before submission
     const updatedFormData = {
@@ -60,21 +60,21 @@ export default function CreateJourneyPage() {
       description: subtitle || formData.description,
     };
 
-    console.log("Submitting with updated data:", updatedFormData);
+    console.log('Submitting with updated data:', updatedFormData);
 
     // Update form data and wait for the update
     updateFormData(updatedFormData);
 
     // Use a small delay to ensure state is updated, or pass the data directly
     const journeyId = await submitJourneyWithData(updatedFormData);
-    console.log("submitJourney returned:", journeyId);
-    console.log("Type of journeyId:", typeof journeyId);
+    console.log('submitJourney returned:', journeyId);
+    console.log('Type of journeyId:', typeof journeyId);
 
     if (journeyId) {
-      console.log("Redirecting to:", `/journey/${journeyId}`);
+      console.log('Redirecting to:', `/journey/${journeyId}`);
       router.push(`/journey/${journeyId}`);
     } else {
-      console.log("No journey ID received, not redirecting");
+      console.log('No journey ID received, not redirecting');
     }
   };
 
@@ -118,7 +118,7 @@ export default function CreateJourneyPage() {
     const activePlaces = getActiveDayPlaces();
 
     const placeWithCoords = activePlaces.find(
-      (place) =>
+      place =>
         place.latitude &&
         place.longitude &&
         place.latitude !== 0 &&
@@ -143,11 +143,11 @@ export default function CreateJourneyPage() {
         const lng = event.latLng.lng();
 
         const newPlace: CreateJourneyPlace = {
-          name: "New Place",
-          description: "",
+          name: 'New Place',
+          description: '',
           type: activePlaceType || PlaceType.ACTIVITY,
-          startTime: "09:00",
-          endTime: "10:00",
+          startTime: '09:00',
+          endTime: '10:00',
           latitude: lat,
           longitude: lng,
           address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
@@ -210,8 +210,8 @@ export default function CreateJourneyPage() {
             <JourneyHeader
               title={formData.title}
               startDate={formData.startDate}
-              onTitleChange={(title) => updateFormData({ title })}
-              onDateChange={(date) => updateFormData({ startDate: date })}
+              onTitleChange={title => updateFormData({ title })}
+              onDateChange={date => updateFormData({ startDate: date })}
               onSubmit={handleSubmit}
               isSubmitting={isSubmitting}
             />
@@ -305,10 +305,10 @@ export default function CreateJourneyPage() {
                         onUpdateField={(field, value) =>
                           updatePlaceField(index, field, value)
                         }
-                        onAddPhoto={(photoKey) =>
+                        onAddPhoto={photoKey =>
                           addPhotoToPlace(index, photoKey)
                         }
-                        onRemovePhoto={(photoIndex) =>
+                        onRemovePhoto={photoIndex =>
                           removePhotoFromPlace(index, photoIndex)
                         }
                       />
@@ -344,8 +344,8 @@ export default function CreateJourneyPage() {
               <JourneyMap
                 locations={getMapLocations()}
                 center={getMapCenter()}
-                onLocationClick={(location) => {
-                  console.log("Location clicked:", location);
+                onLocationClick={location => {
+                  console.log('Location clicked:', location);
                   // You can add additional functionality here, like highlighting the corresponding place card
                 }}
                 onMapClick={handleMapClick}
