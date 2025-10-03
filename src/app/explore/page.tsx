@@ -1,15 +1,71 @@
-"use client";
+'use client';
 
-import React from "react";
-import { motion } from "framer-motion";
-import Header from "@/components/home/Header";
-import ModalContainer from "@/components/auth/ModalContainer";
-import ErrorBoundary from "@/components/common/ErrorBoundary";
-import GuestPostsList from "@/components/post/GuestPostsList";
-import { useAuthStore } from "@/store/auth.store";
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { MapPin, Navigation, RefreshCw, Search, X } from 'lucide-react';
+import Header from '@/components/home/Header';
+import ModalContainer from '@/components/auth/ModalContainer';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
+import GuestPostsList from '@/components/post/GuestPostsList';
+import RadiusSlider from '@/components/common/RadiusSlider';
+import { useAuthStore } from '@/store/auth.store';
+import { useGeolocation } from '@/hooks/useGeolocation';
+import { useNearbyJourneys } from '@/hooks/useNearbyJourneys';
 
 export default function ExplorePage() {
   const { user, openSignup, openLogin } = useAuthStore();
+
+  // State for radius slider and location-based search
+  const [radius, setRadius] = useState(50);
+  const [showNearbyJourneys, setShowNearbyJourneys] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Location and journeys hooks
+  const {
+    coordinates,
+    isLoading: locationLoading,
+    error: locationError,
+    getCurrentLocation,
+    clearError: clearLocationError,
+  } = useGeolocation();
+
+  const {
+    journeys,
+    isLoading: journeysLoading,
+    error: journeysError,
+    fetchByLocation,
+    clearError: clearJourneysError,
+  } = useNearbyJourneys();
+
+  // Handle radius change
+  const handleRadiusChange = (newRadius: number) => {
+    setRadius(newRadius);
+    if (coordinates && showNearbyJourneys) {
+      fetchByLocation(coordinates, newRadius, 20);
+    }
+  };
+
+  // Handle location-based search toggle
+  const handleToggleNearbySearch = async () => {
+    if (!showNearbyJourneys) {
+      if (!coordinates) {
+        await getCurrentLocation();
+      }
+      if (coordinates) {
+        setShowNearbyJourneys(true);
+        fetchByLocation(coordinates, radius, 20);
+      }
+    } else {
+      setShowNearbyJourneys(false);
+    }
+  };
+
+  // Handle location retry
+  const handleLocationRetry = async () => {
+    clearLocationError();
+    clearJourneysError();
+    await getCurrentLocation();
+  };
 
   return (
     <ErrorBoundary>
@@ -114,6 +170,185 @@ export default function ExplorePage() {
                   Document and share your own travel adventures
                 </p>
               </div>
+            </motion.div>
+
+            {/* Location-based Search Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="bg-white rounded-lg shadow-sm p-6 mb-6"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-semibold text-gray-900">
+                    Discover Nearby Journeys
+                  </h2>
+                  <p className="text-gray-600 mt-1">
+                    Find travel experiences near your location
+                  </p>
+                </div>
+                <button
+                  onClick={handleToggleNearbySearch}
+                  disabled={locationLoading}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors text-sm font-medium ${
+                    showNearbyJourneys
+                      ? 'bg-red-600 text-white hover:bg-red-700'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  } ${locationLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  {locationLoading ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : showNearbyJourneys ? (
+                    <>
+                      <X className="w-4 h-4" />
+                      <span>Stop Search</span>
+                    </>
+                  ) : (
+                    <>
+                      <Navigation className="w-4 h-4" />
+                      <span>Find Nearby</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {showNearbyJourneys && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="space-y-4"
+                >
+                  {/* Location Status */}
+                  {locationError ? (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <MapPin className="w-5 h-5 text-red-600" />
+                          <span className="text-red-800 font-medium">
+                            Location access denied
+                          </span>
+                        </div>
+                        <button
+                          onClick={handleLocationRetry}
+                          className="text-red-600 hover:text-red-800 text-sm font-medium"
+                        >
+                          Retry
+                        </button>
+                      </div>
+                      <p className="text-red-600 text-sm mt-1">
+                        Please enable location access to find nearby journeys.
+                      </p>
+                    </div>
+                  ) : coordinates ? (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <div className="flex items-center space-x-2">
+                        <MapPin className="w-5 h-5 text-green-600" />
+                        <span className="text-green-800 font-medium">
+                          Location detected
+                        </span>
+                      </div>
+                      <p className="text-green-600 text-sm mt-1">
+                        Finding journeys within {radius}km of your location
+                      </p>
+                    </div>
+                  ) : null}
+
+                  {/* Radius Slider */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <RadiusSlider
+                      value={radius}
+                      onChange={handleRadiusChange}
+                      min={1}
+                      max={500}
+                      step={1}
+                      disabled={!coordinates || journeysLoading}
+                    />
+                  </div>
+
+                  {/* Search Results */}
+                  {journeysLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <RefreshCw className="w-6 h-6 animate-spin text-blue-600" />
+                      <span className="ml-2 text-gray-600">
+                        Finding nearby journeys...
+                      </span>
+                    </div>
+                  ) : journeysError ? (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                      <p className="text-red-600 text-sm">{journeysError}</p>
+                    </div>
+                  ) : journeys.length > 0 ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          Found {journeys.length} nearby journeys
+                        </h3>
+                        <div className="flex items-center space-x-2">
+                          <Search className="w-4 h-4 text-gray-400" />
+                          <input
+                            type="text"
+                            placeholder="Search journeys..."
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Journey Cards */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {journeys
+                          .filter(
+                            journey =>
+                              journey.title
+                                ?.toLowerCase()
+                                .includes(searchQuery.toLowerCase()) ||
+                              journey.description
+                                ?.toLowerCase()
+                                .includes(searchQuery.toLowerCase())
+                          )
+                          .map(journey => (
+                            <motion.div
+                              key={journey.id}
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                            >
+                              <h4 className="font-semibold text-gray-900 mb-2">
+                                {journey.title}
+                              </h4>
+                              <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                                {journey.description}
+                              </p>
+                              <div className="flex items-center justify-between text-xs text-gray-500">
+                                <span>{journey.user?.username}</span>
+                                <span>
+                                  {new Date(
+                                    journey.createdAt
+                                  ).toLocaleDateString()}
+                                </span>
+                              </div>
+                            </motion.div>
+                          ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        No journeys found
+                      </h3>
+                      <p className="text-gray-600">
+                        Try increasing the search radius or check back later for
+                        new journeys in your area.
+                      </p>
+                    </div>
+                  )}
+                </motion.div>
+              )}
             </motion.div>
 
             {/* Posts Section */}

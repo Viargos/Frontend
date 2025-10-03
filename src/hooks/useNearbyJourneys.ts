@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useState, useCallback, useEffect } from "react";
-import apiClient from "@/lib/api.legacy";
+import { useState, useCallback, useEffect } from 'react';
+import apiClient from '@/lib/api.legacy';
 import {
   LocationCoordinates,
   NearbyJourneysParams,
   NearbyJourneysResponse,
-} from "@/types/user.types";
+} from '@/types/user.types';
 
 export interface UseNearbyJourneysOptions {
   autoFetch?: boolean;
@@ -64,7 +64,7 @@ export function useNearbyJourneys(
             journeysData = nestedResponse.data;
           } else {
             throw new Error(
-              nestedResponse.message || "Failed to fetch nearby journeys"
+              nestedResponse.message || 'Failed to fetch nearby journeys'
             );
           }
         } else if (response.statusCode === 200 && response.data) {
@@ -72,14 +72,14 @@ export function useNearbyJourneys(
           journeysData = response.data;
         } else {
           throw new Error(
-            response.message || "Failed to fetch nearby journeys"
+            response.message || 'Failed to fetch nearby journeys'
           );
         }
 
         setJourneys(journeysData);
         onSuccess?.(journeysData);
       } catch (err: any) {
-        const errorMessage = err.message || "Failed to fetch nearby journeys";
+        const errorMessage = err.message || 'Failed to fetch nearby journeys';
         setError(errorMessage);
         onError?.(errorMessage);
         setJourneys([]);

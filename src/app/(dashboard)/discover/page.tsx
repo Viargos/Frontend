@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   MapPin,
   Calendar,
@@ -11,15 +11,18 @@ import {
   Search,
   Navigation,
   RefreshCw,
-} from "lucide-react";
-import apiClient from "@/lib/api.legacy";
-import ExploreMap from "@/components/maps/ExploreMap";
-import { Journey } from "@/types/journey.types";
-import { PlaceType } from "@/types/journey.types";
-import { PageLoading } from "@/components/common/Loading";
-import { useGeolocation } from "@/hooks/useGeolocation";
-import { useNearbyJourneys } from "@/hooks/useNearbyJourneys";
-import JourneyDetailsModal from "@/components/discover/JourneyDetailsModal";
+} from 'lucide-react';
+import apiClient from '@/lib/api.legacy';
+import ExploreMap from '@/components/maps/ExploreMap';
+import { Journey } from '@/types/journey.types';
+import { PlaceType } from '@/types/journey.types';
+import { PageLoading } from '@/components/common/Loading';
+import { useGeolocation } from '@/hooks/useGeolocation';
+import { useNearbyJourneys } from '@/hooks/useNearbyJourneys';
+import JourneyDetailsModal from '@/components/discover/JourneyDetailsModal';
+import JourneyFilters, {
+  JourneyFilterState,
+} from '@/components/discover/JourneyFilters';
 
 export default function DiscoverPage() {
   const [selectedJourney, setSelectedJourney] = useState<any | null>(null);
@@ -27,6 +30,18 @@ export default function DiscoverPage() {
   const [modalJourney, setModalJourney] = useState<any | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentRadius, setCurrentRadius] = useState(50);
+  const [showFilters, setShowFilters] = useState(false);
+  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(
+    null
+  );
+
+  // Filter state
+  const [filters, setFilters] = useState<JourneyFilterState>({
+    radius: 50,
+    dateRange: { from: '', to: '' },
+    createdWithin: 'all',
+    tags: [],
+  });
 
   // Location and journeys hooks
   const {
@@ -59,12 +74,12 @@ export default function DiscoverPage() {
     // Set initial state based on screen size
     handleResize();
 
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterType, setFilterType] = useState<"all" | PlaceType>("all");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState<'all' | PlaceType>('all');
 
   // Get user location on mount and fetch journeys when location is available
   useEffect(() => {
@@ -82,18 +97,103 @@ export default function DiscoverPage() {
     }
   }, [coordinates, currentRadius]);
 
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+    };
+  }, [debounceTimer]);
+
+  // Debounced function to fetch journeys with new radius
+  const debouncedFetchJourneys = useCallback(
+    (radius: number) => {
+      if (coordinates) {
+        fetchByLocation(coordinates, radius, 20);
+      }
+    },
+    [coordinates, fetchByLocation]
+  );
+
   // Handle zoom changes to fetch journeys with different radius
   const handleRadiusChange = (newRadius: number) => {
     setCurrentRadius(newRadius);
-    // The useEffect will automatically trigger fetchByLocation when currentRadius changes
+    setFilters(prev => ({ ...prev, radius: newRadius }));
+
+    // Clear existing timer
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+
+    // Set new timer for debounced API call
+    const newTimer = setTimeout(() => {
+      debouncedFetchJourneys(newRadius);
+    }, 500); // 500ms delay
+
+    setDebounceTimer(newTimer);
   };
 
-  // Filter journeys based on search query
-  const filteredJourneys = journeys.filter(
-    (journey) =>
+  const handleFiltersChange = (newFilters: JourneyFilterState) => {
+    setFilters(newFilters);
+    // Update radius if changed
+    if (newFilters.radius !== currentRadius) {
+      setCurrentRadius(newFilters.radius);
+    }
+  };
+
+  const handleResetFilters = () => {
+    const defaultFilters: JourneyFilterState = {
+      radius: 50,
+      dateRange: { from: '', to: '' },
+      createdWithin: 'all',
+      tags: [],
+    };
+    setFilters(defaultFilters);
+    setCurrentRadius(50);
+  };
+
+  // Filter journeys based on search query and filters
+  const filteredJourneys = journeys.filter(journey => {
+    // Text search filter
+    const matchesSearch =
       journey.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      journey.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      journey.description?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (!matchesSearch) return false;
+
+    // Date filters
+    if (filters.createdWithin !== 'all') {
+      const journeyDate = new Date(journey.createdAt || '');
+      const now = new Date();
+      const daysDiff = Math.floor(
+        (now.getTime() - journeyDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+
+      switch (filters.createdWithin) {
+        case 'week':
+          if (daysDiff > 7) return false;
+          break;
+        case 'month':
+          if (daysDiff > 30) return false;
+          break;
+        case 'year':
+          if (daysDiff > 365) return false;
+          break;
+      }
+    }
+
+    // Journey date range filter
+    if (filters.dateRange.from || filters.dateRange.to) {
+      // This would need to be implemented based on journey day dates
+      // For now, we'll skip this filter
+    }
+
+    return true;
+  });
+
+  // Use filtered journeys directly (no sorting)
+  const sortedJourneys = filteredJourneys;
 
   const handleJourneyClick = (journey: any) => {
     setSelectedJourney(journey);
@@ -131,35 +231,35 @@ export default function DiscoverPage() {
   const error = locationError || journeysError;
 
   const formatDate = (dateString?: string) => {
-    if (!dateString) return "No date";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
+    if (!dateString) return 'No date';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
     });
   };
 
   const getPlaceTypeIcon = (type: string) => {
     switch (type.toLowerCase()) {
-      case "stay":
-        return "🏨";
-      case "activity":
-        return "🎯";
-      case "food":
-        return "🍽️";
-      case "transport":
-        return "🚗";
-      case "note":
-        return "📝";
+      case 'stay':
+        return '🏨';
+      case 'activity':
+        return '🎯';
+      case 'food':
+        return '🍽️';
+      case 'transport':
+        return '🚗';
+      case 'note':
+        return '📝';
       default:
-        return "📍";
+        return '📍';
     }
   };
 
   if (isLoading && !journeys.length) {
     const loadingText = locationLoading
-      ? "Getting your location..."
-      : "Loading nearby journeys...";
+      ? 'Getting your location...'
+      : 'Loading nearby journeys...';
     return <PageLoading text={loadingText} />;
   }
 
@@ -206,7 +306,7 @@ export default function DiscoverPage() {
       {/* Map Container */}
       <div
         className={`flex-1 relative transition-all duration-300 ${
-          isSidebarOpen ? "lg:mr-96" : "mr-0"
+          isSidebarOpen ? 'lg:mr-96' : 'mr-0'
         }`}
       >
         <ExploreMap
@@ -257,7 +357,7 @@ export default function DiscoverPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
               className={`absolute bottom-4 left-4 bg-white rounded-lg shadow-lg p-4 z-10 transition-all duration-300 ${
-                isSidebarOpen ? "lg:right-[25rem]" : "right-4"
+                isSidebarOpen ? 'lg:right-[25rem]' : 'right-4'
               }`}
             >
               <div className="flex items-start justify-between">
@@ -286,7 +386,7 @@ export default function DiscoverPage() {
                           {selectedJourney.days.reduce(
                             (total, day) => total + (day.places?.length || 0),
                             0
-                          )}{" "}
+                          )}{' '}
                           places
                         </span>
                       </div>
@@ -320,8 +420,8 @@ export default function DiscoverPage() {
             initial={{ x: 384, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: 384, opacity: 0 }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl z-20 flex flex-col"
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed right-0 top-16 h-[calc(100vh-4rem)] w-96 bg-white shadow-2xl z-20 flex flex-col"
           >
             {/* Sidebar Header */}
             <div className="p-6 border-b border-gray-200">
@@ -336,12 +436,25 @@ export default function DiscoverPage() {
                     </p>
                   )}
                 </div>
-                <button
-                  onClick={() => setIsSidebarOpen(false)}
-                  className="p-1 rounded-full hover:bg-gray-100 transition-colors lg:hidden"
-                >
-                  <X className="w-5 h-5 text-gray-400" />
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`p-2 rounded-full transition-colors ${
+                      showFilters
+                        ? 'bg-blue-100 text-blue-600'
+                        : 'hover:bg-gray-100 text-gray-400'
+                    }`}
+                    title="Toggle Filters"
+                  >
+                    <Search className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setIsSidebarOpen(false)}
+                    className="p-1 rounded-full hover:bg-gray-100 transition-colors lg:hidden"
+                  >
+                    <X className="w-5 h-5 text-gray-400" />
+                  </button>
+                </div>
               </div>
 
               {/* Radius Controls */}
@@ -349,15 +462,15 @@ export default function DiscoverPage() {
                 <div className="flex items-center gap-2 mb-4">
                   <span className="text-sm text-gray-600">Radius:</span>
                   <div className="flex gap-1">
-                    {[10, 25, 50, 100].map((radius) => (
+                    {[10, 25, 50, 100].map(radius => (
                       <button
                         key={radius}
                         onClick={() => handleRadiusChange(radius)}
                         disabled={journeysLoading}
                         className={`px-3 py-1 text-xs rounded-full transition-colors ${
                           currentRadius === radius
-                            ? "bg-blue-600 text-white"
-                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         } disabled:opacity-50`}
                       >
                         {radius}km
@@ -368,6 +481,17 @@ export default function DiscoverPage() {
               )}
             </div>
 
+            {/* Filters Section */}
+            {showFilters && (
+              <JourneyFilters
+                filters={filters}
+                onFiltersChange={handleFiltersChange}
+                onReset={handleResetFilters}
+                isVisible={showFilters}
+                onToggleVisibility={() => setShowFilters(false)}
+              />
+            )}
+
             {/* Nearby Journeys List */}
             <div className="flex-1 overflow-y-auto">
               {journeysLoading ? (
@@ -375,21 +499,21 @@ export default function DiscoverPage() {
                   <RefreshCw className="w-8 h-8 text-gray-400 mx-auto mb-4 animate-spin" />
                   <p className="text-gray-600">Loading nearby journeys...</p>
                 </div>
-              ) : filteredJourneys.length === 0 ? (
+              ) : sortedJourneys.length === 0 ? (
                 <div className="p-6 text-center">
                   <MapPin className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
                     {!coordinates && locationError
-                      ? "Using default location"
+                      ? 'Using default location'
                       : !coordinates
-                      ? "Location access required"
-                      : "No nearby journeys"}
+                      ? 'Location access required'
+                      : 'No nearby journeys'}
                   </h3>
                   <p className="text-gray-600">
                     {!coordinates && locationError
-                      ? "Location access was denied. Showing journeys from Ahmedabad, Gujarat."
+                      ? 'Location access was denied. Showing journeys from Ahmedabad, Gujarat.'
                       : !coordinates
-                      ? "Please allow location access to find journeys near you"
+                      ? 'Please allow location access to find journeys near you'
                       : `No journeys found within ${currentRadius}km of your location`}
                   </p>
                   {!coordinates && !locationError && (
@@ -418,7 +542,7 @@ export default function DiscoverPage() {
                 </div>
               ) : (
                 <div className="p-4 space-y-3">
-                  {filteredJourneys.map((journey, index) => {
+                  {sortedJourneys.map((journey, index) => {
                     const getJourneyLocation = () => {
                       // Handle both old journey structure and new nearby journey structure
                       if (journey.location) {
@@ -428,14 +552,14 @@ export default function DiscoverPage() {
                         const firstDay = journey.days[0];
                         if (firstDay.places && firstDay.places.length > 0) {
                           const location = firstDay.places[0].location;
-                          const parts = location.split(",");
+                          const parts = location.split(',');
                           if (parts.length >= 2) {
                             return parts[parts.length - 1].trim();
                           }
                           return location;
                         }
                       }
-                      return "Unknown location";
+                      return 'Unknown location';
                     };
 
                     const getJourneyCategory = () => {
@@ -446,21 +570,21 @@ export default function DiscoverPage() {
                       if (journey.days && journey.days.length > 0) {
                         for (const day of journey.days) {
                           if (day.places && day.places.length > 0) {
-                            const categories = day.places.map((place) =>
+                            const categories = day.places.map(place =>
                               place.type.toLowerCase()
                             );
-                            if (categories.includes("activity"))
-                              return "Amusement & Theme Parks";
-                            if (categories.includes("stay"))
-                              return "Hotels & Resorts";
-                            if (categories.includes("food"))
-                              return "Restaurants & Cafes";
-                            if (categories.includes("transport"))
-                              return "Transportation";
+                            if (categories.includes('activity'))
+                              return 'Amusement & Theme Parks';
+                            if (categories.includes('stay'))
+                              return 'Hotels & Resorts';
+                            if (categories.includes('food'))
+                              return 'Restaurants & Cafes';
+                            if (categories.includes('transport'))
+                              return 'Transportation';
                           }
                         }
                       }
-                      return "Travel Experience";
+                      return 'Travel Experience';
                     };
 
                     const getDistance = () => {
@@ -471,12 +595,12 @@ export default function DiscoverPage() {
                     };
 
                     const gradients = [
-                      "from-purple-400 via-pink-400 to-blue-400",
-                      "from-blue-400 via-purple-400 to-pink-400",
-                      "from-pink-400 via-purple-400 to-indigo-400",
-                      "from-indigo-400 via-blue-400 to-purple-400",
-                      "from-purple-500 via-blue-400 to-indigo-400",
-                      "from-blue-500 via-indigo-400 to-purple-400",
+                      'from-purple-400 via-pink-400 to-blue-400',
+                      'from-blue-400 via-purple-400 to-pink-400',
+                      'from-pink-400 via-purple-400 to-indigo-400',
+                      'from-indigo-400 via-blue-400 to-purple-400',
+                      'from-purple-500 via-blue-400 to-indigo-400',
+                      'from-blue-500 via-indigo-400 to-purple-400',
                     ];
 
                     const gradient = gradients[index % gradients.length];
@@ -491,8 +615,8 @@ export default function DiscoverPage() {
                         onDoubleClick={() => handleJourneyModalOpen(journey)}
                         className={`bg-white rounded-lg cursor-pointer transition-all duration-200 hover:shadow-md border ${
                           selectedJourney?.id === journey.id
-                            ? "border-blue-500 shadow-md"
-                            : "border-gray-100 hover:border-gray-200"
+                            ? 'border-blue-500 shadow-md'
+                            : 'border-gray-100 hover:border-gray-200'
                         }`}
                       >
                         <div className="flex items-center gap-3 p-3">
@@ -522,13 +646,13 @@ export default function DiscoverPage() {
                                     (total, day) =>
                                       total + (day.places?.length || 0),
                                     0
-                                  )}{" "}
+                                  )}{' '}
                                   places •{journey.days.length} days
                                 </div>
                               )}
                               {journey.author && (
                                 <div>
-                                  by{" "}
+                                  by{' '}
                                   {journey.author.username ||
                                     journey.user?.username}
                                 </div>
