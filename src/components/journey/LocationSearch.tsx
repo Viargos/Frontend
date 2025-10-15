@@ -1,12 +1,20 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useRef } from "react";
-import { useJsApiLoader } from "@react-google-maps/api";
-import InputField from "@/components/ui/InputField";
-import { Location } from "@/types/journey.types";
+import { useState, useEffect, useRef } from 'react';
+import { useJsApiLoader } from '@react-google-maps/api';
+import InputField from '@/components/ui/InputField';
+import { googleMapsCache } from '@/lib/google-maps-cache';
+
+interface Location {
+  id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  address?: string;
+}
 
 // Static libraries array to prevent LoadScript reloading
-const GOOGLE_MAPS_LIBRARIES: "places"[] = ["places"];
+const GOOGLE_MAPS_LIBRARIES: 'places'[] = ['places'];
 
 interface LocationSearchProps {
   onLocationSelect: (location: Location) => void;
@@ -16,10 +24,10 @@ interface LocationSearchProps {
 
 export default function LocationSearch({
   onLocationSelect,
-  placeholder = "Search for a location...",
-  className = "",
+  placeholder = 'Search for a location...',
+  className = '',
 }: LocationSearchProps) {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [suggestions, setSuggestions] = useState<
     google.maps.places.AutocompletePrediction[]
   >([]);
@@ -28,12 +36,11 @@ export default function LocationSearch({
   const autocompleteService =
     useRef<google.maps.places.AutocompleteService | null>(null);
   const placesService = useRef<google.maps.places.PlacesService | null>(null);
-  const mapRef = useRef<HTMLDivElement>(null);
 
   // Load Google Maps API
   const { isLoaded } = useJsApiLoader({
-    id: "google-map-script",
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+    id: 'google-map-script',
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
     libraries: GOOGLE_MAPS_LIBRARIES,
   });
 
@@ -42,11 +49,11 @@ export default function LocationSearch({
     if (isLoaded && window.google && window.google.maps) {
       autocompleteService.current =
         new window.google.maps.places.AutocompleteService();
-      if (mapRef.current) {
-        placesService.current = new window.google.maps.places.PlacesService(
-          mapRef.current
-        );
-      }
+      // Create a dummy div for PlacesService since we don't need a map element
+      const dummyDiv = document.createElement('div');
+      placesService.current = new window.google.maps.places.PlacesService(
+        dummyDiv
+      ) as google.maps.places.PlacesService;
     }
   }, [isLoaded]);
 
@@ -59,18 +66,42 @@ export default function LocationSearch({
 
     const searchPlaces = async () => {
       setIsLoading(true);
+
+      // Check cache first
+      const cacheKey = {
+        input: searchTerm,
+        types: ['geocode', 'establishment'],
+      };
+      const cachedResults = googleMapsCache.get<
+        google.maps.places.AutocompletePrediction[]
+      >('autocomplete', cacheKey);
+
+      if (cachedResults) {
+        setSuggestions(cachedResults);
+        setShowSuggestions(true);
+        setIsLoading(false);
+        return;
+      }
+
       try {
         autocompleteService.current!.getPlacePredictions(
           {
             input: searchTerm,
-            types: ["geocode", "establishment"],
+            types: ['geocode', 'establishment'],
           },
           (predictions, status) => {
             setIsLoading(false);
             if (
-              status === window.google.maps.places.PlacesServiceStatus.OK &&
+              status === google.maps.places.PlacesServiceStatus.OK &&
               predictions
             ) {
+              // Cache the results
+              googleMapsCache.set(
+                'autocomplete',
+                cacheKey,
+                predictions,
+                5 * 60 * 1000
+              ); // 5 minutes
               setSuggestions(predictions);
               setShowSuggestions(true);
             } else {
@@ -81,7 +112,7 @@ export default function LocationSearch({
         );
       } catch (error) {
         setIsLoading(false);
-        console.error("Error searching places:", error);
+        console.error('Error searching places:', error);
       }
     };
 
@@ -94,16 +125,41 @@ export default function LocationSearch({
   ) => {
     if (!placesService.current) return;
 
+    // Check cache for place details
+    const cacheKey = {
+      placeId: prediction.place_id,
+      fields: ['name', 'geometry.location', 'formatted_address'],
+    };
+    const cachedPlace = googleMapsCache.get<google.maps.places.PlaceResult>(
+      'placeDetails',
+      cacheKey
+    );
+
+    if (cachedPlace) {
+      const location: Location = {
+        id: prediction.place_id,
+        name: cachedPlace.name || prediction.description,
+        latitude: cachedPlace.geometry?.location?.lat() || 0,
+        longitude: cachedPlace.geometry?.location?.lng() || 0,
+        address: cachedPlace.formatted_address || prediction.description,
+      };
+
+      onLocationSelect(location);
+      setSearchTerm(cachedPlace.name || prediction.description);
+      setShowSuggestions(false);
+      return;
+    }
+
     placesService.current.getDetails(
       {
         placeId: prediction.place_id,
-        fields: ["name", "geometry", "formatted_address"],
+        fields: ['name', 'geometry.location', 'formatted_address'],
       },
       (place, status) => {
-        if (
-          status === window.google.maps.places.PlacesServiceStatus.OK &&
-          place
-        ) {
+        if (status === google.maps.places.PlacesServiceStatus.OK && place) {
+          // Cache the place details
+          googleMapsCache.set('placeDetails', cacheKey, place, 10 * 60 * 1000); // 10 minutes
+
           const location: Location = {
             id: prediction.place_id,
             name: place.name || prediction.description,
@@ -135,8 +191,7 @@ export default function LocationSearch({
           placeholder="Loading location search..."
           value=""
           onChange={() => {}}
-          className="w-full"
-          disabled
+          className="w-full opacity-50 cursor-not-allowed"
         />
       </div>
     );
@@ -151,9 +206,6 @@ export default function LocationSearch({
         className="w-full"
       />
 
-      {/* Hidden div for PlacesService */}
-      <div ref={mapRef} style={{ display: "none" }}></div>
-
       {/* Loading indicator */}
       {isLoading && (
         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -164,7 +216,7 @@ export default function LocationSearch({
       {/* Suggestions dropdown */}
       {showSuggestions && suggestions.length > 0 && (
         <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-          {suggestions.map((suggestion) => (
+          {suggestions.map(suggestion => (
             <button
               key={suggestion.place_id}
               onClick={() => handleSuggestionClick(suggestion)}

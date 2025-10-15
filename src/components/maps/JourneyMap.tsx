@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useCallback, useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
+import { useCallback, useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import {
   GoogleMap,
   useJsApiLoader,
   Marker,
   InfoWindow,
   Polyline,
-} from "@react-google-maps/api";
+} from '@react-google-maps/api';
 
 interface Location {
   id: string;
@@ -28,8 +28,8 @@ interface JourneyMapProps {
 }
 
 const containerStyle = {
-  width: "100%",
-  height: "100%",
+  width: '100%',
+  height: '100%',
 };
 
 const defaultCenter = {
@@ -38,7 +38,7 @@ const defaultCenter = {
 };
 
 // Static libraries array to prevent LoadScript reloading
-const GOOGLE_MAPS_LIBRARIES: "places"[] = ["places"];
+const GOOGLE_MAPS_LIBRARIES: 'places'[] = ['places'];
 
 export default function JourneyMap({
   locations,
@@ -58,19 +58,13 @@ export default function JourneyMap({
   const prevLocationsRef = useRef<Location[]>([]);
 
   const { isLoaded, loadError } = useJsApiLoader({
-    id: "google-map-script",
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+    id: 'google-map-script',
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
     libraries: GOOGLE_MAPS_LIBRARIES,
   });
 
-  // Debug API key
-  console.log(
-    "Google Maps API Key:",
-    process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ? "Present" : "Missing"
-  );
-  console.log(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY);
   if (loadError) {
-    console.error("Google Maps load error:", loadError);
+    console.error('Google Maps load error:', loadError);
   }
 
   // Group locations by day for drawing polylines - moved to top level
@@ -80,8 +74,8 @@ export default function JourneyMap({
     // First group locations by day
     const locationsByDay: { [key: string]: Location[] } = {};
 
-    locations.forEach((location) => {
-      const day = location.day || "unknown";
+    locations.forEach(location => {
+      const day = location.day || 'unknown';
       if (!locationsByDay[day]) {
         locationsByDay[day] = [];
       }
@@ -93,12 +87,12 @@ export default function JourneyMap({
       // Sort by ID which contains day and index information
       const sortedLocations = [...dayLocations].sort((a, b) => {
         // Extract index from ID (assuming format 'Day X-Y' where Y is the index)
-        const indexA = parseInt(a.id.split("-")[1]);
-        const indexB = parseInt(b.id.split("-")[1]);
+        const indexA = parseInt(a.id.split('-')[1]);
+        const indexB = parseInt(b.id.split('-')[1]);
         return indexA - indexB;
       });
 
-      pathsByDay[day] = sortedLocations.map((loc) => ({
+      pathsByDay[day] = sortedLocations.map(loc => ({
         lat: loc.lat,
         lng: loc.lng,
       }));
@@ -114,8 +108,8 @@ export default function JourneyMap({
     const paths: { [key: string]: { lat: number; lng: number }[] } = {};
     const locationsByDay: { [key: string]: Location[] } = {};
 
-    locs.forEach((location) => {
-      const day = location.day || "unknown";
+    locs.forEach(location => {
+      const day = location.day || 'unknown';
       if (!locationsByDay[day]) {
         locationsByDay[day] = [];
       }
@@ -124,12 +118,12 @@ export default function JourneyMap({
 
     Object.entries(locationsByDay).forEach(([day, dayLocations]) => {
       const sortedLocations = [...dayLocations].sort((a, b) => {
-        const indexA = parseInt(a.id.split("-")[1]);
-        const indexB = parseInt(b.id.split("-")[1]);
+        const indexA = parseInt(a.id.split('-')[1]);
+        const indexB = parseInt(b.id.split('-')[1]);
         return indexA - indexB;
       });
 
-      paths[day] = sortedLocations.map((loc) => ({
+      paths[day] = sortedLocations.map(loc => ({
         lat: loc.lat,
         lng: loc.lng,
       }));
@@ -148,11 +142,11 @@ export default function JourneyMap({
 
     // Find newly added locations by comparing with previous locations
     const prevLocationIds = new Set(
-      prevLocationsRef.current.map((loc) => loc.id)
+      prevLocationsRef.current.map(loc => loc.id)
     );
     const newLocationIds = locations
-      .filter((loc) => !prevLocationIds.has(loc.id))
-      .map((loc) => loc.id);
+      .filter(loc => !prevLocationIds.has(loc.id))
+      .map(loc => loc.id);
 
     if (newLocationIds.length > 0) {
       // Mark these as newly added markers for animation
@@ -160,9 +154,9 @@ export default function JourneyMap({
 
       // Remove the highlight after 2 seconds
       setTimeout(() => {
-        setNewlyAddedMarkers((prev) => {
+        setNewlyAddedMarkers(prev => {
           const updated = new Set(prev);
-          newLocationIds.forEach((id) => updated.delete(id));
+          newLocationIds.forEach(id => updated.delete(id));
           return updated;
         });
       }, 2000);
@@ -180,7 +174,7 @@ export default function JourneyMap({
         // If the path now has more points than before, it's a new point
         if (currentPath.length > prevPath.length) {
           // Start animation for this path
-          setAnimatedPaths((prev) => ({
+          setAnimatedPaths(prev => ({
             ...prev,
             [day]: {
               path: currentPath,
@@ -201,7 +195,7 @@ export default function JourneyMap({
     if (Object.keys(animatedPaths).length === 0) return;
 
     const animationInterval = setInterval(() => {
-      setAnimatedPaths((prev) => {
+      setAnimatedPaths(prev => {
         const updated = { ...prev };
         let allComplete = true;
 
@@ -233,11 +227,11 @@ export default function JourneyMap({
       ) {
         try {
           const bounds = new window.google.maps.LatLngBounds();
-          locations.forEach((location) => {
+          locations.forEach(location => {
             if (
               location &&
-              typeof location.lat === "number" &&
-              typeof location.lng === "number"
+              typeof location.lat === 'number' &&
+              typeof location.lng === 'number'
             ) {
               bounds.extend({ lat: location.lat, lng: location.lng });
             }
@@ -257,7 +251,7 @@ export default function JourneyMap({
             map.fitBounds(bounds, padding);
           }
         } catch (error) {
-          console.error("Error setting map bounds:", error);
+          console.error('Error setting map bounds:', error);
         }
       }
     },
@@ -278,8 +272,8 @@ export default function JourneyMap({
 
   const getMarkerIcon = (type: string, isNew: boolean = false) => {
     // Use primary-blue for all markers
-    const primaryBlue = "#001a6e"; // Primary blue color from CSS variables
-    const newMarkerColor = "#FF6B35"; // Orange for new markers
+    const primaryBlue = '#001a6e'; // Primary blue color from CSS variables
+    const newMarkerColor = '#FF6B35'; // Orange for new markers
 
     const colors = {
       journeyLocation: primaryBlue,
@@ -299,7 +293,7 @@ export default function JourneyMap({
       : colors[type as keyof typeof colors] || colors.notes;
     const markerSize = isNew ? 28 : 24; // Slightly larger for new markers
 
-    if (type === "journeyLocation") {
+    if (type === 'journeyLocation') {
       // Special marker for journey location
       return {
         url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
@@ -309,7 +303,7 @@ export default function JourneyMap({
                 ? '<circle cx="12" cy="12" r="11" fill="' +
                   newMarkerColor +
                   '" opacity="0.3"><animate attributeName="r" values="11;15;11" dur="1s" repeatCount="indefinite"/></circle>'
-                : ""
+                : ''
             }
             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="${markerColor}" stroke="white" stroke-width="1"/>
             <circle cx="12" cy="9" r="2" fill="white"/>
@@ -332,7 +326,7 @@ export default function JourneyMap({
               ? '<circle cx="12" cy="12" r="11" fill="' +
                 newMarkerColor +
                 '" opacity="0.3"><animate attributeName="r" values="11;15;11" dur="1s" repeatCount="indefinite"/></circle>'
-              : ""
+              : ''
           }
           <circle cx="12" cy="12" r="10" fill="${markerColor}" stroke="white" stroke-width="2"/>
           <circle cx="12" cy="12" r="4" fill="white"/>
@@ -373,7 +367,7 @@ export default function JourneyMap({
             Google Maps failed to load. Please check your API key configuration.
           </p>
           <p className="text-xs text-red-500">
-            {loadError.message || "Invalid API key or insufficient permissions"}
+            {loadError.message || 'Invalid API key or insufficient permissions'}
           </p>
         </div>
       </motion.div>
@@ -401,7 +395,7 @@ export default function JourneyMap({
             transition={{
               duration: 0.3,
               delay: 0.4,
-              type: "spring",
+              type: 'spring',
               stiffness: 200,
             }}
           ></motion.div>
@@ -420,14 +414,14 @@ export default function JourneyMap({
 
   // Generate colors for each day's path
   const dayColors = {
-    "Day 1": "#FF6B35", // Orange
-    "Day 2": "#45B7D1", // Blue
-    "Day 3": "#4ECDC4", // Teal
-    "Day 4": "#96CEB4", // Green
-    "Day 5": "#FF6B6B", // Red
-    "Day 6": "#6B66FF", // Purple
-    "Day 7": "#FFD166", // Yellow
-    unknown: "#888888", // Gray for unknown day
+    'Day 1': '#FF6B35', // Orange
+    'Day 2': '#45B7D1', // Blue
+    'Day 3': '#4ECDC4', // Teal
+    'Day 4': '#96CEB4', // Green
+    'Day 5': '#FF6B6B', // Red
+    'Day 6': '#6B66FF', // Purple
+    'Day 7': '#FFD166', // Yellow
+    unknown: '#888888', // Gray for unknown day
   };
 
   return (
@@ -443,6 +437,19 @@ export default function JourneyMap({
         streetViewControl: false,
         mapTypeControl: false,
         fullscreenControl: false,
+        // Optimize map rendering and data usage
+        gestureHandling: 'cooperative',
+        disableDefaultUI: false,
+        clickableIcons: false, // Reduces unnecessary POI data
+        restriction: {
+          // Optional: restrict to specific region to reduce data
+          latLngBounds: {
+            north: 85,
+            south: -85,
+            west: -180,
+            east: 180,
+          },
+        },
       }}
     >
       {/* Draw polylines connecting points for each day */}
@@ -467,7 +474,7 @@ export default function JourneyMap({
               path={visiblePath}
               options={{
                 strokeColor:
-                  dayColors[day as keyof typeof dayColors] || "#888888",
+                  dayColors[day as keyof typeof dayColors] || '#888888',
                 strokeOpacity: 0.8,
                 strokeWeight: 4,
                 geodesic: true,
@@ -476,11 +483,11 @@ export default function JourneyMap({
                     icon: {
                       path: window.google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
                       scale: 3,
-                      strokeColor: "#FFFFFF",
+                      strokeColor: '#FFFFFF',
                       strokeWeight: 2,
                     },
-                    offset: "100%", // Place arrow at the end of the animated path
-                    repeat: "0px", // Don't repeat arrows during animation
+                    offset: '100%', // Place arrow at the end of the animated path
+                    repeat: '0px', // Don't repeat arrows during animation
                   },
                 ],
               }}
@@ -495,7 +502,7 @@ export default function JourneyMap({
             path={path}
             options={{
               strokeColor:
-                dayColors[day as keyof typeof dayColors] || "#888888",
+                dayColors[day as keyof typeof dayColors] || '#888888',
               strokeOpacity: 0.8,
               strokeWeight: 4,
               geodesic: true,
@@ -506,11 +513,11 @@ export default function JourneyMap({
                         path: window.google.maps.SymbolPath
                           .FORWARD_CLOSED_ARROW,
                         scale: 3,
-                        strokeColor: "#FFFFFF",
+                        strokeColor: '#FFFFFF',
                         strokeWeight: 2,
                       },
-                      offset: "50%",
-                      repeat: "100px",
+                      offset: '50%',
+                      repeat: '100px',
                     },
                   ]
                 : undefined,
@@ -520,7 +527,7 @@ export default function JourneyMap({
       })}
 
       {/* Render map markers */}
-      {locations.map((location) => {
+      {locations.map(location => {
         const isNewMarker = newlyAddedMarkers.has(location.id);
         return (
           <Marker
@@ -547,9 +554,9 @@ export default function JourneyMap({
               </p>
             )}
             <p className="text-xs text-gray-500 mt-1 capitalize">
-              {selectedLocation.type === "journeyLocation"
-                ? "Journey Location"
-                : selectedLocation.type.replace(/([A-Z])/g, " $1").trim()}
+              {selectedLocation.type === 'journeyLocation'
+                ? 'Journey Location'
+                : selectedLocation.type.replace(/([A-Z])/g, ' $1').trim()}
             </p>
             {selectedLocation.day && (
               <p className="text-xs font-medium text-blue-600 mt-1">

@@ -29,7 +29,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
   onUploadError,
   multiple = false,
   accept = 'image/*',
-  maxFiles = 5,
+  maxFiles = 10,
   folder = 'uploads',
   fileType = 'images',
   maxSize,

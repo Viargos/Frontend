@@ -331,7 +331,7 @@ export default function Home() {
 
                         {/* Hero Section - Full Width */}
                         <motion.div
-                            variants={heroVariants}
+                            variants={heroVariants }
                             className="relative overflow-hidden min-h-[700px] sm:min-h-[800px] w-full"
                         >
                             {/* Plane Animation Background */}

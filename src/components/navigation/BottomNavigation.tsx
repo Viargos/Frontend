@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import React from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
-import { User } from "@/types/auth.types";
+import React from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { User } from '@/types/auth.types';
 
 interface BottomNavigationProps {
   user: User;
@@ -17,8 +17,8 @@ const BottomNavigation = ({ user, onLogout }: BottomNavigationProps) => {
   // Main navigation items (same as sidebar but without labels on mobile)
   const navigationItems = [
     {
-      name: "Home",
-      href: "/dashboard",
+      name: 'Home',
+      href: '/dashboard',
       icon: (
         <svg
           className="w-6 h-6"
@@ -36,8 +36,8 @@ const BottomNavigation = ({ user, onLogout }: BottomNavigationProps) => {
       ),
     },
     {
-      name: "Discover",
-      href: "/discover",
+      name: 'Discover',
+      href: '/discover',
       icon: (
         <svg
           className="w-6 h-6"
@@ -55,8 +55,8 @@ const BottomNavigation = ({ user, onLogout }: BottomNavigationProps) => {
       ),
     },
     {
-      name: "Profile",
-      href: "/profile",
+      name: 'Profile',
+      href: '/profile',
       icon: (
         <svg
           className="w-6 h-6"
@@ -74,8 +74,8 @@ const BottomNavigation = ({ user, onLogout }: BottomNavigationProps) => {
       ),
     },
     {
-      name: "Messages",
-      href: "/messages",
+      name: 'Messages',
+      href: '/messages',
       icon: (
         <svg
           className="w-6 h-6"
@@ -93,8 +93,8 @@ const BottomNavigation = ({ user, onLogout }: BottomNavigationProps) => {
       ),
     },
     {
-      name: "Settings",
-      href: "/settings",
+      name: 'Settings',
+      href: '/settings',
       icon: (
         <svg
           className="w-6 h-6"
@@ -128,17 +128,17 @@ const BottomNavigation = ({ user, onLogout }: BottomNavigationProps) => {
       className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 sm:hidden"
       initial={{ y: 100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
     >
       <div className="flex items-center justify-around py-2 px-2">
-        {navigationItems.map((item) => (
+        {navigationItems.map(item => (
           <Link
             key={item.name}
             href={item.href}
             className={`flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-200 ${
               isActive(item.href)
-                ? "text-blue-600 bg-blue-50"
-                : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                ? 'text-blue-600 bg-blue-50'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
             }`}
           >
             <motion.div
@@ -147,7 +147,7 @@ const BottomNavigation = ({ user, onLogout }: BottomNavigationProps) => {
             >
               {item.icon}
             </motion.div>
-            
+
             {/* Active indicator */}
             {isActive(item.href) && (
               <motion.div
@@ -160,7 +160,7 @@ const BottomNavigation = ({ user, onLogout }: BottomNavigationProps) => {
           </Link>
         ))}
       </div>
-      
+
       {/* Safe area padding for phones with home indicator */}
       <div className="h-safe-area-inset-bottom bg-white"></div>
     </motion.div>

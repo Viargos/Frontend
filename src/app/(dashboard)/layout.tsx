@@ -1,15 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useAuthStore } from "@/store/auth.store";
 import { PageLoading } from "@/components/common/Loading";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 import LeftSidebar from "@/app/components/LeftSidebar";
-import RightSidebar from "@/app/components/RightSidebar";
 import Header from "@/components/home/Header";
-import AnimatedSidebar from "@/components/layout/AnimatedSidebar";
 import BottomNavigation from "@/components/navigation/BottomNavigation";
 
 /**
@@ -32,7 +30,6 @@ export default function DashboardLayout({
     }
   }, [isAuthenticated, router]);
 
-  // Note: Body overflow is now managed by AnimatedSidebar component to avoid conflicts
 
   // Ensure body overflow is reset when component mounts (after login/redirect)
   useEffect(() => {

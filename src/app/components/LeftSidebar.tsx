@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import React from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { User } from "@/types/auth.types";
+import React from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { User } from '@/types/auth.types';
 
 interface LeftSidebarProps {
   user: User;
@@ -17,8 +17,8 @@ const LeftSidebar = ({ user, onLogout, onNavigate }: LeftSidebarProps) => {
   // Main navigation items (without settings)
   const mainNavigationItems = [
     {
-      name: "Home",
-      href: "/dashboard",
+      name: 'Home',
+      href: '/dashboard',
       icon: (
         <svg
           className="w-5 h-5"
@@ -36,8 +36,8 @@ const LeftSidebar = ({ user, onLogout, onNavigate }: LeftSidebarProps) => {
       ),
     },
     {
-      name: "Discover",
-      href: "/discover",
+      name: 'Discover',
+      href: '/discover',
       icon: (
         <svg
           className="w-5 h-5"
@@ -55,8 +55,8 @@ const LeftSidebar = ({ user, onLogout, onNavigate }: LeftSidebarProps) => {
       ),
     },
     {
-      name: "Profile",
-      href: "/profile",
+      name: 'Profile',
+      href: '/profile',
       icon: (
         <svg
           className="w-5 h-5"
@@ -74,8 +74,8 @@ const LeftSidebar = ({ user, onLogout, onNavigate }: LeftSidebarProps) => {
       ),
     },
     {
-      name: "Messages",
-      href: "/messages",
+      name: 'Messages',
+      href: '/messages',
       icon: (
         <svg
           className="w-5 h-5"
@@ -96,8 +96,8 @@ const LeftSidebar = ({ user, onLogout, onNavigate }: LeftSidebarProps) => {
 
   // Settings section (separate)
   const settingsItem = {
-    name: "Settings",
-    href: "/settings",
+    name: 'Settings',
+    href: '/settings',
     icon: (
       <svg
         className="w-5 h-5"
@@ -130,21 +130,21 @@ const LeftSidebar = ({ user, onLogout, onNavigate }: LeftSidebarProps) => {
       {/* Main Navigation */}
       <nav className="flex-1 p-2 lg:p-4">
         <ul className="space-y-2">
-          {mainNavigationItems.map((item) => (
+          {mainNavigationItems.map(item => (
             <li key={item.name}>
               <Link
                 href={item.href}
                 onClick={onNavigate}
                 className={`flex items-center justify-center lg:justify-start px-2 lg:px-3 py-3 lg:py-2 rounded-md text-sm font-medium transition-colors group relative ${
                   isActive(item.href)
-                    ? "bg-gray-200 text-gray-900"
-                    : "text-gray-700 hover:bg-gray-200 hover:text-gray-900"
+                    ? 'bg-gray-200 text-gray-900'
+                    : 'text-gray-700 hover:bg-gray-200 hover:text-gray-900'
                 }`}
                 title={item.name} // Tooltip for narrow sidebar
               >
                 <span className="lg:mr-3">{item.icon}</span>
                 <span className="hidden lg:inline">{item.name}</span>
-                
+
                 {/* Tooltip for sm to lg screens (narrow sidebar) */}
                 <span className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10 lg:hidden">
                   {item.name}
@@ -162,14 +162,14 @@ const LeftSidebar = ({ user, onLogout, onNavigate }: LeftSidebarProps) => {
           onClick={onNavigate}
           className={`flex items-center justify-center lg:justify-start px-2 lg:px-3 py-3 lg:py-2 rounded-md text-sm font-medium transition-colors group relative ${
             isActive(settingsItem.href)
-              ? "bg-gray-200 text-gray-900"
-              : "text-gray-700 hover:bg-gray-200 hover:text-gray-900"
+              ? 'bg-gray-200 text-gray-900'
+              : 'text-gray-700 hover:bg-gray-200 hover:text-gray-900'
           }`}
           title={settingsItem.name} // Tooltip for narrow sidebar
         >
           <span className="lg:mr-3">{settingsItem.icon}</span>
           <span className="hidden lg:inline">{settingsItem.name}</span>
-          
+
           {/* Tooltip for sm to lg screens (narrow sidebar) */}
           <span className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10 lg:hidden">
             {settingsItem.name}

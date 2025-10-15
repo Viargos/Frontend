@@ -261,7 +261,7 @@ export default function JourneyDetailsModal({
                 No itinerary available
               </h3>
               <p className="text-gray-600">
-                This journey doesn't have detailed itinerary information yet.
+                This journey does not have detailed itinerary information yet.
               </p>
             </div>
           )}

@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
-import Button from "@/components/ui/Button";
 import JourneyMap from "@/components/maps/JourneyMap";
 import { serviceFactory } from "@/lib/services/service-factory";
 import { Journey } from "@/types/journey.types";
@@ -37,33 +36,13 @@ export default function JourneyDetailsPage() {
             try {
                 setIsLoading(true);
                 setError(null);
-
-                console.log("Fetching journey with ID:", journeyId);
-                console.log("Journey ID type:", typeof journeyId);
-                console.log("Journey ID length:", journeyId?.length);
-
                 if (!journeyId) {
                     throw new Error("No journey ID provided");
                 }
-
                 const journeyService = serviceFactory.journeyService;
-                console.log("Journey service initialized:", !!journeyService);
-
                 const fetchedJourney = await journeyService.getJourneyById(
                     journeyId
                 );
-
-                console.log("Fetched journey:", fetchedJourney);
-                console.log("Journey data structure:", {
-                    hasTitle: !!fetchedJourney?.title,
-                    hasDescription: !!fetchedJourney?.description,
-                    hasDays: !!fetchedJourney?.days,
-                    daysCount: fetchedJourney?.days?.length || 0,
-                    hasUser: !!fetchedJourney?.user,
-                    hasCoverImage: !!fetchedJourney?.coverImage,
-                    coverImageUrl: fetchedJourney?.coverImage,
-                });
-
                 setJourney(fetchedJourney);
 
                 // Set active day to 1 if there are days, or the first available day
@@ -287,7 +266,7 @@ export default function JourneyDetailsPage() {
                     fill
                     className="object-cover"
                     style={{ zIndex: 1 }}
-                    priority
+                    priority={true}
                     onLoad={() => {
                         console.log(
                             "Cover image loaded successfully:",

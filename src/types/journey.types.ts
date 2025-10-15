@@ -1,9 +1,9 @@
 export enum PlaceType {
-  STAY = "STAY",
-  ACTIVITY = "ACTIVITY",
-  FOOD = "FOOD",
-  TRANSPORT = "TRANSPORT",
-  NOTE = "NOTE",
+  STAY = 'STAY',
+  ACTIVITY = 'ACTIVITY',
+  FOOD = 'FOOD',
+  TRANSPORT = 'TRANSPORT',
+  NOTE = 'NOTE',
 }
 
 export interface Journey {
@@ -37,6 +37,9 @@ export interface JourneyPlace {
   description?: string;
   startTime?: string;
   endTime?: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
   day: JourneyDay;
 }
 
@@ -60,13 +63,13 @@ export interface UpdateJourneyDto {
 }
 
 export interface JourneyFilters {
-  status?: "draft" | "published" | "archived";
+  status?: 'draft' | 'published' | 'archived';
   dateFrom?: string;
   dateTo?: string;
   location?: string;
   tags?: string[];
-  sortBy?: "createdAt" | "updatedAt" | "title";
-  sortOrder?: "asc" | "desc";
+  sortBy?: 'createdAt' | 'updatedAt' | 'title';
+  sortOrder?: 'asc' | 'desc';
   limit?: number;
   offset?: number;
 }
@@ -87,12 +90,12 @@ export interface JourneyLocation {
   lat: number;
   lng: number;
   type:
-    | "placeToStay"
-    | "placesToGo"
-    | "food"
-    | "transport"
-    | "notes"
-    | "journeyLocation";
+    | 'placeToStay'
+    | 'placesToGo'
+    | 'food'
+    | 'transport'
+    | 'notes'
+    | 'journeyLocation';
   address?: string;
   description?: string;
   images?: string[];
@@ -137,7 +140,7 @@ export interface JourneyBanner {
   };
 }
 
-export interface DetailedJourney extends Journey {
+export interface DetailedJourney extends Omit<Journey, 'days'> {
   banner?: JourneyBanner;
   days: DetailedJourneyDay[];
   totalBudget?: number;
@@ -145,7 +148,7 @@ export interface DetailedJourney extends Journey {
   isPublic?: boolean;
   collaborators?: string[];
   tags?: string[];
-  difficulty?: "easy" | "moderate" | "challenging";
+  difficulty?: 'easy' | 'moderate' | 'challenging';
   duration?: number; // in hours
   distance?: number; // in km
   transportation?: string[];
@@ -179,7 +182,7 @@ export interface JourneyState {
 export interface AddActivityData {
   dayId: string;
   category: keyof JourneyDayActivities;
-  location: Omit<JourneyLocation, "id" | "type">;
+  location: Omit<JourneyLocation, 'id' | 'type'>;
 }
 
 export interface UpdateActivityData {
@@ -191,8 +194,8 @@ export interface JourneySettings {
   currency: string;
   timezone: string;
   language: string;
-  units: "metric" | "imperial";
-  visibility: "private" | "public" | "friends";
+  units: 'metric' | 'imperial';
+  visibility: 'private' | 'public' | 'friends';
 }
 
 // New types for comprehensive journey creation
