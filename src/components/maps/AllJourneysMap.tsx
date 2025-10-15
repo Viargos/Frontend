@@ -47,6 +47,9 @@ const mockCoordinates: { [key: string]: { lat: number; lng: number } } = {
   paris: { lat: 48.8566, lng: 2.3522 },
   london: { lat: 51.5074, lng: -0.1278 },
   'new york': { lat: 40.7128, lng: -74.006 },
+  montreal: { lat: 45.5017, lng: -73.5673 },
+  toronto: { lat: 43.6532, lng: -79.3832 },
+  vancouver: { lat: 49.2827, lng: -123.1207 },
   tokyo: { lat: 35.6762, lng: 139.6503 },
   delhi: { lat: 28.6139, lng: 77.209 },
   mumbai: { lat: 19.076, lng: 72.8777 },
@@ -72,8 +75,6 @@ const isValidCoordinate = (
     typeof lng === 'number' &&
     !isNaN(lat) &&
     !isNaN(lng) &&
-    lat !== 0 &&
-    lng !== 0 &&
     lat >= -90 &&
     lat <= 90 &&
     lng >= -180 &&
@@ -140,10 +141,23 @@ export default function AllJourneysMap({
       // Add journey start marker (based on first place or journey title)
       let journeyCoords = { lat: 0, lng: 0 };
 
+      console.log(`🗺️ Processing journey: "${journey.title}"`);
+
       if (journey.days && journey.days.length > 0) {
         const firstDay = journey.days[0];
         if (firstDay.places && firstDay.places.length > 0) {
           const firstPlace = firstDay.places[0];
+
+          console.log(
+            `  First place: "${firstPlace.name}"`,
+            `lat: ${firstPlace.latitude}, lng: ${firstPlace.longitude}`
+          );
+          console.log(
+            `  Is valid? ${isValidCoordinate(
+              firstPlace.latitude,
+              firstPlace.longitude
+            )}`
+          );
 
           // Use real coordinates if available and valid
           if (isValidCoordinate(firstPlace.latitude, firstPlace.longitude)) {
@@ -151,18 +165,28 @@ export default function AllJourneysMap({
               lat: firstPlace.latitude!,
               lng: firstPlace.longitude!,
             };
+            console.log('  ✅ Using real coordinates:', journeyCoords);
           } else {
             // Fallback to mock coordinates
             journeyCoords = getCoordinatesForPlace(
               firstPlace.name,
               journey.title
             );
+            console.log('  ⚠️ Using mock coordinates:', journeyCoords);
           }
         } else {
           journeyCoords = getCoordinatesForPlace(journey.title, journey.title);
+          console.log(
+            '  📍 No places, using title-based coordinates:',
+            journeyCoords
+          );
         }
       } else {
         journeyCoords = getCoordinatesForPlace(journey.title, journey.title);
+        console.log(
+          '  📍 No days, using title-based coordinates:',
+          journeyCoords
+        );
       }
 
       // Only add journey marker if we have valid coordinates
@@ -184,10 +208,19 @@ export default function AllJourneysMap({
         selectedJourney.id === journey.id &&
         journey.days
       ) {
-        journey.days.forEach(day => {
+        console.log(
+          `  📌 Journey selected, adding ${journey.days.length} days of places`
+        );
+        journey.days.forEach((day, dayIndex) => {
           if (day.places) {
-            day.places.forEach(place => {
+            console.log(`    Day ${dayIndex + 1}: ${day.places.length} places`);
+            day.places.forEach((place, placeIndex) => {
               let coords = { lat: 0, lng: 0 };
+
+              console.log(
+                `      Place ${placeIndex + 1}: "${place.name}"`,
+                `lat: ${place.latitude}, lng: ${place.longitude}`
+              );
 
               // Use real coordinates if available and valid
               if (isValidCoordinate(place.latitude, place.longitude)) {
@@ -195,9 +228,11 @@ export default function AllJourneysMap({
                   lat: place.latitude!,
                   lng: place.longitude!,
                 };
+                console.log('      ✅ Using real coordinates:', coords);
               } else {
                 // Fallback to mock coordinates
                 coords = getCoordinatesForPlace(place.name, journey.title);
+                console.log('      ⚠️ Using mock coordinates:', coords);
               }
 
               // Only add place marker if we have valid coordinates
@@ -211,6 +246,11 @@ export default function AllJourneysMap({
                   journey: journey,
                   place: place,
                 });
+                console.log('      ✅ Place marker added');
+              } else {
+                console.log(
+                  '      ❌ Invalid coordinates, place marker NOT added'
+                );
               }
             });
           }
@@ -392,7 +432,7 @@ export default function AllJourneysMap({
     <GoogleMap
       mapContainerStyle={containerStyle}
       center={defaultCenter}
-      zoom={3}
+      zoom={1}
       onLoad={onLoad}
       onUnmount={onUnmount}
       options={{
