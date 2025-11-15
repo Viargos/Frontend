@@ -439,11 +439,11 @@ export default function AllJourneysMap({
         zoomControl: true,
         streetViewControl: false,
         mapTypeControl: false,
-        fullscreenControl: false,
+        fullscreenControl: true,
         // Optimize map rendering and data usage
         gestureHandling: 'cooperative',
-        disableDefaultUI: false,
-        clickableIcons: false, // Reduces unnecessary POI data
+        disableDefaultUI: true,
+        clickableIcons: true, // Reduces unnecessary POI data
         restriction: {
           // Optional: restrict to specific region to reduce data
           latLngBounds: {

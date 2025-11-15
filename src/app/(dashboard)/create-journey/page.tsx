@@ -17,6 +17,7 @@ import { ErrorAlert } from '@/components/ui/ErrorAlert';
 import { CoverImage } from '@/components/journey/CoverImage';
 import { PlaceCard } from '@/components/journey/PlaceCard';
 import PhotoGallery from '@/components/media/PhotoGallery';
+import { JourneyMapWebGL } from '@/components/maps';
 
 export default function CreateJourneyPage() {
   const router = useRouter();
@@ -168,6 +169,7 @@ export default function CreateJourneyPage() {
       togglePlaceExpansion,
     ]
   );
+ 
 
   // Handle cover image upload with key storage
   const handleCoverImageUpload = useCallback(
@@ -203,7 +205,7 @@ export default function CreateJourneyPage() {
         />
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 w-full">
           {/* Left Content */}
           <div className="flex flex-col items-start gap-8 w-full lg:col-span-2">
             {/* Journey Header */}
@@ -341,13 +343,23 @@ export default function CreateJourneyPage() {
           {/* Map Section */}
           <div className="w-full lg:col-span-1 h-full relative">
             <div className="w-full h-[500px] sm:h-[600px] lg:h-[724px] rounded-lg bg-gray-200 relative overflow-hidden shadow-inner">
-              <JourneyMap
+              {/* <JourneyMap
                 locations={getMapLocations()}
                 center={getMapCenter()}
                 onLocationClick={location => {
                   console.log('Location clicked:', location);
                   // You can add additional functionality here, like highlighting the corresponding place card
                 }}
+                onMapClick={handleMapClick}
+              /> */}
+              <JourneyMapWebGL
+                locations={getMapLocations()}
+                center={getMapCenter()}
+                onLocationClick={location => {
+                  console.log('Location clicked:', location);
+                  // You can add additional functionality here, like highlighting the corresponding place card
+                }}
+                enableAnimation={true}
                 onMapClick={handleMapClick}
               />
             </div>

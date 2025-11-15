@@ -13,6 +13,7 @@
     "@aws-sdk/s3-request-presigner": "^3.864.0",
     "@hookform/resolvers": "^5.2.1",
     "@react-google-maps/api": "^2.20.7",
+    "@types/three": "^0.180.0",
     "@vercel/speed-insights": "^1.2.0",
     "axios": "^1.11.0",
     "class-transformer": "^0.5.1",
@@ -26,6 +27,7 @@
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.61.1",
     "reflect-metadata": "^0.2.2",
+    "three": "^0.180.0",
     "zod": "^4.0.14",
     "zustand": "^5.0.7"
   },
