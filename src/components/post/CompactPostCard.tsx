@@ -187,15 +187,15 @@ export default function CompactPostCard({
                                 disabled={isLiking}
                                 className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 ${
                                     isLiked
-                                        ? "text-red-600 bg-red-50 hover:bg-red-100"
-                                        : "text-gray-600 hover:text-red-600 hover:bg-red-50"
+                                        ? "text-blue-600 bg-blue-50 hover:bg-blue-100"
+                                        : "text-gray-600 hover:text-blue-600 hover:bg-blue-50"
                                 }`}
                             >
                                 <HeartIcon
                                     className={`w-4 h-4 ${
                                         isLiked ? "fill-current" : ""
                                     }`}
-                                />
+                                />``
                                 <span className="text-sm font-medium">
                                     {localLikeCount}
                                 </span>
@@ -337,8 +337,8 @@ export default function CompactPostCard({
                                     disabled={isLiking}
                                     className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 ${
                                         isLiked
-                                            ? "text-red-600 bg-red-50 hover:bg-red-100"
-                                            : "text-gray-600 hover:text-red-600 hover:bg-red-50"
+                                            ? "text-blue-600 bg-blue-50 hover:bg-blue-100"
+                                            : "text-gray-600 hover:text-blue-600 hover:bg-blue-50"
                                     }`}
                                 >
                                     <HeartIcon

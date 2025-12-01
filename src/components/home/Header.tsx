@@ -209,7 +209,7 @@ export default function Header({ user }: HeaderProps) {
                     value={searchQuery}
                     onChange={e => handleSearchChange(e.target.value)}
                     onFocus={handleSearchFocus}
-                    className="w-full h-10 px-4 py-2 pl-10 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black placeholder-gray-500 text-sm leading-5 shadow-button bg-white transition-all duration-200"
+                    className="w-full h-10 px-4 py-2 pl-10 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700 focus:border-blue-700 text-black placeholder-gray-500 text-sm leading-5 shadow-button bg-white transition-all duration-200"
                   />
 
                   {/* Search Icon */}
@@ -362,7 +362,7 @@ export default function Header({ user }: HeaderProps) {
 
                   {/* Notification Badge */}
                   {notificationCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium min-w-[20px]">
+                    <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium min-w-[20px]">
                       {notificationCount > 99 ? '99+' : notificationCount}
                     </span>
                   )}
@@ -401,7 +401,7 @@ export default function Header({ user }: HeaderProps) {
                               <div
                                 className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
                                   !notification.read
-                                    ? 'bg-blue-500'
+                                    ? 'bg-blue-600'
                                     : 'bg-transparent'
                                 }`}
                               />
@@ -454,7 +454,7 @@ export default function Header({ user }: HeaderProps) {
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setShowDropdown(!showDropdown)}
-                  className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-300 hover:border-gray-400 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-300 hover:border-gray-400 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                 >
                   {user?.profileImage ? (
                     <Image
@@ -567,10 +567,10 @@ export default function Header({ user }: HeaderProps) {
                             setShowDropdown(false);
                             handleLogout();
                           }}
-                          className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                          className="flex items-center w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
                         >
                           <svg
-                            className="w-4 h-4 mr-3 text-red-500"
+                            className="w-4 h-4 mr-3 text-blue-600"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
