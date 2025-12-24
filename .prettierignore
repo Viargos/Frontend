@@ -1,9 +1,23 @@
-node_modules
-.next
-out
-dist
-build
-coverage
-*.log
-.env*
-public
+# Dependencies
+node_modules/
+
+# Build output
+.next/
+out/
+build/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+
+# Coverage
+coverage/
+
+# Package lock files
+package-lock.json
+
+# Public assets
+public/
