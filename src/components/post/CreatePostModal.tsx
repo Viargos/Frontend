@@ -214,8 +214,8 @@ export default function CreatePostModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="lg">
-      <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+    <Modal isOpen={isOpen} onClose={handleClose} className="max-w-2xl">
+      <div className="bg-white rounded-xl shadow-xl w-full max-h-[90vh] overflow-hidden">
         <AnimatePresence mode="wait">
           <div className="p-6 overflow-y-auto max-h-[90vh]">
             {renderStepContent()}

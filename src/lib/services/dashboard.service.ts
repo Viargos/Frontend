@@ -1,9 +1,30 @@
+/**
+ * Dashboard Service - Migrated Version
+ *
+ * SOLID Principles Applied:
+ * - Single Responsibility: Handles only dashboard-related operations
+ * - Open/Closed: Open for extension through interfaces, closed for modification
+ * - Liskov Substitution: Implements IDashboardService interface correctly
+ * - Interface Segregation: Depends only on required interface (IHttpClient)
+ * - Dependency Inversion: Depends on abstractions (IHttpClient), not concrete implementations
+ *
+ * Improvements:
+ * - Centralized error messages (ERROR_MESSAGES)
+ * - Structured logging with logger
+ * - Better error handling with ErrorHandler
+ * - Type-safe implementations (removed `any` type)
+ * - Event tracking for analytics
+ */
+
 import {
     IHttpClient,
     ApiResponse,
 } from "@/lib/interfaces/http-client.interface";
 import { DashboardFilters, DashboardResponse } from "@/types/dashboard.types";
 import { Post } from "@/types/post.types";
+import { ERROR_MESSAGES } from "@/constants";
+import { logger } from "@/utils/logger";
+import { ErrorHandler } from "@/utils/error-handler";
 
 export interface IDashboardService {
     getDashboardPosts(filters?: DashboardFilters): Promise<
@@ -17,8 +38,13 @@ export interface IDashboardService {
 }
 
 export class DashboardService implements IDashboardService {
-    constructor(private httpClient: IHttpClient) {}
+    constructor(private httpClient: IHttpClient) {
+        logger.debug('DashboardService initialized');
+    }
 
+    /**
+     * Get dashboard posts with optional filters
+     */
     async getDashboardPosts(filters?: DashboardFilters): Promise<
         ApiResponse<{
             posts: Post[];
@@ -27,6 +53,13 @@ export class DashboardService implements IDashboardService {
             totalCount?: number;
         }>
     > {
+        logger.debug('Fetching dashboard posts', {
+            hasCursor: !!filters?.cursor,
+            limit: filters?.limit,
+            hasLocation: !!filters?.location,
+            hasSearch: !!filters?.search,
+        });
+
         try {
             const queryParams = new URLSearchParams();
 
@@ -55,6 +88,25 @@ export class DashboardService implements IDashboardService {
                 totalCount?: number;
             }>(url);
 
+            const postCount = response.data?.posts?.length || 0;
+            const totalCount = response.data?.totalCount;
+
+            logger.info('Dashboard posts retrieved', {
+                postCount,
+                totalCount,
+                hasNextPage: response.data?.hasNextPage,
+                nextCursor: response.data?.nextCursor,
+            });
+
+            logger.trackEvent('dashboard_posts_fetched', {
+                postCount,
+                totalCount,
+                filters: {
+                    hasLocation: !!filters?.location,
+                    hasSearch: !!filters?.search,
+                },
+            });
+
             return {
                 statusCode: response.statusCode || 200,
                 message:
@@ -66,8 +118,15 @@ export class DashboardService implements IDashboardService {
                     hasNextPage: false,
                 },
             };
-        } catch (error: any) {
-            throw new Error(error.message || "Failed to fetch dashboard posts");
+        } catch (error) {
+            logger.error('Failed to fetch dashboard posts', error as Error, {
+                filters,
+            });
+
+            throw new Error(
+                ErrorHandler.extractMessage(error) ||
+                ERROR_MESSAGES.DASHBOARD.FETCH_POSTS_FAILED
+            );
         }
     }
 }

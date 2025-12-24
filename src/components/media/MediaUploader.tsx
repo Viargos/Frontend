@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useRef } from 'react';
+import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMediaUpload } from '@/hooks/useMediaUpload';
 import { UploadOptions } from '@/lib/aws/media-upload';
@@ -20,8 +20,10 @@ interface MediaUploaderProps {
 
 interface FilePreview {
   file: File;
-  preview: string;
+  previewUrl: string;
+  uploadedUrl?: string;
   id: string;
+  isUploading: boolean;
 }
 
 export const MediaUploader: React.FC<MediaUploaderProps> = ({
@@ -51,15 +53,34 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
   const [isDragOver, setIsDragOver] = useState(false);
   const [filePreviews, setFilePreviews] = useState<FilePreview[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const objectUrlsRef = useRef<string[]>([]);
 
   // Create file preview
   const createFilePreview = useCallback((file: File): string => {
     if (isImageFile(file)) {
-      return URL.createObjectURL(file);
+      const url = URL.createObjectURL(file);
+      objectUrlsRef.current.push(url);
+      return url;
     } else if (isVideoFile(file)) {
-      return URL.createObjectURL(file);
+      const url = URL.createObjectURL(file);
+      objectUrlsRef.current.push(url);
+      return url;
     }
     return ''; // No preview for other file types
+  }, []);
+
+  // Cleanup all object URLs on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      objectUrlsRef.current.forEach(url => {
+        try {
+          URL.revokeObjectURL(url);
+        } catch {
+          // Ignore revoke errors
+        }
+      });
+      objectUrlsRef.current = [];
+    };
   }, []);
 
   // Handle file selection
@@ -69,6 +90,11 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
     const fileArray = Array.from(files);
     const validFiles = multiple ? fileArray.slice(0, maxFiles) : [fileArray[0]];
 
+    // 🔍 Log selected files for debugging
+    validFiles.forEach((file) => {
+      console.log("Selected file:", file);
+    });
+
     // Clear previous errors
     clearErrors();
 
@@ -76,8 +102,9 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
     if (showPreview) {
       const previews: FilePreview[] = validFiles.map(file => ({
         file,
-        preview: createFilePreview(file),
+        previewUrl: createFilePreview(file),
         id: `${file.name}-${Date.now()}`,
+        isUploading: true,
       }));
       setFilePreviews(previews);
     }
@@ -102,6 +129,34 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
         .filter(result => result.success && result.url)
         .map(result => result.url!);
 
+      if (successfulUrls.length > 0) {
+        console.log("Upload success, public image URLs:", successfulUrls);
+      }
+
+      // Store uploaded URLs alongside local preview data, but keep previews using previewUrl
+      if (showPreview) {
+        setFilePreviews(prev => {
+          const next = prev.map((preview, index) => {
+            const result = uploadResults[index];
+            if (result && result.success && result.url) {
+              return {
+                ...preview,
+                uploadedUrl: result.url,
+                isUploading: false,
+              };
+            }
+            // Upload finished (even if failed) – stop showing uploading state
+            return {
+              ...preview,
+              isUploading: false,
+            };
+          });
+
+          console.log("Images state after upload (filePreviews):", next);
+          return next;
+        });
+      }
+
       // Check for errors
       const failedUploads = uploadResults.filter(result => !result.success);
       if (failedUploads.length > 0) {
@@ -116,6 +171,15 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
 
     } catch (error: any) {
       onUploadError?.(error.message || 'Upload failed');
+      // Ensure previews are not stuck in uploading state on error
+      if (showPreview) {
+        setFilePreviews(prev =>
+          prev.map(preview => ({
+            ...preview,
+            isUploading: false,
+          }))
+        );
+      }
     }
   }, [
     disabled,
@@ -178,8 +242,12 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
       const updated = prev.filter(preview => preview.id !== id);
       // Revoke object URLs to prevent memory leaks
       const removedPreview = prev.find(p => p.id === id);
-      if (removedPreview?.preview) {
-        URL.revokeObjectURL(removedPreview.preview);
+      if (removedPreview?.previewUrl) {
+        try {
+          URL.revokeObjectURL(removedPreview.previewUrl);
+        } catch {
+          // Ignore revoke errors
+        }
       }
       return updated;
     });
@@ -190,9 +258,10 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
     ? Object.values(uploadProgress).reduce((sum, progress) => sum + progress.percentage, 0) / Object.keys(uploadProgress).length
     : 0;
 
-  // Check if there are any errors
-  const hasErrors = Object.keys(errors).length > 0;
-  const errorMessage = Object.values(errors).filter(Boolean).join(', ');
+  // Check if there are any errors with non-empty messages
+  const nonEmptyErrors = Object.values(errors).filter(Boolean);
+  const hasErrors = nonEmptyErrors.length > 0;
+  const errorMessage = nonEmptyErrors.join(', ');
 
   return (
     <div className={`relative ${className}`}>
@@ -315,16 +384,16 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
                   layout
                 >
                   <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                    {filePreview.preview ? (
+                    {filePreview.previewUrl ? (
                       isImageFile(filePreview.file) ? (
                         <img
-                          src={filePreview.preview}
+                          src={filePreview.previewUrl}
                           alt={filePreview.file.name}
                           className="w-full h-full object-cover"
                         />
                       ) : (
                         <video
-                          src={filePreview.preview}
+                          src={filePreview.previewUrl}
                           className="w-full h-full object-cover"
                           muted
                         />
@@ -337,6 +406,14 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
                       </div>
                     )}
                   </div>
+
+                  {/* Per-file uploading overlay */}
+                  {filePreview.isUploading && (
+                    <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white text-xs">
+                      <div className="w-6 h-6 mb-1 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Uploading...</span>
+                    </div>
+                  )}
 
                   {/* Remove Button */}
                   <motion.button

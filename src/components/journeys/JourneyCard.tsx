@@ -99,7 +99,8 @@ export default function JourneyCard({
     if (journey.days && journey.days.length > 0) {
       const firstDay = journey.days[0];
       if (firstDay.places && firstDay.places.length > 0) {
-        return firstDay.places[0].location;
+        const firstPlace = firstDay.places[0];
+        return firstPlace.address || firstPlace.name || 'Unknown location';
       }
     }
     // Fallback to extracting from description

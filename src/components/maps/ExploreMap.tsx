@@ -2,14 +2,14 @@
 
 import { useCallback, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import {
   GoogleMap,
   useJsApiLoader,
   Marker,
   InfoWindow,
-  Polyline,
 } from '@react-google-maps/api';
-import { Journey, JourneyPlace } from '@/types/journey.types';
+import { Journey, JourneyPlace, PlaceType } from '@/types/journey.types';
 
 interface MapLocation {
   id: string;
@@ -28,6 +28,7 @@ interface ExploreMapProps {
   selectedJourney?: Journey | null;
   onLocationClick?: (location: MapLocation) => void;
   onMapClick?: (event: google.maps.MapMouseEvent) => void;
+  center?: { lat: number; lng: number };
 }
 
 const containerStyle = {
@@ -196,11 +197,14 @@ export default function ExploreMap({
   selectedJourney,
   onLocationClick,
   onMapClick,
+  center,
 }: ExploreMapProps) {
+  const router = useRouter();
   const [selectedLocation, setSelectedLocation] = useState<MapLocation | null>(
     null
   );
   const [mapLocations, setMapLocations] = useState<MapLocation[]>([]);
+  const [map, setMap] = useState<google.maps.Map | null>(null);
 
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
@@ -208,62 +212,171 @@ export default function ExploreMap({
     libraries: GOOGLE_MAPS_LIBRARIES,
   });
 
-  // Convert journeys to map locations
+  // Helper function to validate coordinates
+  const isValidCoordinate = useCallback((lat: number, lng: number): boolean => {
+    return (
+      typeof lat === 'number' &&
+      typeof lng === 'number' &&
+      !isNaN(lat) &&
+      !isNaN(lng) &&
+      isFinite(lat) &&
+      isFinite(lng) &&
+      lat >= -90 &&
+      lat <= 90 &&
+      lng >= -180 &&
+      lng <= 180
+    );
+  }, []);
+
+  // Helper function to get journey location (lat/lng) from its places
+  const getJourneyLocation = useCallback((journey: Journey): { lat: number; lng: number } | null => {
+    if (!journey.days || journey.days.length === 0) {
+      return null;
+    }
+
+    // Collect all valid coordinates from all places in the journey
+    const validCoords: { lat: number; lng: number }[] = [];
+
+    for (const day of journey.days) {
+      if (day.places) {
+        for (const place of day.places) {
+          // First, try to use real coordinates if available
+          if (place.latitude !== undefined && place.longitude !== undefined) {
+            const lat = typeof place.latitude === 'number' ? place.latitude : parseFloat(place.latitude as any);
+            const lng = typeof place.longitude === 'number' ? place.longitude : parseFloat(place.longitude as any);
+            
+            if (isValidCoordinate(lat, lng)) {
+              validCoords.push({
+                lat: lat,
+                lng: lng,
+              });
+            }
+          }
+        }
+      }
+    }
+
+    // If we have valid coordinates, calculate center or use first one
+    if (validCoords.length > 0) {
+      // Calculate center point from all valid coordinates
+      const avgLat = validCoords.reduce((sum, coord) => sum + coord.lat, 0) / validCoords.length;
+      const avgLng = validCoords.reduce((sum, coord) => sum + coord.lng, 0) / validCoords.length;
+      
+      // Validate the calculated center
+      if (isValidCoordinate(avgLat, avgLng)) {
+        return { lat: avgLat, lng: avgLng };
+      }
+    }
+
+    // Fallback: try to get coordinates from first place using mock coordinates
+    for (const day of journey.days) {
+      if (day.places && day.places.length > 0) {
+        const firstPlace = day.places[0];
+        const coords = getCoordinatesForPlace(firstPlace.name, journey.title);
+        
+        // Validate fallback coordinates
+        if (isValidCoordinate(coords.lat, coords.lng)) {
+          return coords;
+        }
+      }
+    }
+
+    return null;
+  }, [isValidCoordinate]);
+
+  // Convert journeys to map locations - ONE marker per journey
   useEffect(() => {
     const locations: MapLocation[] = [];
     const journeysToProcess = selectedJourney ? [selectedJourney] : journeys;
 
     journeysToProcess.forEach(journey => {
-      if (journey.days) {
-        journey.days.forEach(day => {
-          if (day.places) {
-            day.places.forEach(place => {
-              const coords = getCoordinatesForPlace(place.name, journey.title);
-
-              locations.push({
-                id: `${journey.id}-${day.id}-${place.id}`,
-                name: place.name,
-                lat: coords.lat,
-                lng: coords.lng,
-                type: place.type.toLowerCase(),
-                day: `Day ${day.dayNumber}`,
-                journey: journey,
-                place: place,
-              });
-            });
+      const journeyCoords = getJourneyLocation(journey);
+      
+      // Double-check coordinates are valid before adding
+      if (journeyCoords && isValidCoordinate(journeyCoords.lat, journeyCoords.lng)) {
+        // Get the first place for display purposes (or create a placeholder)
+        let firstPlace: JourneyPlace | null = null;
+        if (journey.days && journey.days.length > 0) {
+          for (const day of journey.days) {
+            if (day.places && day.places.length > 0) {
+              firstPlace = day.places[0];
+              break;
+            }
           }
+        }
+
+        // Create a placeholder place if none exists
+        if (!firstPlace) {
+          firstPlace = {
+            id: 'placeholder',
+            type: PlaceType.NOTE,
+            name: journey.title,
+            description: journey.description,
+            day: journey.days?.[0] || {} as any,
+          } as JourneyPlace;
+        }
+
+        locations.push({
+          id: `journey-${journey.id}`,
+          name: journey.title,
+          lat: journeyCoords.lat,
+          lng: journeyCoords.lng,
+          type: 'journeyLocation',
+          day: journey.days && journey.days.length > 0 ? `Day ${journey.days[0].dayNumber}` : 'Day 1',
+          journey: journey,
+          place: firstPlace,
         });
       }
     });
 
     setMapLocations(locations);
-  }, [journeys, selectedJourney]);
+  }, [journeys, selectedJourney, getJourneyLocation, isValidCoordinate]);
 
   const onLoad = useCallback(
-    (map: google.maps.Map) => {
+    (mapInstance: google.maps.Map) => {
+      setMap(mapInstance);
+      
       if (mapLocations.length > 0) {
         const bounds = new window.google.maps.LatLngBounds();
         mapLocations.forEach(location => {
-          bounds.extend({ lat: location.lat, lng: location.lng });
+          // Only add valid coordinates to bounds
+          if (isValidCoordinate(location.lat, location.lng)) {
+            bounds.extend({ lat: location.lat, lng: location.lng });
+          }
         });
-        map.fitBounds(bounds);
-
-        // Add padding to the bounds for better visibility
-        const padding = {
-          top: 50,
-          right: 50,
-          bottom: 50,
-          left: 50,
-        };
-        map.fitBounds(bounds, padding);
+        
+        // Only fit bounds if we have valid locations
+        if (!bounds.isEmpty()) {
+          // Add padding to the bounds for better visibility
+          const padding = {
+            top: 50,
+            right: 50,
+            bottom: 50,
+            left: 50,
+          };
+          mapInstance.fitBounds(bounds, padding);
+        }
       } else {
-        // If no locations, zoom to a reasonable level
-        map.setZoom(3);
-        map.setCenter(defaultCenter);
+        // If no locations, use provided center or default to world center
+        const mapCenter = center || defaultCenter;
+        mapInstance.setZoom(center ? 10 : 3);
+        mapInstance.setCenter(mapCenter);
       }
     },
-    [mapLocations]
+    [mapLocations, center, isValidCoordinate]
   );
+
+  // Update map center when center prop changes (only if no locations to show)
+  useEffect(() => {
+    if (map && isLoaded && center && mapLocations.length === 0) {
+      try {
+        map.setCenter(center);
+        map.setZoom(10);
+      } catch (error) {
+        console.error('Error updating map center:', error);
+      }
+    }
+  }, [map, isLoaded, center, mapLocations.length]);
 
   const onUnmount = useCallback(() => {
     // Cleanup if needed
@@ -271,35 +384,88 @@ export default function ExploreMap({
 
   const handleMarkerClick = useCallback(
     (location: MapLocation) => {
-      setSelectedLocation(location);
-      onLocationClick?.(location);
+      // Navigate to journey detail page
+      router.push(`/journey/${location.journey.id}`);
     },
-    [onLocationClick]
+    [router]
   );
 
-  const getMarkerIcon = (type: string) => {
-    // Color coding for different place types
-    const colors = {
-      stay: '#FF6B35', // Orange
-      activity: '#45B7D1', // Blue
-      food: '#4ECDC4', // Teal
-      transport: '#96CEB4', // Green
-      note: '#FF6B6B', // Red
-    };
+  // Generate marker icon with circular thumbnail and pin
+  const getMarkerIcon = useCallback((location: MapLocation) => {
+    const journey = location.journey;
+    const user = journey.user;
+    
+    // Determine what to show: journey image > user profile > username initial
+    let imageUrl: string | null = null;
+    let showInitial = false;
+    let initial = '';
+    let backgroundColor = '#6366f1'; // Default indigo color
+    
+    if (journey.coverImage) {
+      imageUrl = journey.coverImage;
+    } else if ((user as any).profileImage) {
+      imageUrl = (user as any).profileImage;
+    } else {
+      showInitial = true;
+      initial = user.username.charAt(0).toUpperCase();
+      // Generate a color based on username for consistency
+      const colors = [
+        '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#ef4444',
+        '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6'
+      ];
+      const colorIndex = user.username.charCodeAt(0) % colors.length;
+      backgroundColor = colors[colorIndex];
+    }
 
-    const markerColor = colors[type as keyof typeof colors] || '#001a6e';
+    // Marker dimensions
+    const circleSize = 40; // Size of the circular thumbnail
+    const pinHeight = 12; // Height of the pin
+    const totalHeight = circleSize + pinHeight;
+    const totalWidth = circleSize;
+    const pinWidth = 8; // Width of the pin point
+
+    // Create SVG with circular thumbnail and pin
+    let svgContent = '';
+    
+    if (imageUrl && !showInitial) {
+      // Escape image URL for SVG
+      const escapedImageUrl = imageUrl.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      // Use image in circle
+      svgContent = `
+        <svg width="${totalWidth}" height="${totalHeight}" viewBox="0 0 ${totalWidth} ${totalHeight}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+          <defs>
+            <clipPath id="circleClip-${location.id.replace(/[^a-zA-Z0-9]/g, '_')}">
+              <circle cx="${totalWidth / 2}" cy="${totalWidth / 2}" r="${circleSize / 2 - 2}"/>
+            </clipPath>
+          </defs>
+          <!-- White border circle -->
+          <circle cx="${totalWidth / 2}" cy="${totalWidth / 2}" r="${circleSize / 2}" fill="white" stroke="#e5e7eb" stroke-width="2"/>
+          <!-- Image circle -->
+          <circle cx="${totalWidth / 2}" cy="${totalWidth / 2}" r="${circleSize / 2 - 2}" fill="#f3f4f6"/>
+          <image xlink:href="${escapedImageUrl}" x="2" y="2" width="${circleSize - 4}" height="${circleSize - 4}" clip-path="url(#circleClip-${location.id.replace(/[^a-zA-Z0-9]/g, '_')})" preserveAspectRatio="xMidYMid slice"/>
+          <!-- Pin -->
+          <path d="M ${totalWidth / 2 - pinWidth / 2} ${circleSize} L ${totalWidth / 2} ${totalHeight} L ${totalWidth / 2 + pinWidth / 2} ${circleSize} Z" fill="white" stroke="#e5e7eb" stroke-width="1"/>
+        </svg>
+      `;
+    } else {
+      // Use initial letter in colored circle
+      svgContent = `
+        <svg width="${totalWidth}" height="${totalHeight}" viewBox="0 0 ${totalWidth} ${totalHeight}" xmlns="http://www.w3.org/2000/svg">
+          <!-- Colored circle with initial -->
+          <circle cx="${totalWidth / 2}" cy="${totalWidth / 2}" r="${circleSize / 2}" fill="${backgroundColor}" stroke="white" stroke-width="2"/>
+          <text x="${totalWidth / 2}" y="${totalWidth / 2 + 4}" text-anchor="middle" fill="white" font-size="18" font-weight="bold" font-family="Arial, sans-serif" dominant-baseline="middle">${initial}</text>
+          <!-- Pin -->
+          <path d="M ${totalWidth / 2 - pinWidth / 2} ${circleSize} L ${totalWidth / 2} ${totalHeight} L ${totalWidth / 2 + pinWidth / 2} ${circleSize} Z" fill="white" stroke="#e5e7eb" stroke-width="1"/>
+        </svg>
+      `;
+    }
 
     return {
-      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="${markerColor}" stroke="white" stroke-width="1"/>
-          <circle cx="12" cy="9" r="2" fill="white"/>
-        </svg>
-      `)}`,
-      scaledSize: new window.google.maps.Size(24, 24),
-      anchor: new window.google.maps.Point(12, 24),
+      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgContent)}`,
+      scaledSize: new window.google.maps.Size(totalWidth, totalHeight),
+      anchor: new window.google.maps.Point(totalWidth / 2, totalHeight),
     };
-  };
+  }, []);
 
   const getTypeLabel = (type: string) => {
     const labels = {
@@ -323,6 +489,11 @@ export default function ExploreMap({
     return icons[type as keyof typeof icons] || '📍';
   };
 
+
+  // Ensure center is always a valid object
+  const mapCenter = center || defaultCenter;
+
+  // Early return after all hooks (Rules of Hooks)
   if (!isLoaded) {
     return (
       <motion.div
@@ -361,35 +532,11 @@ export default function ExploreMap({
     );
   }
 
-  // Group locations by journey for different colored paths
-  const pathsByJourney = mapLocations.reduce((acc, location) => {
-    const journeyId = location.journey.id;
-    if (!acc[journeyId]) {
-      acc[journeyId] = {
-        journey: location.journey,
-        locations: [],
-      };
-    }
-    acc[journeyId].locations.push(location);
-    return acc;
-  }, {} as Record<string, { journey: Journey; locations: MapLocation[] }>);
-
-  // Generate colors for different journeys
-  const journeyColors = [
-    '#FF6B35', // Orange
-    '#45B7D1', // Blue
-    '#4ECDC4', // Teal
-    '#96CEB4', // Green
-    '#FF6B6B', // Red
-    '#6B66FF', // Purple
-    '#FFD166', // Yellow
-  ];
-
   return (
     <GoogleMap
       mapContainerStyle={containerStyle}
-      center={defaultCenter}
-      zoom={3}
+      center={mapCenter}
+      zoom={center ? 10 : 3}
       onLoad={onLoad}
       onUnmount={onUnmount}
       onClick={onMapClick}
@@ -413,50 +560,18 @@ export default function ExploreMap({
         },
       }}
     >
-      {/* Draw polylines for each journey */}
-      {Object.entries(pathsByJourney).map(([journeyId, journeyData], index) => {
-        const locations = journeyData.locations;
-        if (locations.length < 2) return null;
-
-        // Sort locations by day and then by place order
-        const sortedLocations = [...locations].sort((a, b) => {
-          const dayA = parseInt(a.day?.replace('Day ', '') || '0');
-          const dayB = parseInt(b.day?.replace('Day ', '') || '0');
-          if (dayA !== dayB) return dayA - dayB;
-
-          // If same day, maintain original order
-          return 0;
-        });
-
-        const path = sortedLocations.map(loc => ({
-          lat: loc.lat,
-          lng: loc.lng,
-        }));
-        const color = journeyColors[index % journeyColors.length];
-
-        return (
-          <Polyline
-            key={`journey-path-${journeyId}`}
-            path={path}
-            options={{
-              strokeColor: color,
-              strokeOpacity: selectedJourney ? 1 : 0.6,
-              strokeWeight: selectedJourney ? 4 : 2,
-              geodesic: true,
-            }}
-          />
-        );
-      })}
-
       {/* Render map markers */}
-      {mapLocations.map(location => (
-        <Marker
-          key={location.id}
-          position={{ lat: location.lat, lng: location.lng }}
-          icon={getMarkerIcon(location.type)}
-          onClick={() => handleMarkerClick(location)}
-        />
-      ))}
+      {mapLocations
+        .filter(location => isValidCoordinate(location.lat, location.lng))
+        .map(location => (
+          <Marker
+            key={location.id}
+            position={{ lat: location.lat, lng: location.lng }}
+            icon={getMarkerIcon(location)}
+            onClick={() => handleMarkerClick(location)}
+            zIndex={1000} // Keep markers above map layers
+          />
+        ))}
 
       {selectedLocation && (
         <InfoWindow

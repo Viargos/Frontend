@@ -28,6 +28,8 @@ export const CoverImage: React.FC<CoverImageProps> = ({
     const file = event.target.files?.[0];
     if (!file) return;
 
+    console.log("Selected file for cover image:", file);
+
     try {
       const result = await uploadSingle(file, {
         folder: "journey-covers",
@@ -35,6 +37,7 @@ export const CoverImage: React.FC<CoverImageProps> = ({
       });
 
       if (result.success && result.url && result.key) {
+        console.log("Cover image upload success, public image URL:", result.url, "key:", result.key);
         onImageUpload(result.url, result.key);
       } else {
         console.error("Failed to upload cover image:", result.error);

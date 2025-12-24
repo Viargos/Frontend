@@ -108,41 +108,71 @@ class ApiClient {
     try {
       const response = await fetch(url, config);
 
-      const data = await response.json();
+      // Handle empty responses (204 No Content or empty 200) gracefully
+      // This prevents JSON parsing errors that could trigger session invalidation
+      let data: any;
+      const contentType = response.headers.get('content-type');
+      const hasContent = response.status !== 204 && response.status !== 205;
+      
+      if (hasContent && contentType && contentType.includes('application/json')) {
+        try {
+          const text = await response.text();
+          data = text ? JSON.parse(text) : {};
+        } catch (parseError) {
+          // If JSON parsing fails, don't treat it as an auth error
+          // This is critical for DELETE requests that might return empty responses
+          if (!response.ok) {
+            // Only throw if response is not OK
+            throw new Error(`Failed to parse response: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
+          }
+          // For successful responses with parse errors, return empty object
+          data = {};
+        }
+      } else {
+        // For 204 No Content or responses without JSON content-type
+        data = response.ok ? { success: true } : {};
+      }
 
       if (!response.ok) {
-
         // Handle authentication errors specifically
-        if (response.status === 401 || data.statusCode === 10001) {
-          console.warn(
-            "Authentication failed, removing token via TokenService"
-          );
-          serviceFactory.tokenService.removeToken();
+        // Only remove token if it's a genuine 401 Unauthorized error
+        if (response.status === 401) {
+          // Check if the error data indicates an auth issue
+          const isAuthError = data?.statusCode === 10001 || 
+                             data?.message?.toLowerCase().includes('unauthorized') ||
+                             data?.message?.toLowerCase().includes('token');
+          
+          if (isAuthError) {
+            console.warn(
+              "Authentication failed, removing token via TokenService"
+            );
+            serviceFactory.tokenService.removeToken();
 
-          // Create a more user-friendly error message
-          const authError = new Error(
-            "Your session has expired. Please log in again."
-          ) as ApiClientError;
-          authError.response = {
-            data: data,
-            status: response.status,
-            statusText: response.statusText,
-          };
-          authError.statusCode = data.statusCode;
-          authError.isAuthError = true;
-          throw authError;
+            // Create a more user-friendly error message
+            const authError = new Error(
+              "Your session has expired. Please log in again."
+            ) as ApiClientError;
+            authError.response = {
+              data: data,
+              status: response.status,
+              statusText: response.statusText,
+            };
+            authError.statusCode = data?.statusCode;
+            authError.isAuthError = true;
+            throw authError;
+          }
         }
 
         // Create an axios-like error structure for consistency
         const apiError = new Error(
-          data.message || "API request failed"
+          data?.message || "API request failed"
         ) as ApiClientError;
         apiError.response = {
           data: data,
           status: response.status,
           statusText: response.statusText,
         };
-        apiError.statusCode = data.statusCode;
+        apiError.statusCode = data?.statusCode;
         throw apiError;
       }
 
@@ -153,8 +183,13 @@ class ApiClient {
         throw error;
       }
 
-      // For network errors or other issues
+      // For network errors or other issues - don't invalidate session
+      // Only network/parsing errors should reach here, not auth errors
       if (error instanceof Error) {
+        // Don't treat parsing errors as auth errors
+        if (error.message.includes('parse') || error.message.includes('JSON')) {
+          throw new Error(`Request failed: ${error.message}`);
+        }
         throw error;
       }
       throw new Error("Network error");
@@ -235,6 +270,19 @@ class ApiClient {
   }
 
   async createJourney(data: CreateJourneyDto): Promise<ApiResponse<Journey>> {
+    console.log("Creating journey:", data);
+    return this.request<Journey>("/journeys", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Create journey with full days + places structure (used by JourneyCreationForm)
+  // Backend uses the same /journeys endpoint with CreateJourneyDto (which already includes days),
+  // so this is just a typed alias that sends the full payload.
+  async createComprehensiveJourney(
+    data: CreateJourneyDto
+  ): Promise<ApiResponse<Journey>> {
     return this.request<Journey>("/journeys", {
       method: "POST",
       body: JSON.stringify(data),

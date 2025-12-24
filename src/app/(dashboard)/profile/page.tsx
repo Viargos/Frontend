@@ -11,7 +11,7 @@ import ProfileTabs from '@/components/profile/ProfileTabs';
 import ProfileJourneyCard from '@/components/profile/ProfileJourneyCard';
 import Button from '@/components/ui/Button';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { convertRecentJourneysToJourneys } from '@/utils/journey.utils';
+import UserProfileSkeleton from '@/components/ui/UserProfileSkeleton';
 import PostsList from '@/components/post/PostsList';
 import ProfilePostsGrid from '@/components/profile/ProfilePostsGrid';
 import UserPostsGrid from '@/components/user/UserPostsGrid';
@@ -19,6 +19,7 @@ import AllJourneysMap from '@/components/maps/AllJourneysMap';
 import YearFilter from '@/components/maps/YearFilter';
 import JourneyCard from '@/components/maps/JourneyCard';
 import { Journey } from '@/types/journey.types';
+import { UserProfile } from '@/types/profile.types';
 
 export default function ProfilePage() {
   const { user, isAuthenticated } = useAuthStore();
@@ -45,6 +46,7 @@ export default function ProfilePage() {
     journeys,
     isLoading: isJourneysLoading,
     loadMyJourneys,
+    deleteJourney: deleteJourneyFromStore,
   } = useJourneyStore();
   const router = useRouter();
 
@@ -61,16 +63,13 @@ export default function ProfilePage() {
     }
   }, [isAuthenticated, user, loadProfileAndStats]);
 
-  // Fetch journeys when map tab is active
+  // Fetch journeys when journey or map tab is active
   useEffect(() => {
-    if (isAuthenticated && user && activeTab === 'map') {
-      loadMyJourneys();
+    if (isAuthenticated && user && (activeTab === 'journey' || activeTab === 'map')) {
+      // Load ALL journeys without limit - explicitly remove limit filter
+      loadMyJourneys({ limit: undefined, offset: undefined });
     }
   }, [isAuthenticated, user, activeTab, loadMyJourneys]);
-
-  // Convert recent journeys to journey format for JourneyCard component
-  const recentJourneysConverted =
-    convertRecentJourneysToJourneys(recentJourneys);
 
   // Map-related computed values
   const availableYears = useMemo(() => {
@@ -94,6 +93,16 @@ export default function ProfilePage() {
       return journeyYear === selectedYear;
     });
   }, [journeys, selectedYear]);
+
+  // Log rendered journeys count when journeys change
+  useEffect(() => {
+    if (activeTab === 'journey' && journeys.length > 0) {
+      console.log("[RENDERED_JOURNEYS_COUNT]", {
+        count: journeys.length,
+        journeys: journeys
+      });
+    }
+  }, [journeys, activeTab]);
 
   // Map event handlers
   const handleJourneyClick = (journey: Journey) => {
@@ -123,8 +132,18 @@ export default function ProfilePage() {
 
   // Handle journey deletion
   const handleDeleteJourney = async (journeyId: string) => {
+    // Delete from profile store (updates recentJourneys and makes API call)
     const result = await deleteJourney(journeyId);
-    if (!result.success && result.error) {
+    
+    // Also update journey store to keep UI in sync
+    // The journey store will handle "Journey not found" gracefully
+    // Since backend is idempotent, calling both stores is safe
+    if (result.success || (result.error && result.error.toLowerCase().includes('journey not found'))) {
+      // Update journey store - it will handle errors gracefully
+      await deleteJourneyFromStore(journeyId);
+    }
+    
+    if (!result.success && result.error && !result.error.toLowerCase().includes('journey not found')) {
       console.error('Journey deletion failed:', result.error);
       // You could show a toast notification here
     }
@@ -132,19 +151,23 @@ export default function ProfilePage() {
 
   // Show loading state while profile loading
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
+    return <UserProfileSkeleton />;
   }
 
   // Use profile data from the store, fallback to user data
-  const currentProfile = profile || {
-    ...user,
+  const currentProfile: UserProfile | null = profile || (user ? {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    phoneNumber: user.phoneNumber,
     bio: user.bio || '',
     location: user.location || '',
-  };
+    profileImage: user.profileImage,
+    bannerImage: user.bannerImage,
+    isActive: user.isActive,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  } : null);
 
   return (
     <motion.div
@@ -172,16 +195,18 @@ export default function ProfilePage() {
       )}
 
       {/* Profile Header */}
-      <ProfileHeader
-        profile={currentProfile}
-        profileImageUrl={profileImageUrl}
-        bannerImageUrl={bannerImageUrl}
-        isImageUploading={isImageUploading}
-        stats={stats}
-        isStatsLoading={isStatsLoading}
-        onProfileImageUpload={handleProfileImageUpload}
-        onBannerImageUpload={handleBannerImageUpload}
-      />
+      {currentProfile && (
+        <ProfileHeader
+          profile={currentProfile}
+          profileImageUrl={profileImageUrl}
+          bannerImageUrl={bannerImageUrl}
+          isImageUploading={isImageUploading}
+          stats={stats}
+          isStatsLoading={isStatsLoading}
+          onProfileImageUpload={handleProfileImageUpload}
+          onBannerImageUpload={handleBannerImageUpload}
+        />
+      )}
 
       {/* We've moved the stats to the ProfileHeader component */}
 
@@ -206,13 +231,13 @@ export default function ProfilePage() {
 
           {/* Journey Cards */}
           <div className="flex flex-col items-start gap-3 w-full">
-            {isLoading ? (
+            {isJourneysLoading ? (
               <div className="flex items-center justify-center py-8 w-full">
                 <LoadingSpinner size="lg" />
               </div>
-            ) : recentJourneysConverted.length > 0 ? (
+            ) : journeys.length > 0 ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 w-full">
-                {recentJourneysConverted.map((journey, index) => (
+                {journeys.map((journey, index) => (
                   <ProfileJourneyCard
                     key={journey.id}
                     journey={journey}
@@ -240,7 +265,7 @@ export default function ProfilePage() {
                   No journeys yet. Create your first journey to get started!
                 </p>
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   size="lg"
                   onClick={() => router.push('/create-journey')}
                 >
@@ -300,12 +325,15 @@ export default function ProfilePage() {
           {/* Map Container */}
           <div className="relative w-full h-[600px] bg-gray-50 rounded-lg overflow-hidden shadow-sm">
             {/* Debug info - remove this after testing */}
-            {console.log('Map Tab Debug:', {
-              isJourneysLoading,
-              journeysCount: journeys.length,
-              filteredJourneysCount: filteredJourneys.length,
-              selectedYear,
-            })}
+            {(() => {
+              console.log('Map Tab Debug:', {
+                isJourneysLoading,
+                journeysCount: journeys.length,
+                filteredJourneysCount: filteredJourneys.length,
+                selectedYear,
+              });
+              return null;
+            })()}
 
             {isJourneysLoading ? (
               <div className="flex items-center justify-center h-full">

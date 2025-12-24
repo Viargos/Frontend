@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { User } from '@/types/user.types';
 
 interface UserSearchResultsProps {
@@ -20,6 +21,15 @@ export default function UserSearchResults({
   onUserClick,
   onClose
 }: UserSearchResultsProps) {
+  const router = useRouter();
+
+  const handleUserClick = (user: User) => {
+    // Navigate to user profile
+    router.push(`/user/${user.id}`);
+    // Call parent handler if provided (for backwards compatibility)
+    onUserClick?.(user);
+  };
+
   if (!isVisible) return null;
 
   return (
@@ -35,8 +45,8 @@ export default function UserSearchResults({
           <div className="p-4 text-center">
             <div className="flex items-center justify-center space-x-2">
               <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse"></div>
-              <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-              <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+              <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse [animation-delay:0.2s]"></div>
+              <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse [animation-delay:0.4s]"></div>
             </div>
             <p className="text-sm text-gray-500 mt-2">Searching users...</p>
           </div>
@@ -66,7 +76,7 @@ export default function UserSearchResults({
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.2, delay: index * 0.05 }}
                 className="px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-100 last:border-b-0"
-                onClick={() => onUserClick(user)}
+                onClick={() => handleUserClick(user)}
               >
                 <div className="flex items-center space-x-3">
                   {/* Profile Picture */}

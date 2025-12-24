@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { Post } from "@/types/post.types";
 import { formatDistanceToNow } from "date-fns";
 import HeartIcon from "@/components/icons/HeartIcon";
@@ -28,6 +29,7 @@ export default function PostCard({
     onJourneyClick,
     className = "",
 }: PostCardProps) {
+    const router = useRouter();
     const [isLiking, setIsLiking] = useState(false);
     const [localLikeCount, setLocalLikeCount] = useState(post.likeCount);
     const [isLiked, setIsLiked] = useState(post.isLikedByCurrentUser || false);
@@ -83,6 +85,12 @@ export default function PostCard({
         }
     }, [post.journey?.id, onJourneyClick]);
 
+    const handleUserClick = useCallback(() => {
+        if (post.user?.id) {
+            router.push(`/user/${post.user.id}`);
+        }
+    }, [post.user?.id, router]);
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -93,7 +101,10 @@ export default function PostCard({
             {/* Header */}
             <div className="p-4 pb-3">
                 <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-3">
+                    <div 
+                        onClick={handleUserClick}
+                        className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity"
+                    >
                         {post.user.profileImage ? (
                             <Image
                                 src={post.user.profileImage}

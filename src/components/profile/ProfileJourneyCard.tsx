@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Journey } from "@/types/journey.types";
 import { useRouter } from "next/navigation";
+import { generateJourneyTitle, generateJourneySubtitle } from "@/utils/journey.utils";
 
 interface ProfileJourneyCardProps {
   journey: Journey;
@@ -93,36 +94,12 @@ export default function ProfileJourneyCard({
     )} • ${lastDay.toLocaleDateString("en-GB", formatOptions)}`;
   };
 
-  const getLocationFromJourney = () => {
-    if (journey.days && journey.days.length > 0) {
-      const firstDay = journey.days[0];
-      if (firstDay.places && firstDay.places.length > 0) {
-        const location = firstDay.places[0].location;
-        // Extract city/country from location
-        const parts = location.split(",");
-        if (parts.length >= 2) {
-          return parts[parts.length - 1].trim(); // Get country/last part
-        }
-        return location;
-      }
-    }
-    return "Unknown location";
-  };
-
   const getJourneyImage = () => {
-    // Try to get image from journey days/places
-    if (journey.days && journey.days.length > 0) {
-      for (const day of journey.days) {
-        if (day.places && day.places.length > 0) {
-          for (const place of day.places) {
-            if (place.images && place.images.length > 0) {
-              return place.images[0];
-            }
-          }
-        }
-      }
+    // Use journey cover image if available
+    if (journey.coverImage) {
+      return journey.coverImage;
     }
-    // Fallback to a placeholder or journey-specific image
+    // Fallback to null (will show placeholder)
     return null;
   };
 
@@ -162,7 +139,6 @@ export default function ProfileJourneyCard({
   const journeyImage = getJourneyImage();
   const status = getJourneyStatus();
   const highlight = getHighlight();
-  const location = getLocationFromJourney();
 
   return (
     <motion.div
@@ -185,7 +161,7 @@ export default function ProfileJourneyCard({
           {journeyImage && !imageError ? (
             <img
               src={journeyImage}
-              alt={journey.title}
+              alt={generateJourneyTitle(journey)}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               onError={() => setImageError(true)}
             />
@@ -227,7 +203,7 @@ export default function ProfileJourneyCard({
             {/* Title and Arrow */}
             <div className="flex items-start justify-between">
               <h3 className="text-lg font-bold text-gray-900 group-hover:text-indigo-600 transition-colors duration-200 line-clamp-2 flex-1 pr-4">
-                {journey.title}
+                {generateJourneyTitle(journey)}
               </h3>
               {/* Arrow */}
               <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex-shrink-0">
@@ -235,11 +211,10 @@ export default function ProfileJourneyCard({
               </div>
             </div>
 
-            {/* Location */}
+            {/* Subtitle */}
             <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-gray-400" />
-              <span className="text-sm font-medium text-gray-600">
-                {location}
+              <span className="text-sm text-gray-600 line-clamp-1">
+                {generateJourneySubtitle(journey)}
               </span>
             </div>
           </div>

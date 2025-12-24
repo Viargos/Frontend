@@ -21,6 +21,19 @@ export interface Journey {
   updatedAt?: string;
 }
 
+export enum JourneyMediaType {
+  IMAGE = 'image',
+  VIDEO = 'video',
+}
+
+export interface JourneyMedia {
+  type: JourneyMediaType;
+  url: string;
+  thumbnailUrl?: string;
+  duration?: number;
+  order?: number;
+}
+
 export interface JourneyDay {
   id: string;
   dayNumber: number;
@@ -40,6 +53,7 @@ export interface JourneyPlace {
   address?: string;
   latitude?: number;
   longitude?: number;
+  media?: JourneyMedia[];
   day: JourneyDay;
 }
 
@@ -209,6 +223,9 @@ export interface CreateJourneyPlace {
   latitude?: number;
   longitude?: number;
   photos?: string[]; // Array of S3 keys for uploaded photos
+  media?: JourneyMedia[]; // Optional structured media for places
+  hasManualStart?: boolean; // Track if user manually edited start time
+  hasManualEnd?: boolean; // Track if user manually edited end time
 }
 
 export interface CreateJourneyDay {
@@ -221,5 +238,11 @@ export interface CreateJourneyDay {
 export interface JourneyFormData {
   title: string;
   description: string;
+  days: CreateJourneyDay[];
+}
+
+export interface CreateComprehensiveJourneyDto {
+  title: string;
+  description?: string;
   days: CreateJourneyDay[];
 }

@@ -27,13 +27,14 @@ export const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
   useScrollResetOnUnmount();
 
   const handleUploadComplete = useCallback((urls: string[]) => {
-    // Extract S3 keys from URLs for storage
-    const keys = urls.map(url => {
-      const urlParts = url.split('/');
-      return urlParts[urlParts.length - 1]; // Get the filename from URL
+    // Store the final, public file URLs returned from the backend.
+    // These URLs are what should be used for previews and review rendering.
+    console.log("Upload success, public image URLs (modal):", urls);
+    setUploadedPhotos((prev) => {
+      const next = [...prev, ...urls];
+      console.log("Images state after upload (modal uploadedPhotos):", next);
+      return next;
     });
-    
-    setUploadedPhotos(prev => [...prev, ...keys]);
     setUploadError(null);
   }, []);
 
@@ -43,6 +44,7 @@ export const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
 
   const handleSave = useCallback(() => {
     if (uploadedPhotos.length > 0) {
+      console.log("Saving uploaded photos for place/journey:", uploadedPhotos);
       onPhotosUploaded(uploadedPhotos);
       handleClose();
     }
@@ -114,14 +116,15 @@ export const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
           )}
         </AnimatePresence>
 
-        {/* Uploaded Photos Preview */}
+        {/* Uploaded Photos Preview (uses final file URLs, not upload URLs) */}
         {uploadedPhotos.length > 0 && (
           <div className="mb-6">
             <h3 className="text-sm font-medium text-gray-900 mb-3">
               Uploaded Photos ({uploadedPhotos.length})
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {uploadedPhotos.map((photo, index) => (
+              {uploadedPhotos.map((photoUrl, index) => (
+                photoUrl && (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, scale: 0.8 }}
@@ -129,11 +132,11 @@ export const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
                   exit={{ opacity: 0, scale: 0.8 }}
                   className="relative group aspect-square bg-gray-100 rounded-lg overflow-hidden"
                 >
-                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </div>
+                  <img
+                    src={photoUrl}
+                    alt={`Uploaded photo ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
                   <button
                     onClick={() => removePhoto(index)}
                     className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -142,10 +145,11 @@ export const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
-                  <div className="absolute bottom-2 left-2 text-xs text-white bg-black/50 px-2 py-1 rounded">
-                    {photo.split('-').pop()}
+                  <div className="absolute bottom-2 left-2 text-xs text-white bg-black/50 px-2 py-1 rounded max-w-[90%] truncate">
+                    {photoUrl.split("/").pop()}
                   </div>
                 </motion.div>
+                )
               ))}
             </div>
           </div>

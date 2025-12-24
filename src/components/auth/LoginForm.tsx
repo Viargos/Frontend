@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -20,29 +20,42 @@ export interface LoginFormProps {
   onSuccess?: () => void;
   onSwitchToSignup?: () => void;
   onSwitchToForgotPassword?: () => void;
+  onSwitchToOtp?: (email: string) => void; // 🔄 NEW: Callback to switch to OTP verification
 }
 
 export default function LoginForm({
   onSuccess,
   onSwitchToSignup,
   onSwitchToForgotPassword,
+  onSwitchToOtp,
 }: LoginFormProps) {
   const router = useRouter();
-  const { login, isLoading, error, clearError } = useAuthStore();
+  const { login, isLoading, error, clearError, resendOtp } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
+  const hasHandledVerificationErrorRef = useRef(false); // 🔄 NEW: Prevent duplicate handling
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isValid },
+    formState: { errors },
     reset,
+    getValues,
+    watch,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     mode: 'onBlur',
   });
 
+  // Watch email and password fields for real-time validation
+  const email = watch('email') || '';
+  const password = watch('password') || '';
+  
+  // Form validation based on field content only
+  const isFormValid = email.trim().length > 0 && password.trim().length > 0;
+
   const onSubmit = async (data: LoginFormData) => {
     clearError();
+    hasHandledVerificationErrorRef.current = false; // Reset flag on new submission
     
     try {
       const result = await login(data);
@@ -52,12 +65,85 @@ export default function LoginForm({
         onSuccess?.();
         // Redirect to dashboard after successful login
         router.push('/dashboard');
+      } else {
+        // 🔄 FIX: Check if error is "Please verify your email address"
+        // Check both result.error and store error
+        const errorToCheck = result.error || error;
+        if (!hasHandledVerificationErrorRef.current) {
+          hasHandledVerificationErrorRef.current = true;
+          await handleEmailVerificationError(data.email, errorToCheck);
+        }
       }
-      // Error is already handled in the store
     } catch (error) {
       console.error('Login form error:', error);
+      
+      // 🔄 FIX: Also check error from store in case it's set there
+      const userEmail = getValues('email');
+      if (userEmail && !hasHandledVerificationErrorRef.current) {
+        hasHandledVerificationErrorRef.current = true;
+        // Check both caught error and store error
+        const errorToCheck = error || useAuthStore.getState().error;
+        await handleEmailVerificationError(userEmail, errorToCheck);
+      }
     }
   };
+
+  // 🔄 NEW: Helper function to handle email verification errors
+  const handleEmailVerificationError = async (email: string, error: unknown) => {
+    const errorMessage = typeof error === 'string' 
+      ? error 
+      : (error as any)?.message || error || '';
+    
+    const errorString = String(errorMessage).toLowerCase();
+    
+    // Check if error indicates email verification is required
+    if (
+      errorString.includes('verify your email') ||
+      errorString.includes('please verify your email address') ||
+      errorString.includes('account not active') ||
+      errorString.includes('email not verified') ||
+      errorString.includes('verify email')
+    ) {
+      // Send OTP to user's email
+      try {
+        await resendOtp(email);
+        // Navigate to OTP verification form
+        onSwitchToOtp?.(email);
+      } catch (otpError) {
+        // If resend fails, still navigate to OTP (OTP might have been sent during login attempt)
+        // The backend generates OTP when login fails, so it should be available
+        console.warn('Failed to resend OTP, but navigating to verification:', otpError);
+        onSwitchToOtp?.(email);
+      }
+    }
+  };
+
+  // 🔄 NEW: Also check error from store when it changes (in case error is set after async operation)
+  useEffect(() => {
+    if (error && !hasHandledVerificationErrorRef.current) {
+      const errorString = String(error).toLowerCase();
+      if (
+        errorString.includes('verify your email') ||
+        errorString.includes('please verify your email address') ||
+        errorString.includes('account not active') ||
+        errorString.includes('email not verified') ||
+        errorString.includes('verify email')
+      ) {
+        const userEmail = getValues('email');
+        if (userEmail && onSwitchToOtp) {
+          hasHandledVerificationErrorRef.current = true; // Mark as handled
+          // Automatically navigate to OTP verification
+          handleEmailVerificationError(userEmail, error);
+        }
+      }
+    }
+    
+    // Reset flag when error is cleared
+    if (!error) {
+      hasHandledVerificationErrorRef.current = false;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [error]);
 
   // Animation variants for form elements
   const containerVariants = {
@@ -231,7 +317,7 @@ export default function LoginForm({
               variant="primary"
               size="lg"
               className="w-full"
-              disabled={isLoading || !isValid}
+              disabled={isLoading || !isFormValid}
               loading={isLoading}
             >
               {isLoading ? 'Signing in...' : 'Sign in'}

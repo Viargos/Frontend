@@ -1,15 +1,25 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import Button from "@/components/ui/Button";
 import { TextArea } from "@/components/ui/TextArea";
 import PostMediaUploader from "./PostMediaUploader";
 import LocationSearch from "@/components/journey/LocationSearch";
 import { CreatePostFormData, PostType, MediaType } from "@/types/post.types";
-import { Location } from "@/types/journey.types";
 import { postService } from "@/lib/services/service-factory";
+
+interface Location {
+  id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  address?: string;
+  country?: string;
+}
 import MapIcon from "@/components/icons/MapIcon";
+import { useGeolocation } from "@/hooks/useGeolocation";
+import { useJsApiLoader } from "@react-google-maps/api";
 
 interface StandalonePostFormProps {
   onSuccess: (postId: string) => void;
@@ -33,6 +43,99 @@ export default function StandalonePostForm({
     longitude: undefined,
     media: [],
   });
+
+  const { getCurrentLocation } = useGeolocation();
+  const hasAttemptedLocationSet = useRef(false);
+  
+  // Static libraries array to prevent LoadScript reloading
+  const GOOGLE_MAPS_LIBRARIES: 'places'[] = ['places'];
+  
+  // Load Google Maps API for reverse geocoding
+  const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+    libraries: GOOGLE_MAPS_LIBRARIES,
+  });
+
+  // Reverse geocode coordinates to get location name
+  const reverseGeocode = useCallback(async (lat: number, lng: number): Promise<Location | null> => {
+    if (!isLoaded || !window.google) {
+      return null;
+    }
+
+    return new Promise((resolve) => {
+      const geocoder = new window.google.maps.Geocoder();
+      geocoder.geocode(
+        { location: { lat, lng } },
+        (results, status) => {
+          if (status === window.google.maps.GeocoderStatus.OK && results && results[0]) {
+            const result = results[0];
+            const location: Location = {
+              id: result.place_id || `current-${lat}-${lng}`,
+              name: result.formatted_address || "Current Location",
+              latitude: lat,
+              longitude: lng,
+              address: result.formatted_address,
+            };
+            resolve(location);
+          } else {
+            // If geocoding fails, create a location with "Current Location" as name
+            const location: Location = {
+              id: `current-${lat}-${lng}`,
+              name: "Current Location",
+              latitude: lat,
+              longitude: lng,
+              address: `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`,
+            };
+            resolve(location);
+          }
+        }
+      );
+    });
+  }, [isLoaded]);
+
+  // Set current location on mount (only once)
+  useEffect(() => {
+    const setCurrentLocation = async () => {
+      // Only set if we haven't attempted yet and location is not already set
+      if (hasAttemptedLocationSet.current) {
+        return;
+      }
+
+      // Wait for Google Maps to load
+      if (!isLoaded) {
+        return;
+      }
+
+      hasAttemptedLocationSet.current = true;
+      try {
+        const coords = await getCurrentLocation();
+        if (coords) {
+          const location = await reverseGeocode(coords.latitude, coords.longitude);
+          if (location) {
+            setSelectedLocation(location);
+            setFormData((prev) => {
+              // Only set if location is not already manually set
+              if (prev.location) {
+                return prev;
+              }
+              return {
+                ...prev,
+                location: location.name,
+                latitude: location.latitude,
+                longitude: location.longitude,
+              };
+            });
+          }
+        }
+      } catch (err) {
+        // Silently fail - user can still manually select location
+        console.log("Could not get current location:", err);
+      }
+    };
+
+    setCurrentLocation();
+  }, [getCurrentLocation, reverseGeocode, isLoaded]);
 
   const handleDescriptionChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -87,6 +190,10 @@ export default function StandalonePostForm({
         latitude: formData.latitude,
         longitude: formData.longitude,
       });
+
+      if (!postResponse.data) {
+        throw new Error("Failed to create post: No data returned");
+      }
 
       // Add media if any
       if (formData.media.length > 0) {
@@ -160,9 +267,6 @@ export default function StandalonePostForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Media (Optional)
-        </label>
         <PostMediaUploader
           onMediaChange={handleMediaChange}
           maxFiles={10}

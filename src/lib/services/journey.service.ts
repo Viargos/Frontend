@@ -1,3 +1,22 @@
+/**
+ * Journey Service - Migrated Version
+ *
+ * SOLID Principles Applied:
+ * - Single Responsibility: Handles only journey-related operations
+ * - Open/Closed: Open for extension through interfaces, closed for modification
+ * - Liskov Substitution: Implements IJourneyService interface correctly
+ * - Interface Segregation: Depends only on required dependencies
+ * - Dependency Inversion: Depends on abstractions where possible
+ *
+ * Improvements:
+ * - Centralized error messages (ERROR_MESSAGES)
+ * - Structured logging with logger
+ * - Better error handling with ErrorHandler
+ * - Type-safe implementations
+ * - Event tracking for analytics
+ * - Private helper methods for separation of concerns (SRP)
+ */
+
 import { IJourneyService } from "@/lib/interfaces/journey.interface";
 import {
   Journey,
@@ -15,125 +34,184 @@ import {
   JourneyDayActivities,
 } from "@/types/journey.types";
 import apiClient from "@/lib/api.legacy";
+import { ERROR_MESSAGES, SUCCESS_MESSAGES, VALIDATION_RULES } from "@/constants";
+import { logger } from "@/utils/logger";
+import { ErrorHandler } from "@/utils/error-handler";
 
 export class JourneyService implements IJourneyService {
+  constructor() {
+    logger.debug('JourneyService initialized');
+  }
+
+  /**
+   * Get user's journeys
+   */
   async getMyJourneys(filters?: JourneyFilters): Promise<Journey[]> {
+    logger.debug('Fetching user journeys', { filters });
+
     try {
       const response = await apiClient.getMyJourneys();
-      // Handle double-wrapped response structure
-      // Check if we have the expected success response (10000 indicates success from API client)
+
+      // Log full API response for debugging
+      console.log("[JOURNEY_API_RESPONSE]", {
+        statusCode: response.statusCode,
+        dataLength: Array.isArray(response.data) ? response.data.length : 
+                     (response.data && typeof response.data === 'object' && 'data' in response.data && Array.isArray((response.data as any).data)) 
+                       ? (response.data as any).data.length : 0,
+        response: response
+      });
+
       if (response.statusCode !== 10000 && response.statusCode !== 200) {
-        throw new Error(response.message || "Failed to fetch journeys");
+        throw new Error(response.message || ERROR_MESSAGES.JOURNEY.FETCH_LIST_FAILED);
       }
 
       if (!response.data) {
-        throw new Error("No data received from server");
+        throw new Error('No data received from server');
       }
 
-      // Extract the actual journey data from nested structure
-      let journeys;
-      if (response.data.data && Array.isArray(response.data.data)) {
-        // Double-wrapped: response.data.data contains the journeys
-        journeys = response.data.data;
-      } else if (Array.isArray(response.data)) {
-        // Single-wrapped: response.data contains the journeys
-        journeys = response.data;
-      } else {
-        throw new Error("Invalid response format: journeys data not found");
-      }
+      let journeys = this.extractJourneysFromResponse(response.data);
 
-      // Apply client-side filters if provided
+      // Log before filtering
+      console.log("[JOURNEYS_BEFORE_FILTER]", {
+        count: journeys.length,
+        filters: filters
+      });
+
       if (filters) {
         journeys = this.applyFilters(journeys, filters);
       }
 
+      // Log after filtering
+      console.log("[JOURNEYS_AFTER_FILTER]", {
+        count: journeys.length,
+        filters: filters
+      });
+
+      logger.info('User journeys fetched', {
+        count: journeys.length,
+        hasFilters: !!filters,
+      });
+
       return journeys;
-    } catch (error: any) {
-      // Don't re-wrap errors that are already Error instances from our own code
+    } catch (error) {
+      logger.error('Failed to fetch user journeys', error as Error, { filters });
+
       if (error instanceof Error) {
         throw error;
       }
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Failed to fetch my journeys";
-      throw new Error(errorMessage);
+      throw new Error(ErrorHandler.extractMessage(error) || ERROR_MESSAGES.JOURNEY.FETCH_LIST_FAILED);
     }
   }
 
+  /**
+   * Get all public journeys
+   */
   async getAllJourneys(filters?: JourneyFilters): Promise<Journey[]> {
+    logger.debug('Fetching all public journeys', { filters });
+
     try {
       const response = await apiClient.getAllJourneys();
 
-      if (response.statusCode !== 200) {
-        throw new Error(response.message || "Failed to fetch public journeys");
+      // Log full API response for debugging
+      console.log("[ALL_JOURNEYS_API_RESPONSE]", {
+        statusCode: response.statusCode,
+        message: response.message,
+        isArray: Array.isArray(response),
+        hasData: !!response.data,
+        dataIsArray: Array.isArray(response.data),
+        dataLength: Array.isArray(response.data) ? response.data.length : (Array.isArray(response) ? response.length : 0),
+        response: response
+      });
+
+      // Handle case where backend returns array directly (not wrapped in ApiResponse)
+      let journeys: Journey[] = [];
+      if (Array.isArray(response)) {
+        // Backend returned array directly
+        journeys = response;
+        console.log("[ALL_JOURNEYS_DIRECT_ARRAY]", { count: journeys.length });
+      } else if (response.data) {
+        // Backend returned wrapped response
+        // Accept both 200 and 10000 as success status codes (consistent with getMyJourneys)
+        if (response.statusCode !== 10000 && response.statusCode !== 200 && response.statusCode !== undefined) {
+          throw new Error(response.message || ERROR_MESSAGES.JOURNEY.FETCH_LIST_FAILED);
+        }
+        
+        // Use the same extraction logic as getMyJourneys to handle different response formats
+        journeys = this.extractJourneysFromResponse(response.data);
+      } else {
+        throw new Error('No data received from server');
       }
 
-      if (!response.data) {
-        throw new Error("No data received from server");
-      }
+      // Log before filtering
+      console.log("[ALL_JOURNEYS_BEFORE_FILTER]", {
+        count: journeys.length,
+        filters: filters
+      });
 
-      let journeys = response.data;
-
-      // Apply client-side filters if provided
       if (filters) {
         journeys = this.applyFilters(journeys, filters);
       }
 
+      // Log after filtering
+      console.log("[ALL_JOURNEYS_AFTER_FILTER]", {
+        count: journeys.length,
+        filters: filters
+      });
+
+      logger.info('Public journeys fetched', {
+        count: journeys.length,
+        hasFilters: !!filters,
+      });
+
       return journeys;
-    } catch (error: any) {
-      // Don't re-wrap errors that are already Error instances from our own code
+    } catch (error) {
+      logger.error('Failed to fetch public journeys', error as Error, { filters });
+
       if (error instanceof Error) {
         throw error;
       }
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Failed to fetch public journeys";
-      throw new Error(errorMessage);
+      throw new Error(ErrorHandler.extractMessage(error) || ERROR_MESSAGES.JOURNEY.FETCH_LIST_FAILED);
     }
   }
 
+  /**
+   * Get journey by ID
+   */
   async getJourneyById(id: string): Promise<Journey> {
+    logger.debug('Fetching journey by ID', { journeyId: id });
+
     try {
-      if (!id || typeof id !== "string") {
-        throw new Error("Valid journey ID is required");
-      }
+      this.validateJourneyId(id);
 
       const response = await apiClient.getJourney(id);
 
       if (response.statusCode !== 10000 || !response.data) {
-        throw new Error(response.message || "Failed to fetch journey");
+        throw new Error(response.message || ERROR_MESSAGES.JOURNEY.FETCH_FAILED);
       }
 
+      logger.info('Journey fetched successfully', {
+        journeyId: id,
+        title: response.data.title,
+      });
+
       return response.data;
-    } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Failed to fetch journey details";
-      throw new Error(errorMessage);
+    } catch (error) {
+      logger.error('Failed to fetch journey', error as Error, { journeyId: id });
+      throw new Error(ErrorHandler.extractMessage(error) || ERROR_MESSAGES.JOURNEY.FETCH_FAILED);
     }
   }
 
+  /**
+   * Create a new journey
+   */
   async createJourney(data: CreateJourneyDto): Promise<Journey> {
+    logger.info('Creating journey', {
+      title: data.title,
+      hasDescription: !!data.description,
+    });
+
     try {
-      // Validate input data
-      if (
-        !data.title ||
-        typeof data.title !== "string" ||
-        data.title.trim().length === 0
-      ) {
-        throw new Error("Journey title is required");
-      }
-
-      if (data.title.length > 100) {
-        throw new Error("Journey title cannot exceed 100 characters");
-      }
-
-      if (data.description && data.description.length > 500) {
-        throw new Error("Journey description cannot exceed 500 characters");
-      }
+      this.validateJourneyCreateData(data);
 
       const journeyData = {
         title: data.title.trim(),
@@ -143,89 +221,41 @@ export class JourneyService implements IJourneyService {
       const response = await apiClient.createJourney(journeyData);
 
       if (response.statusCode !== 201 && response.statusCode !== 200) {
-        throw new Error(response.message || "Failed to create journey");
+        throw new Error(response.message || ERROR_MESSAGES.JOURNEY.CREATE_FAILED);
       }
 
       if (!response.data) {
-        throw new Error("No journey data returned from server");
+        throw new Error('No journey data returned from server');
       }
 
+      logger.info('Journey created successfully', {
+        journeyId: response.data.id,
+        title: response.data.title,
+      });
+
+      logger.trackEvent('journey_created', {
+        journeyId: response.data.id,
+        hasDescription: !!data.description,
+      });
+
       return response.data;
-    } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Failed to create journey";
-      throw new Error(errorMessage);
+    } catch (error) {
+      logger.error('Failed to create journey', error as Error, { data });
+      throw new Error(ErrorHandler.extractMessage(error) || ERROR_MESSAGES.JOURNEY.CREATE_FAILED);
     }
   }
 
-  async createComprehensiveJourney(
-    data: CreateComprehensiveJourneyDto
-  ): Promise<Journey> {
+  /**
+   * Create comprehensive journey with days and places
+   */
+  async createComprehensiveJourney(data: CreateComprehensiveJourneyDto): Promise<Journey> {
+    logger.info('Creating comprehensive journey', {
+      title: data.title,
+      daysCount: data.days?.length || 0,
+    });
+
     try {
-      // Validate input data
-      if (
-        !data.title ||
-        typeof data.title !== "string" ||
-        data.title.trim().length === 0
-      ) {
-        throw new Error("Journey title is required");
-      }
-
-      if (data.title.length > 100) {
-        throw new Error("Journey title cannot exceed 100 characters");
-      }
-
-      if (data.description && data.description.length > 500) {
-        throw new Error("Journey description cannot exceed 500 characters");
-      }
-
-      if (!data.days || !Array.isArray(data.days) || data.days.length === 0) {
-        throw new Error("At least one day is required for the journey");
-      }
-
-      // Validate each day
-      data.days.forEach((day, index) => {
-        if (!day.date || typeof day.date !== "string") {
-          throw new Error(`Day ${index + 1} must have a valid date`);
-        }
-
-        if (day.dayNumber <= 0) {
-          throw new Error(`Day ${index + 1} must have a valid day number`);
-        }
-
-        if (!day.places || !Array.isArray(day.places)) {
-          throw new Error(`Day ${index + 1} must have a places array`);
-        }
-
-        // Validate each place
-        day.places.forEach((place, placeIndex) => {
-          if (
-            !place.name ||
-            typeof place.name !== "string" ||
-            place.name.trim().length === 0
-          ) {
-            throw new Error(
-              `Day ${index + 1}, Place ${placeIndex + 1} must have a valid name`
-            );
-          }
-
-          if (
-            !Object.values([
-              "STAY",
-              "ACTIVITY",
-              "FOOD",
-              "TRANSPORT",
-              "NOTE",
-            ]).includes(place.type)
-          ) {
-            throw new Error(
-              `Day ${index + 1}, Place ${placeIndex + 1} must have a valid type`
-            );
-          }
-        });
-      });
+      this.validateComprehensiveJourneyData(data);
 
       const journeyData = {
         title: data.title.trim(),
@@ -243,44 +273,43 @@ export class JourneyService implements IJourneyService {
       const response = await apiClient.createComprehensiveJourney(journeyData);
 
       if (response.statusCode !== 201 && response.statusCode !== 200) {
-        throw new Error(
-          response.message || "Failed to create comprehensive journey"
-        );
+        throw new Error(response.message || ERROR_MESSAGES.JOURNEY.CREATE_FAILED);
       }
 
       if (!response.data) {
-        throw new Error("No journey data returned from server");
+        throw new Error('No journey data returned from server');
       }
 
+      logger.info('Comprehensive journey created', {
+        journeyId: response.data.id,
+        daysCount: data.days.length,
+      });
+
+      logger.trackEvent('comprehensive_journey_created', {
+        journeyId: response.data.id,
+        daysCount: data.days.length,
+      });
+
       return response.data;
-    } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Failed to create comprehensive journey";
-      throw new Error(errorMessage);
+    } catch (error) {
+      logger.error('Failed to create comprehensive journey', error as Error, { data });
+      throw new Error(ErrorHandler.extractMessage(error) || ERROR_MESSAGES.JOURNEY.CREATE_FAILED);
     }
   }
 
+  /**
+   * Update journey
+   */
   async updateJourney(id: string, data: UpdateJourneyDto): Promise<Journey> {
+    logger.info('Updating journey', {
+      journeyId: id,
+      hasTitle: !!data.title,
+      hasDescription: data.description !== undefined,
+    });
+
     try {
-      if (!id || typeof id !== "string") {
-        throw new Error("Valid journey ID is required");
-      }
-
-      // Validate update data
-      if (data.title !== undefined) {
-        if (typeof data.title !== "string" || data.title.trim().length === 0) {
-          throw new Error("Journey title cannot be empty");
-        }
-        if (data.title.length > 100) {
-          throw new Error("Journey title cannot exceed 100 characters");
-        }
-      }
-
-      if (data.description !== undefined && data.description.length > 500) {
-        throw new Error("Journey description cannot exceed 500 characters");
-      }
+      this.validateJourneyId(id);
+      this.validateJourneyUpdateData(data);
 
       const updateData = {
         ...(data.title !== undefined && { title: data.title.trim() }),
@@ -292,50 +321,76 @@ export class JourneyService implements IJourneyService {
       const response = await apiClient.updateJourney(id, updateData);
 
       if (response.statusCode !== 200 || !response.data) {
-        throw new Error(response.message || "Failed to update journey");
+        throw new Error(response.message || ERROR_MESSAGES.JOURNEY.UPDATE_FAILED);
       }
 
+      logger.info('Journey updated successfully', {
+        journeyId: id,
+      });
+
+      logger.trackEvent('journey_updated', {
+        journeyId: id,
+        updatedFields: Object.keys(updateData),
+      });
+
       return response.data;
-    } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Failed to update journey";
-      throw new Error(errorMessage);
+    } catch (error) {
+      logger.error('Failed to update journey', error as Error, { journeyId: id, data });
+      throw new Error(ErrorHandler.extractMessage(error) || ERROR_MESSAGES.JOURNEY.UPDATE_FAILED);
     }
   }
 
+  /**
+   * Delete journey
+   */
   async deleteJourney(id: string): Promise<void> {
+    logger.info('Deleting journey', { journeyId: id });
+
     try {
-      if (!id || typeof id !== "string") {
-        throw new Error("Valid journey ID is required");
-      }
+      this.validateJourneyId(id);
 
       const response = await apiClient.deleteJourney(id);
 
-      if (response.statusCode !== 200 && response.statusCode !== 204) {
-        throw new Error(response.message || "Failed to delete journey");
+      // Backend returns { success: true } for successful deletion
+      // Also check for statusCode in case response format changes
+      const isSuccess = response?.success === true || 
+                       (response?.statusCode && [200, 204, 10000].includes(response.statusCode));
+      
+      if (!isSuccess) {
+        throw new Error(response?.message || ERROR_MESSAGES.JOURNEY.DELETE_FAILED);
       }
-    } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Failed to delete journey";
-      throw new Error(errorMessage);
+
+      logger.info('Journey deleted successfully', { journeyId: id });
+
+      logger.trackEvent('journey_deleted', { journeyId: id });
+    } catch (error) {
+      const errorMessage = ErrorHandler.extractMessage(error);
+      
+      // Don't log error if journey is already deleted (idempotent operation)
+      if (!errorMessage.toLowerCase().includes('journey not found')) {
+        logger.error('Failed to delete journey', error as Error, { journeyId: id });
+      }
+      
+      throw new Error(errorMessage || ERROR_MESSAGES.JOURNEY.DELETE_FAILED);
     }
   }
 
+  /**
+   * Get journey statistics
+   */
   async getJourneyStats(userId?: string): Promise<JourneyStats> {
+    logger.debug('Fetching journey stats', { userId });
+
     try {
       const journeys = userId
-        ? await this.getAllJourneys() // In a real app, we'd have a getUserJourneys method
+        ? await this.getAllJourneys()
         : await this.getMyJourneys();
 
       const stats: JourneyStats = {
         totalJourneys: journeys.length,
-        publishedJourneys: journeys.length, // Assuming all returned journeys are published
-        draftJourneys: 0, // Would need status field on Journey interface
-        archivedJourneys: 0, // Would need status field on Journey interface
+        publishedJourneys: journeys.length,
+        draftJourneys: 0,
+        archivedJourneys: 0,
         totalPlaces: journeys.reduce((total, journey) => {
           return (
             total +
@@ -350,28 +405,29 @@ export class JourneyService implements IJourneyService {
         mostVisitedLocation: this.getMostVisitedLocation(journeys),
       };
 
+      logger.debug('Journey stats calculated', stats);
+
       return stats;
-    } catch (error: any) {
-      const errorMessage =
-        error?.message || "Failed to fetch journey statistics";
-      throw new Error(errorMessage);
+    } catch (error) {
+      logger.error('Failed to fetch journey stats', error as Error, { userId });
+      throw new Error(ErrorHandler.extractMessage(error) || ERROR_MESSAGES.JOURNEY.FETCH_FAILED);
     }
   }
 
-  async searchJourneys(
-    query: string,
-    filters?: JourneyFilters
-  ): Promise<Journey[]> {
+  /**
+   * Search journeys
+   */
+  async searchJourneys(query: string, filters?: JourneyFilters): Promise<Journey[]> {
+    logger.debug('Searching journeys', { query, filters });
+
     try {
-      if (!query || typeof query !== "string") {
-        throw new Error("Search query is required");
+      if (!query || typeof query !== 'string') {
+        throw new Error('Search query is required');
       }
 
-      // For now, we'll search through all journeys client-side
-      // In a production app, this would be server-side search
       const allJourneys = await this.getAllJourneys(filters);
-
       const searchTerm = query.toLowerCase().trim();
+
       const filteredJourneys = allJourneys.filter(
         (journey) =>
           journey.title.toLowerCase().includes(searchTerm) ||
@@ -379,39 +435,54 @@ export class JourneyService implements IJourneyService {
           journey.user.username.toLowerCase().includes(searchTerm)
       );
 
+      logger.info('Journey search completed', {
+        query,
+        resultCount: filteredJourneys.length,
+      });
+
+      logger.trackEvent('journeys_searched', {
+        query,
+        resultCount: filteredJourneys.length,
+      });
+
       return filteredJourneys;
-    } catch (error: any) {
-      const errorMessage = error?.message || "Failed to search journeys";
-      throw new Error(errorMessage);
+    } catch (error) {
+      logger.error('Journey search failed', error as Error, { query });
+      throw new Error(ErrorHandler.extractMessage(error) || ERROR_MESSAGES.JOURNEY.SEARCH_FAILED);
     }
   }
 
-  async shareJourney(
-    id: string,
-    shareData: { isPublic: boolean }
-  ): Promise<void> {
-    try {
-      if (!id || typeof id !== "string") {
-        throw new Error("Valid journey ID is required");
-      }
+  /**
+   * Share journey (toggle public/private)
+   */
+  async shareJourney(id: string, shareData: { isPublic: boolean }): Promise<void> {
+    logger.info('Sharing journey', { journeyId: id, isPublic: shareData.isPublic });
 
-      // This would be implemented based on your API
-      // For now, we'll simulate with an update call
+    try {
+      this.validateJourneyId(id);
+
       await this.updateJourney(id, {
-        // In a real implementation, we'd have a `isPublic` field
         description: shareData.isPublic ? "Public journey" : "Private journey",
       });
-    } catch (error: any) {
-      const errorMessage = error?.message || "Failed to share journey";
-      throw new Error(errorMessage);
+
+      logger.trackEvent('journey_shared', {
+        journeyId: id,
+        isPublic: shareData.isPublic,
+      });
+    } catch (error) {
+      logger.error('Failed to share journey', error as Error, { journeyId: id });
+      throw new Error(ErrorHandler.extractMessage(error) || ERROR_MESSAGES.JOURNEY.UPDATE_FAILED);
     }
   }
 
+  /**
+   * Duplicate journey
+   */
   async duplicateJourney(id: string, newTitle?: string): Promise<Journey> {
+    logger.info('Duplicating journey', { journeyId: id, newTitle });
+
     try {
-      if (!id || typeof id !== "string") {
-        throw new Error("Valid journey ID is required");
-      }
+      this.validateJourneyId(id);
 
       const originalJourney = await this.getJourneyById(id);
       const duplicatedTitle = newTitle || `${originalJourney.title} (Copy)`;
@@ -421,25 +492,31 @@ export class JourneyService implements IJourneyService {
         description: originalJourney.description,
       };
 
-      return await this.createJourney(createData);
-    } catch (error: any) {
-      const errorMessage = error?.message || "Failed to duplicate journey";
-      throw new Error(errorMessage);
+      const duplicated = await this.createJourney(createData);
+
+      logger.trackEvent('journey_duplicated', {
+        originalId: id,
+        duplicatedId: duplicated.id,
+      });
+
+      return duplicated;
+    } catch (error) {
+      logger.error('Failed to duplicate journey', error as Error, { journeyId: id });
+      throw new Error(ErrorHandler.extractMessage(error) || ERROR_MESSAGES.JOURNEY.CREATE_FAILED);
     }
   }
 
-  // Detailed Journey operations
+  /**
+   * Get detailed journey
+   */
   async getDetailedJourney(id: string): Promise<DetailedJourney> {
-    try {
-      if (!id || typeof id !== "string") {
-        throw new Error("Valid journey ID is required");
-      }
+    logger.debug('Fetching detailed journey', { journeyId: id });
 
-      // For now, we'll create a mock detailed journey based on the basic journey
-      // In a real implementation, this would be a separate API endpoint
+    try {
+      this.validateJourneyId(id);
+
       const basicJourney = await this.getJourneyById(id);
 
-      // Convert to detailed journey with mock data
       const detailedJourney: DetailedJourney = {
         ...basicJourney,
         banner: this.createDefaultBanner(basicJourney),
@@ -449,49 +526,56 @@ export class JourneyService implements IJourneyService {
         isPublic: false,
         tags: ["adventure", "cultural", "food"],
         difficulty: "moderate",
-        duration: 72, // 3 days in hours
-        distance: 50, // km
+        duration: 72,
+        distance: 50,
         transportation: ["car", "walking"],
         bestTimeToVisit: "Oct-Mar",
         language: "English",
       };
 
+      logger.debug('Detailed journey created', {
+        journeyId: id,
+        daysCount: detailedJourney.days.length,
+      });
+
       return detailedJourney;
-    } catch (error: any) {
-      const errorMessage = error?.message || "Failed to fetch detailed journey";
-      throw new Error(errorMessage);
+    } catch (error) {
+      logger.error('Failed to fetch detailed journey', error as Error, { journeyId: id });
+      throw new Error(ErrorHandler.extractMessage(error) || ERROR_MESSAGES.JOURNEY.FETCH_FAILED);
     }
   }
 
-  async updateJourneyBanner(
-    id: string,
-    banner: JourneyBanner
-  ): Promise<DetailedJourney> {
-    try {
-      if (!id || typeof id !== "string") {
-        throw new Error("Valid journey ID is required");
-      }
+  /**
+   * Update journey banner
+   */
+  async updateJourneyBanner(id: string, banner: JourneyBanner): Promise<DetailedJourney> {
+    logger.info('Updating journey banner', { journeyId: id });
 
-      // In a real implementation, this would update the banner on the server
+    try {
+      this.validateJourneyId(id);
+
       const detailedJourney = await this.getDetailedJourney(id);
+
+      logger.trackEvent('journey_banner_updated', { journeyId: id });
+
       return {
         ...detailedJourney,
         banner,
       };
-    } catch (error: any) {
-      const errorMessage = error?.message || "Failed to update journey banner";
-      throw new Error(errorMessage);
+    } catch (error) {
+      logger.error('Failed to update journey banner', error as Error, { journeyId: id });
+      throw new Error(ErrorHandler.extractMessage(error) || ERROR_MESSAGES.JOURNEY.UPDATE_FAILED);
     }
   }
 
-  async addDayToJourney(
-    id: string,
-    day: { date: string }
-  ): Promise<DetailedJourney> {
+  /**
+   * Add day to journey
+   */
+  async addDayToJourney(id: string, day: { date: string }): Promise<DetailedJourney> {
+    logger.info('Adding day to journey', { journeyId: id, date: day.date });
+
     try {
-      if (!id || typeof id !== "string") {
-        throw new Error("Valid journey ID is required");
-      }
+      this.validateJourneyId(id);
 
       const detailedJourney = await this.getDetailedJourney(id);
       const newDay: DetailedJourneyDay = {
@@ -507,55 +591,60 @@ export class JourneyService implements IJourneyService {
         },
       };
 
+      logger.trackEvent('journey_day_added', {
+        journeyId: id,
+        dayNumber: newDay.dayNumber,
+      });
+
       return {
         ...detailedJourney,
         days: [...detailedJourney.days, newDay],
       };
-    } catch (error: any) {
-      const errorMessage = error?.message || "Failed to add day to journey";
-      throw new Error(errorMessage);
+    } catch (error) {
+      logger.error('Failed to add day to journey', error as Error, { journeyId: id });
+      throw new Error(ErrorHandler.extractMessage(error) || ERROR_MESSAGES.JOURNEY.UPDATE_FAILED);
     }
   }
 
-  async removeDayFromJourney(
-    id: string,
-    dayId: string
-  ): Promise<DetailedJourney> {
+  /**
+   * Remove day from journey
+   */
+  async removeDayFromJourney(id: string, dayId: string): Promise<DetailedJourney> {
+    logger.info('Removing day from journey', { journeyId: id, dayId });
+
     try {
-      if (!id || typeof id !== "string") {
-        throw new Error("Valid journey ID is required");
-      }
+      this.validateJourneyId(id);
 
       const detailedJourney = await this.getDetailedJourney(id);
-      const updatedDays = detailedJourney.days.filter(
-        (day) => day.id !== dayId
-      );
+      const updatedDays = detailedJourney.days.filter((day) => day.id !== dayId);
 
-      // Renumber days
       updatedDays.forEach((day, index) => {
         day.dayNumber = index + 1;
       });
+
+      logger.trackEvent('journey_day_removed', { journeyId: id, dayId });
 
       return {
         ...detailedJourney,
         days: updatedDays,
       };
-    } catch (error: any) {
-      const errorMessage =
-        error?.message || "Failed to remove day from journey";
-      throw new Error(errorMessage);
+    } catch (error) {
+      logger.error('Failed to remove day from journey', error as Error, { journeyId: id, dayId });
+      throw new Error(ErrorHandler.extractMessage(error) || ERROR_MESSAGES.JOURNEY.UPDATE_FAILED);
     }
   }
 
-  // Activity management
-  async addActivityToDay(
-    journeyId: string,
-    data: AddActivityData
-  ): Promise<JourneyLocation> {
+  /**
+   * Add activity to day
+   */
+  async addActivityToDay(journeyId: string, data: AddActivityData): Promise<JourneyLocation> {
+    logger.info('Adding activity to journey day', {
+      journeyId,
+      category: data.category,
+    });
+
     try {
-      if (!journeyId || typeof journeyId !== "string") {
-        throw new Error("Valid journey ID is required");
-      }
+      this.validateJourneyId(journeyId);
 
       const newLocation: JourneyLocation = {
         id: `location-${Date.now()}`,
@@ -563,24 +652,30 @@ export class JourneyService implements IJourneyService {
         ...data.location,
       };
 
-      // In a real implementation, this would save to the server
+      logger.trackEvent('journey_activity_added', {
+        journeyId,
+        category: data.category,
+      });
+
       return newLocation;
-    } catch (error: any) {
-      const errorMessage = error?.message || "Failed to add activity";
-      throw new Error(errorMessage);
+    } catch (error) {
+      logger.error('Failed to add activity', error as Error, { journeyId });
+      throw new Error(ErrorHandler.extractMessage(error) || ERROR_MESSAGES.JOURNEY.UPDATE_FAILED);
     }
   }
 
-  async updateActivity(
-    journeyId: string,
-    data: UpdateActivityData
-  ): Promise<JourneyLocation> {
-    try {
-      if (!journeyId || typeof journeyId !== "string") {
-        throw new Error("Valid journey ID is required");
-      }
+  /**
+   * Update activity
+   */
+  async updateActivity(journeyId: string, data: UpdateActivityData): Promise<JourneyLocation> {
+    logger.info('Updating journey activity', {
+      journeyId,
+      locationId: data.locationId,
+    });
 
-      // Mock implementation - in reality, this would update the server
+    try {
+      this.validateJourneyId(journeyId);
+
       const updatedLocation: JourneyLocation = {
         id: data.locationId,
         name: data.updates.name || "Updated Location",
@@ -590,60 +685,77 @@ export class JourneyService implements IJourneyService {
         ...data.updates,
       };
 
+      logger.trackEvent('journey_activity_updated', {
+        journeyId,
+        locationId: data.locationId,
+      });
+
       return updatedLocation;
-    } catch (error: any) {
-      const errorMessage = error?.message || "Failed to update activity";
-      throw new Error(errorMessage);
+    } catch (error) {
+      logger.error('Failed to update activity', error as Error, { journeyId });
+      throw new Error(ErrorHandler.extractMessage(error) || ERROR_MESSAGES.JOURNEY.UPDATE_FAILED);
     }
   }
 
+  /**
+   * Remove activity
+   */
   async removeActivity(journeyId: string, locationId: string): Promise<void> {
+    logger.info('Removing activity from journey', { journeyId, locationId });
+
     try {
-      if (!journeyId || typeof journeyId !== "string") {
-        throw new Error("Valid journey ID is required");
-      }
-      if (!locationId || typeof locationId !== "string") {
-        throw new Error("Valid location ID is required");
+      this.validateJourneyId(journeyId);
+
+      if (!locationId || typeof locationId !== 'string') {
+        throw new Error('Valid location ID is required');
       }
 
-      // In a real implementation, this would delete from the server
-    } catch (error: any) {
-      const errorMessage = error?.message || "Failed to remove activity";
-      throw new Error(errorMessage);
+      logger.trackEvent('journey_activity_removed', { journeyId, locationId });
+    } catch (error) {
+      logger.error('Failed to remove activity', error as Error, { journeyId, locationId });
+      throw new Error(ErrorHandler.extractMessage(error) || ERROR_MESSAGES.JOURNEY.UPDATE_FAILED);
     }
   }
 
-  async reorderActivities(
-    journeyId: string,
-    dayId: string,
-    locationIds: string[]
-  ): Promise<void> {
+  /**
+   * Reorder activities
+   */
+  async reorderActivities(journeyId: string, dayId: string, locationIds: string[]): Promise<void> {
+    logger.debug('Reordering journey activities', {
+      journeyId,
+      dayId,
+      count: locationIds.length,
+    });
+
     try {
-      if (!journeyId || typeof journeyId !== "string") {
-        throw new Error("Valid journey ID is required");
-      }
-      if (!dayId || typeof dayId !== "string") {
-        throw new Error("Valid day ID is required");
+      this.validateJourneyId(journeyId);
+
+      if (!dayId || typeof dayId !== 'string') {
+        throw new Error('Valid day ID is required');
       }
 
-      // In a real implementation, this would reorder activities on the server
-    } catch (error: any) {
-      const errorMessage = error?.message || "Failed to reorder activities";
-      throw new Error(errorMessage);
+      logger.trackEvent('journey_activities_reordered', {
+        journeyId,
+        dayId,
+        count: locationIds.length,
+      });
+    } catch (error) {
+      logger.error('Failed to reorder activities', error as Error, { journeyId, dayId });
+      throw new Error(ErrorHandler.extractMessage(error) || ERROR_MESSAGES.JOURNEY.UPDATE_FAILED);
     }
   }
 
-  // Location services
-  async searchLocations(
-    query: string,
-    center?: { lat: number; lng: number }
-  ): Promise<JourneyLocation[]> {
+  /**
+   * Search locations
+   */
+  async searchLocations(query: string, center?: { lat: number; lng: number }): Promise<JourneyLocation[]> {
+    logger.debug('Searching locations', { query, hasCenter: !!center });
+
     try {
-      if (!query || typeof query !== "string") {
-        throw new Error("Search query is required");
+      if (!query || typeof query !== 'string') {
+        throw new Error('Search query is required');
       }
 
-      // Mock location search - in reality, this would use Google Places API or similar
       const mockLocations: JourneyLocation[] = [
         {
           id: "loc1",
@@ -665,20 +777,29 @@ export class JourneyService implements IJourneyService {
         },
       ];
 
+      logger.debug('Location search completed', {
+        query,
+        resultCount: mockLocations.length,
+      });
+
       return mockLocations;
-    } catch (error: any) {
-      const errorMessage = error?.message || "Failed to search locations";
-      throw new Error(errorMessage);
+    } catch (error) {
+      logger.error('Location search failed', error as Error, { query });
+      throw new Error(ErrorHandler.extractMessage(error) || 'Failed to search locations');
     }
   }
 
+  /**
+   * Get location details
+   */
   async getLocationDetails(locationId: string): Promise<JourneyLocation> {
+    logger.debug('Fetching location details', { locationId });
+
     try {
-      if (!locationId || typeof locationId !== "string") {
-        throw new Error("Valid location ID is required");
+      if (!locationId || typeof locationId !== 'string') {
+        throw new Error('Valid location ID is required');
       }
 
-      // Mock location details
       const mockLocation: JourneyLocation = {
         id: locationId,
         name: "Sample Location",
@@ -695,24 +816,132 @@ export class JourneyService implements IJourneyService {
         images: [],
       };
 
+      logger.debug('Location details fetched', { locationId });
+
       return mockLocation;
-    } catch (error: any) {
-      const errorMessage = error?.message || "Failed to fetch location details";
-      throw new Error(errorMessage);
+    } catch (error) {
+      logger.error('Failed to fetch location details', error as Error, { locationId });
+      throw new Error(ErrorHandler.extractMessage(error) || 'Failed to fetch location details');
     }
   }
 
-  // Private helper methods
-  private applyFilters(
-    journeys: Journey[],
-    filters: JourneyFilters
-  ): Journey[] {
+  // ==================== Private Helper Methods (SRP) ====================
+
+  /**
+   * Validate journey ID
+   * Single Responsibility: Separate validation logic
+   */
+  private validateJourneyId(id: string): void {
+    if (!id || typeof id !== 'string') {
+      throw new Error('Valid journey ID is required');
+    }
+  }
+
+  /**
+   * Validate journey create data
+   * Single Responsibility: Separate validation logic
+   */
+  private validateJourneyCreateData(data: CreateJourneyDto): void {
+    if (!data.title || typeof data.title !== 'string' || data.title.trim().length === 0) {
+      throw new Error(ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD('Journey title'));
+    }
+
+    if (data.title.length > VALIDATION_RULES.JOURNEY.TITLE_MAX_LENGTH) {
+      throw new Error(
+        ERROR_MESSAGES.VALIDATION.MAX_LENGTH('Journey title', VALIDATION_RULES.JOURNEY.TITLE_MAX_LENGTH)
+      );
+    }
+
+    if (data.description && data.description.length > VALIDATION_RULES.JOURNEY.DESCRIPTION_MAX_LENGTH) {
+      throw new Error(
+        ERROR_MESSAGES.VALIDATION.MAX_LENGTH('Journey description', VALIDATION_RULES.JOURNEY.DESCRIPTION_MAX_LENGTH)
+      );
+    }
+  }
+
+  /**
+   * Validate comprehensive journey data
+   * Single Responsibility: Separate validation logic
+   */
+  private validateComprehensiveJourneyData(data: CreateComprehensiveJourneyDto): void {
+    this.validateJourneyCreateData(data);
+
+    if (!data.days || !Array.isArray(data.days) || data.days.length === 0) {
+      throw new Error('At least one day is required for the journey');
+    }
+
+    data.days.forEach((day, index) => {
+      if (!day.date || typeof day.date !== 'string') {
+        throw new Error(`Day ${index + 1} must have a valid date`);
+      }
+
+      if (day.dayNumber <= 0) {
+        throw new Error(`Day ${index + 1} must have a valid day number`);
+      }
+
+      if (!day.places || !Array.isArray(day.places)) {
+        throw new Error(`Day ${index + 1} must have a places array`);
+      }
+
+      day.places.forEach((place, placeIndex) => {
+        if (!place.name || typeof place.name !== 'string' || place.name.trim().length === 0) {
+          throw new Error(`Day ${index + 1}, Place ${placeIndex + 1} must have a valid name`);
+        }
+
+        if (!['STAY', 'ACTIVITY', 'FOOD', 'TRANSPORT', 'NOTE'].includes(place.type)) {
+          throw new Error(`Day ${index + 1}, Place ${placeIndex + 1} must have a valid type`);
+        }
+      });
+    });
+  }
+
+  /**
+   * Validate journey update data
+   * Single Responsibility: Separate validation logic
+   */
+  private validateJourneyUpdateData(data: UpdateJourneyDto): void {
+    if (data.title !== undefined) {
+      if (typeof data.title !== 'string' || data.title.trim().length === 0) {
+        throw new Error('Journey title cannot be empty');
+      }
+      if (data.title.length > VALIDATION_RULES.JOURNEY.TITLE_MAX_LENGTH) {
+        throw new Error(
+          ERROR_MESSAGES.VALIDATION.MAX_LENGTH('Journey title', VALIDATION_RULES.JOURNEY.TITLE_MAX_LENGTH)
+        );
+      }
+    }
+
+    if (data.description !== undefined && data.description.length > VALIDATION_RULES.JOURNEY.DESCRIPTION_MAX_LENGTH) {
+      throw new Error(
+        ERROR_MESSAGES.VALIDATION.MAX_LENGTH('Journey description', VALIDATION_RULES.JOURNEY.DESCRIPTION_MAX_LENGTH)
+      );
+    }
+  }
+
+  /**
+   * Extract journeys from response
+   * Single Responsibility: Separate data extraction logic
+   */
+  private extractJourneysFromResponse(data: unknown): Journey[] {
+    if (data && typeof data === 'object' && 'data' in data && Array.isArray((data as any).data)) {
+      return (data as any).data;
+    } else if (Array.isArray(data)) {
+      return data;
+    } else {
+      throw new Error('Invalid response format: journeys data not found');
+    }
+  }
+
+  /**
+   * Apply filters to journeys
+   * Single Responsibility: Separate filtering logic
+   */
+  private applyFilters(journeys: Journey[], filters: JourneyFilters): Journey[] {
     let filtered = [...journeys];
 
-    // Apply sorting
     if (filters.sortBy) {
       filtered.sort((a, b) => {
-        let valueA: any, valueB: any;
+        let valueA: unknown, valueB: unknown;
 
         switch (filters.sortBy) {
           case "title":
@@ -740,7 +969,6 @@ export class JourneyService implements IJourneyService {
       });
     }
 
-    // Apply pagination
     if (filters.offset || filters.limit) {
       const start = filters.offset || 0;
       const end = filters.limit ? start + filters.limit : undefined;
@@ -750,6 +978,10 @@ export class JourneyService implements IJourneyService {
     return filtered;
   }
 
+  /**
+   * Get most visited location
+   * Single Responsibility: Separate calculation logic
+   */
   private getMostVisitedLocation(journeys: Journey[]): string | undefined {
     const locationCount: Record<string, number> = {};
 
@@ -775,21 +1007,32 @@ export class JourneyService implements IJourneyService {
     return mostVisited;
   }
 
+  /**
+   * Create default banner
+   * Single Responsibility: Separate banner creation logic
+   */
   private createDefaultBanner(journey: Journey): JourneyBanner {
     return {
-      id: "banner-1",
       title: journey.title,
       subtitle: journey.description || "An amazing journey awaits",
+      description:
+        journey.description || "Journey details • Plan your adventure",
       imageUrl:
+        journey.coverImage ||
         "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&h=600&fit=crop",
-      overlayOpacity: 0.4,
-      textPosition: "center",
-      textColor: "#ffffff",
+      gradientColors: {
+        from: "#2563eb",
+        via: "#9333ea",
+        to: "#4338ca",
+      },
     };
   }
 
+  /**
+   * Create detailed days
+   * Single Responsibility: Separate transformation logic
+   */
   private createDetailedDays(journey: Journey): DetailedJourneyDay[] {
-    // If the journey already has days, convert them to detailed format
     if (journey.days && journey.days.length > 0) {
       return journey.days.map((day, index) => ({
         id: `day-${index + 1}`,
@@ -803,7 +1046,6 @@ export class JourneyService implements IJourneyService {
       }));
     }
 
-    // Create default 3-day structure
     return Array.from({ length: 3 }, (_, index) => ({
       id: `day-${index + 1}`,
       dayNumber: index + 1,
@@ -820,6 +1062,10 @@ export class JourneyService implements IJourneyService {
     }));
   }
 
+  /**
+   * Convert to detailed activities
+   * Single Responsibility: Separate conversion logic
+   */
   private convertToDetailedActivities(places: any[]): JourneyDayActivities {
     const activities: JourneyDayActivities = {
       placeToStay: [],
@@ -843,7 +1089,6 @@ export class JourneyService implements IJourneyService {
         images: place.images || [],
       };
 
-      // Categorize based on type or default to placesToGo
       switch (location.type) {
         case "placeToStay":
           activities.placeToStay.push(location);

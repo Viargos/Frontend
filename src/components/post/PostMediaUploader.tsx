@@ -105,7 +105,7 @@ export default function PostMediaUploader({
       {/* Upload Section */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium text-gray-700">Media</h3>
+          <h3 className="text-sm font-medium text-gray-700">Media (Optional)</h3>
           <p className="text-xs text-gray-500">
             {mediaItems.length}/{maxFiles} files
           </p>

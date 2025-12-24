@@ -16,12 +16,14 @@ interface OtpVerificationFormProps {
   email: string;
   onSuccess?: () => void;
   onResendOtp?: () => void;
+  isPasswordReset?: boolean;
 }
 
 export default function OtpVerificationForm({
   email,
   onSuccess,
   onResendOtp,
+  isPasswordReset = false,
 }: OtpVerificationFormProps) {
   const { verifyOtp, isLoading, error } = useAuthStore();
   const [resendTimer, setResendTimer] = useState(0);
@@ -65,7 +67,7 @@ export default function OtpVerificationForm({
 
   const onSubmit = async (data: OtpFormData) => {
     try {
-      const result = await verifyOtp(email, data.otp);
+      const result = await verifyOtp(email, data.otp, isPasswordReset);
       
       if (result.success) {
         // Call the success callback (handles modal closing and redirect)
@@ -117,10 +119,12 @@ export default function OtpVerificationForm({
     <div className="w-full max-w-md mx-auto">
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Verify your email
+          {isPasswordReset ? 'Verify Password Reset' : 'Verify your email'}
         </h2>
         <p className="text-gray-600">
-          We&apos;ve sent a verification code to{" "}
+          {isPasswordReset 
+            ? `We've sent a password reset code to `
+            : `We've sent a verification code to `}
           <span className="font-medium">{email}</span>
         </p>
       </div>
@@ -214,7 +218,7 @@ export default function OtpVerificationForm({
               Verifying...
             </div>
           ) : (
-            "Verify email"
+            isPasswordReset ? "Verify Code" : "Verify email"
           )}
         </button>
       </form>

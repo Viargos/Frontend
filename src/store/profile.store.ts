@@ -297,11 +297,44 @@ export const useProfileStore = create<ProfileStore>()(
             (journey) => journey.id !== journeyId
           );
 
-          set({ recentJourneys: updatedJourneys });
+          // Update stats - decrement journeys count
+          const currentStats = get().stats;
+          const updatedStats = currentStats ? {
+            ...currentStats,
+            journeys: Math.max(0, currentStats.journeys - 1)
+          } : null;
+
+          set({ 
+            recentJourneys: updatedJourneys,
+            stats: updatedStats
+          });
 
           return { success: true };
         } catch (error) {
           const errorMessage = get().extractErrorMessage(error);
+          
+          // Handle "Journey not found" gracefully - treat as success since journey is already deleted
+          if (errorMessage.toLowerCase().includes('journey not found')) {
+            // Remove from local state anyway since it's already deleted
+            const currentJourneys = get().recentJourneys;
+            const updatedJourneys = currentJourneys.filter(
+              (journey) => journey.id !== journeyId
+            );
+            
+            // Update stats - decrement journeys count
+            const currentStats = get().stats;
+            const updatedStats = currentStats ? {
+              ...currentStats,
+              journeys: Math.max(0, currentStats.journeys - 1)
+            } : null;
+            
+            set({ 
+              recentJourneys: updatedJourneys,
+              stats: updatedStats
+            });
+            return { success: true };
+          }
+          
           set({ error: errorMessage });
           return { success: false, error: errorMessage };
         } finally {

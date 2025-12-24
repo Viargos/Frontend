@@ -103,7 +103,17 @@ export const useJourneyStore = create<JourneyStore>()(
       loadMyJourneys: async (filters?: JourneyFilters) => {
         try {
           set({ isLoading: true, error: null });
-          const finalFilters = { ...get().filters, ...filters };
+          const baseFilters = { ...get().filters };
+          const finalFilters = { ...baseFilters, ...filters };
+          
+          // Explicitly remove limit/offset if they are undefined to ensure all journeys are loaded
+          if (filters?.limit === undefined) {
+            delete finalFilters.limit;
+          }
+          if (filters?.offset === undefined) {
+            delete finalFilters.offset;
+          }
+          
           const journeys = await journeyService.getMyJourneys(finalFilters);
           set({ 
             journeys, 
@@ -215,9 +225,27 @@ export const useJourneyStore = create<JourneyStore>()(
           
           return true;
         } catch (error: any) {
-          console.error('Failed to delete journey:', error);
+          const errorMessage = error.message || 'Failed to delete journey';
+          
+          // Handle "Journey not found" gracefully - treat as success since journey is already deleted
+          if (errorMessage.toLowerCase().includes('journey not found')) {
+            // Remove from local state anyway since it's already deleted
+            set((state) => ({
+              journeys: state.journeys.filter(journey => journey.id !== id),
+              currentJourney: state.currentJourney?.id === id 
+                ? null 
+                : state.currentJourney,
+              isDeleting: false,
+            }));
+            return true;
+          }
+          
+          // Only log actual errors, not "journey not found" cases
+          if (!errorMessage.toLowerCase().includes('journey not found')) {
+            console.error('Failed to delete journey:', error);
+          }
           set({ 
-            error: error.message || 'Failed to delete journey', 
+            error: errorMessage, 
             isDeleting: false 
           });
           return false;

@@ -128,14 +128,15 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
       setDeleteError(null);
 
       try {
-        // Extract the key from the URL for S3 deletion
         if (typeof itemToDelete.url !== "string") {
           throw new Error("Invalid URL format");
         }
-        const url = new URL(itemToDelete.url);
-        const key = url.pathname.substring(1); // Remove leading slash
 
-        await deleteMediaFile(key);
+        // Send the full URL (or key) to the backend; it can handle either
+        const result = await deleteMediaFile(itemToDelete.url);
+        if (!result.success) {
+          throw new Error(result.error || "Failed to delete file");
+        }
 
         // Remove from local state
         const updatedItems = mediaItems.filter((item) => item.id !== id);

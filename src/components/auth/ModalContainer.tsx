@@ -1,46 +1,32 @@
 'use client';
 
-import LoginModal from './LoginModal';
-import SignupModal from './SignupModal';
-import OtpModal from './OtpModal';
+import AuthModal from './AuthModal';
 import { useAuthStore } from '@/store/auth.store';
 
 export default function ModalContainer() {
   const {
     activeModal,
-    signupEmail,
     closeAllModals,
-    switchToLogin,
-    switchToSignup,
-    switchToOtp,
   } = useAuthStore();
 
+  // Map auth store modal types to AuthModal steps
+  const getInitialStep = (): 'login' | 'signup' | 'otp' => {
+    switch (activeModal) {
+      case 'signup':
+        return 'signup';
+      case 'otp':
+        return 'otp';
+      case 'login':
+      default:
+        return 'login';
+    }
+  };
+
   return (
-    <>
-      <LoginModal
-        isOpen={activeModal === 'login'}
-        onClose={closeAllModals}
-        onSwitchToSignup={switchToSignup}
-        onSwitchToForgotPassword={() => {
-          // You can handle forgot password here or create a separate modal
-          // For now, we'll just switch to login as a placeholder
-          switchToLogin();
-        }}
-      />
-
-      <SignupModal
-        isOpen={activeModal === 'signup'}
-        onClose={closeAllModals}
-        onSwitchToLogin={switchToLogin}
-        onSwitchToOtp={switchToOtp}
-      />
-
-      <OtpModal
-        isOpen={activeModal === 'otp'}
-        onClose={closeAllModals}
-        onSwitchToSignup={switchToSignup}
-        email={signupEmail}
-      />
-    </>
+    <AuthModal
+      isOpen={activeModal !== 'none'}
+      onClose={closeAllModals}
+      initialStep={getInitialStep()}
+    />
   );
 }

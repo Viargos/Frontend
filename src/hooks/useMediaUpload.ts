@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import {
   uploadToS3,
   uploadMultipleToS3,
-  deleteFromS3,
+  deleteMediaFile,
   UploadOptions,
   UploadResult,
   UploadProgress,
@@ -173,7 +173,7 @@ export const useMediaUpload = (): UseMediaUploadReturn => {
   const deleteFile = useCallback(
     async (key: string): Promise<{ success: boolean; error?: string }> => {
       try {
-        const result = await deleteFromS3(key);
+        const result = await deleteMediaFile(key);
 
         if (result.success) {
           // Remove the file from results if it exists

@@ -69,7 +69,7 @@ export default function DashboardPostsList({
     }
   }, [search, location, updateFilters]);
 
-  const handleLike = async (postId: string, isLiked: boolean) => {
+  const handleLike = async (postId: string, isLiked: boolean, newCount: number) => {
     try {
       if (isLiked) {
         await postService.unlikePost(postId);
@@ -80,7 +80,7 @@ export default function DashboardPostsList({
       // Update the post in the local state
       updatePost(postId, (post) => ({
         ...post,
-        likeCount: isLiked ? post.likeCount - 1 : post.likeCount + 1,
+        likeCount: newCount,
         isLikedByCurrentUser: !isLiked,
       }));
     } catch (err: any) {
@@ -95,12 +95,12 @@ export default function DashboardPostsList({
   if (isLoading) {
     return (
       <motion.div 
-        className={`flex justify-center py-16 ${className}`}
+        className={`flex items-center justify-center w-full min-h-[calc(100vh-250px)] py-20 ${className}`}
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
       >
-        <div className="text-center">
+        <div className="flex flex-col items-center justify-center text-center">
           <LoadingSpinner size="lg" />
           <motion.p 
             className="text-gray-500 mt-4 text-sm"
@@ -200,7 +200,7 @@ export default function DashboardPostsList({
           >
             <PostCard
               post={post}
-              onLike={handleLike}
+              onLikeChange={handleLike}
               onJourneyClick={handleJourneyClick}
             />
           </motion.div>

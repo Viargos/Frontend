@@ -64,11 +64,11 @@ export const PlaceCard: React.FC<PlaceCardProps> = ({
       >
         <div className="flex items-center gap-3">
           <motion.div 
-            className="flex min-w-10 min-h-10 flex-col justify-center items-center gap-2 rounded-full border border-gray-200 bg-gray-100"
+            className="flex min-w-10 min-h-10 w-10 h-10 flex-col justify-center items-center gap-0 rounded-full border border-gray-200 bg-gray-100 p-0 m-0"
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", stiffness: 400, damping: 10 }}
           >
-            <div className="w-5 h-5 opacity-70">
+            <div className="w-full h-full flex items-center justify-center p-0 m-0 opacity-70" style={{ maxWidth: '20px', maxHeight: '20px' }}>
               {getPlaceIcon()}
             </div>
           </motion.div>

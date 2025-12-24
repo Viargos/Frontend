@@ -1,5 +1,6 @@
 import { LoginCredentials, SignUpCredentials, User, AuthResponse } from '@/types/auth.types';
 import { ApiResponse } from './http-client.interface';
+import { UserDetailsResponse } from '@/types/user.types';
 
 export interface IAuthService {
   login(credentials: LoginCredentials): Promise<ApiResponse<AuthResponse>>;
@@ -8,7 +9,7 @@ export interface IAuthService {
   resendOtp(email: string): Promise<ApiResponse<{ message: string }>>;
   getProfile(): Promise<ApiResponse<User>>;
   forgotPassword(email: string): Promise<ApiResponse<{ message: string }>>;
-  resetPassword(token: string, password: string): Promise<ApiResponse<{ message: string }>>;
+  resetPassword(password: string): Promise<ApiResponse<{ message: string }>>;
 }
 
 export interface IUserService {
@@ -20,6 +21,7 @@ export interface IUserService {
     followers: number;
     following: number;
   }>>;
+  getUserDetails(userId: string): Promise<UserDetailsResponse>;
 }
 
 export interface IValidationService {

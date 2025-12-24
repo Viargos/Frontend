@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { CreateJourneyPlace, PlaceType } from '@/types/journey.types';
 import { useGooglePlaces } from '@/hooks/useGooglePlaces';
 import { PlacePhotoSection } from './PlacePhotoSection';
+import { geocodeAddress } from '@/utils/geocoding.utils';
+import { validateTimeRange } from '@/utils/time.utils';
 
 interface PlaceFormProps {
   place: CreateJourneyPlace;
@@ -29,10 +31,43 @@ export const PlaceForm: React.FC<PlaceFormProps> = ({
   } = useGooglePlaces();
 
   const fieldKey = `${dayKey}-${index}`;
+  const geocodeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isGeocoding, setIsGeocoding] = useState(false);
+  const lastGeocodedAddressRef = useRef<string>('');
 
   const handleAddressChange = (value: string) => {
     onUpdateField('address', value);
     handleAutocompletePredictions(value, fieldKey);
+    
+    // Clear existing geocode timeout
+    if (geocodeTimeoutRef.current) {
+      clearTimeout(geocodeTimeoutRef.current);
+    }
+
+    // If address changed and doesn't have coordinates, geocode after user stops typing
+    if (value && value.trim() && value !== lastGeocodedAddressRef.current) {
+      geocodeTimeoutRef.current = setTimeout(async () => {
+        // Only geocode if no coordinates exist or address changed
+        if (!place.latitude || !place.longitude || place.address !== value) {
+          setIsGeocoding(true);
+          const result = await geocodeAddress(value);
+          if (result) {
+            onUpdateField('latitude', result.lat);
+            onUpdateField('longitude', result.lng);
+            // Update address with formatted address if different
+            if (result.address !== value) {
+              onUpdateField('address', result.address);
+            }
+            // Update name if empty or if geocoding found a better name
+            if (!place.name || place.name === 'New Place' || place.name.startsWith('New ')) {
+              onUpdateField('name', result.name || result.address.split(',')[0]);
+            }
+            lastGeocodedAddressRef.current = result.address;
+          }
+          setIsGeocoding(false);
+        }
+      }, 1000); // Wait 1 second after user stops typing
+    }
   };
 
   const onPlaceSelected = (placeId: string, description: string) => {
@@ -41,8 +76,41 @@ export const PlaceForm: React.FC<PlaceFormProps> = ({
       onUpdateField('latitude', lat);
       onUpdateField('longitude', lng);
       onUpdateField('address', address);
+      lastGeocodedAddressRef.current = address;
     });
   };
+
+  // Geocode on blur if address exists but no coordinates
+  const handleAddressBlur = async () => {
+    hideSuggestions(fieldKey);
+    
+    const address = place.address?.trim();
+    if (address && (!place.latitude || !place.longitude)) {
+      setIsGeocoding(true);
+      const result = await geocodeAddress(address);
+      if (result) {
+        onUpdateField('latitude', result.lat);
+        onUpdateField('longitude', result.lng);
+        if (result.address !== address) {
+          onUpdateField('address', result.address);
+        }
+        if (!place.name || place.name === 'New Place' || place.name.startsWith('New ')) {
+          onUpdateField('name', result.name || result.address.split(',')[0]);
+        }
+        lastGeocodedAddressRef.current = result.address;
+      }
+      setIsGeocoding(false);
+    }
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (geocodeTimeoutRef.current) {
+        clearTimeout(geocodeTimeoutRef.current);
+      }
+    };
+  }, []);
 
   if (place.type === PlaceType.NOTE) {
     return (
@@ -100,9 +168,22 @@ export const PlaceForm: React.FC<PlaceFormProps> = ({
           <input
             type="time"
             value={place.startTime || ''}
-            onChange={(e) => onUpdateField('startTime', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-black focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent"
+            onChange={(e) => {
+              const timeValue = e.target.value;
+              onUpdateField('startTime', timeValue);
+            }}
+            className={`w-full px-3 py-2 border rounded-md text-sm text-black focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent ${
+              place.startTime && place.endTime && !validateTimeRange(place.startTime, place.endTime)
+                ? 'border-red-300 focus:ring-red-500'
+                : 'border-gray-300'
+            }`}
+            step="60"
           />
+          {place.startTime && place.endTime && !validateTimeRange(place.startTime, place.endTime) && (
+            <p className="text-xs text-red-600 mt-1">
+              Start time must be before end time
+            </p>
+          )}
         </div>
         <div>
           <label className="block text-sm font-medium text-black mb-1">
@@ -111,9 +192,22 @@ export const PlaceForm: React.FC<PlaceFormProps> = ({
           <input
             type="time"
             value={place.endTime || ''}
-            onChange={(e) => onUpdateField('endTime', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-black focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent"
+            onChange={(e) => {
+              const timeValue = e.target.value;
+              onUpdateField('endTime', timeValue);
+            }}
+            className={`w-full px-3 py-2 border rounded-md text-sm text-black focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent ${
+              place.startTime && place.endTime && !validateTimeRange(place.startTime, place.endTime)
+                ? 'border-red-300 focus:ring-red-500'
+                : 'border-gray-300'
+            }`}
+            step="60"
           />
+          {place.startTime && place.endTime && !validateTimeRange(place.startTime, place.endTime) && (
+            <p className="text-xs text-red-600 mt-1">
+              End time must be after start time
+            </p>
+          )}
         </div>
       </div>
 
@@ -127,7 +221,7 @@ export const PlaceForm: React.FC<PlaceFormProps> = ({
             type="text"
             value={place.address || ''}
             onChange={(e) => handleAddressChange(e.target.value)}
-            onBlur={() => hideSuggestions(fieldKey)}
+            onBlur={handleAddressBlur}
             placeholder="Search for a location (e.g., Eiffel Tower, Paris)"
             className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md text-sm text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent"
             autoComplete="off"
@@ -173,7 +267,12 @@ export const PlaceForm: React.FC<PlaceFormProps> = ({
         <p className="text-xs text-gray-500 mt-1">
           Start typing to see location suggestions
         </p>
-        {place.latitude && place.longitude && (
+        {isGeocoding && (
+          <p className="text-xs text-blue-600 mt-1">
+            🔍 Finding location...
+          </p>
+        )}
+        {place.latitude && place.longitude && !isGeocoding && (
           <p className="text-xs text-green-600 mt-1">
             ✓ Location found: {place.latitude.toFixed(6)}, {place.longitude.toFixed(6)}
           </p>

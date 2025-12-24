@@ -22,6 +22,10 @@ export const PlacePhotoSection: React.FC<PlacePhotoSectionProps> = ({
 
   // Handle photos uploaded from the modal
   const handlePhotosUploaded = (photoKeys: string[]) => {
+    console.log("Photos uploaded for place:", {
+      placeId,
+      photoKeys,
+    });
     photoKeys.forEach((key) => onAddPhoto(key));
     setShowUploadModal(false);
   };
@@ -58,6 +62,7 @@ export const PlacePhotoSection: React.FC<PlacePhotoSectionProps> = ({
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <AnimatePresence>
             {photos.map((photoKey, index) => (
+              photoKey && (
               <motion.div
                 key={photoKey}
                 className="relative group aspect-square rounded-lg overflow-hidden bg-gray-100 border border-gray-200"
@@ -99,6 +104,7 @@ export const PlacePhotoSection: React.FC<PlacePhotoSectionProps> = ({
                   </motion.button>
                 </div>
               </motion.div>
+              )
             ))}
           </AnimatePresence>
         </div>

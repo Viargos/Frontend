@@ -7,6 +7,16 @@ import { JourneyMapWebGL } from '@/components/maps';
 import { serviceFactory } from '@/lib/services/service-factory';
 import { Journey } from '@/types/journey.types';
 import { format } from 'date-fns';
+import { useCurrentLocation } from '@/hooks/useCurrentLocation';
+import { generateJourneyTitle, generateJourneySubtitle } from '@/utils/journey.utils';
+import { extractJourneyLocations, calculateLocationsCenter } from '@/utils/journey-locations.utils';
+import PlaceToStayIcon from '@/components/icons/PlaceToStayIcon';
+import { TreesIcon } from '@/components/icons/TreesIcon';
+import { FoodIcon } from '@/components/icons/FoodIcon';
+import { TransportIcon } from '@/components/icons/TransportIcon';
+import { NotesIcon } from '@/components/icons/NotesIcon';
+import PhotoGallery from '@/components/media/PhotoGallery';
+import Modal from '@/components/ui/Modal';
 
 interface Location {
   id: string;
@@ -16,6 +26,9 @@ interface Location {
   type: string;
   address?: string;
   day?: string;
+  startTime?: string;
+  endTime?: string;
+  photos?: string[];
 }
 
 export default function JourneyDetailsPage() {
@@ -29,8 +42,23 @@ export default function JourneyDetailsPage() {
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(
     null
   );
+  const { location: currentLocation } = useCurrentLocation();
   const [isBannerEditModalOpen, setIsBannerEditModalOpen] = useState(false);
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
   console.log(isBannerEditModalOpen, selectedLocation);
+
+  // Helper function to get image URL from S3 key
+  const getImageUrl = (photoKey: string): string => {
+    if (photoKey.startsWith("http")) {
+      return photoKey;
+    }
+    return `https://viargos.s3.us-east-2.amazonaws.com/${photoKey}`;
+  };
+
+  // Helper function to handle image load error
+  const handleImageError = (placeId: string) => {
+    setFailedImages(prev => new Set(prev).add(placeId));
+  };
 
   useEffect(() => {
     const fetchJourney = async () => {
@@ -42,6 +70,28 @@ export default function JourneyDetailsPage() {
         }
         const journeyService = serviceFactory.journeyService;
         const fetchedJourney = await journeyService.getJourneyById(journeyId);
+        console.log("Journey data received:", fetchedJourney);
+        if (fetchedJourney?.days) {
+          const imageSummary = fetchedJourney.days.flatMap((day: any) =>
+            (day.places || []).map((place: any) => ({
+              id: place.id,
+              name: place.name,
+              photos: place.photos,
+              images: (place as any).images,
+            }))
+          );
+          console.log("Journey images (legacy photos/images):", imageSummary);
+
+          const mediaSummary = fetchedJourney.days.flatMap((day: any) =>
+            (day.places || []).map((place: any) => ({
+              id: place.id,
+              name: place.name,
+              mediaCount: Array.isArray(place.media) ? place.media.length : 0,
+              media: place.media,
+            }))
+          );
+          console.log("[JOURNEY_FETCH] Journey place media summary:", mediaSummary);
+        }
         setJourney(fetchedJourney);
 
         // Set active day to 1 if there are days, or the first available day
@@ -74,6 +124,12 @@ export default function JourneyDetailsPage() {
   }, [journeyId]);
 
   const handleLocationClick = (location: Location) => {
+    // Log for debugging to validate photos payload
+    console.log('Selected location for images:', {
+      id: location.id,
+      name: location.name,
+      photos: location.photos,
+    });
     setSelectedLocation(location);
   };
 
@@ -100,6 +156,43 @@ export default function JourneyDetailsPage() {
     };
 
     places.forEach((place: any) => {
+      // Derive photos from legacy fields OR from media (IMAGE type)
+      const legacyPhotos: string[] =
+        (place.photos as string[] | undefined) ||
+        ((place as any).images as string[] | undefined) ||
+        [];
+
+      const mediaImages: string[] = Array.isArray(place.media)
+        ? place.media
+            .filter(
+              (m: any) =>
+                m &&
+                typeof m.url === 'string' &&
+                m.url.length > 0 &&
+                (m.type === 'IMAGE' || m.type === 'image'),
+            )
+            .sort(
+              (a: any, b: any) =>
+                (a.order ?? 0) - (b.order ?? 0),
+            )
+            .map((m: any) => m.url)
+        : [];
+
+      const combinedPhotos = (legacyPhotos.length > 0 ? legacyPhotos : mediaImages) as string[];
+
+      if (!combinedPhotos.length) {
+        console.log('[JOURNEY_MEDIA_MISSING] No photos/media for place on journey detail page', {
+          placeId: place.id,
+          placeName: place.name,
+        });
+      } else {
+        console.log('[JOURNEY_MEDIA_RESOLVED] Photos for place on journey detail page', {
+          placeId: place.id,
+          placeName: place.name,
+          photoCount: combinedPhotos.length,
+        });
+      }
+
       const location: Location = {
         id: place.id,
         name: place.name,
@@ -107,7 +200,10 @@ export default function JourneyDetailsPage() {
         lng: place.longitude ? parseFloat(place.longitude) : 0,
         type: place.type,
         address: place.address || place.description,
-        day: `Day ${day.dayNumber}`,
+        // ✅ Use 1-based day label for consistency with tabs and map utilities
+        day: `Day ${day.dayNumber + 1}`,
+        // Support both legacy photos/images and new media-based images
+        photos: combinedPhotos,
       };
 
       // Map to 3D map compatible types
@@ -159,49 +255,47 @@ export default function JourneyDetailsPage() {
   //   }
   // };
 
-  // Get all locations for the current day
-  const getCurrentDayLocations = (): Location[] => {
-    const allLocations: Location[] = [];
-
-    // Add day-specific activities
-    if (currentDay) {
-      const organizedPlaces = getPlacesByType(currentDay);
-      Object.values(organizedPlaces).forEach(activityList => {
-        allLocations.push(...activityList);
-      });
+  // Get all locations from all days of the journey
+  const getAllJourneyLocations = (): Location[] => {
+    if (!journey) {
+      return [];
     }
-
-    return allLocations;
+    
+    // Use utility to extract all locations (already sorted by day and time)
+    const journeyLocations = extractJourneyLocations(journey);
+    
+    // Convert to Location format expected by map
+    return journeyLocations.map(loc => ({
+      id: loc.id,
+      name: loc.name,
+      lat: loc.lat,
+      lng: loc.lng,
+      type: loc.type,
+      address: loc.address,
+      day: loc.day,
+      startTime: loc.startTime,
+      endTime: loc.endTime,
+    }));
   };
 
   // Get journey center location for map
   const getJourneyCenter = () => {
-    // If we have locations from the current day, center on the first one
-    const locations = getCurrentDayLocations();
-    if (
-      locations.length > 0 &&
-      locations[0].lat !== 0 &&
-      locations[0].lng !== 0
-    ) {
-      return { lat: locations[0].lat, lng: locations[0].lng };
+    const allLocations = getAllJourneyLocations();
+    
+    if (allLocations.length > 0) {
+      return calculateLocationsCenter(allLocations);
     }
 
-    // If we have any locations with valid coordinates, use the first one
-    if (journey?.days) {
-      for (const day of journey.days) {
-        const organizedPlaces = getPlacesByType(day);
-        const allPlaces = Object.values(organizedPlaces).flat();
-        const validLocation = allPlaces.find(
-          loc => loc.lat !== 0 && loc.lng !== 0
-        );
-        if (validLocation) {
-          return { lat: validLocation.lat, lng: validLocation.lng };
-        }
-      }
+    // Use current location if available
+    if (currentLocation) {
+      return {
+        lat: currentLocation.latitude,
+        lng: currentLocation.longitude,
+      };
     }
 
-    // Default to Montreal based on the sample data
-    return { lat: 45.5017, lng: -73.5673 }; // Montreal as default
+    // Fallback to world center if no location available
+    return { lat: 20.0, lng: 0.0 };
   };
 
   if (isLoading) {
@@ -265,13 +359,16 @@ export default function JourneyDetailsPage() {
 
   const currentDay = journey.days?.find(day => day.dayNumber === activeDay);
 
+  // Always derive the actual cover image src we render, so logging and UI stay in sync
+  const coverImageSrc = journey?.coverImage || '/london.png';
+
   return (
     <div className="flex-1 bg-gray-50 p-4 sm:p-6 max-w-none">
       {/* Banner Section */}
       <div className="relative h-48 sm:h-56 md:h-64 lg:h-72 w-full mb-4 sm:mb-6 overflow-hidden rounded-lg group">
         {/* Background Image */}
         <Image
-          src={journey?.coverImage || '/london.png'}
+          src={coverImageSrc}
           alt="Journey cover"
           fill
           className="object-cover"
@@ -280,11 +377,11 @@ export default function JourneyDetailsPage() {
           onLoad={() => {
             console.log(
               'Cover image loaded successfully:',
-              journey?.coverImage
+              coverImageSrc
             );
           }}
           onError={() => {
-            console.error('Cover image failed to load:', journey?.coverImage);
+            console.error('Cover image failed to load:', coverImageSrc);
           }}
         />
 
@@ -328,7 +425,7 @@ export default function JourneyDetailsPage() {
                 textShadow: '2px 2px 4px rgba(0,0,0,0.7)',
               }}
             >
-              {journey?.title || 'Journey'}
+              {generateJourneyTitle(journey)}
             </h1>
           </div>
 
@@ -340,7 +437,7 @@ export default function JourneyDetailsPage() {
                 textShadow: '1px 1px 2px rgba(0,0,0,0.7)',
               }}
             >
-              {journey?.description || 'Explore amazing places'}
+              {generateJourneySubtitle(journey)}
             </p>
           </div>
         </div>
@@ -412,63 +509,78 @@ export default function JourneyDetailsPage() {
                         className="relative flex items-start"
                       >
                         {/* Timeline Dot */}
-                        <div className="relative z-10 flex items-center justify-center w-12 h-12 bg-white border-2 border-blue-600 rounded-full flex-shrink-0">
-                          <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
-                            {place.type === 'STAY' && (
-                              <span className="text-white text-xs">🏨</span>
+                        <div 
+                          className={`relative z-10 w-12 h-12 bg-white border-2 rounded-full flex-shrink-0 flex items-center justify-center p-0 m-0 transition-transform duration-300 hover:scale-110 ${
+                            place.type === 'stay' ? 'border-[#2563eb]' :
+                            place.type === 'activity' ? 'border-[#16a34a]' :
+                            place.type === 'food' ? 'border-[#dc2626]' :
+                            place.type === 'transport' ? 'border-[#7c3aed]' :
+                            place.type === 'note' ? 'border-[#eab308]' :
+                            'border-blue-600'
+                          }`}
+                        >
+                          <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center p-0 m-0">
+                            {place.type === 'stay' && (
+                              <PlaceToStayIcon className="w-6 h-6" />
                             )}
-                            {place.type === 'ACTIVITY' && (
-                              <span className="text-white text-xs">📍</span>
+                            {place.type === 'activity' && (
+                              <TreesIcon className="w-6 h-6" />
                             )}
-                            {place.type === 'FOOD' && (
-                              <span className="text-white text-xs">🍽️</span>
+                            {place.type === 'food' && (
+                              <FoodIcon className="w-6 h-6" />
                             )}
-                            {place.type === 'TRANSPORT' && (
-                              <span className="text-white text-xs">🚗</span>
+                            {place.type === 'transport' && (
+                              <TransportIcon className="w-6 h-6" />
+                            )}
+                            {place.type === 'note' && (
+                              <NotesIcon className="w-6 h-6" />
                             )}
                           </div>
                         </div>
 
                         {/* Timeline Content */}
-                        <div className="ml-6 flex-1">
+                        <div className="ml-6 flex-1 min-w-0">
                           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                            <div className="flex">
-                              {/* Image placeholder */}
-                              <div className="w-24 h-20 sm:w-32 sm:h-24 bg-gray-100 flex items-center justify-center flex-shrink-0">
-                                <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center">
-                                  {place.type === 'STAY' && (
-                                    <span className="text-white text-xs">
-                                      🏨
-                                    </span>
-                                  )}
-                                  {place.type === 'ACTIVITY' && (
-                                    <span className="text-white text-xs">
-                                      📍
-                                    </span>
-                                  )}
-                                  {place.type === 'FOOD' && (
-                                    <span className="text-white text-xs">
-                                      🍽️
-                                    </span>
-                                  )}
-                                  {place.type === 'TRANSPORT' && (
-                                    <span className="text-white text-xs">
-                                      🚗
-                                    </span>
-                                  )}
-                                </div>
+                            <div className="flex overflow-hidden">
+                              {/* Activity Image Square/Circle */}
+                              <div className="w-24 h-20 sm:w-32 sm:h-32 bg-gray-100 flex items-center justify-center flex-shrink-0">
+                                {place.photos && place.photos.length > 0 && !failedImages.has(place.id) ? (
+                                  <div className="w-full h-full overflow-hidden rounded-lg">
+                                    <img
+                                      src={getImageUrl(place.photos[0])}
+                                      alt={place.name}
+                                      className="w-full h-full object-cover"
+                                      onError={() => handleImageError(place.id)}
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center p-0 m-0">
+                                    {place.type === 'stay' && (
+                                      <PlaceToStayIcon className="w-6 h-6 text-white" />
+                                    )}
+                                    {place.type === 'activity' && (
+                                      <TreesIcon className="w-6 h-6 text-white" />
+                                    )}
+                                    {place.type === 'food' && (
+                                      <FoodIcon className="w-6 h-6 text-white" />
+                                    )}
+                                    {place.type === 'transport' && (
+                                      <TransportIcon className="w-6 h-6 text-white" />
+                                    )}
+                                  </div>
+                                )}
                               </div>
 
                               {/* Content */}
-                              <div className="flex-1 p-4">
-                                <div className="flex items-start justify-between">
+                              <div className="flex-1 p-4 min-w-0">
+                                <div className="flex items-start justify-between gap-2">
                                   <div className="flex-1 min-w-0">
                                     <h3 className="font-semibold text-gray-900 text-base mb-1 truncate">
                                       {place.name}
                                     </h3>
                                     <div className="flex items-center text-sm text-gray-600 mb-2">
                                       <svg
-                                        className="w-4 h-4 mr-1 text-gray-400"
+                                        className="w-4 h-4 mr-1 text-gray-400 flex-shrink-0"
                                         fill="none"
                                         stroke="currentColor"
                                         viewBox="0 0 24 24"
@@ -487,18 +599,18 @@ export default function JourneyDetailsPage() {
                                         />
                                       </svg>
                                       <span className="truncate">
-                                        {place.type === 'STAY' &&
+                                        {place.type === 'stay' &&
                                           'Accommodation & Theme Parks'}
-                                        {place.type === 'ACTIVITY' &&
+                                        {place.type === 'activity' &&
                                           'Attractions & Activities'}
-                                        {place.type === 'FOOD' &&
+                                        {place.type === 'food' &&
                                           'Restaurants & Dining'}
-                                        {place.type === 'TRANSPORT' &&
+                                        {place.type === 'transport' &&
                                           'Transportation'}
                                       </span>
                                     </div>
                                     {place.address && (
-                                      <p className="text-sm text-gray-500 line-clamp-2">
+                                      <p className="text-sm text-gray-500 break-words whitespace-normal">
                                         {place.address}
                                       </p>
                                     )}
@@ -536,9 +648,9 @@ export default function JourneyDetailsPage() {
                     {currentDay.notes && (
                       <div className="relative flex items-start">
                         {/* Timeline Dot for Notes */}
-                        <div className="relative z-10 flex items-center justify-center w-12 h-12 bg-white border-2 border-yellow-500 rounded-full flex-shrink-0">
-                          <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center">
-                            <span className="text-white text-xs">📝</span>
+                        <div className="relative z-10 w-12 h-12 bg-white border-2 border-yellow-500 rounded-full flex-shrink-0 flex items-center justify-center p-0 m-0">
+                          <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center p-0 m-0">
+                            <NotesIcon className="w-6 h-6" />
                           </div>
                         </div>
 
@@ -546,7 +658,9 @@ export default function JourneyDetailsPage() {
                         <div className="ml-6 flex-1">
                           <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
                             <div className="flex items-start">
-                              <div className="text-yellow-600 mr-2">📝</div>
+                              <div className="text-yellow-600 mr-2">
+                                <NotesIcon className="w-5 h-5" />
+                              </div>
                               <div>
                                 <h4 className="font-medium text-yellow-800 mb-1">
                                   Notes
@@ -564,8 +678,8 @@ export default function JourneyDetailsPage() {
                 </div>
               ) : (
                 <div className="bg-white rounded-lg p-6 border border-gray-200 text-center">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <span className="text-blue-600 text-xl">📍</span>
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3 p-0 m-0">
+                    <span className="text-blue-600 text-xl leading-none flex items-center justify-center w-full h-full">📍</span>
                   </div>
                   <h3 className="font-medium text-gray-900 mb-1">
                     No places added yet
@@ -584,10 +698,10 @@ export default function JourneyDetailsPage() {
         </div>
 
         {/* Right Side - 3D WebGL Map */}
-        <div className="lg:col-span-1 bg-gray-100 rounded-lg overflow-hidden shadow-sm">
-          <div className="h-[400px] sm:h-[500px] lg:h-full min-h-[400px]">
+        <div className="lg:col-span-1 rounded-lg overflow-hidden shadow-sm lg:sticky lg:top-0 lg:self-start">
+          <div className="h-[460px] sticky">
             <JourneyMapWebGL
-              locations={getCurrentDayLocations()}
+              locations={getAllJourneyLocations()}
               center={getJourneyCenter()}
               onLocationClick={handleLocationClick}
               enableAnimation={true}
@@ -595,6 +709,46 @@ export default function JourneyDetailsPage() {
           </div>
         </div>
       </div>
+
+      {/* View Images Modal */}
+      <Modal
+        isOpen={!!selectedLocation}
+        onClose={() => setSelectedLocation(null)}
+        className="max-w-3xl"
+      >
+        <div className="p-4 sm:p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">
+              {selectedLocation?.name || 'Location images'}
+            </h3>
+            <button
+              onClick={() => setSelectedLocation(null)}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+
+          {selectedLocation?.photos && selectedLocation.photos.length > 0 ? (
+            <PhotoGallery
+              // Use final public file URLs; if backend stored keys, convert via getImageUrl
+              photos={selectedLocation.photos
+                .filter((p) => !!p)
+                .map((p) => getImageUrl(p))}
+              showRemoveButton={false}
+            />
+          ) : (
+            <p className="text-sm text-gray-500">No images available</p>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }

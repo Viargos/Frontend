@@ -7,9 +7,11 @@ import Modal from '@/components/ui/Modal';
 import LoginForm from './LoginForm';
 import SignupForm from './SignupForm';
 import OtpVerificationForm from './OtpVerificationForm';
+import ForgotPasswordForm from './ForgotPasswordForm';
+import ResetPasswordForm from './ResetPasswordForm';
 import { useAuthStore } from '@/store/auth.store';
 
-export type AuthStep = 'login' | 'signup' | 'otp' | 'forgot-password';
+export type AuthStep = 'login' | 'signup' | 'otp' | 'forgot-password' | 'reset-password';
 
 export interface AuthModalProps {
   isOpen: boolean;
@@ -25,6 +27,8 @@ export default function AuthModal({
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState<AuthStep>(initialStep);
   const [signupEmail, setSignupEmail] = useState('');
+  const [passwordResetEmail, setPasswordResetEmail] = useState('');
+  const [isPasswordResetFlow, setIsPasswordResetFlow] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [direction, setDirection] = useState(0);
   const [prevStep, setPrevStep] = useState<AuthStep>(initialStep);
@@ -70,6 +74,8 @@ export default function AuthModal({
     clearError();
     setCurrentStep(initialStep);
     setSignupEmail('');
+    setPasswordResetEmail('');
+    setIsPasswordResetFlow(false);
   };
 
   const handleLoginSuccess = () => {
@@ -82,27 +88,42 @@ export default function AuthModal({
   };
 
   const handleOtpSuccess = () => {
-    // After successful OTP verification, user is automatically logged in
-    // Close the modal and let the header show the authenticated state
-    handleClose();
-    
-    // Redirect to dashboard with a small delay to ensure modal closes
-    setTimeout(() => {
-      try {
-        router.push('/dashboard');
-      } catch (error) {
-        window.location.href = '/dashboard';
-      }
-    }, 100);
+    if (isPasswordResetFlow) {
+      // For password reset flow, go to reset password form
+      setCurrentStep('reset-password');
+    } else {
+      // After successful OTP verification for signup, user is automatically logged in
+      // Close the modal and let the header show the authenticated state
+      handleClose();
+      
+      // Redirect to dashboard with a small delay to ensure modal closes
+      setTimeout(() => {
+        try {
+          router.push('/dashboard');
+        } catch (error) {
+          window.location.href = '/dashboard';
+        }
+      }, 100);
+    }
   };
 
   const handleResendOtp = async () => {
     try {
-      const { resendOtp, clearError } = useAuthStore.getState();
-      const result = await resendOtp(signupEmail);
+      const { resendOtp, forgotPassword, clearError } = useAuthStore.getState();
+      const email = isPasswordResetFlow ? passwordResetEmail : signupEmail;
       
-      if (result.success) {
-        clearError();
+      if (isPasswordResetFlow) {
+        // For password reset, use forgotPassword to resend OTP
+        const result = await forgotPassword(email);
+        if (result.success) {
+          clearError();
+        }
+      } else {
+        // For signup, use resendOtp
+        const result = await resendOtp(email);
+        if (result.success) {
+          clearError();
+        }
       }
     } catch (error) {
       // Error is handled by the store
@@ -122,6 +143,31 @@ export default function AuthModal({
   const handleSwitchToForgotPassword = () => {
     clearError();
     setCurrentStep('forgot-password');
+    setIsPasswordResetFlow(false);
+  };
+
+  // 🔄 NEW: Handle email verification requirement from login
+  const handleLoginEmailVerification = (email: string) => {
+    setSignupEmail(email);
+    setIsPasswordResetFlow(false); // This is email verification, not password reset
+    setCurrentStep('otp');
+    clearError(); // Clear login error when switching to OTP
+  };
+
+  const handleForgotPasswordSuccess = (email: string) => {
+    setPasswordResetEmail(email);
+    setIsPasswordResetFlow(true);
+    setCurrentStep('otp');
+  };
+
+  const handleResetPasswordSuccess = () => {
+    // After successful password reset, redirect to login
+    resetModalState();
+    setCurrentStep('login');
+    // Show success message or close modal
+    setTimeout(() => {
+      handleClose();
+    }, 500);
   };
 
   // Animation variants for step transitions
@@ -155,7 +201,7 @@ export default function AuthModal({
 
   // Determine direction for slide animation
   const getStepIndex = (step: AuthStep): number => {
-    const steps: AuthStep[] = ['login', 'signup', 'otp', 'forgot-password'];
+    const steps: AuthStep[] = ['login', 'signup', 'otp', 'forgot-password', 'reset-password'];
     return steps.indexOf(step);
   };
 
@@ -176,6 +222,7 @@ export default function AuthModal({
             onSuccess={handleLoginSuccess}
             onSwitchToSignup={handleSwitchToSignup}
             onSwitchToForgotPassword={handleSwitchToForgotPassword}
+            onSwitchToOtp={handleLoginEmailVerification} // 🔄 NEW: Handle email verification requirement
           />
         );
       case 'signup':
@@ -186,15 +233,16 @@ export default function AuthModal({
           />
         );
       case 'otp':
-        if (!signupEmail) {
+        const otpEmail = isPasswordResetFlow ? passwordResetEmail : signupEmail;
+        if (!otpEmail) {
           return (
             <div className="text-center py-8">
               <p className="text-red-600 mb-4">Error: No email address available for verification.</p>
               <button
-                onClick={() => setCurrentStep('signup')}
+                onClick={() => setCurrentStep(isPasswordResetFlow ? 'forgot-password' : 'signup')}
                 className="text-blue-600 hover:text-blue-500 font-medium"
               >
-                Back to Sign Up
+                {isPasswordResetFlow ? 'Back to Forgot Password' : 'Back to Sign Up'}
               </button>
             </div>
           );
@@ -202,58 +250,25 @@ export default function AuthModal({
         
         return (
           <OtpVerificationForm
-            email={signupEmail}
+            email={otpEmail}
             onSuccess={handleOtpSuccess}
             onResendOtp={handleResendOtp}
+            isPasswordReset={isPasswordResetFlow}
           />
         );
       case 'forgot-password':
         return (
-          <motion.div 
-            className="text-center py-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-            >
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v-2H7v-2H5l1.257-1.257A6 6 0 0117 7z" />
-                </svg>
-              </div>
-            </motion.div>
-            <motion.h2 
-              className="text-2xl font-bold text-gray-900 mb-4"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              Forgot Password
-            </motion.h2>
-            <motion.p 
-              className="text-gray-600 mb-6"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              Forgot password functionality will be implemented soon.
-            </motion.p>
-            <motion.button
-              onClick={handleSwitchToLogin}
-              className="text-blue-600 hover:text-blue-500 font-medium transition-colors"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              Back to Sign In
-            </motion.button>
-          </motion.div>
+          <ForgotPasswordForm
+            onSuccess={handleForgotPasswordSuccess}
+            onSwitchToLogin={handleSwitchToLogin}
+          />
+        );
+      case 'reset-password':
+        return (
+          <ResetPasswordForm
+            onSuccess={handleResetPasswordSuccess}
+            onSwitchToLogin={handleSwitchToLogin}
+          />
         );
       default:
         return (

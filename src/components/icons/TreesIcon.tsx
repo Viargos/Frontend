@@ -2,15 +2,15 @@ interface TreesIconProps {
   className?: string;
 }
 
-export function TreesIcon({ className = "w-4 h-4" }: TreesIconProps) {
+export function TreesIcon({ className = "w-8 h-8" }: TreesIconProps) {
   return (
     <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width={26}
-    height={26}
-    fill="none"
-    className={className}
-  >
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 26 26"
+      fill="none"
+      className={className}
+      preserveAspectRatio="xMidYMid meet"
+    >
     <path
       stroke="#182779"
       strokeLinecap="round"

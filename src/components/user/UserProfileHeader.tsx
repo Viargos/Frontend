@@ -1,12 +1,15 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import { motion } from "framer-motion";
-import { useState } from "react";
-import { User, UserStats, RelationshipStatus } from "@/types/user.types";
-import Button from "@/components/ui/Button";
-import { UserPlus, UserMinus, UserCheck } from "lucide-react";
-import { userService } from "@/lib/services/service-factory";
+import Image from 'next/image';
+import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { User, UserStats, RelationshipStatus } from '@/types/user.types';
+import Button from '@/components/ui/Button';
+import { UserPlus, UserMinus, UserCheck, MessageCircle } from 'lucide-react';
+import { userService } from '@/lib/services/service-factory';
+import { useChatStore } from '@/store/chat.store';
+import { useAuthStore } from '@/store/auth.store';
 
 interface UserProfileHeaderProps {
   user: User;
@@ -39,13 +42,24 @@ const StatItem = ({ value, label }: { value: number; label: string }) => {
   );
 };
 
-export default function UserProfileHeader({ user, stats, relationshipStatus, onFollowChange }: UserProfileHeaderProps) {
-  const [isFollowing, setIsFollowing] = useState(relationshipStatus.isFollowing);
+export default function UserProfileHeader({
+  user,
+  stats,
+  relationshipStatus,
+  onFollowChange,
+}: UserProfileHeaderProps) {
+  const [isFollowing, setIsFollowing] = useState(
+    relationshipStatus.isFollowing
+  );
   const [isLoading, setIsLoading] = useState(false);
+  const [isMessageLoading, setIsMessageLoading] = useState(false);
+  const router = useRouter();
+  const { user: currentUser } = useAuthStore();
+  const { createConversation, setSelectedChat } = useChatStore();
 
   const handleFollowClick = async () => {
     if (isLoading) return;
-    
+
     setIsLoading(true);
     try {
       if (isFollowing) {
@@ -62,28 +76,68 @@ export default function UserProfileHeader({ user, stats, relationshipStatus, onF
     } catch (error: any) {
       console.error('Error updating follow status:', error);
       // Optionally show a toast notification here
-      alert(error.message || 'Failed to update follow status. Please try again.');
+      alert(
+        error.message || 'Failed to update follow status. Please try again.'
+      );
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleMessageClick = async () => {
+    if (isMessageLoading || !currentUser) return;
+
+    setIsMessageLoading(true);
+    try {
+      // Create or get existing conversation
+      const conversation = await createConversation(user.id);
+
+      // Set the selected chat to the conversation user
+      setSelectedChat({
+        id: conversation.user.id,
+        username: conversation.user.username,
+        email: conversation.user.email,
+        profileImage: conversation.user.profileImage,
+        isOnline: conversation.user.isOnline || false,
+        lastSeen: conversation.user.lastSeen,
+        name: conversation.user.username,
+      });
+
+      // Navigate to messages page
+      router.push('/messages');
+    } catch (error: any) {
+      console.error('Error starting conversation:', error);
+      // Even if creation fails, try to navigate and let the messages page handle it
+      setSelectedChat({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        profileImage: user.profileImage,
+        isOnline: false,
+        name: user.username,
+      });
+      router.push('/messages');
+    } finally {
+      setIsMessageLoading(false);
     }
   };
 
   const getFollowButtonProps = () => {
     if (isFollowing) {
       return {
-        variant: "secondary" as const,
-        text: "Following",
+        variant: 'secondary' as const,
+        text: 'Following',
         icon: <UserCheck className="w-4 h-4" />,
-        hoverText: "Unfollow",
-        hoverIcon: <UserMinus className="w-4 h-4" />
+        hoverText: 'Unfollow',
+        hoverIcon: <UserMinus className="w-4 h-4" />,
       };
     } else {
       return {
-        variant: "primary" as const,
-        text: "Follow",
+        variant: 'primary' as const,
+        text: 'Follow',
         icon: <UserPlus className="w-4 h-4" />,
-        hoverText: "Follow",
-        hoverIcon: <UserPlus className="w-4 h-4" />
+        hoverText: 'Follow',
+        hoverIcon: <UserPlus className="w-4 h-4" />,
       };
     }
   };
@@ -141,7 +195,7 @@ export default function UserProfileHeader({ user, stats, relationshipStatus, onF
               />
             ) : (
               <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-lg absolute left-0 top-0 bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white text-lg sm:text-xl lg:text-2xl font-bold">
-                {user.username?.charAt(0).toUpperCase() || "U"}
+                {user.username?.charAt(0).toUpperCase() || 'U'}
               </div>
             )}
           </div>
@@ -173,27 +227,46 @@ export default function UserProfileHeader({ user, stats, relationshipStatus, onF
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            Joined {new Date(user.createdAt).toLocaleDateString('en-US', { 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
+            Joined{' '}
+            {new Date(user.createdAt).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
             })}
           </motion.p>
         </div>
 
-        {/* Right Section: Follow Button + Stats */}
+        {/* Right Section: Action Buttons + Stats */}
         <motion.div
           className="flex flex-col items-center sm:items-end gap-4 w-full sm:w-auto"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
         >
-          {/* Follow Button */}
+          {/* Action Buttons */}
           <motion.div
+            className="flex items-center gap-3"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.6, duration: 0.3 }}
           >
+            {/* Message Button */}
+            {currentUser && currentUser.id !== user.id && (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleMessageClick}
+                disabled={isMessageLoading}
+                loading={isMessageLoading}
+                icon={<MessageCircle className="w-4 h-4" />}
+                iconPosition="leading"
+                className="min-w-[100px]"
+              >
+                Message
+              </Button>
+            )}
+
+            {/* Follow Button */}
             <Button
               variant={buttonProps.variant}
               size="sm"
@@ -204,9 +277,11 @@ export default function UserProfileHeader({ user, stats, relationshipStatus, onF
               iconPosition="leading"
               className="min-w-[100px] group"
             >
-              <span className={`transition-all duration-200 ${
-                isFollowing ? 'group-hover:hidden' : ''
-              }`}>
+              <span
+                className={`transition-all duration-200 ${
+                  isFollowing ? 'group-hover:hidden' : ''
+                }`}
+              >
                 {buttonProps.text}
               </span>
               {isFollowing && (

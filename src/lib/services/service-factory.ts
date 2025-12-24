@@ -1,24 +1,25 @@
-import { HttpClientService } from "@/lib/services/http-client.service";
-import { TokenService, tokenService } from "@/lib/services/token.service";
-import { AuthService } from "@/lib/services/auth.service";
-import { UserService } from "@/lib/services/user.service";
+import { HttpClientService } from '@/lib/services/http-client.service';
+import { TokenService, tokenService } from '@/lib/services/token.service';
+import { AuthService } from '@/lib/services/auth.service';
+import { UserService } from '@/lib/services/user.service';
 import {
   ValidationService,
   validationService,
-} from "@/lib/services/validation.service";
-import { ProfileService } from "@/lib/services/profile.service";
-import { JourneyService } from "./journey.service";
-import { PostService, IPostService } from "./post.service";
-import { DashboardService, IDashboardService } from "./dashboard.service";
+} from '@/lib/services/validation.service';
+import { ProfileService } from '@/lib/services/profile.service';
+import { JourneyService } from './journey.service';
+import { PostService, IPostService } from './post.service';
+import { DashboardService, IDashboardService } from './dashboard.service';
+import { ChatService, IChatService } from './chat.service';
 import {
   IAuthService,
   IUserService,
   IValidationService,
-} from "@/lib/interfaces/auth.interface";
-import { IProfileService } from "@/lib/interfaces/profile.interface";
-import { IJourneyService } from "@/lib/interfaces/journey.interface";
-import { IHttpClient } from "@/lib/interfaces/http-client.interface";
-import { ITokenService } from "./token.service";
+} from '@/lib/interfaces/auth.interface';
+import { IProfileService } from '@/lib/interfaces/profile.interface';
+import { IJourneyService } from '@/lib/interfaces/journey.interface';
+import { IHttpClient } from '@/lib/interfaces/http-client.interface';
+import { ITokenService } from './token.service';
 
 class ServiceFactory {
   private static instance: ServiceFactory;
@@ -29,6 +30,7 @@ class ServiceFactory {
   private _journeyService?: IJourneyService;
   private _postService?: IPostService;
   private _dashboardService?: IDashboardService;
+  private _chatService?: IChatService;
 
   private constructor() {}
 
@@ -42,7 +44,7 @@ class ServiceFactory {
   get httpClient(): IHttpClient {
     if (!this._httpClient) {
       const baseURL =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+        process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
       this._httpClient = new HttpClientService(baseURL, tokenService);
     }
     return this._httpClient;
@@ -101,6 +103,13 @@ class ServiceFactory {
     return this._dashboardService;
   }
 
+  get chatService(): IChatService {
+    if (!this._chatService) {
+      this._chatService = new ChatService();
+    }
+    return this._chatService;
+  }
+
   // Method to reset services (useful for testing)
   reset(): void {
     this._httpClient = undefined;
@@ -110,6 +119,7 @@ class ServiceFactory {
     this._journeyService = undefined;
     this._postService = undefined;
     this._dashboardService = undefined;
+    this._chatService = undefined;
   }
 }
 
@@ -126,4 +136,5 @@ export const {
   journeyService,
   postService,
   dashboardService,
+  chatService,
 } = serviceFactory;

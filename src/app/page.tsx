@@ -22,12 +22,14 @@ import { PlaceCard } from "@/components/journey/PlaceCard";
 import "@/lib/scroll-utils"; // Import scroll reset utility
 import Lottie from "lottie-react";
 import planeAnimation from "@/lib/animation/plane.json";
+import { useCurrentLocation } from "@/hooks/useCurrentLocation";
 
 export default function Home() {
     const { user, isAuthenticated, openSignup, openLogin } = useAuthStore();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
     const [showContent, setShowContent] = useState(false);
+    const { location: currentLocation } = useCurrentLocation();
 
     // Sample Journey Data
     const [sampleDays] = useState(["Day 1", "Day 2", "Day 3"]);
@@ -192,7 +194,7 @@ export default function Home() {
         return locations;
     };
 
-    // Get map center based on current places or default to Paris
+    // Get map center based on current places or current location
     const getMapCenter = () => {
         const activePlaces = getActiveDayPlaces();
 
@@ -211,7 +213,16 @@ export default function Home() {
             };
         }
 
-        return { lat: 48.8566, lng: 2.3522 }; // Default to Paris
+        // Use current location if available
+        if (currentLocation) {
+            return {
+                lat: currentLocation.latitude,
+                lng: currentLocation.longitude,
+            };
+        }
+
+        // Fallback to world center if no location available
+        return { lat: 20.0, lng: 0.0 };
     };
 
     const getDateForDay = (day: string) => {
@@ -518,7 +529,7 @@ export default function Home() {
                                                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 w-full">
                                                                 <PlanningCategory
                                                                     icon={
-                                                                        <PlaceToStayIcon />
+                                                                        <PlaceToStayIcon className="w-8 h-8" />
                                                                     }
                                                                     label="Place to stay"
                                                                     onClick={
@@ -527,7 +538,7 @@ export default function Home() {
                                                                 />
                                                                 <PlanningCategory
                                                                     icon={
-                                                                        <TreesIcon className="text-black" />
+                                                                        <TreesIcon className="w-8 h-8 text-black" />
                                                                     }
                                                                     label="Places to go"
                                                                     onClick={
@@ -536,7 +547,7 @@ export default function Home() {
                                                                 />
                                                                 <PlanningCategory
                                                                     icon={
-                                                                        <FoodIcon className="text-black" />
+                                                                        <FoodIcon className="w-8 h-8 text-black" />
                                                                     }
                                                                     label="Food"
                                                                     onClick={
@@ -545,7 +556,7 @@ export default function Home() {
                                                                 />
                                                                 <PlanningCategory
                                                                     icon={
-                                                                        <TransportIcon className="text-black w-10 h-4" />
+                                                                        <TransportIcon className="w-8 h-8 text-black" />
                                                                     }
                                                                     label="Transport"
                                                                     onClick={
@@ -554,7 +565,7 @@ export default function Home() {
                                                                 />
                                                                 <PlanningCategory
                                                                     icon={
-                                                                        <NotesIcon className="text-black" />
+                                                                        <NotesIcon className="w-8 h-8 text-black" />
                                                                     }
                                                                     label="Notes"
                                                                     onClick={

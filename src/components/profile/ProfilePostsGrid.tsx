@@ -35,6 +35,14 @@ export default function ProfilePostsGrid({
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
 
+  // Log posts state changes
+  useEffect(() => {
+    console.log("[STATE_POSTS_COUNT]", {
+      count: posts.length,
+      posts: posts
+    });
+  }, [posts]);
+
   useEffect(() => {
     const fetchPosts = async () => {
       try {
@@ -42,13 +50,25 @@ export default function ProfilePostsGrid({
         setError(null);
 
         let response;
+        // Fetch ALL posts without limit - don't pass filters object at all
         if (userId) {
           response = await postService.getPostsByUser(userId);
         } else {
           response = await postService.getPostsByUser("me");
         }
 
+        // Log API response for debugging
+        console.log("[API_POSTS_RESPONSE]", {
+          statusCode: response.statusCode,
+          postsCount: response.data?.length || 0,
+          posts: response.data
+        });
+
         if (response.data) {
+          // Log before setting state
+          console.log("[STATE_POSTS_BEFORE_SET]", {
+            count: response.data.length
+          });
           setPosts(response.data);
         }
       } catch (err: any) {
@@ -161,6 +181,12 @@ export default function ProfilePostsGrid({
       </div>
     );
   }
+
+  // Log render count
+  console.log("[RENDER_POSTS_COUNT]", {
+    count: posts.length,
+    posts: posts
+  });
 
   return (
     <>

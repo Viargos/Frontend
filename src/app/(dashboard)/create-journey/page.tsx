@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import DayFilter from '@/components/journey/DayFilter';
 import PlanningCategory from '@/components/journey/PlanningCategory';
@@ -10,7 +10,6 @@ import { FoodIcon } from '@/components/icons/FoodIcon';
 import { TransportIcon } from '@/components/icons/TransportIcon';
 import { NotesIcon } from '@/components/icons/NotesIcon';
 import { PlaceType, CreateJourneyPlace } from '@/types/journey.types';
-import JourneyMap from '@/components/maps/JourneyMap';
 import { useJourneyForm } from '@/hooks/useJourneyForm';
 import { JourneyHeader } from '@/components/journey/JourneyHeader';
 import { ErrorAlert } from '@/components/ui/ErrorAlert';
@@ -18,6 +17,7 @@ import { CoverImage } from '@/components/journey/CoverImage';
 import { PlaceCard } from '@/components/journey/PlaceCard';
 import PhotoGallery from '@/components/media/PhotoGallery';
 import { JourneyMapWebGL } from '@/components/maps';
+import { useCurrentLocation } from '@/hooks/useCurrentLocation';
 
 export default function CreateJourneyPage() {
   const router = useRouter();
@@ -26,6 +26,7 @@ export default function CreateJourneyPage() {
   );
   const [journeyName, setJourneyName] = useState('');
   const [subtitle, setSubtitle] = useState('');
+  const { location: currentLocation } = useCurrentLocation();
 
   const {
     formData,
@@ -80,7 +81,7 @@ export default function CreateJourneyPage() {
   };
 
   // Transform journey places to map locations
-  const getMapLocations = useCallback(() => {
+  const mapLocations = useMemo(() => {
     const locations: Array<{
       id: string;
       name: string;
@@ -93,12 +94,16 @@ export default function CreateJourneyPage() {
 
     const activeDayPlaces = getActiveDayPlaces();
     activeDayPlaces.forEach((place, index) => {
-      if (
+      // Show marker if place has valid coordinates
+      // (address without coordinates will be geocoded automatically by PlaceForm)
+      const hasValidCoordinates =
         place.latitude &&
         place.longitude &&
         place.latitude !== 0 &&
-        place.longitude !== 0
-      ) {
+        place.longitude !== 0;
+
+      // Only add marker if we have valid coordinates
+      if (hasValidCoordinates && place.latitude !== undefined && place.longitude !== undefined) {
         locations.push({
           id: `${activeDay}-${index}`,
           name: place.name,
@@ -114,7 +119,7 @@ export default function CreateJourneyPage() {
     return locations;
   }, [getActiveDayPlaces, activeDay]);
 
-  // Get map center based on current places or default to Paris
+  // Get map center based on current places or current location
   const getMapCenter = useCallback(() => {
     const activePlaces = getActiveDayPlaces();
 
@@ -133,8 +138,17 @@ export default function CreateJourneyPage() {
       };
     }
 
-    return { lat: 48.8566, lng: 2.3522 }; // Default to Paris
-  }, [getActiveDayPlaces]);
+    // Use current location if available
+    if (currentLocation) {
+      return {
+        lat: currentLocation.latitude,
+        lng: currentLocation.longitude,
+      };
+    }
+
+    // Fallback to world center if no location available
+    return { lat: 20.0, lng: 0.0 };
+  }, [getActiveDayPlaces, currentLocation]);
 
   // Handle map click to add new place
   const handleMapClick = useCallback(
@@ -174,10 +188,15 @@ export default function CreateJourneyPage() {
   // Handle cover image upload with key storage
   const handleCoverImageUpload = useCallback(
     (url: string, key?: string) => {
+      console.log("Cover image uploaded, updating form data with:", {
+        url,
+        key: key || null,
+      });
       updateFormData({
         coverImageUrl: url,
         coverImageKey: key || null,
       });
+      console.log("Cover image state after upload (formData.coverImageUrl/key will reflect after state update).");
     },
     [updateFormData]
   );
@@ -254,31 +273,31 @@ export default function CreateJourneyPage() {
                     {/* Planning Categories */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 w-full">
                       <PlanningCategory
-                        icon={<PlaceToStayIcon />}
+                        icon={<PlaceToStayIcon className="w-8 h-8" />}
                         label="Place to stay"
                         isActive={activePlaceType === PlaceType.STAY}
                         onClick={() => addPlaceToActiveDay(PlaceType.STAY)}
                       />
                       <PlanningCategory
-                        icon={<TreesIcon className="text-black" />}
+                        icon={<TreesIcon className="w-8 h-8 text-black" />}
                         label="Places to go"
                         isActive={activePlaceType === PlaceType.ACTIVITY}
                         onClick={() => addPlaceToActiveDay(PlaceType.ACTIVITY)}
                       />
                       <PlanningCategory
-                        icon={<FoodIcon className="text-black" />}
+                        icon={<FoodIcon className="w-8 h-8 text-black" />}
                         label="Food"
                         isActive={activePlaceType === PlaceType.FOOD}
                         onClick={() => addPlaceToActiveDay(PlaceType.FOOD)}
                       />
                       <PlanningCategory
-                        icon={<TransportIcon className="text-black w-10 h-4" />}
+                        icon={<TransportIcon className="w-8 h-8 text-black" />}
                         label="Transport"
                         isActive={activePlaceType === PlaceType.TRANSPORT}
                         onClick={() => addPlaceToActiveDay(PlaceType.TRANSPORT)}
                       />
                       <PlanningCategory
-                        icon={<NotesIcon className="text-black" />}
+                        icon={<NotesIcon className="w-8 h-8 text-black" />}
                         label="Notes"
                         isActive={activePlaceType === PlaceType.NOTE}
                         onClick={() => addPlaceToActiveDay(PlaceType.NOTE)}
@@ -293,28 +312,30 @@ export default function CreateJourneyPage() {
                 {/* Show all places for active day using PlaceCard components */}
                 {getActiveDayPlaces().length > 0 && (
                   <div className="w-full space-y-4">
-                    {getActiveDayPlaces().map((place, index) => (
-                      <PlaceCard
-                        key={index}
-                        place={place}
-                        index={index}
-                        dayKey={activeDay}
-                        isExpanded={isPlaceExpanded(activeDay, index)}
-                        onToggleExpansion={() =>
-                          togglePlaceExpansion(activeDay, index)
-                        }
-                        onRemove={() => removePlaceFromActiveDay(index)}
-                        onUpdateField={(field, value) =>
-                          updatePlaceField(index, field, value)
-                        }
-                        onAddPhoto={photoKey =>
-                          addPhotoToPlace(index, photoKey)
-                        }
-                        onRemovePhoto={photoIndex =>
-                          removePhotoFromPlace(index, photoIndex)
-                        }
-                      />
-                    ))}
+                    {getActiveDayPlaces().map((place, index) => {
+                      return (
+                        <PlaceCard
+                          key={`${activeDay}-place-${index}`}
+                          place={place}
+                          index={index}
+                          dayKey={activeDay}
+                          isExpanded={isPlaceExpanded(activeDay, index)}
+                          onToggleExpansion={() =>
+                            togglePlaceExpansion(activeDay, index)
+                          }
+                          onRemove={() => removePlaceFromActiveDay(index)}
+                          onUpdateField={(field, value) =>
+                            updatePlaceField(index, field, value)
+                          }
+                          onAddPhoto={photoKey =>
+                            addPhotoToPlace(index, photoKey)
+                          }
+                          onRemovePhoto={photoIndex =>
+                            removePhotoFromPlace(index, photoIndex)
+                          }
+                        />
+                      );
+                    })}
                   </div>
                 )}
 
@@ -341,19 +362,10 @@ export default function CreateJourneyPage() {
           </div>
 
           {/* Map Section */}
-          <div className="w-full lg:col-span-1 h-full relative">
-            <div className="w-full h-[500px] sm:h-[600px] lg:h-[724px] rounded-lg bg-gray-200 relative overflow-hidden shadow-inner">
-              {/* <JourneyMap
-                locations={getMapLocations()}
-                center={getMapCenter()}
-                onLocationClick={location => {
-                  console.log('Location clicked:', location);
-                  // You can add additional functionality here, like highlighting the corresponding place card
-                }}
-                onMapClick={handleMapClick}
-              /> */}
+          <div className="w-full lg:col-span-1 lg:sticky lg:top-4 lg:self-start" style={{ height: 'calc(100vh - 115px)' }}>
+            <div className="w-full h-[500px] sm:h-[600px] lg:h-full rounded-lg bg-gray-200 relative overflow-hidden shadow-inner">
               <JourneyMapWebGL
-                locations={getMapLocations()}
+                locations={mapLocations}
                 center={getMapCenter()}
                 onLocationClick={location => {
                   console.log('Location clicked:', location);

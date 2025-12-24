@@ -169,7 +169,7 @@ const ContentSkeleton = () => {
           <motion.div
             key={index}
             className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
-            variants={cardVariants}
+            variants={cardVariants as any}
             custom={index}
             whileHover={{ 
               scale: 1.02,

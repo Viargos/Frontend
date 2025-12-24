@@ -23,11 +23,13 @@ export default function PlanningCategory({
       </div>
       <div
         className={`
-        flex min-w-12 min-h-12 flex-col justify-center items-center gap-2 rounded-full border transition-all
+        w-14 h-14 rounded-full flex items-center justify-center border transition-all
         ${isActive ? "bg-primary-blue text-white" : "border-gray-200 bg-white text-black hover:border-gray-300"}
       `}
       >
-        <span className="w-6 h-6 flex items-center justify-center">{icon}</span>
+        <div className="w-8 h-8 flex items-center justify-center">
+          {icon}
+        </div>
       </div>
     </button>
   );

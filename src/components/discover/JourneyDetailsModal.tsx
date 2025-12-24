@@ -10,6 +10,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import Modal from "@/components/ui/Modal";
+import { JourneyMedia } from "@/types/journey.types";
 import { useRouter } from "next/navigation";
 
 interface Place {
@@ -20,6 +21,7 @@ interface Place {
   address?: string;
   startTime?: string;
   endTime?: string;
+   media?: JourneyMedia[];
 }
 
 interface Day {
@@ -227,6 +229,60 @@ export default function JourneyDetailsModal({
                                   </span>
                                 </div>
                               )}
+
+                              {/* Media gallery (images & videos) */}
+                              {Array.isArray(place.media) && place.media.length > 0 ? (
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                  {place.media
+                                    .slice()
+                                    .sort(
+                                      (a, b) =>
+                                        (a.order ?? 0) - (b.order ?? 0),
+                                    )
+                                    .map((media, index) => {
+                                      if (!media || !media.url) {
+                                        console.log(
+                                          "[JOURNEY_MEDIA_RENDER] Skipping invalid media item",
+                                          { index, media },
+                                        );
+                                        return null;
+                                      }
+
+                                      const mediaType = typeof media.type === "string"
+                                        ? media.type.toLowerCase()
+                                        : "";
+
+                                      if (mediaType === "video") {
+                                        console.log(
+                                          "[JOURNEY_MEDIA_RENDER] Rendering video",
+                                          { url: media.url },
+                                        );
+                                        return (
+                                          <video
+                                            key={`${place.id}-media-${index}`}
+                                            src={media.url}
+                                            controls
+                                            poster={media.thumbnailUrl}
+                                            className="w-40 h-24 rounded-lg object-cover bg-black"
+                                          />
+                                        );
+                                      }
+
+                                      console.log(
+                                        "[JOURNEY_MEDIA_RENDER] Rendering image",
+                                        { url: media.url },
+                                      );
+                                      return (
+                                        <img
+                                          key={`${place.id}-media-${index}`}
+                                          src={media.url}
+                                          alt={place.name}
+                                          className="w-24 h-24 rounded-lg object-cover"
+                                        />
+                                      );
+                                    })}
+                                </div>
+                              ) : null}
                             </div>
                           </div>
                         </div>

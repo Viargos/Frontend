@@ -24,8 +24,10 @@ interface AuthStore extends AuthState {
   // Auth actions
   login: (credentials: LoginCredentials) => Promise<AuthResult>;
   signup: (credentials: SignUpCredentials) => Promise<AuthResult>;
-  verifyOtp: (email: string, otp: string) => Promise<AuthResult>;
+  verifyOtp: (email: string, otp: string, isPasswordReset?: boolean) => Promise<AuthResult>;
   resendOtp: (email: string) => Promise<AuthResult>;
+  forgotPassword: (email: string) => Promise<AuthResult>;
+  resetPassword: (password: string) => Promise<AuthResult>;
   logout: () => void;
   getProfile: () => Promise<void>;
   clearError: () => void;
@@ -60,6 +62,7 @@ export const useAuthStore = create<AuthStore>()(
       // Modal state
       activeModal: "none",
       signupEmail: "",
+      passwordResetToken: null as string | null,
 
       // Actions
       login: async (credentials: LoginCredentials): Promise<AuthResult> => {
@@ -133,7 +136,7 @@ export const useAuthStore = create<AuthStore>()(
         }
       },
 
-      verifyOtp: async (email: string, otp: string): Promise<AuthResult> => {
+      verifyOtp: async (email: string, otp: string, isPasswordReset: boolean = false): Promise<AuthResult> => {
         try {
           set({ isLoading: true, error: null });
 
@@ -144,11 +147,17 @@ export const useAuthStore = create<AuthStore>()(
           const { accessToken } = response.data || {};
 
           if (accessToken) {
-            serviceFactory.tokenService.setToken(accessToken);
-            set({ token: accessToken, isAuthenticated: true });
+            if (isPasswordReset) {
+              // Store the reset token separately, don't set as main auth token
+              set({ passwordResetToken: accessToken });
+            } else {
+              // Normal OTP verification - set as main auth token
+              serviceFactory.tokenService.setToken(accessToken);
+              set({ token: accessToken, isAuthenticated: true });
 
-            // Get user profile
-            await get().getProfile();
+              // Get user profile
+              await get().getProfile();
+            }
             return { success: true };
           }
           return { success: false, error: "No access token received" };
@@ -168,6 +177,69 @@ export const useAuthStore = create<AuthStore>()(
           await serviceFactory.authService.resendOtp(email);
           set({ error: null });
           return { success: true };
+        } catch (error) {
+          const errorMessage = get().extractErrorMessage(error);
+          set({ error: errorMessage });
+          return { success: false, error: errorMessage };
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      forgotPassword: async (email: string): Promise<AuthResult> => {
+        try {
+          set({ isLoading: true, error: null });
+
+          await serviceFactory.authService.forgotPassword(email);
+          set({ error: null });
+          return { success: true };
+        } catch (error) {
+          const errorMessage = get().extractErrorMessage(error);
+          set({ error: errorMessage });
+          return { success: false, error: errorMessage };
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      resetPassword: async (password: string): Promise<AuthResult> => {
+        try {
+          set({ isLoading: true, error: null });
+
+          const resetToken = get().passwordResetToken;
+          if (!resetToken) {
+            throw new Error("Password reset token not found. Please request a new password reset.");
+          }
+
+          // Temporarily set the reset token for the API call
+          // The httpClient will automatically add it to the Authorization header
+          const originalToken = serviceFactory.tokenService.getToken();
+          serviceFactory.tokenService.setToken(resetToken);
+
+          try {
+            await serviceFactory.authService.resetPassword(password);
+            
+            // Clear the reset token
+            set({ passwordResetToken: null });
+            
+            // Restore original token or clear if none
+            if (originalToken) {
+              serviceFactory.tokenService.setToken(originalToken);
+            } else {
+              serviceFactory.tokenService.removeToken();
+            }
+
+            set({ error: null });
+            return { success: true };
+          } catch (apiError) {
+            // Restore original token on error
+            if (originalToken) {
+              serviceFactory.tokenService.setToken(originalToken);
+            } else {
+              serviceFactory.tokenService.removeToken();
+            }
+            throw apiError;
+          }
         } catch (error) {
           const errorMessage = get().extractErrorMessage(error);
           set({ error: errorMessage });

@@ -1,29 +1,16 @@
-import {
-  S3Client,
-  PutObjectCommand,
-  DeleteObjectCommand,
-  GetObjectCommand,
-} from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+// NOTE:
+// This frontend module no longer talks directly to AWS S3 or uses any AWS credentials.
+// All sensitive configuration lives in the backend. The frontend only:
+// 1) Asks the backend for a pre-signed upload URL
+// 2) Uploads the file to that URL with a standard fetch PUT request
 
-// AWS Configuration
-const AWS_CONFIG = {
-  region: process.env.NEXT_PUBLIC_AWS_REGION || "us-east-1",
-  credentials: {
-    accessKeyId: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.NEXT_PUBLIC_AWS_SECRET_ACCESS_KEY || "",
-  },
-  // Add browser-specific configuration to prevent stream issues
-  requestHandler: {
-    // Use fetch-based request handler for browser compatibility
-    requestTimeout: 30000,
-  },
-};
+// API base URL for backend requests (used only for direct fetch fallbacks)
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
-const BUCKET_NAME = process.env.NEXT_PUBLIC_S3_BUCKET_NAME || "";
-
-// Initialize S3 Client with browser-compatible settings
-const s3Client = new S3Client(AWS_CONFIG);
+// ✅ Use existing token service so we NEVER expose AWS keys in the frontend
+// and rely solely on backend JWT-protected endpoints.
+import { tokenSvc } from "@/lib/services/service-factory";
 
 // File type configurations
 const ALLOWED_FILE_TYPES = {
@@ -126,19 +113,6 @@ export const uploadToS3 = async (
   onProgress?: (progress: UploadProgress) => void
 ): Promise<UploadResult> => {
   try {
-    // Validate environment variables
-    if (
-      !BUCKET_NAME ||
-      !AWS_CONFIG.credentials.accessKeyId ||
-      !AWS_CONFIG.credentials.secretAccessKey
-    ) {
-      return {
-        success: false,
-        error:
-          "AWS configuration is missing. Please check environment variables.",
-      };
-    }
-
     // Validate file
     const validation = validateFile(file, options);
     if (!validation.isValid) {
@@ -148,56 +122,149 @@ export const uploadToS3 = async (
       };
     }
 
-    // Generate unique file name
+    // Generate unique file name and determine content type
     const fileName =
       options.customFileName ||
       generateUniqueFileName(file.name, options.folder);
     const contentType = getContentType(file);
 
-    // Convert File to ArrayBuffer for better browser compatibility
-    const fileBuffer = await file.arrayBuffer();
+    // 1) Ask backend for a pre-signed URL
+    //    This call is authenticated with the user's JWT and the backend
+    //    uses AWS credentials from environment variables ONLY.
+    const token = tokenSvc.getToken();
 
-    // Create upload command
-    const uploadCommand = new PutObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: fileName,
-      Body: new Uint8Array(fileBuffer), // Use Uint8Array instead of File directly
-      ContentType: contentType,
-      ContentLength: file.size,
-      Metadata: {
-        originalName: file.name,
-        uploadedAt: new Date().toISOString(),
+    // If there is no token at all, short‑circuit with a clear auth error
+    if (!token) {
+      console.warn("Upload blocked: no auth token found for /users/upload-url");
+      return {
+        success: false,
+        error: "You must be signed in to upload media. Please log in and try again.",
+      };
+    }
+
+    const presignResponse = await fetch(`${API_BASE_URL}/users/upload-url`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
+      body: JSON.stringify({
+        fileName,
+        contentType,
+        folder: options.folder,
+      }),
     });
 
-    // Upload progress tracking (simulated)
-    if (onProgress) {
-      onProgress({
-        loaded: file.size * 0.5,
-        total: file.size,
-        percentage: 50,
-      });
+    if (!presignResponse.ok) {
+      const rawText = await presignResponse.text();
+
+      // Try to parse JSON error from backend so we can detect auth failures
+      try {
+        const parsed: any = rawText ? JSON.parse(rawText) : null;
+        const statusCode = parsed?.statusCode;
+        const message = parsed?.message;
+
+        // Backend uses statusCode 10001 for generic auth failure
+        if (statusCode === 10001 || presignResponse.status === 401) {
+          console.warn("Upload URL request unauthorized:", parsed);
+          return {
+            success: false,
+            error:
+              "Your session has expired or you are not authorized. Please sign in again and retry the upload.",
+          };
+        }
+
+        return {
+          success: false,
+          error:
+            message ||
+            "Failed to obtain upload URL from server. Please try again.",
+        };
+      } catch {
+        // Fallback if response is not JSON
+        return {
+          success: false,
+          error:
+            rawText ||
+            "Failed to obtain upload URL from server. Please try again.",
+        };
+      }
     }
 
-    // Execute upload
-    const response = await s3Client.send(uploadCommand);
+    // Safely parse response and support both direct and wrapped formats:
+    // - { uploadUrl, fileUrl, key }
+    // - { statusCode, message, data: { uploadUrl, fileUrl, key } }
+    const rawJson: any = await presignResponse.json();
+    const payload =
+      rawJson && typeof rawJson === "object" && rawJson.data
+        ? rawJson.data
+        : rawJson;
 
-    // Final progress update
-    if (onProgress) {
-      onProgress({
-        loaded: file.size,
-        total: file.size,
-        percentage: 100,
-      });
+    const uploadUrl: string | undefined = payload?.uploadUrl;
+    const key: string | undefined = payload?.key;
+    // Some backends may not return a public fileUrl and only return the S3 key.
+    // In that case, derive the final public URL from the known bucket and key.
+    let fileUrl: string | undefined = payload?.fileUrl;
+    if (key && !fileUrl) {
+      fileUrl = `https://viargos.s3.us-east-2.amazonaws.com/${key}`;
     }
 
-    // Generate public URL
-    const publicUrl = `https://${BUCKET_NAME}.s3.${AWS_CONFIG.region}.amazonaws.com/${fileName}`;
+    if (!uploadUrl || !key) {
+      console.error("Invalid upload URL response payload:", rawJson);
+      return {
+        success: false,
+        error: "Server did not return a valid upload URL.",
+      };
+    }
+
+    // 2) Upload the file directly to S3 using the pre-signed URL
+    const uploadRequest = new XMLHttpRequest();
+
+    const uploadPromise = new Promise<Response>((resolve, reject) => {
+      uploadRequest.open("PUT", uploadUrl, true);
+      uploadRequest.setRequestHeader("Content-Type", contentType);
+
+      uploadRequest.upload.onprogress = (event) => {
+        if (!onProgress || !event.lengthComputable) return;
+
+        const percentage = (event.loaded / event.total) * 100;
+        onProgress({
+          loaded: event.loaded,
+          total: event.total,
+          percentage,
+        });
+      };
+
+      uploadRequest.onload = () => {
+        if (uploadRequest.status >= 200 && uploadRequest.status < 300) {
+          resolve(
+            new Response(null, {
+              status: uploadRequest.status,
+              statusText: uploadRequest.statusText,
+            })
+          );
+        } else {
+          reject(
+            new Error(
+              `Upload failed with status ${uploadRequest.status}: ${uploadRequest.statusText}`
+            )
+          );
+        }
+      };
+
+      uploadRequest.onerror = () => {
+        reject(new Error("Network error during upload"));
+      };
+    });
+
+    uploadRequest.send(file);
+
+    await uploadPromise;
 
     return {
       success: true,
-      url: publicUrl,
-      key: fileName,
+      url: fileUrl,
+      key,
       fileName: file.name,
       fileSize: file.size,
       fileType: file.type,
@@ -232,89 +299,51 @@ export const uploadMultipleToS3 = async (
   return results;
 };
 
-// Delete file from S3
-export const deleteFromS3 = async (
-  key: string
+// Delete file via backend API (accepts either full URL or S3 key)
+export const deleteMediaFile = async (
+  fileUrlOrKey: string
 ): Promise<{ success: boolean; error?: string }> => {
   try {
-    if (
-      !BUCKET_NAME ||
-      !AWS_CONFIG.credentials.accessKeyId ||
-      !AWS_CONFIG.credentials.secretAccessKey
-    ) {
+    const token = tokenSvc.getToken();
+    if (!token) {
       return {
         success: false,
-        error:
-          "AWS configuration is missing. Please check environment variables.",
+        error: "You must be logged in to delete media files.",
       };
     }
 
-    const deleteCommand = new DeleteObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: key,
+    const response = await fetch(`${API_BASE_URL}/users/media`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ fileUrlOrKey }),
     });
 
-    await s3Client.send(deleteCommand);
+    if (!response.ok) {
+      const errorText = await response.text();
+      return {
+        success: false,
+        error: errorText || "Failed to delete file",
+      };
+    }
 
     return { success: true };
   } catch (error: any) {
-    console.error("S3 Delete Error:", error);
+    console.error("Media delete error:", error);
     return {
       success: false,
-      error: error.message || "Failed to delete file from S3",
+      error: error.message || "Failed to delete file",
     };
   }
 };
 
-// Get presigned URL for secure access (optional)
-export const getPresignedUrl = async (
-  key: string,
-  expiresIn: number = 3600
-): Promise<{ success: boolean; url?: string; error?: string }> => {
-  try {
-    if (!BUCKET_NAME) {
-      return {
-        success: false,
-        error: "S3 bucket name is missing",
-      };
-    }
-
-    const command = new GetObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: key,
-    });
-
-    const signedUrl = await getSignedUrl(s3Client, command, { expiresIn });
-
-    return {
-      success: true,
-      url: signedUrl,
-    };
-  } catch (error: any) {
-    console.error("Presigned URL Error:", error);
-    return {
-      success: false,
-      error: error.message || "Failed to generate presigned URL",
-    };
-  }
-};
-
-// Helper function to extract S3 key from URL
+// Helper function to extract S3 key from URL (still useful for mapping)
 export const extractS3KeyFromUrl = (url: string): string | null => {
   try {
     const parsedUrl = new URL(url);
-
-    // Handle different S3 URL formats
-    if (parsedUrl.hostname && parsedUrl.hostname.includes("s3.amazonaws.com")) {
-      // https://bucket-name.s3.region.amazonaws.com/key
-      return parsedUrl.pathname.substring(1); // Remove leading slash
-    } else if (parsedUrl.hostname === "s3.amazonaws.com") {
-      // https://s3.amazonaws.com/bucket-name/key
-      const pathParts = parsedUrl.pathname.substring(1).split("/");
-      return pathParts.slice(1).join("/"); // Remove bucket name
-    }
-
-    return null;
+    return parsedUrl.pathname.substring(1); // Remove leading slash
   } catch (error) {
     console.error("Error extracting S3 key from URL:", error);
     return null;
@@ -360,8 +389,7 @@ export const generateThumbnailUrl = (
 export default {
   uploadToS3,
   uploadMultipleToS3,
-  deleteFromS3,
-  getPresignedUrl,
+  deleteMediaFile,
   extractS3KeyFromUrl,
   formatFileSize,
   getFileExtension,
