@@ -4,7 +4,7 @@ const Header = () => {
   return (
     <>
       <header className="p-5 h-[92px] w-full flex items-center justify-between gap-1 bg-white">
-        <div>
+        <div>       
           <svg
             width="153"
             height="40"
