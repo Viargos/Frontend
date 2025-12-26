@@ -56,6 +56,7 @@ export default function OtpModal({
       try {
         router.push('/dashboard');
       } catch (error) {
+        console.error('Failed to redirect to dashboard:', error);
         window.location.href = '/dashboard';
       }
     }, 100);
@@ -69,6 +70,7 @@ export default function OtpModal({
         clearError();
       }
     } catch (error) {
+      console.error('Failed to resend OTP:', error);
       // Error is handled by the store
     }
   };
