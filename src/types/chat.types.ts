@@ -35,6 +35,7 @@ export interface ChatState {
   messages: ChatMessage[];
   isConnected: boolean;
   isLoading: boolean;
+  isLoadingMessages?: boolean;
   error: string | null;
 }
 

@@ -11,7 +11,7 @@ import { ChatUser } from '@/types/chat.types';
 /**
  * Messages Page - Main chat interface for authenticated users
  * This page provides a complete chat experience with conversation list and chat window
- * 
+ *
  * 🔄 FIX: All state updates trigger automatic UI re-renders via Zustand
  * 🔄 FIX: Proper dependency arrays prevent stale closures
  * 🔄 FIX: Automatic refetch after mutations
@@ -22,6 +22,7 @@ export default function MessagesPage() {
     selectedChat,
     messages,
     conversations,
+    isLoadingMessages,
     setSelectedChat,
     setMessages,
     sendMessage,
@@ -200,21 +201,21 @@ export default function MessagesPage() {
       try {
         // 🔄 FIX: sendMessage automatically updates UI via Zustand store
         // The store handles optimistic updates and real message replacement
+        // No need to fetchConversations - the store already updates conversations
+        // when a message is sent (see addMessage in chat.store.ts)
         await sendMessage({
           receiverId: selectedChat.id,
           content: content.trim(),
           senderId: user.id,
         });
-        // 🔄 FIX: After sending, refresh conversations to ensure list is updated
-        // This happens automatically via WebSocket, but we ensure it here too
-        setTimeout(() => {
-          fetchConversations().catch(console.error);
-        }, 500);
+        // 🔄 FIX: Don't fetch conversations after sending - this causes the
+        // unread count to be reset from backend which may have stale data.
+        // The local store already updates the conversation list correctly.
       } catch (error) {
         console.error('Failed to send message:', error);
       }
     },
-    [selectedChat, user, sendMessage, fetchConversations]
+    [selectedChat, user, sendMessage]
   );
 
   return (
@@ -257,6 +258,7 @@ export default function MessagesPage() {
                 onSendMessage={handleSendMessage}
                 onBackToChatList={handleBackToChatList}
                 showBackButton={showChatWindow}
+                isLoading={isLoadingMessages}
               />
             ) : (
               <div className="h-full flex items-center justify-center bg-white rounded-lg border border-gray-200 shadow-sm">

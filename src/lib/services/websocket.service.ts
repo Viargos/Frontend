@@ -315,11 +315,23 @@ export class WebSocketService {
       return;
     }
 
+    // Listen for specific userOnline event
     this.socket.on('userOnline', (data) => {
       logger.info('User came online', {
         userId: (data as UserStatusData)?.userId,
       });
       callback(data as UserStatusData);
+    });
+
+    // Also listen for generic user_status event (backward compatibility)
+    this.socket.on('user_status', (data) => {
+      const statusData = data as UserStatusData;
+      if (statusData?.isOnline) {
+        logger.info('User came online (via user_status)', {
+          userId: statusData?.userId,
+        });
+        callback(statusData);
+      }
     });
   }
 
@@ -331,11 +343,23 @@ export class WebSocketService {
       return;
     }
 
+    // Listen for specific userOffline event
     this.socket.on('userOffline', (data) => {
       logger.info('User went offline', {
         userId: (data as UserStatusData)?.userId,
       });
       callback(data as UserStatusData);
+    });
+
+    // Also listen for generic user_status event (backward compatibility)
+    this.socket.on('user_status', (data) => {
+      const statusData = data as UserStatusData;
+      if (!statusData?.isOnline) {
+        logger.info('User went offline (via user_status)', {
+          userId: statusData?.userId,
+        });
+        callback(statusData);
+      }
     });
   }
 

@@ -63,7 +63,7 @@ function ConversationItem({
             {conversation.user.profileImage ? (
               <Image
                 src={conversation.user.profileImage}
-                alt={conversation.user.name}
+                alt={conversation.user.username || conversation.user.name || 'User'}
                 width={48}
                 height={48}
                 className="w-full h-full object-cover"

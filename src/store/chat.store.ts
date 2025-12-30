@@ -12,6 +12,9 @@ import { WebSocketService } from '@/lib/services/websocket.service';
 import { useAuthStore } from './auth.store';
 
 interface ChatStore extends ChatState {
+  // Additional state for separate loading states
+  isLoadingMessages: boolean;
+
   // Actions
   setConversations: (conversations: ChatConversation[]) => void;
   addConversation: (conversation: ChatConversation) => void;
@@ -30,6 +33,7 @@ interface ChatStore extends ChatState {
 
   setConnectionStatus: (isConnected: boolean) => void;
   setLoading: (isLoading: boolean) => void;
+  setLoadingMessages: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
   clearError: () => void;
 
@@ -103,6 +107,7 @@ export const useChatStore = create<ChatStore>()(
   persist(
     (set, get) => ({
       ...initialState,
+      isLoadingMessages: false,
 
       // Conversation management
       setConversations: conversations => {
@@ -168,8 +173,8 @@ export const useChatStore = create<ChatStore>()(
         set(state => {
           // 🔄 FIX: Prevent duplicate messages by ID (including temp messages)
           const existingMessage = state.messages.find(
-            msg => msg.id === message.id || 
-            (msg.id.startsWith('temp-') && msg.content === message.content && 
+            msg => msg.id === message.id ||
+            (msg.id.startsWith('temp-') && msg.content === message.content &&
              msg.senderId === message.senderId && msg.receiverId === message.receiverId)
           );
           if (existingMessage && !message.id.startsWith('temp-')) {
@@ -237,7 +242,8 @@ export const useChatStore = create<ChatStore>()(
         }));
       },
 
-      markConversationAsRead: conversationId => {
+      markConversationAsRead: async (conversationId: string) => {
+        // 🔄 FIX: Update local state immediately for responsive UI
         set(state => {
           const conversation = state.conversations.find(
             conv => conv.id === conversationId
@@ -266,6 +272,14 @@ export const useChatStore = create<ChatStore>()(
             messages: updatedMessages,
           };
         });
+
+        // 🔄 FIX: Also sync with backend to persist the read status
+        try {
+          await chatService.markConversationAsRead(conversationId);
+        } catch (error) {
+          console.error('Failed to mark conversation as read on backend:', error);
+          // Don't throw - local state is already updated for good UX
+        }
       },
 
       // Connection management
@@ -275,6 +289,10 @@ export const useChatStore = create<ChatStore>()(
 
       setLoading: isLoading => {
         set({ isLoading });
+      },
+
+      setLoadingMessages: isLoading => {
+        set({ isLoadingMessages: isLoading });
       },
 
       setError: error => {
@@ -337,13 +355,13 @@ export const useChatStore = create<ChatStore>()(
                   // Remove temp message
                   const filteredMessages = state.messages.filter(msg => msg.id !== tempId);
                   const updatedMessages = sortMessagesAsc([...filteredMessages, realMessage]);
-                  
+
                   // Update conversation with real message
                   const conversation = findConversationByUserId(
                     state.conversations,
                     data.receiverId
                   );
-                  
+
                   let updatedConversations = state.conversations;
                   if (conversation) {
                     updatedConversations = state.conversations.map(conv =>
@@ -356,7 +374,7 @@ export const useChatStore = create<ChatStore>()(
                         : conv
                     );
                   }
-                  
+
                   return {
                     messages: updatedMessages,
                     conversations: sortConversationsByLastMessage(updatedConversations),
@@ -378,13 +396,13 @@ export const useChatStore = create<ChatStore>()(
                 // Remove temp message
                 const filteredMessages = state.messages.filter(msg => msg.id !== tempId);
                 const updatedMessages = sortMessagesAsc([...filteredMessages, realMessage]);
-                
+
                 // Update conversation with real message
                 const conversation = findConversationByUserId(
                   state.conversations,
                   data.receiverId
                 );
-                
+
                 let updatedConversations = state.conversations;
                 if (conversation) {
                   updatedConversations = state.conversations.map(conv =>
@@ -397,7 +415,7 @@ export const useChatStore = create<ChatStore>()(
                       : conv
                   );
                 }
-                
+
                 return {
                   messages: updatedMessages,
                   conversations: sortConversationsByLastMessage(updatedConversations),
@@ -451,8 +469,8 @@ export const useChatStore = create<ChatStore>()(
             set(state => {
               // 🔄 FIX: Find and replace temp message with real one
               const tempMessageIndex = state.messages.findIndex(
-                m => m.id.startsWith('temp-') && 
-                     m.content === msg.content && 
+                m => m.id.startsWith('temp-') &&
+                     m.content === msg.content &&
                      m.receiverId === msg.receiverId &&
                      m.senderId === msg.senderId
               );
@@ -460,13 +478,13 @@ export const useChatStore = create<ChatStore>()(
               if (tempMessageIndex !== -1) {
                 const updatedMessages = [...state.messages];
                 updatedMessages[tempMessageIndex] = msg;
-                
+
                 // 🔄 FIX: Update conversation with real message
                 const conversation = findConversationByUserId(
                   state.conversations,
                   msg.receiverId === currentUserId ? msg.senderId : msg.receiverId
                 );
-                
+
                 let updatedConversations = state.conversations;
                 if (conversation) {
                   updatedConversations = state.conversations.map(conv =>
@@ -479,7 +497,7 @@ export const useChatStore = create<ChatStore>()(
                       : conv
                   );
                 }
-                
+
                 return {
                   messages: sortMessagesAsc(updatedMessages),
                   conversations: sortConversationsByLastMessage(updatedConversations),
@@ -491,12 +509,12 @@ export const useChatStore = create<ChatStore>()(
               if (!messageExists) {
                 // Add new message and update conversation
                 const updatedMessages = sortMessagesAsc([...state.messages, msg]);
-                
+
                 const conversation = findConversationByUserId(
                   state.conversations,
                   msg.receiverId === currentUserId ? msg.senderId : msg.receiverId
                 );
-                
+
                 let updatedConversations = state.conversations;
                 if (conversation) {
                   updatedConversations = state.conversations.map(conv =>
@@ -509,7 +527,7 @@ export const useChatStore = create<ChatStore>()(
                       : conv
                   );
                 }
-                
+
                 return {
                   messages: updatedMessages,
                   conversations: sortConversationsByLastMessage(updatedConversations),
@@ -632,7 +650,21 @@ export const useChatStore = create<ChatStore>()(
         try {
           set({ isLoading: true, error: null });
           const response = await chatService.getConversations();
-          const sorted = sortConversationsByLastMessage(response.conversations);
+
+          // 🔄 FIX: Preserve unread count = 0 for currently selected conversation
+          // This prevents stale backend data from overwriting local "read" state
+          const currentSelectedChat = get().selectedChat;
+          const conversationsWithCorrectUnread = response.conversations.map(
+            conv => {
+              // If this is the currently selected conversation, keep unreadCount = 0
+              if (currentSelectedChat && conv.user.id === currentSelectedChat.id) {
+                return { ...conv, unreadCount: 0 };
+              }
+              return conv;
+            }
+          );
+
+          const sorted = sortConversationsByLastMessage(conversationsWithCorrectUnread);
           // 🔄 FIX: This set triggers UI update automatically via Zustand
           set({ conversations: sorted });
         } catch (error: any) {
@@ -658,7 +690,8 @@ export const useChatStore = create<ChatStore>()(
 
       fetchMessages: async (conversationId: string) => {
         try {
-          set({ isLoading: true, error: null });
+          // 🔄 FIX: Use separate loading state for messages
+          set({ isLoadingMessages: true, error: null });
           const response = await chatService.getMessages(conversationId, {
             limit: 50,
             offset: 0,
@@ -672,7 +705,8 @@ export const useChatStore = create<ChatStore>()(
           set({ error: error.message || 'Failed to fetch messages' });
           throw error;
         } finally {
-          set({ isLoading: false });
+          // 🔄 FIX: Clear messages loading state
+          set({ isLoadingMessages: false });
         }
       },
 
