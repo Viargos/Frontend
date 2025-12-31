@@ -30,7 +30,7 @@ export default function LoginForm({
   onSwitchToOtp,
 }: LoginFormProps) {
   const router = useRouter();
-  const { login, isLoading, error, clearError, resendOtp } = useAuthStore();
+  const { login, isLoading, error, clearError } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const hasHandledVerificationErrorRef = useRef(false); // 🔄 NEW: Prevent duplicate handling
 
@@ -49,17 +49,17 @@ export default function LoginForm({
   // Watch email and password fields for real-time validation
   const email = watch('email') || '';
   const password = watch('password') || '';
-  
+
   // Form validation based on field content only
   const isFormValid = email.trim().length > 0 && password.trim().length > 0;
 
   const onSubmit = async (data: LoginFormData) => {
     clearError();
     hasHandledVerificationErrorRef.current = false; // Reset flag on new submission
-    
+
     try {
       const result = await login(data);
-      
+
       if (result.success) {
         reset();
         onSuccess?.();
@@ -76,7 +76,7 @@ export default function LoginForm({
       }
     } catch (error) {
       console.error('Login form error:', error);
-      
+
       // 🔄 FIX: Also check error from store in case it's set there
       const userEmail = getValues('email');
       if (userEmail && !hasHandledVerificationErrorRef.current) {
@@ -89,13 +89,17 @@ export default function LoginForm({
   };
 
   // 🔄 NEW: Helper function to handle email verification errors
-  const handleEmailVerificationError = async (email: string, error: unknown) => {
-    const errorMessage = typeof error === 'string' 
-      ? error 
-      : (error as any)?.message || error || '';
-    
+  const handleEmailVerificationError = async (
+    email: string,
+    error: unknown
+  ) => {
+    const errorMessage =
+      typeof error === 'string'
+        ? error
+        : (error as any)?.message || error || '';
+
     const errorString = String(errorMessage).toLowerCase();
-    
+
     // Check if error indicates email verification is required
     if (
       errorString.includes('verify your email') ||
@@ -104,17 +108,9 @@ export default function LoginForm({
       errorString.includes('email not verified') ||
       errorString.includes('verify email')
     ) {
-      // Send OTP to user's email
-      try {
-        await resendOtp(email);
-        // Navigate to OTP verification form
-        onSwitchToOtp?.(email);
-      } catch (otpError) {
-        // If resend fails, still navigate to OTP (OTP might have been sent during login attempt)
-        // The backend generates OTP when login fails, so it should be available
-        console.warn('Failed to resend OTP, but navigating to verification:', otpError);
-        onSwitchToOtp?.(email);
-      }
+      // ✅ Backend already generates and sends OTP during login attempt
+      // No need to call resendOtp here - just navigate to verification
+      onSwitchToOtp?.(email);
     }
   };
 
@@ -137,7 +133,7 @@ export default function LoginForm({
         }
       }
     }
-    
+
     // Reset flag when error is cleared
     if (!error) {
       hasHandledVerificationErrorRef.current = false;
@@ -164,7 +160,7 @@ export default function LoginForm({
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="w-full max-w-md mx-auto"
       variants={containerVariants}
       initial="hidden"
@@ -177,7 +173,7 @@ export default function LoginForm({
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
         {error && (
-          <motion.div 
+          <motion.div
             className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm"
             initial={{ opacity: 0, scale: 0.95, y: -10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -206,7 +202,7 @@ export default function LoginForm({
             whileFocus={{ scale: 1.02, borderColor: '#3B82F6' }}
           />
           {errors.email && (
-            <motion.p 
+            <motion.p
               className="mt-1 text-sm text-red-600"
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
@@ -286,7 +282,7 @@ export default function LoginForm({
             </motion.button>
           </div>
           {errors.password && (
-            <motion.p 
+            <motion.p
               className="mt-1 text-sm text-red-600"
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
@@ -297,7 +293,10 @@ export default function LoginForm({
           )}
         </motion.div>
 
-        <motion.div className="flex items-center justify-between" variants={itemVariants}>
+        <motion.div
+          className="flex items-center justify-between"
+          variants={itemVariants}
+        >
           <motion.button
             type="button"
             onClick={onSwitchToForgotPassword}
