@@ -87,7 +87,7 @@ export default function CreatePostModal({
                   </div>
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                      Link with Journey
+                      Link to your journey
                     </h3>
                     <p className="text-gray-600 text-sm">
                       Create a post linked to one of your existing journeys.

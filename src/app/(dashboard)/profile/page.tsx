@@ -218,7 +218,7 @@ export default function ProfilePage() {
         <div className="flex flex-col items-start gap-4 w-full">
           <div className="flex justify-center items-center gap-2.5 w-full">
             <h2 className="flex-1 text-black font-outfit text-2xl font-medium leading-[120%]">
-              My Journey
+              My Journeys
             </h2>
             <Button
               variant="primary"
