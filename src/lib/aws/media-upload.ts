@@ -206,7 +206,7 @@ export const uploadToS3 = async (
     // In that case, derive the final public URL from the known bucket and key.
     let fileUrl: string | undefined = payload?.fileUrl;
     if (key && !fileUrl) {
-      fileUrl = `https://viargos.s3.us-east-2.amazonaws.com/${key}`;
+      fileUrl = `https://viargos-sandbox.s3.us-east-2.amazonaws.com/${key}`;
     }
 
     if (!uploadUrl || !key) {
