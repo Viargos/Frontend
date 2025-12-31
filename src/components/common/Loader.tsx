@@ -29,7 +29,7 @@ interface LoaderProps {
 
 export default function Loader({
   text = "Viargos",
-  subtitle = "Discovering Amazing Journeys...",
+  subtitle = "Exploring Amazing Journeys...",
   showDots = true,
   logoText = "V",
   gradient = {

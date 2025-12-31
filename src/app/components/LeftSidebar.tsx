@@ -36,7 +36,7 @@ const LeftSidebar = ({ user, onLogout, onNavigate }: LeftSidebarProps) => {
       ),
     },
     {
-      name: 'Discover',
+      name: 'Explore',
       href: '/discover',
       icon: (
         <svg

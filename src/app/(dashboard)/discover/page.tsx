@@ -12,9 +12,9 @@ import {
   Navigation,
   RefreshCw,
 } from 'lucide-react';
-import apiClient from '@/lib/api.legacy';
+
 import ExploreMap from '@/components/maps/ExploreMap';
-import { Journey, JourneyDay, JourneyPlace } from '@/types/journey.types';
+import {  JourneyDay, JourneyPlace } from '@/types/journey.types';
 import { PlaceType } from '@/types/journey.types';
 import { PageLoading } from '@/components/common/Loading';
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';

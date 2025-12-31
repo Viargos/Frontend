@@ -86,7 +86,7 @@ export default function ExplorePage() {
                 Explore Amazing Journeys
               </h1>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Discover incredible travel experiences, breathtaking
+                Explore incredible travel experiences, breathtaking
                 destinations, and inspiring stories from travelers around the
                 world.
               </p>
@@ -116,7 +116,7 @@ export default function ExplorePage() {
                   </svg>
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-2">
-                  Discover Destinations
+                  Explore Destinations
                 </h3>
                 <p className="text-sm text-gray-600">
                   Explore hidden gems and popular destinations worldwide
@@ -182,7 +182,7 @@ export default function ExplorePage() {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="text-2xl font-semibold text-gray-900">
-                    Discover Nearby Journeys
+                    Explore Nearby Journeys
                   </h2>
                   <p className="text-gray-600 mt-1">
                     Find travel experiences near your location

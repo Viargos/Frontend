@@ -36,7 +36,7 @@ const BottomNavigation = ({ user, onLogout }: BottomNavigationProps) => {
       ),
     },
     {
-      name: 'Discover',
+      name: 'Explore',
       href: '/discover',
       icon: (
         <svg

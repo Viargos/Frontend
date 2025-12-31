@@ -312,7 +312,7 @@ export default function GuestPostsList({
                                 Or continue exploring our{" "}
                                 <button
                                     onClick={() =>
-                                        (window.location.href = "/explore")
+                                        (window.location.href = "/discover")
                                     }
                                     className="text-blue-600 hover:text-blue-700 underline"
                                 >
