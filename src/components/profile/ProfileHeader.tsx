@@ -100,8 +100,8 @@ export default function ProfileHeader({
         <motion.button
           onClick={() => bannerInputRef.current?.click()}
           disabled={isImageUploading}
-          className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-white/20 backdrop-blur-sm text-white px-2 py-1 sm:px-3 sm:py-2 rounded-md text-xs sm:text-sm hover:bg-white/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-2"
-          whileHover={{ scale: 1.05 }}
+          className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-white backdrop-blur-sm text-blue-600 px-2 py-1 sm:px-3 sm:py-2 rounded-md text-xs sm:text-sm hover:bg-blue-600 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-2"
+          whileHover={{ scale: 1.05, backgroundColor: '#001a6e', color: 'white' }}
           whileTap={{ scale: 0.95 }}
         >
           {isImageUploading ? (
