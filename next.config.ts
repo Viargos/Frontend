@@ -4,11 +4,17 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: "https",
-        hostname: "viargos.s3.us-east-2.amazonaws.com",
-        port: "",
-        pathname: "/**",
+        protocol: 'https',
+        hostname: 'viargos.s3.us-east-2.amazonaws.com',
+        port: '',
+        pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'viargos-sandbox.s3.us-east-2.amazonaws.com',
+        port: '',
+        pathname: '/**',
+      }
     ],
   },
   env: {
@@ -26,10 +32,10 @@ const nextConfig: NextConfig = {
         crypto: false,
       };
     }
-    
+
     // Handle AWS SDK modules
     config.externals = config.externals || [];
-    
+
     return config;
   },
 };

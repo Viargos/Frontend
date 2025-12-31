@@ -274,7 +274,7 @@ export default function CreateJourneyPage() {
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 w-full">
                       <PlanningCategory
                         icon={<PlaceToStayIcon className="w-8 h-8" />}
-                        label="Place to stay"
+                        label="Hotel / Stay"
                         isActive={activePlaceType === PlaceType.STAY}
                         onClick={() => addPlaceToActiveDay(PlaceType.STAY)}
                       />

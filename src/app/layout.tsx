@@ -42,7 +42,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: 'Viargos - Journey & Travel',
+  title: 'Viargos',
   description: 'Discover and share amazing journeys and travel experiences',
 };
 

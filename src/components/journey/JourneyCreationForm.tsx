@@ -32,7 +32,7 @@ const PlaceTypeIcons: Record<PlaceType, React.ReactNode> = {
 };
 
 const PlaceTypeLabels: Record<PlaceType, string> = {
-  [PlaceType.STAY]: 'Place to Stay',
+  [PlaceType.STAY]: 'Hotel / Stay',
   [PlaceType.ACTIVITY]: 'Activity',
   [PlaceType.FOOD]: 'Food',
   [PlaceType.TRANSPORT]: 'Transport',

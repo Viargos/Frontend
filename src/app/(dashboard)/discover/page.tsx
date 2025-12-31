@@ -583,7 +583,7 @@ export default function DiscoverPage() {
                               if (categories.includes('activity'))
                                 return 'Amusement & Theme Parks';
                               if (categories.includes('stay'))
-                                return 'Hotels & Resorts';
+                                return 'Hotel or Stay';
                               if (categories.includes('food'))
                                 return 'Restaurants & Cafes';
                               if (categories.includes('transport'))

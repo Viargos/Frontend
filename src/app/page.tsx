@@ -531,7 +531,7 @@ export default function Home() {
                                                                     icon={
                                                                         <PlaceToStayIcon className="w-8 h-8" />
                                                                     }
-                                                                    label="Place to stay"
+                                                                    label="Hotel / Stay"
                                                                     onClick={
                                                                         openSignup
                                                                     }

@@ -174,17 +174,17 @@ export const useJourneyForm = (): UseJourneyFormReturn => {
   const getPlaceholderName = (type: PlaceType): string => {
     switch (type) {
       case PlaceType.STAY:
-        return "New Hotel";
+        return "Add a Hotel / Stay";
       case PlaceType.ACTIVITY:
-        return "New Activity";
+        return "Add a place";
       case PlaceType.FOOD:
-        return "New Restaurant";
+        return 'Add a restaurant / food';
       case PlaceType.TRANSPORT:
-        return "New Transport";
+        return "Add a transportation mode";
       case PlaceType.NOTE:
-        return "New Note";
+        return "Add a note";
       default:
-        return "New Place";
+        return "Add a place";
     }
   };
 
