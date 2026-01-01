@@ -11,6 +11,7 @@ import JourneyIcon from "@/components/icons/JourneyIcon";
 import Button from "@/components/ui/Button";
 import Image from "next/image";
 import { postService } from "@/lib/services/service-factory";
+import CommentSection from "@/components/comment/CommentSection";
 
 interface CompactPostCardProps {
     post: Post;
@@ -30,6 +31,8 @@ export default function CompactPostCard({
     const [isLiking, setIsLiking] = useState(false);
     const [localLikeCount, setLocalLikeCount] = useState(post.likeCount);
     const [isLiked, setIsLiked] = useState(post.isLikedByCurrentUser || false);
+    const [isCommentSectionOpen, setIsCommentSectionOpen] = useState(false);
+    const [localCommentCount, setLocalCommentCount] = useState(post.commentCount);
 
     // Update local state when post prop changes (e.g., after refresh)
     useEffect(() => {
@@ -70,8 +73,13 @@ export default function CompactPostCard({
     }, [isLiking, isLiked, localLikeCount, post.id, onLikeChange]);
 
     const handleCommentClick = useCallback(() => {
+        setIsCommentSectionOpen((prev) => !prev);
         onCommentClick?.(post.id);
     }, [post.id, onCommentClick]);
+
+    const handleCommentCountChange = useCallback((postId: string, newCount: number) => {
+        setLocalCommentCount(newCount);
+    }, []);
 
     const handleJourneyClick = useCallback(() => {
         if (post.journey?.id) {
@@ -207,7 +215,7 @@ export default function CompactPostCard({
                             >
                                 <ChatIcon className="w-4 h-4" />
                                 <span className="text-sm font-medium">
-                                    {post.commentCount}
+                                    {localCommentCount}
                                 </span>
                             </button>
                         </div>
@@ -357,7 +365,7 @@ export default function CompactPostCard({
                                 >
                                     <ChatIcon className="w-4 h-4" />
                                     <span className="text-sm font-medium">
-                                        {post.commentCount}
+                                        {localCommentCount}
                                     </span>
                                 </button>
                             </div>
@@ -365,6 +373,13 @@ export default function CompactPostCard({
                     </div>
                 </div>
             </div>
+
+            {/* Comment Section */}
+            <CommentSection
+                post={post}
+                isOpen={isCommentSectionOpen}
+                onCommentCountChange={handleCommentCountChange}
+            />
         </motion.div>
     );
 }
