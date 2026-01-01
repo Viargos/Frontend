@@ -1,10 +1,11 @@
-"use client";
+'use client';
 
-import { useRef } from "react";
-import Image from "next/image";
-import { motion } from "framer-motion";
-import { UserProfile, UserStats } from "@/types/profile.types";
-import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { useRef, useState } from 'react';
+import Image from 'next/image';
+import { motion } from 'framer-motion';
+import { UserProfile, UserStats } from '@/types/profile.types';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import FollowersFollowingModal, { ModalType } from './FollowersFollowingModal';
 
 interface ProfileHeaderProps {
   profile: UserProfile;
@@ -18,7 +19,17 @@ interface ProfileHeaderProps {
 }
 
 // Stat item component for use within the header
-const StatItem = ({ value, label }: { value: number; label: string }) => {
+const StatItem = ({
+  value,
+  label,
+  onClick,
+  clickable = false,
+}: {
+  value: number;
+  label: string;
+  onClick?: () => void;
+  clickable?: boolean;
+}) => {
   const formatCount = (count: number): string => {
     if (count >= 1000000) {
       return `${(count / 1000000).toFixed(1)}M`;
@@ -30,11 +41,20 @@ const StatItem = ({ value, label }: { value: number; label: string }) => {
   };
 
   return (
-    <div className="flex flex-col items-center gap-1 cursor-pointer hover:scale-105 transition-transform min-w-0">
+    <div
+      className={`flex flex-col items-center gap-1 min-w-0 ${
+        clickable ? 'cursor-pointer hover:scale-105 transition-transform' : ''
+      }`}
+      onClick={clickable ? onClick : undefined}
+    >
       <span className="text-sm sm:text-base lg:text-lg font-bold text-gray-900">
         {formatCount(value)}
       </span>
-      <span className="text-xs sm:text-sm text-gray-600 whitespace-nowrap">
+      <span
+        className={`text-xs sm:text-sm whitespace-nowrap text-gray-600 ${
+          clickable ? 'hover:underline' : ''
+        }`}
+      >
         {label}
       </span>
     </div>
@@ -53,6 +73,18 @@ export default function ProfileHeader({
 }: ProfileHeaderProps) {
   const profileInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalTab, setModalTab] = useState<ModalType>('followers');
+
+  const handleOpenFollowers = () => {
+    setModalTab('followers');
+    setIsModalOpen(true);
+  };
+
+  const handleOpenFollowing = () => {
+    setModalTab('following');
+    setIsModalOpen(true);
+  };
 
   const handleProfileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -101,7 +133,11 @@ export default function ProfileHeader({
           onClick={() => bannerInputRef.current?.click()}
           disabled={isImageUploading}
           className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-white backdrop-blur-sm text-blue-600 px-2 py-1 sm:px-3 sm:py-2 rounded-md text-xs sm:text-sm hover:bg-blue-600 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-2"
-          whileHover={{ scale: 1.05, backgroundColor: '#001a6e', color: 'white' }}
+          whileHover={{
+            scale: 1.05,
+            backgroundColor: '#001a6e',
+            color: 'white',
+          }}
           whileTap={{ scale: 0.95 }}
         >
           {isImageUploading ? (
@@ -110,7 +146,7 @@ export default function ProfileHeader({
               Uploading...
             </>
           ) : (
-            "Change Banner"
+            'Change Banner'
           )}
         </motion.button>
 
@@ -146,7 +182,7 @@ export default function ProfileHeader({
               />
             ) : (
               <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-lg absolute left-0 top-0 bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white text-lg sm:text-xl lg:text-2xl font-bold">
-                {profile.username?.charAt(0).toUpperCase() || "U"}
+                {profile.username?.charAt(0).toUpperCase() || 'U'}
               </div>
             )}
 
@@ -261,12 +297,31 @@ export default function ProfileHeader({
             <div className="flex items-center gap-3 sm:gap-4 md:gap-6 lg:gap-8">
               <StatItem label="Posts" value={stats?.posts || 0} />
               <StatItem label="Journeys" value={stats?.journeys || 0} />
-              <StatItem label="Followers" value={stats?.followers || 0} />
-              <StatItem label="Following" value={stats?.following || 0} />
+              <StatItem
+                label="Followers"
+                value={stats?.followers || 0}
+                onClick={handleOpenFollowers}
+                clickable
+              />
+              <StatItem
+                label="Following"
+                value={stats?.following || 0}
+                onClick={handleOpenFollowing}
+                clickable
+              />
             </div>
           )}
         </motion.div>
       </div>
+
+      {/* Followers/Following Modal */}
+      <FollowersFollowingModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        userId={profile.id}
+        initialTab={modalTab}
+        username={profile.username}
+      />
     </motion.div>
   );
 }

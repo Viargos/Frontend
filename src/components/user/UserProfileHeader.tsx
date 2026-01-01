@@ -10,6 +10,9 @@ import { UserPlus, UserMinus, UserCheck, MessageCircle } from 'lucide-react';
 import { userService } from '@/lib/services/service-factory';
 import { useChatStore } from '@/store/chat.store';
 import { useAuthStore } from '@/store/auth.store';
+import FollowersFollowingModal, {
+  ModalType,
+} from '@/components/profile/FollowersFollowingModal';
 
 interface UserProfileHeaderProps {
   user: User;
@@ -19,7 +22,17 @@ interface UserProfileHeaderProps {
 }
 
 // Stat item component for use within the header
-const StatItem = ({ value, label }: { value: number; label: string }) => {
+const StatItem = ({
+  value,
+  label,
+  onClick,
+  clickable = false,
+}: {
+  value: number;
+  label: string;
+  onClick?: () => void;
+  clickable?: boolean;
+}) => {
   const formatCount = (count: number): string => {
     if (count >= 1000000) {
       return `${(count / 1000000).toFixed(1)}M`;
@@ -31,11 +44,20 @@ const StatItem = ({ value, label }: { value: number; label: string }) => {
   };
 
   return (
-    <div className="flex flex-col items-center gap-1 cursor-pointer hover:scale-105 transition-transform min-w-0">
+    <div
+      className={`flex flex-col items-center gap-1 min-w-0 ${
+        clickable ? 'cursor-pointer hover:scale-105 transition-transform' : ''
+      }`}
+      onClick={clickable ? onClick : undefined}
+    >
       <span className="text-sm sm:text-base lg:text-lg font-bold text-gray-900">
         {formatCount(value)}
       </span>
-      <span className="text-xs sm:text-sm text-gray-600 whitespace-nowrap">
+      <span
+        className={`text-xs sm:text-sm whitespace-nowrap text-gray-600 ${
+          clickable ? 'hover:underline' : ''
+        }`}
+      >
         {label}
       </span>
     </div>
@@ -53,9 +75,21 @@ export default function UserProfileHeader({
   );
   const [isLoading, setIsLoading] = useState(false);
   const [isMessageLoading, setIsMessageLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalTab, setModalTab] = useState<ModalType>('followers');
   const router = useRouter();
   const { user: currentUser } = useAuthStore();
   const { createConversation, setSelectedChat } = useChatStore();
+
+  const handleOpenFollowers = () => {
+    setModalTab('followers');
+    setIsModalOpen(true);
+  };
+
+  const handleOpenFollowing = () => {
+    setModalTab('following');
+    setIsModalOpen(true);
+  };
 
   const handleFollowClick = async () => {
     if (isLoading) return;
@@ -296,11 +330,30 @@ export default function UserProfileHeader({
           <div className="flex items-center gap-3 sm:gap-4 md:gap-6 lg:gap-8">
             <StatItem label="Posts" value={stats?.postsCount || 0} />
             <StatItem label="Journeys" value={stats?.journeysCount || 0} />
-            <StatItem label="Followers" value={stats?.followersCount || 0} />
-            <StatItem label="Following" value={stats?.followingCount || 0} />
+            <StatItem
+              label="Followers"
+              value={stats?.followersCount || 0}
+              onClick={handleOpenFollowers}
+              clickable
+            />
+            <StatItem
+              label="Following"
+              value={stats?.followingCount || 0}
+              onClick={handleOpenFollowing}
+              clickable
+            />
           </div>
         </motion.div>
       </div>
+
+      {/* Followers/Following Modal */}
+      <FollowersFollowingModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        userId={user.id}
+        initialTab={modalTab}
+        username={user.username}
+      />
     </motion.div>
   );
 }
