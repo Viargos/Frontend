@@ -10,6 +10,7 @@ import {
   Polyline,
 } from '@react-google-maps/api';
 import { Journey, JourneyPlace } from '@/types/journey.types';
+import { viargoMapOptions } from '@/constants/map-styles';
 
 interface MapLocation {
   id: string;
@@ -335,19 +336,20 @@ export default function AllJourneysMap({
   );
 
   const getMarkerIcon = (type: string, isSelected: boolean = false) => {
+    // Blue-themed colors for different place types
     const colors = {
-      journeyStart: '#FF6B35', // Orange for journey start
-      stay: '#4ECDC4', // Teal
-      activity: '#45B7D1', // Blue
-      food: '#96CEB4', // Green
-      transport: '#6B66FF', // Purple
-      note: '#FF6B6B', // Red
+      journeyStart: '#0ea5e9', // Bright cyan blue for journey start
+      stay: '#1e40af',         // Deep blue (accommodations)
+      activity: '#2563eb',     // Bright blue (activities)
+      food: '#3b82f6',         // Sky blue (food)
+      transport: '#0891b2',    // Teal blue (transport)
+      note: '#06b6d4',         // Cyan blue (notes)
     };
 
     const markerColor = colors[type as keyof typeof colors] || '#001a6e';
     const markerSize = type === 'journeyStart' ? 32 : 24;
     const strokeWidth = isSelected ? 3 : 2;
-    const strokeColor = isSelected ? '#000000' : '#ffffff';
+    const strokeColor = isSelected ? '#001a6e' : '#ffffff'; // Blue when selected
 
     if (type === 'journeyStart') {
       return {
@@ -425,8 +427,8 @@ export default function AllJourneysMap({
     );
   }
 
-  // Journey colors for polylines
-  const journeyColors = ['#FF6B35', '#45B7D1', '#4ECDC4', '#96CEB4', '#FF6B6B'];
+  // Blue-themed journey colors for polylines
+  const journeyColors = ['#001a6e', '#1e40af', '#2563eb', '#3b82f6', '#0ea5e9', '#06b6d4', '#0891b2'];
 
   return (
     <GoogleMap
@@ -436,23 +438,9 @@ export default function AllJourneysMap({
       onLoad={onLoad}
       onUnmount={onUnmount}
       options={{
-        zoomControl: true,
-        streetViewControl: false,
-        mapTypeControl: false,
-        fullscreenControl: true,
-        // Optimize map rendering and data usage
-        gestureHandling: 'cooperative',
-        disableDefaultUI: true,
-        clickableIcons: true, // Reduces unnecessary POI data
-        restriction: {
-          // Optional: restrict to specific region to reduce data
-          latLngBounds: {
-            north: 85,
-            south: -85,
-            west: -180,
-            east: 180,
-          },
-        },
+        ...viargoMapOptions,
+        fullscreenControl: true, // Override for this specific map
+        disableDefaultUI: true,  // Override for this specific map
       }}
     >
       {/* Draw polylines for selected journey */}

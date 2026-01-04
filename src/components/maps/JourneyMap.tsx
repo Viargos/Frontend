@@ -9,6 +9,7 @@ import {
   InfoWindow,
   Polyline,
 } from '@react-google-maps/api';
+import { viargoMapOptions } from '@/constants/map-styles';
 
 interface Location {
   id: string;
@@ -271,21 +272,21 @@ export default function JourneyMap({
   );
 
   const getMarkerIcon = (type: string, isNew: boolean = false) => {
-    // Use primary-blue for all markers
-    const primaryBlue = '#001a6e'; // Primary blue color from CSS variables
-    const newMarkerColor = '#FF6B35'; // Orange for new markers
+    // Blue-themed colors for different place types
+    const primaryBlue = '#001a6e'; // Primary blue-600
+    const newMarkerColor = '#0ea5e9'; // Bright blue for new markers (matches theme)
 
     const colors = {
-      journeyLocation: primaryBlue,
-      stay: primaryBlue,
-      activity: primaryBlue,
-      food: primaryBlue,
-      transport: primaryBlue,
-      note: primaryBlue,
+      journeyLocation: '#001a6e', // Primary blue (stays/hotels)
+      stay: '#1e40af',            // Deep blue (accommodations)
+      activity: '#2563eb',        // Bright blue (activities/attractions)
+      food: '#3b82f6',            // Sky blue (restaurants/food)
+      transport: '#0891b2',       // Teal blue (transportation)
+      note: '#06b6d4',            // Cyan blue (notes/info)
       // Legacy support
-      placeToStay: primaryBlue,
-      placesToGo: primaryBlue,
-      notes: primaryBlue,
+      placeToStay: '#1e40af',     // Deep blue
+      placesToGo: '#2563eb',      // Bright blue
+      notes: '#06b6d4',           // Cyan blue
     };
 
     const markerColor = isNew
@@ -412,16 +413,16 @@ export default function JourneyMap({
     );
   }
 
-  // Generate colors for each day's path
+  // Generate blue-themed colors for each day's path
   const dayColors = {
-    'Day 1': '#FF6B35', // Orange
-    'Day 2': '#45B7D1', // Blue
-    'Day 3': '#4ECDC4', // Teal
-    'Day 4': '#96CEB4', // Green
-    'Day 5': '#FF6B6B', // Red
-    'Day 6': '#6B66FF', // Purple
-    'Day 7': '#FFD166', // Yellow
-    unknown: '#888888', // Gray for unknown day
+    'Day 1': '#001a6e', // Primary blue (blue-600)
+    'Day 2': '#1e40af', // Deep blue
+    'Day 3': '#2563eb', // Bright blue
+    'Day 4': '#3b82f6', // Sky blue
+    'Day 5': '#0ea5e9', // Cyan blue
+    'Day 6': '#06b6d4', // Teal blue
+    'Day 7': '#0891b2', // Darker teal
+    unknown: '#4a5574', // Blue-gray for unknown day
   };
 
   return (
@@ -432,25 +433,7 @@ export default function JourneyMap({
       onLoad={onLoad}
       onUnmount={onUnmount}
       onClick={onMapClick}
-      options={{
-        zoomControl: true,
-        streetViewControl: false,
-        mapTypeControl: false,
-        fullscreenControl: false,
-        // Optimize map rendering and data usage
-        gestureHandling: 'cooperative',
-        disableDefaultUI: false,
-        clickableIcons: false, // Reduces unnecessary POI data
-        restriction: {
-          // Optional: restrict to specific region to reduce data
-          latLngBounds: {
-            north: 85,
-            south: -85,
-            west: -180,
-            east: 180,
-          },
-        },
-      }}
+      options={viargoMapOptions}
     >
       {/* Draw polylines connecting points for each day */}
       {Object.entries(pathsByDay).map(([day, path]) => {

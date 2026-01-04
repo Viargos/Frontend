@@ -59,6 +59,7 @@ export default function ChangePasswordPage() {
         router.push('/settings');
       }, 2000);
     } catch (err) {
+      console.error(err);
       setError('Failed to change password. Please try again.');
     } finally {
       setIsLoading(false);

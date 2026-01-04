@@ -10,6 +10,7 @@ import {
   InfoWindow,
 } from '@react-google-maps/api';
 import { Journey, JourneyPlace, PlaceType } from '@/types/journey.types';
+import { viargoMapOptions } from '@/constants/map-styles';
 
 interface MapLocation {
   id: string;
@@ -229,60 +230,73 @@ export default function ExploreMap({
   }, []);
 
   // Helper function to get journey location (lat/lng) from its places
-  const getJourneyLocation = useCallback((journey: Journey): { lat: number; lng: number } | null => {
-    if (!journey.days || journey.days.length === 0) {
-      return null;
-    }
+  const getJourneyLocation = useCallback(
+    (journey: Journey): { lat: number; lng: number } | null => {
+      if (!journey.days || journey.days.length === 0) {
+        return null;
+      }
 
-    // Collect all valid coordinates from all places in the journey
-    const validCoords: { lat: number; lng: number }[] = [];
+      // Collect all valid coordinates from all places in the journey
+      const validCoords: { lat: number; lng: number }[] = [];
 
-    for (const day of journey.days) {
-      if (day.places) {
-        for (const place of day.places) {
-          // First, try to use real coordinates if available
-          if (place.latitude !== undefined && place.longitude !== undefined) {
-            const lat = typeof place.latitude === 'number' ? place.latitude : parseFloat(place.latitude as any);
-            const lng = typeof place.longitude === 'number' ? place.longitude : parseFloat(place.longitude as any);
-            
-            if (isValidCoordinate(lat, lng)) {
-              validCoords.push({
-                lat: lat,
-                lng: lng,
-              });
+      for (const day of journey.days) {
+        if (day.places) {
+          for (const place of day.places) {
+            // First, try to use real coordinates if available
+            if (place.latitude !== undefined && place.longitude !== undefined) {
+              const lat =
+                typeof place.latitude === 'number'
+                  ? place.latitude
+                  : parseFloat(place.latitude as any);
+              const lng =
+                typeof place.longitude === 'number'
+                  ? place.longitude
+                  : parseFloat(place.longitude as any);
+
+              if (isValidCoordinate(lat, lng)) {
+                validCoords.push({
+                  lat: lat,
+                  lng: lng,
+                });
+              }
             }
           }
         }
       }
-    }
 
-    // If we have valid coordinates, calculate center or use first one
-    if (validCoords.length > 0) {
-      // Calculate center point from all valid coordinates
-      const avgLat = validCoords.reduce((sum, coord) => sum + coord.lat, 0) / validCoords.length;
-      const avgLng = validCoords.reduce((sum, coord) => sum + coord.lng, 0) / validCoords.length;
-      
-      // Validate the calculated center
-      if (isValidCoordinate(avgLat, avgLng)) {
-        return { lat: avgLat, lng: avgLng };
-      }
-    }
+      // If we have valid coordinates, calculate center or use first one
+      if (validCoords.length > 0) {
+        // Calculate center point from all valid coordinates
+        const avgLat =
+          validCoords.reduce((sum, coord) => sum + coord.lat, 0) /
+          validCoords.length;
+        const avgLng =
+          validCoords.reduce((sum, coord) => sum + coord.lng, 0) /
+          validCoords.length;
 
-    // Fallback: try to get coordinates from first place using mock coordinates
-    for (const day of journey.days) {
-      if (day.places && day.places.length > 0) {
-        const firstPlace = day.places[0];
-        const coords = getCoordinatesForPlace(firstPlace.name, journey.title);
-        
-        // Validate fallback coordinates
-        if (isValidCoordinate(coords.lat, coords.lng)) {
-          return coords;
+        // Validate the calculated center
+        if (isValidCoordinate(avgLat, avgLng)) {
+          return { lat: avgLat, lng: avgLng };
         }
       }
-    }
 
-    return null;
-  }, [isValidCoordinate]);
+      // Fallback: try to get coordinates from first place using mock coordinates
+      for (const day of journey.days) {
+        if (day.places && day.places.length > 0) {
+          const firstPlace = day.places[0];
+          const coords = getCoordinatesForPlace(firstPlace.name, journey.title);
+
+          // Validate fallback coordinates
+          if (isValidCoordinate(coords.lat, coords.lng)) {
+            return coords;
+          }
+        }
+      }
+
+      return null;
+    },
+    [isValidCoordinate]
+  );
 
   // Convert journeys to map locations - ONE marker per journey
   useEffect(() => {
@@ -291,9 +305,12 @@ export default function ExploreMap({
 
     journeysToProcess.forEach(journey => {
       const journeyCoords = getJourneyLocation(journey);
-      
+
       // Double-check coordinates are valid before adding
-      if (journeyCoords && isValidCoordinate(journeyCoords.lat, journeyCoords.lng)) {
+      if (
+        journeyCoords &&
+        isValidCoordinate(journeyCoords.lat, journeyCoords.lng)
+      ) {
         // Get the first place for display purposes (or create a placeholder)
         let firstPlace: JourneyPlace | null = null;
         if (journey.days && journey.days.length > 0) {
@@ -312,7 +329,7 @@ export default function ExploreMap({
             type: PlaceType.NOTE,
             name: journey.title,
             description: journey.description,
-            day: journey.days?.[0] || {} as any,
+            day: journey.days?.[0] || ({} as any),
           } as JourneyPlace;
         }
 
@@ -322,7 +339,10 @@ export default function ExploreMap({
           lat: journeyCoords.lat,
           lng: journeyCoords.lng,
           type: 'journeyLocation',
-          day: journey.days && journey.days.length > 0 ? `Day ${journey.days[0].dayNumber}` : 'Day 1',
+          day:
+            journey.days && journey.days.length > 0
+              ? `Day ${journey.days[0].dayNumber}`
+              : 'Day 1',
           journey: journey,
           place: firstPlace,
         });
@@ -335,7 +355,7 @@ export default function ExploreMap({
   const onLoad = useCallback(
     (mapInstance: google.maps.Map) => {
       setMap(mapInstance);
-      
+
       if (mapLocations.length > 0) {
         const bounds = new window.google.maps.LatLngBounds();
         mapLocations.forEach(location => {
@@ -344,7 +364,7 @@ export default function ExploreMap({
             bounds.extend({ lat: location.lat, lng: location.lng });
           }
         });
-        
+
         // Only fit bounds if we have valid locations
         if (!bounds.isEmpty()) {
           // Add padding to the bounds for better visibility
@@ -394,13 +414,13 @@ export default function ExploreMap({
   const getMarkerIcon = useCallback((location: MapLocation) => {
     const journey = location.journey;
     const user = journey.user;
-    
+
     // Determine what to show: journey image > user profile > username initial
     let imageUrl: string | null = null;
     let showInitial = false;
     let initial = '';
     let backgroundColor = '#6366f1'; // Default indigo color
-    
+
     if (journey.coverImage) {
       imageUrl = journey.coverImage;
     } else if ((user as any).profileImage) {
@@ -408,10 +428,18 @@ export default function ExploreMap({
     } else {
       showInitial = true;
       initial = user.username.charAt(0).toUpperCase();
-      // Generate a color based on username for consistency
+      // Generate a blue-tinted color based on username for consistency with theme
       const colors = [
-        '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#ef4444',
-        '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6'
+        '#001a6e', // Primary blue (blue-600)
+        '#1e3a8a', // Dark blue
+        '#2563eb', // Bright blue
+        '#3b82f6', // Sky blue
+        '#0ea5e9', // Cyan blue
+        '#06b6d4', // Teal blue
+        '#0891b2', // Darker teal
+        '#0e7490', // Deep teal
+        '#155e75', // Navy teal
+        '#164e63', // Dark navy
       ];
       const colorIndex = user.username.charCodeAt(0) % colors.length;
       backgroundColor = colors[colorIndex];
@@ -426,36 +454,69 @@ export default function ExploreMap({
 
     // Create SVG with circular thumbnail and pin
     let svgContent = '';
-    
+
     if (imageUrl && !showInitial) {
       // Escape image URL for SVG
-      const escapedImageUrl = imageUrl.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      const escapedImageUrl = imageUrl
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
       // Use image in circle
       svgContent = `
         <svg width="${totalWidth}" height="${totalHeight}" viewBox="0 0 ${totalWidth} ${totalHeight}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
           <defs>
-            <clipPath id="circleClip-${location.id.replace(/[^a-zA-Z0-9]/g, '_')}">
-              <circle cx="${totalWidth / 2}" cy="${totalWidth / 2}" r="${circleSize / 2 - 2}"/>
+            <clipPath id="circleClip-${location.id.replace(
+              /[^a-zA-Z0-9]/g,
+              '_'
+            )}">
+              <circle cx="${totalWidth / 2}" cy="${totalWidth / 2}" r="${
+        circleSize / 2 - 2
+      }"/>
             </clipPath>
           </defs>
-          <!-- White border circle -->
-          <circle cx="${totalWidth / 2}" cy="${totalWidth / 2}" r="${circleSize / 2}" fill="white" stroke="#e5e7eb" stroke-width="2"/>
-          <!-- Image circle -->
-          <circle cx="${totalWidth / 2}" cy="${totalWidth / 2}" r="${circleSize / 2 - 2}" fill="#f3f4f6"/>
-          <image xlink:href="${escapedImageUrl}" x="2" y="2" width="${circleSize - 4}" height="${circleSize - 4}" clip-path="url(#circleClip-${location.id.replace(/[^a-zA-Z0-9]/g, '_')})" preserveAspectRatio="xMidYMid slice"/>
-          <!-- Pin -->
-          <path d="M ${totalWidth / 2 - pinWidth / 2} ${circleSize} L ${totalWidth / 2} ${totalHeight} L ${totalWidth / 2 + pinWidth / 2} ${circleSize} Z" fill="white" stroke="#e5e7eb" stroke-width="1"/>
+          <!-- White border circle with blue tint -->
+          <circle cx="${totalWidth / 2}" cy="${totalWidth / 2}" r="${
+        circleSize / 2
+      }" fill="white" stroke="#d0dae8" stroke-width="2"/>
+          <!-- Image circle with blue-gray background -->
+          <circle cx="${totalWidth / 2}" cy="${totalWidth / 2}" r="${
+        circleSize / 2 - 2
+      }" fill="#eff2f9"/>
+          <image xlink:href="${escapedImageUrl}" x="2" y="2" width="${
+        circleSize - 4
+      }" height="${
+        circleSize - 4
+      }" clip-path="url(#circleClip-${location.id.replace(
+        /[^a-zA-Z0-9]/g,
+        '_'
+      )})" preserveAspectRatio="xMidYMid slice"/>
+          <!-- Pin with blue-gray stroke -->
+          <path d="M ${totalWidth / 2 - pinWidth / 2} ${circleSize} L ${
+        totalWidth / 2
+      } ${totalHeight} L ${
+        totalWidth / 2 + pinWidth / 2
+      } ${circleSize} Z" fill="white" stroke="#d0dae8" stroke-width="1"/>
         </svg>
       `;
     } else {
       // Use initial letter in colored circle
       svgContent = `
         <svg width="${totalWidth}" height="${totalHeight}" viewBox="0 0 ${totalWidth} ${totalHeight}" xmlns="http://www.w3.org/2000/svg">
-          <!-- Colored circle with initial -->
-          <circle cx="${totalWidth / 2}" cy="${totalWidth / 2}" r="${circleSize / 2}" fill="${backgroundColor}" stroke="white" stroke-width="2"/>
-          <text x="${totalWidth / 2}" y="${totalWidth / 2 + 4}" text-anchor="middle" fill="white" font-size="18" font-weight="bold" font-family="Arial, sans-serif" dominant-baseline="middle">${initial}</text>
-          <!-- Pin -->
-          <path d="M ${totalWidth / 2 - pinWidth / 2} ${circleSize} L ${totalWidth / 2} ${totalHeight} L ${totalWidth / 2 + pinWidth / 2} ${circleSize} Z" fill="white" stroke="#e5e7eb" stroke-width="1"/>
+          <!-- Blue-themed circle with initial -->
+          <circle cx="${totalWidth / 2}" cy="${totalWidth / 2}" r="${
+        circleSize / 2
+      }" fill="${backgroundColor}" stroke="white" stroke-width="2"/>
+          <text x="${totalWidth / 2}" y="${
+        totalWidth / 2 + 4
+      }" text-anchor="middle" fill="white" font-size="18" font-weight="bold" font-family="Arial, sans-serif" dominant-baseline="middle">${initial}</text>
+          <!-- Pin with blue-gray stroke -->
+          <path d="M ${totalWidth / 2 - pinWidth / 2} ${circleSize} L ${
+        totalWidth / 2
+      } ${totalHeight} L ${
+        totalWidth / 2 + pinWidth / 2
+      } ${circleSize} Z" fill="white" stroke="#d0dae8" stroke-width="1"/>
         </svg>
       `;
     }
@@ -488,7 +549,6 @@ export default function ExploreMap({
     };
     return icons[type as keyof typeof icons] || '📍';
   };
-
 
   // Ensure center is always a valid object
   const mapCenter = center || defaultCenter;
@@ -540,25 +600,7 @@ export default function ExploreMap({
       onLoad={onLoad}
       onUnmount={onUnmount}
       onClick={onMapClick}
-      options={{
-        zoomControl: true,
-        streetViewControl: false,
-        mapTypeControl: false,
-        fullscreenControl: false,
-        // Optimize map rendering and data usage
-        gestureHandling: 'cooperative',
-        disableDefaultUI: false,
-        clickableIcons: false, // Reduces unnecessary POI data
-        restriction: {
-          // Optional: restrict to specific region to reduce data
-          latLngBounds: {
-            north: 85,
-            south: -85,
-            west: -180,
-            east: 180,
-          },
-        },
-      }}
+      options={viargoMapOptions}
     >
       {/* Render map markers */}
       {mapLocations
