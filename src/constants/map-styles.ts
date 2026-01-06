@@ -427,7 +427,7 @@ export const viargoMapOptions = {
   zoomControl: true,
   streetViewControl: false,
   mapTypeControl: false,
-  fullscreenControl: false,
+  fullscreenControl: true,
   gestureHandling: 'greedy' as const,
   disableDefaultUI: false,
   clickableIcons: false,
