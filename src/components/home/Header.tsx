@@ -141,7 +141,10 @@ export default function Header({ user }: HeaderProps) {
     <header className="flex items-center justify-between w-full py-4 bg-white gap-2 sm:gap-4 px-4">
       {/* Logo */}
       <div className="flex items-center flex-shrink-0">
-        <div className="flex items-center justify-center text-white font-bold text-lg">
+        <div
+          className="flex items-center justify-center text-white font-bold text-lg cursor-pointer"
+          onClick={() => router.push('/dashboard')}
+        >
           <Image
             src="/viargos.svg"
             alt="viargos"
@@ -333,11 +336,15 @@ export default function Header({ user }: HeaderProps) {
               <Button
                 variant="secondary"
                 size="sm"
-                icon={<JourneyIcon className="text-blue-900 outline-blue-900" />}
+                icon={
+                  <JourneyIcon className="text-blue-900 outline-blue-900" />
+                }
                 iconPosition="leading"
                 onClick={() => router.push('/create-journey')}
               >
-                <span className="hidden lg:inline text-blue-900">Create Journey</span>
+                <span className="hidden lg:inline text-blue-900">
+                  Create Journey
+                </span>
               </Button>
 
               {/* Notifications Icon */}
