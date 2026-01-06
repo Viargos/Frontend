@@ -175,7 +175,7 @@ export default function Header({ user }: HeaderProps) {
               {!isSearchExpanded && (
                 <button
                   onClick={handleSearchToggle}
-                  className="w-10 h-10 p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg border border-gray-300 hover:border-gray-400 transition-all duration-200 shadow-button flex items-center justify-center cursor-pointer"
+                  className="w-10 h-10 p-2 text-blue-900 hover:text-blue-900 hover:bg-gray-100 rounded-lg border border-blue-900 hover:border-blue-900 transition-all duration-200 shadow-button flex items-center justify-center cursor-pointer"
                   aria-label="Search"
                 >
                   <svg
@@ -262,7 +262,7 @@ export default function Header({ user }: HeaderProps) {
                       </p>
                     ) : isLoading ? (
                       <div className="flex items-center justify-center py-4">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-900"></div>
                       </div>
                     ) : results.length > 0 ? (
                       <div className="max-h-60 overflow-y-auto">
@@ -270,7 +270,7 @@ export default function Header({ user }: HeaderProps) {
                           <div
                             key={user.id}
                             onClick={() => handleUserClick(user)}
-                            className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"
+                            className="flex items-center space-x-3 p-2 hover:bg-blue-50 rounded-lg cursor-pointer transition-colors"
                           >
                             {user.profileImage ? (
                               <Image
@@ -286,11 +286,11 @@ export default function Header({ user }: HeaderProps) {
                               </div>
                             )}
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-900 truncate">
+                              <p className="text-sm font-medium text-blue-900 truncate">
                                 {user.username}
                               </p>
                               {user.email && (
-                                <p className="text-xs text-gray-500 truncate">
+                                <p className="text-xs text-gray-900 truncate">
                                   {user.email}
                                 </p>
                               )}
@@ -303,8 +303,8 @@ export default function Header({ user }: HeaderProps) {
                         {error}
                       </p>
                     ) : searchQuery.trim().length > 0 ? (
-                      <p className="text-gray-500 text-sm text-center">
-                        No users found for "{searchQuery}"
+                      <p className="text-blue-600 text-sm text-center">
+                        No users found for &quot;{searchQuery}&quot;
                       </p>
                     ) : null}
                   </div>
@@ -323,28 +323,28 @@ export default function Header({ user }: HeaderProps) {
               <Button
                 variant="secondary"
                 size="sm"
-                icon={<ImagePlusIcon className="text-gray-700" />}
+                icon={<ImagePlusIcon className="text-blue-900" />}
                 iconPosition="leading"
                 onClick={handleCreatePost}
               >
-                <span className="hidden lg:inline">Add Post</span>
+                <span className="hidden lg:inline text-blue-900">Add Post</span>
               </Button>
 
               <Button
                 variant="secondary"
                 size="sm"
-                icon={<JourneyIcon className="text-gray-700" />}
+                icon={<JourneyIcon className="text-blue-900 outline-blue-900" />}
                 iconPosition="leading"
                 onClick={() => router.push('/create-journey')}
               >
-                <span className="hidden lg:inline">Create Journey</span>
+                <span className="hidden lg:inline text-blue-900">Create Journey</span>
               </Button>
 
               {/* Notifications Icon */}
               <div className="relative" ref={notificationsRef}>
                 <button
                   onClick={() => setShowNotifications(!showNotifications)}
-                  className="p-2 text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                  className="p-2 text-blue-900 hover:text-blue-900 transition-colors cursor-pointer"
                 >
                   <svg
                     className="w-6 h-6"
@@ -362,7 +362,7 @@ export default function Header({ user }: HeaderProps) {
 
                   {/* Notification Badge */}
                   {notificationCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium min-w-[20px]">
+                    <span className="absolute -top-1 -right-1 bg-blue-900 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium min-w-[20px]">
                       {notificationCount > 99 ? '99+' : notificationCount}
                     </span>
                   )}
@@ -454,7 +454,7 @@ export default function Header({ user }: HeaderProps) {
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setShowDropdown(!showDropdown)}
-                  className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-300 hover:border-gray-400 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
+                  className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-300 hover:border-gray-400 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-blue-900"
                 >
                   {user?.profileImage ? (
                     <Image
@@ -523,7 +523,7 @@ export default function Header({ user }: HeaderProps) {
                         className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
                       >
                         <svg
-                          className="w-4 h-4 mr-3 text-gray-400"
+                          className="w-4 h-4 mr-3"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"

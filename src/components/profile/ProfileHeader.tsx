@@ -47,11 +47,11 @@ const StatItem = ({
       }`}
       onClick={clickable ? onClick : undefined}
     >
-      <span className="text-sm sm:text-base lg:text-lg font-bold text-gray-900">
+      <span className="text-sm sm:text-base lg:text-lg font-bold text-blue-600">
         {formatCount(value)}
       </span>
       <span
-        className={`text-xs sm:text-sm whitespace-nowrap text-gray-600 ${
+        className={`text-xs sm:text-sm whitespace-nowrap text-blue-600 ${
           clickable ? 'hover:underline' : ''
         }`}
       >

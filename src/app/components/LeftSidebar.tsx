@@ -151,7 +151,7 @@ const LeftSidebar = ({ onNavigate }: LeftSidebarProps) => {
   };
 
   return (
-    <div className="bg-gray-100 flex flex-col h-full">
+    <div className="bg-white flex flex-col h-full shadow-[4px_0_12px_-2px_rgba(0,0,0,0.08)]">
       {/* Main Navigation */}
       <nav className="flex-1 p-2 lg:p-4">
         <ul className="space-y-2">

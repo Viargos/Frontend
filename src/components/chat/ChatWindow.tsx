@@ -277,7 +277,7 @@ export default function ChatWindow({
   }, [messages]);
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 shadow-sm h-full flex flex-col">
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-lg h-full flex flex-col overflow-hidden">
       {/* Chat Header */}
       <ChatHeader
         chat={chat}
@@ -296,30 +296,72 @@ export default function ChatWindow({
           style={{ scrollBehavior: 'smooth' }}
         >
           {Object.keys(messageGroups).length === 0 ? (
-            <div className="flex items-center justify-center h-full min-h-[400px]">
-              <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                  <svg
-                    className="w-8 h-8 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+            <div className="flex items-center justify-center h-full min-h-[400px] p-8">
+              <motion.div 
+                className="text-center max-w-md"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5 }}
+              >
+                {/* Profile Picture */}
+                <motion.div
+                  className="relative w-24 h-24 mx-auto mb-6"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: "spring" }}
+                >
+                  {chat.profileImage ? (
+                    <img
+                      src={chat.profileImage}
+                      alt={chat.name || chat.username}
+                      className="w-full h-full rounded-full object-cover border-4 border-blue-100 shadow-lg"
                     />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Start a conversation
-                </h3>
-                <p className="text-gray-500">
-                  Send a message to begin chatting with {chat.name || chat.username}
-                </p>
-              </div>
+                  ) : (
+                    <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-3xl font-bold border-4 border-blue-100 shadow-lg">
+                      {(chat.name || chat.username).charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  
+                  {/* Online indicator */}
+                  <div className="absolute bottom-1 right-1 w-6 h-6 bg-green-500 rounded-full border-4 border-white shadow-sm"></div>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                    {chat.name || chat.username}
+                  </h3>
+                  <p className="text-gray-600 mb-6 leading-relaxed">
+                    This is the beginning of your conversation with{' '}
+                    <span className="font-semibold text-blue-600">{chat.name || chat.username}</span>.
+                    Say hi and start your travel story! ✈️
+                  </p>
+
+                  {/* Suggested messages */}
+                  <div className="flex flex-col gap-2 mb-4">
+                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                      Quick Start
+                    </div>
+                    {['Hey! 👋', 'How are you?', 'Where are you traveling?'].map((suggestion, idx) => (
+                      <motion.button
+                        key={idx}
+                        onClick={() => onSendMessage(suggestion)}
+                        className="px-4 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-sm font-medium transition-colors text-left"
+                        whileHover={{ scale: 1.02, x: 5 }}
+                        whileTap={{ scale: 0.98 }}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.4 + idx * 0.1 }}
+                      >
+                        {suggestion}
+                      </motion.button>
+                    ))}
+                  </div>
+                </motion.div>
+              </motion.div>
             </div>
           ) : (
           Object.entries(messageGroups).map(([date, dateMessages]) => (
