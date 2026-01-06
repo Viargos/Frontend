@@ -11,11 +11,16 @@ interface LeftSidebarProps {
   onNavigate?: () => void;
 }
 
-const LeftSidebar = ({ user, onLogout, onNavigate }: LeftSidebarProps) => {
+const LeftSidebar = ({ onNavigate }: LeftSidebarProps) => {
   const pathname = usePathname();
 
   // Main navigation items (without settings)
-  const mainNavigationItems = [
+  const mainNavigationItems: Array<{
+    name: string;
+    href: string;
+    icon: React.ReactNode;
+    badge?: string;
+  }> = [
     {
       name: 'Home',
       href: '/dashboard',
@@ -92,6 +97,26 @@ const LeftSidebar = ({ user, onLogout, onNavigate }: LeftSidebarProps) => {
         </svg>
       ),
     },
+    {
+      name: 'Plan Your Journey',
+      href: '/plan-your-journey',
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+          />
+        </svg>
+      ),
+      badge: 'Coming Soon',
+    },
   ];
 
   // Settings section (separate)
@@ -143,11 +168,23 @@ const LeftSidebar = ({ user, onLogout, onNavigate }: LeftSidebarProps) => {
                 title={item.name} // Tooltip for narrow sidebar
               >
                 <span className="lg:mr-3">{item.icon}</span>
-                <span className="hidden lg:inline">{item.name}</span>
+                <span className="hidden lg:inline flex-1">{item.name}</span>
+
+                {/* Coming Soon Badge */}
+                {item.badge && (
+                  <span className="hidden lg:inline ml-2 px-2 py-0.5 text-[10px] font-semibold bg-blue-100 text-blue-600 rounded-full animate-pulse">
+                    {item.badge}
+                  </span>
+                )}
 
                 {/* Tooltip for sm to lg screens (narrow sidebar) */}
                 <span className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10 lg:hidden">
                   {item.name}
+                  {item.badge && (
+                    <span className="ml-2 px-1.5 py-0.5 text-[9px] font-semibold bg-blue-500 text-white rounded-full animate-pulse">
+                      {item.badge}
+                    </span>
+                  )}
                 </span>
               </Link>
             </li>

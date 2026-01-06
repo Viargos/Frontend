@@ -18,12 +18,12 @@ This document describes the blue-themed marker color system used across all maps
 | Color Name | Hex Code | RGB | Usage |
 |------------|----------|-----|-------|
 | **Primary Blue** | `#001a6e` | (0, 26, 110) | Day 1 paths, primary journeys, base markers |
-| **Deep Blue** | `#1e40af` | (30, 64, 175) | Day 2 paths, stay/accommodation markers |
+| **Deep Blue** | `#1e40af` | (30, 64, 175) | Day 2 paths, **hotel accommodations** 🏨 |
 | **Bright Blue** | `#2563eb` | (37, 99, 235) | Day 3 paths, activity markers |
 | **Sky Blue** | `#3b82f6` | (59, 130, 246) | Day 4 paths, food/restaurant markers |
 | **Cyan Blue** | `#0ea5e9` | (14, 165, 233) | Day 5 paths, new markers, journey start |
 | **Teal Blue** | `#06b6d4` | (6, 182, 212) | Day 6 paths, note markers |
-| **Dark Teal** | `#0891b2` | (8, 145, 178) | Day 7 paths, transport markers |
+| **Dark Teal** | `#0891b2` | (8, 145, 178) | Day 7 paths, transport, **rental properties** 🏠 |
 | **Blue-Gray** | `#4a5574` | (74, 85, 116) | Unknown day, inactive elements |
 
 ## Marker Types by Component
@@ -57,14 +57,19 @@ This document describes the blue-themed marker color system used across all maps
 
 **Circular Markers by Place Type**
 
-| Place Type | Color | Hex Code | Visual |
-|------------|-------|----------|--------|
-| **Journey Location** | Primary Blue | `#001a6e` | Pin-style marker |
-| **Stay** | Deep Blue | `#1e40af` | Circle marker |
-| **Activity** | Bright Blue | `#2563eb` | Circle marker |
-| **Food** | Sky Blue | `#3b82f6` | Circle marker |
-| **Transport** | Teal Blue | `#0891b2` | Circle marker |
-| **Note** | Cyan Blue | `#06b6d4` | Circle marker |
+| Place Type | Color | Hex Code | Visual | Notes |
+|------------|-------|----------|--------|-------|
+| **Journey Location** | Primary Blue | `#001a6e` | Pin-style marker | - |
+| **Stay - Hotel** | Deep Blue | `#1e40af` | Circle marker | Auto-detected from name |
+| **Stay - Rental** | Teal Blue | `#0891b2` | Circle marker | Airbnb, apartments, etc. |
+| **Activity** | Bright Blue | `#2563eb` | Circle marker | - |
+| **Food** | Sky Blue | `#3b82f6` | Circle marker | - |
+| **Transport** | Teal Blue | `#0891b2` | Circle marker | - |
+| **Note** | Cyan Blue | `#06b6d4` | Circle marker | - |
+
+**Smart Accommodation Detection**: The system automatically detects whether a stay is a hotel or rental based on keywords in the place name and description:
+- **Hotels**: Hilton, Marriott, Resort, Inn, Lodge, etc. → Deep Blue `#1e40af`
+- **Rentals**: Airbnb, Apartment, Villa, Vacation Rental, etc. → Teal Blue `#0891b2`
 
 **New Marker Highlight**: `#0ea5e9` (Cyan blue with pulsing animation)
 
@@ -87,7 +92,8 @@ Unknown: #4a5574 (Blue-Gray)
 | Type | Color | Hex Code | Size | Special Feature |
 |------|-------|----------|------|-----------------|
 | **Journey Start** | Cyan Blue | `#0ea5e9` | 32px | Pin marker with "J" label |
-| **Stay** | Deep Blue | `#1e40af` | 24px | Circle marker |
+| **Stay - Hotel** | Deep Blue | `#1e40af` | 24px | Circle marker |
+| **Stay - Rental** | Teal Blue | `#0891b2` | 24px | Circle marker |
 | **Activity** | Bright Blue | `#2563eb` | 24px | Circle marker |
 | **Food** | Sky Blue | `#3b82f6` | 24px | Circle marker |
 | **Transport** | Teal Blue | `#0891b2` | 24px | Circle marker |
@@ -111,6 +117,64 @@ Darkest ━━━━━━━━━━━━━━━━━━━━━━━━
    │        │        │        │        │        │        │
 Primary   Deep    Bright    Sky     Cyan     Teal    Dark
  Blue     Blue     Blue     Blue    Blue     Blue    Teal
+```
+
+## Smart Accommodation Detection System
+
+### Overview
+
+The application includes an intelligent accommodation type detector that automatically distinguishes between hotels and rental properties (Airbnb, vacation rentals, etc.) to assign appropriate marker colors.
+
+### How It Works
+
+The system analyzes the place name and description for specific keywords:
+
+**Hotel Keywords** (assigned Deep Blue `#1e40af`):
+- hotel, resort, inn, motel, lodge
+- Brand names: Hilton, Marriott, Hyatt, Sheraton, etc.
+- Descriptive: boutique, suites, palace, plaza
+
+**Rental Keywords** (assigned Teal Blue `#0891b2`):
+- airbnb, apartment, flat, rental, villa
+- condo, house, cottage, cabin, studio
+- vacation rental, vrbo, homestay
+
+### Examples
+
+```typescript
+// Hotel detection
+"Hilton Garden Inn" → Deep Blue (#1e40af)
+"Grand Resort & Spa" → Deep Blue (#1e40af)
+"Marriott Hotel Downtown" → Deep Blue (#1e40af)
+
+// Rental detection
+"Cozy Airbnb in City Center" → Teal Blue (#0891b2)
+"Beachfront Villa Rental" → Teal Blue (#0891b2)
+"Downtown Apartment with View" → Teal Blue (#0891b2)
+
+// Unknown defaults to bright blue
+"My Friend's Place" → Bright Blue (#2563eb)
+```
+
+### Using the Detector
+
+```typescript
+import { 
+  detectAccommodationType, 
+  getAccommodationColor,
+  AccommodationType 
+} from '@/utils/accommodation-detector';
+
+// Detect type
+const type = detectAccommodationType(
+  "Marriott Hotel",
+  "Luxury hotel in downtown"
+);
+// Returns: AccommodationType.HOTEL
+
+// Get color
+const color = getAccommodationColor(type);
+// Returns: "#1e40af"
 ```
 
 ## Usage Examples
@@ -152,13 +216,27 @@ const dayColors = {
 };
 ```
 
-### Place Type Markers
+### Place Type Markers with Smart Detection
 
 ```typescript
-// Example: Place type color mapping
+// Example: Place type color mapping with accommodation detection
+import { detectAccommodationType, getAccommodationColor } from '@/utils/accommodation-detector';
+
+// For stay types, detect if it's hotel or rental
+let stayColor = '#1e40af'; // Default deep blue
+if (type === 'stay' && location?.name) {
+  const accommodationType = detectAccommodationType(
+    location.name,
+    location.description
+  );
+  stayColor = getAccommodationColor(accommodationType);
+  // Hotels: #1e40af (deep blue)
+  // Rentals: #0891b2 (teal blue)
+}
+
 const colors = {
   journeyLocation: '#001a6e', // Primary blue
-  stay: '#1e40af',            // Deep blue
+  stay: stayColor,            // Varies: Hotel or Rental
   activity: '#2563eb',        // Bright blue
   food: '#3b82f6',            // Sky blue
   transport: '#0891b2',       // Teal blue
@@ -227,8 +305,9 @@ Potential additions to the marker system:
 ## Related Files
 
 - `map-styles.ts` - Map background styling
+- `accommodation-detector.ts` - **Smart accommodation type detection**
 - `ExploreMap.tsx` - Discover page markers
-- `JourneyMap.tsx` - Journey detail markers
-- `AllJourneysMap.tsx` - Overview map markers
+- `JourneyMap.tsx` - Journey detail markers (with accommodation detection)
+- `AllJourneysMap.tsx` - Overview map markers (with accommodation detection)
 - `COLOR_REFERENCE.md` - Complete color documentation
 

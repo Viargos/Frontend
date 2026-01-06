@@ -11,6 +11,7 @@ import {
 } from '@react-google-maps/api';
 import { Journey, JourneyPlace } from '@/types/journey.types';
 import { viargoMapOptions } from '@/constants/map-styles';
+import { detectAccommodationType, getAccommodationColor } from '@/utils/accommodation-detector';
 
 interface MapLocation {
   id: string;
@@ -335,11 +336,25 @@ export default function AllJourneysMap({
     [onJourneyClick]
   );
 
-  const getMarkerIcon = (type: string, isSelected: boolean = false) => {
+  const getMarkerIcon = (
+    type: string,
+    isSelected: boolean = false,
+    location?: MapLocation
+  ) => {
+    // For stay types, detect if it's hotel or rental
+    let stayColor = '#1e40af'; // Default deep blue for stays
+    if (type === 'stay' && location?.place) {
+      const accommodationType = detectAccommodationType(
+        location.place.name,
+        location.place.description
+      );
+      stayColor = getAccommodationColor(accommodationType);
+    }
+
     // Blue-themed colors for different place types
     const colors = {
       journeyStart: '#0ea5e9', // Bright cyan blue for journey start
-      stay: '#1e40af',         // Deep blue (accommodations)
+      stay: stayColor,         // Varies: Hotel (deep blue) or Rental (teal)
       activity: '#2563eb',     // Bright blue (activities)
       food: '#3b82f6',         // Sky blue (food)
       transport: '#0891b2',    // Teal blue (transport)
@@ -487,7 +502,7 @@ export default function AllJourneysMap({
           <Marker
             key={location.id}
             position={{ lat: location.lat, lng: location.lng }}
-            icon={getMarkerIcon(location.type, isSelected)}
+            icon={getMarkerIcon(location.type, isSelected, location)}
             onClick={() => handleMarkerClick(location)}
           />
         );

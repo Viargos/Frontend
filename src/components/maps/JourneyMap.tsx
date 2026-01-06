@@ -10,6 +10,7 @@ import {
   Polyline,
 } from '@react-google-maps/api';
 import { viargoMapOptions } from '@/constants/map-styles';
+import { detectAccommodationType, getAccommodationColor } from '@/utils/accommodation-detector';
 
 interface Location {
   id: string;
@@ -19,6 +20,7 @@ interface Location {
   type: string;
   address?: string;
   day?: string; // Add day property to identify which day the location belongs to
+  description?: string; // For accommodation type detection
 }
 
 interface JourneyMapProps {
@@ -271,20 +273,36 @@ export default function JourneyMap({
     [onLocationClick]
   );
 
-  const getMarkerIcon = (type: string, isNew: boolean = false) => {
+  const getMarkerIcon = (
+    type: string,
+    isNew: boolean = false,
+    location?: Location
+  ) => {
     // Blue-themed colors for different place types
-    const primaryBlue = '#001a6e'; // Primary blue-600
     const newMarkerColor = '#0ea5e9'; // Bright blue for new markers (matches theme)
 
+    // For stay types, detect if it's hotel or rental
+    let stayColor = '#1e40af'; // Default deep blue for stays
+    if (
+      (type === 'stay' || type === 'placeToStay') &&
+      location?.name
+    ) {
+      const accommodationType = detectAccommodationType(
+        location.name,
+        location.description
+      );
+      stayColor = getAccommodationColor(accommodationType);
+    }
+
     const colors = {
-      journeyLocation: '#001a6e', // Primary blue (stays/hotels)
-      stay: '#1e40af',            // Deep blue (accommodations)
+      journeyLocation: '#001a6e', // Primary blue
+      stay: stayColor,            // Varies: Hotel (deep blue) or Rental (teal)
       activity: '#2563eb',        // Bright blue (activities/attractions)
       food: '#3b82f6',            // Sky blue (restaurants/food)
       transport: '#0891b2',       // Teal blue (transportation)
       note: '#06b6d4',            // Cyan blue (notes/info)
       // Legacy support
-      placeToStay: '#1e40af',     // Deep blue
+      placeToStay: stayColor,     // Varies: Hotel or Rental
       placesToGo: '#2563eb',      // Bright blue
       notes: '#06b6d4',           // Cyan blue
     };
@@ -516,7 +534,7 @@ export default function JourneyMap({
           <Marker
             key={location.id}
             position={{ lat: location.lat, lng: location.lng }}
-            icon={getMarkerIcon(location.type, isNewMarker)}
+            icon={getMarkerIcon(location.type, isNewMarker, location)}
             onClick={() => handleMarkerClick(location)}
           />
         );
