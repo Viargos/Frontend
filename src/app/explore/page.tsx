@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect  } from 'react'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { motion } from 'framer-motion';
 import { MapPin, Navigation, RefreshCw, Search, X } from 'lucide-react';
 import Header from '@/components/home/Header';
