@@ -113,7 +113,7 @@ export default function ChatWindow({
   const { user } = useAuthStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true); // eslint-disable-line @typescript-eslint/no-unused-vars
   const prevMessagesLengthRef = useRef(messages.length);
   const prevChatIdRef = useRef(chat.id);
   const prevLoadingRef = useRef(isLoading);

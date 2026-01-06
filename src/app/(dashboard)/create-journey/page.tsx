@@ -21,7 +21,7 @@ import { useCurrentLocation } from '@/hooks/useCurrentLocation';
 
 export default function CreateJourneyPage() {
   const router = useRouter();
-  const [activePlaceType, setActivePlaceType] = useState<PlaceType | null>(
+  const [activePlaceType] = useState<PlaceType | null>(
     null
   );
   const [journeyName, setJourneyName] = useState('');
@@ -48,7 +48,6 @@ export default function CreateJourneyPage() {
     isSubmitting,
     errorMessage,
     setErrorMessage,
-    submitJourney,
     submitJourneyWithData,
   } = useJourneyForm();
 
