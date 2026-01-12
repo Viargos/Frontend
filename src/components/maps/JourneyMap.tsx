@@ -10,7 +10,10 @@ import {
   Polyline,
 } from '@react-google-maps/api';
 import { viargoMapOptions } from '@/constants/map-styles';
-import { detectAccommodationType, getAccommodationColor } from '@/utils/accommodation-detector';
+import {
+  detectAccommodationType,
+  getAccommodationColor,
+} from '@/utils/accommodation-detector';
 
 interface Location {
   id: string;
@@ -283,10 +286,7 @@ export default function JourneyMap({
 
     // For stay types, detect if it's hotel or rental
     let stayColor = '#1e40af'; // Default deep blue for stays
-    if (
-      (type === 'stay' || type === 'placeToStay') &&
-      location?.name
-    ) {
+    if ((type === 'stay' || type === 'placeToStay') && location?.name) {
       const accommodationType = detectAccommodationType(
         location.name,
         location.description
@@ -296,15 +296,15 @@ export default function JourneyMap({
 
     const colors = {
       journeyLocation: '#001a6e', // Primary blue
-      stay: stayColor,            // Varies: Hotel (deep blue) or Rental (teal)
-      activity: '#2563eb',        // Bright blue (activities/attractions)
-      food: '#3b82f6',            // Sky blue (restaurants/food)
-      transport: '#0891b2',       // Teal blue (transportation)
-      note: '#06b6d4',            // Cyan blue (notes/info)
+      stay: stayColor, // Varies: Hotel (deep blue) or Rental (teal)
+      activity: '#2563eb', // Bright blue (activities/attractions)
+      food: '#3b82f6', // Sky blue (restaurants/food)
+      transport: '#0891b2', // Teal blue (transportation)
+      note: '#06b6d4', // Cyan blue (notes/info)
       // Legacy support
-      placeToStay: stayColor,     // Varies: Hotel or Rental
-      placesToGo: '#2563eb',      // Bright blue
-      notes: '#06b6d4',           // Cyan blue
+      placeToStay: stayColor, // Varies: Hotel or Rental
+      placesToGo: '#2563eb', // Bright blue
+      notes: '#06b6d4', // Cyan blue
     };
 
     const markerColor = isNew

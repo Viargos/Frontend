@@ -236,7 +236,7 @@ export default function UserProfileHeader({
 
           {/* Name */}
           <motion.h1
-            className="text-heading font-mulish text-xl sm:text-2xl lg:text-3xl font-bold leading-tight text-center sm:text-left"
+            className="text-heading font-manrope text-xl sm:text-2xl lg:text-3xl font-bold leading-tight text-center sm:text-left"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}

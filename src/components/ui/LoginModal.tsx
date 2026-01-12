@@ -43,7 +43,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 <div className="flex flex-col items-center gap-6 w-full">
                     <div className="flex flex-col items-center gap-3 w-full">
                         <h1
-                            className="text-center font-inter text-[30px] font-bold leading-[38px]"
+                            className="text-center font-manrope text-[30px] font-bold leading-[38px]"
                             style={{ color: "#181D27" }}
                         >
                             Login your account

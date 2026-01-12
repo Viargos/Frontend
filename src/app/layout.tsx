@@ -1,44 +1,23 @@
 import type { Metadata } from 'next';
-import {
-  Geist,
-  Geist_Mono,
-  Manrope,
-  Inter,
-  Mulish,
-  Outfit,
-} from 'next/font/google';
+import { Manrope, Outfit } from 'next/font/google';
 import './globals.css';
 import AuthInitializer from '@/components/auth/AuthInitializer';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
-
+// Primary font - Used for body text, buttons, inputs, and most UI elements
 const manrope = Manrope({
   variable: '--font-manrope',
   subsets: ['latin'],
+  display: 'swap', // Better performance - shows fallback font until custom font loads
+  weight: ['400', '500', '600', '700'], // Only load needed weights
 });
 
-const inter = Inter({
-  variable: '--font-inter',
-  subsets: ['latin'],
-});
-
-const mulish = Mulish({
-  variable: '--font-mulish',
-  subsets: ['latin'],
-});
-
+// Secondary font - Used for headings and titles
 const outfit = Outfit({
   variable: '--font-outfit',
   subsets: ['latin'],
+  display: 'swap',
+  weight: ['400', '500', '600', '700'],
 });
 
 export const metadata: Metadata = {
@@ -53,9 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} ${manrope.variable} ${inter.variable} ${mulish.variable} ${outfit.variable} antialiased`}
-      >
+      <body className={`${manrope.variable} ${outfit.variable} antialiased`}>
         <AuthInitializer>
           {children}
           <SpeedInsights />
