@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Post } from "@/types/post.types";
 import { formatDistanceToNow } from "date-fns";
@@ -10,8 +10,8 @@ import MapIcon from "@/components/icons/MapIcon";
 import JourneyIcon from "@/components/icons/JourneyIcon";
 import Button from "@/components/ui/Button";
 import Image from "next/image";
-import { postService } from "@/lib/services/service-factory";
 import CommentSection from "@/components/comment/CommentSection";
+import { usePostLike } from "@/hooks/usePostLike";
 
 interface CompactPostCardProps {
     post: Post;
@@ -28,49 +28,16 @@ export default function CompactPostCard({
     onJourneyClick,
     className = "",
 }: CompactPostCardProps) {
-    const [isLiking, setIsLiking] = useState(false);
-    const [localLikeCount, setLocalLikeCount] = useState(post.likeCount);
-    const [isLiked, setIsLiked] = useState(post.isLikedByCurrentUser || false);
     const [isCommentSectionOpen, setIsCommentSectionOpen] = useState(false);
     const [localCommentCount, setLocalCommentCount] = useState(post.commentCount);
 
-    // Update local state when post prop changes (e.g., after refresh)
-    useEffect(() => {
-        setIsLiked(post.isLikedByCurrentUser || false);
-        setLocalLikeCount(post.likeCount);
-    }, [post.isLikedByCurrentUser, post.likeCount]);
-
-    const handleLike = useCallback(async () => {
-        if (isLiking) return;
-
-        try {
-            setIsLiking(true);
-            const newIsLiked = !isLiked;
-            const newCount = newIsLiked
-                ? localLikeCount + 1
-                : localLikeCount - 1;
-
-            // Optimistic update
-            setIsLiked(newIsLiked);
-            setLocalLikeCount(newCount);
-
-            // API call
-            if (newIsLiked) {
-                await postService.likePost(post.id);
-            } else {
-                await postService.unlikePost(post.id);
-            }
-
-            onLikeChange?.(post.id, newIsLiked, newCount);
-        } catch (error) {
-            // Revert optimistic update on error
-            setIsLiked(!isLiked);
-            setLocalLikeCount(localLikeCount);
-            console.error("Failed to toggle like:", error);
-        } finally {
-            setIsLiking(false);
-        }
-    }, [isLiking, isLiked, localLikeCount, post.id, onLikeChange]);
+    // Use custom hook for like functionality
+    const { isLiking, localLikeCount, isLiked, handleLike } = usePostLike({
+        postId: post.id,
+        initialLikeCount: post.likeCount,
+        initialIsLiked: post.isLikedByCurrentUser || false,
+        onLikeChange,
+    });
 
     const handleCommentClick = useCallback(() => {
         setIsCommentSectionOpen((prev) => !prev);

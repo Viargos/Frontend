@@ -49,28 +49,20 @@ export default function PostsList({ userId, className = "" }: PostsListProps) {
     fetchPosts();
   }, [userId]);
 
-  const handleLike = async (postId: string, isLiked: boolean) => {
-    try {
-      if (isLiked) {
-        await postService.unlikePost(postId);
-      } else {
-        await postService.likePost(postId);
-      }
-
-      // Update the post in the local state
-      setPosts((prevPosts) =>
-        prevPosts.map((post) =>
-          post.id === postId
-            ? {
-                ...post,
-                likeCount: isLiked ? post.likeCount - 1 : post.likeCount + 1,
-              }
-            : post
-        )
-      );
-    } catch (err: any) {
-      console.error("Error toggling like:", err);
-    }
+  const handleLike = (postId: string, isLiked: boolean, newCount: number) => {
+    // NOTE: API calls are already handled by usePostLike hook
+    // This callback only updates the local state with the new values
+    setPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post.id === postId
+          ? {
+              ...post,
+              likeCount: newCount,
+              isLikedByCurrentUser: isLiked,
+            }
+          : post
+      )
+    );
   };
 
   const handleJourneyClick = (journeyId: string) => {
@@ -138,7 +130,7 @@ export default function PostsList({ userId, className = "" }: PostsListProps) {
         >
           <PostCard
             post={post}
-            onLike={handleLike}
+            onLikeChange={handleLike}
             onJourneyClick={handleJourneyClick}
           />
         </motion.div>

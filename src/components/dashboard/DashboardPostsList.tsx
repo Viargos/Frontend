@@ -69,23 +69,14 @@ export default function DashboardPostsList({
     }
   }, [search, location, updateFilters]);
 
-  const handleLike = async (postId: string, isLiked: boolean, newCount: number) => {
-    try {
-      if (isLiked) {
-        await postService.unlikePost(postId);
-      } else {
-        await postService.likePost(postId);
-      }
-
-      // Update the post in the local state
-      updatePost(postId, (post) => ({
-        ...post,
-        likeCount: newCount,
-        isLikedByCurrentUser: !isLiked,
-      }));
-    } catch (err: any) {
-      console.error("Error toggling like:", err);
-    }
+  const handleLike = (postId: string, isLiked: boolean, newCount: number) => {
+    // NOTE: API calls are already handled by usePostLike hook
+    // This callback only updates the local state with the new values
+    updatePost(postId, (post) => ({
+      ...post,
+      likeCount: newCount,
+      isLikedByCurrentUser: isLiked,
+    }));
   };
 
   const handleJourneyClick = (journeyId: string) => {

@@ -69,6 +69,9 @@ export {
 // Auth modals (already exists)
 export { useAuthModals } from './useAuthModals';
 
+// Post interactions
+export { usePostLike } from './usePostLike';
+
 // Re-export all hook types for convenience
 export type { 
   UseFileUploadReturn, 

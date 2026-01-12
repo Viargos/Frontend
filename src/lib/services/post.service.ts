@@ -32,6 +32,7 @@ import {
   PostResponse,
   PostsResponse,
   PostCountResponse,
+  LikeResponse,
 } from "@/types/post.types";
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants";
 import { logger } from "@/utils/logger";
@@ -324,11 +325,11 @@ export class PostService implements IPostService {
   /**
    * Like a post
    */
-  async likePost(postId: string): Promise<ApiResponse<void>> {
+  async likePost(postId: string): Promise<ApiResponse<LikeResponse>> {
     logger.debug('Liking post', { postId });
 
     try {
-      const response = await this.httpClient.post<void>(
+      const response = await this.httpClient.post<LikeResponse>(
         `/posts/${postId}/like`
       );
 
@@ -344,11 +345,11 @@ export class PostService implements IPostService {
   /**
    * Unlike a post
    */
-  async unlikePost(postId: string): Promise<ApiResponse<void>> {
+  async unlikePost(postId: string): Promise<ApiResponse<LikeResponse>> {
     logger.debug('Unliking post', { postId });
 
     try {
-      const response = await this.httpClient.delete<void>(
+      const response = await this.httpClient.delete<LikeResponse>(
         `/posts/${postId}/like`
       );
 

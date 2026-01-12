@@ -120,3 +120,9 @@ export interface PostCountResponse {
   message: string;
   data: { count: number };
 }
+
+export interface LikeResponse {
+  success: boolean;
+  likeCount: number;
+  isLiked: boolean;
+}
