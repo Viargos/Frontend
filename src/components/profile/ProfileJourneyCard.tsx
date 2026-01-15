@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { Journey } from "@/types/journey.types";
 import { useRouter } from "next/navigation";
-import { generateJourneyTitle, generateJourneySubtitle } from "@/utils/journey.utils";
 
 interface ProfileJourneyCardProps {
   journey: Journey;
@@ -161,7 +160,7 @@ export default function ProfileJourneyCard({
           {journeyImage && !imageError ? (
             <img
               src={journeyImage}
-              alt={generateJourneyTitle(journey)}
+              alt={journey.title || 'Journey'}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               onError={() => setImageError(true)}
             />
@@ -203,7 +202,7 @@ export default function ProfileJourneyCard({
             {/* Title and Arrow */}
             <div className="flex items-start justify-between">
               <h3 className="text-lg font-bold text-gray-900 group-hover:text-indigo-600 transition-colors duration-200 line-clamp-2 flex-1 pr-4">
-                {generateJourneyTitle(journey)}
+                {journey.title || 'Journey'}
               </h3>
               {/* Arrow */}
               <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex-shrink-0">
@@ -212,11 +211,13 @@ export default function ProfileJourneyCard({
             </div>
 
             {/* Subtitle */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600 line-clamp-1">
-                {generateJourneySubtitle(journey)}
-              </span>
-            </div>
+            {journey.description && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600 line-clamp-2">
+                  {journey.description}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Badges */}

@@ -8,7 +8,6 @@ import { serviceFactory } from '@/lib/services/service-factory';
 import { Journey } from '@/types/journey.types';
 import { format } from 'date-fns';
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';
-import { generateJourneyTitle, generateJourneySubtitle } from '@/utils/journey.utils';
 import { extractJourneyLocations, calculateLocationsCenter } from '@/utils/journey-locations.utils';
 import PlaceToStayIcon from '@/components/icons/PlaceToStayIcon';
 import { TreesIcon } from '@/components/icons/TreesIcon';
@@ -426,7 +425,7 @@ export default function JourneyDetailsPage() {
                 textShadow: '2px 2px 4px rgba(0,0,0,0.7)',
               }}
             >
-              {generateJourneyTitle(journey)}
+              {journey?.title || 'Journey'}
             </h1>
           </div>
 
@@ -438,7 +437,7 @@ export default function JourneyDetailsPage() {
                 textShadow: '1px 1px 2px rgba(0,0,0,0.7)',
               }}
             >
-              {generateJourneySubtitle(journey)}
+              {journey?.description || 'Explore amazing places'}
             </p>
           </div>
         </div>
@@ -704,7 +703,7 @@ export default function JourneyDetailsPage() {
           <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
             <JourneyPosts 
               journeyId={journeyId} 
-              journeyTitle={journey?.title || generateJourneyTitle(journey)}
+              journeyTitle={journey?.title || 'this journey'}
             />
           </div>
         </div>
