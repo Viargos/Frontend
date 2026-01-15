@@ -49,17 +49,20 @@ export function useNearbyJourneys(
   const fetchNearbyJourneys = useCallback(
     async (params: NearbyJourneysParams) => {
       try {
+        console.log('[useNearbyJourneys] Fetching with params:', params);
         setIsLoading(true);
         setError(null);
         setLastParams(params);
 
         const response = await apiClient.getNearbyJourneys(params);
+        console.log('[useNearbyJourneys] Raw API response:', response);
 
         // Handle double-wrapped response from API client
         let journeysData;
         if (response.statusCode === 10000 && response.data) {
           // API client wrapper - extract the nested data
           const nestedResponse = response.data as any;
+          console.log('[useNearbyJourneys] Nested response:', nestedResponse);
           if (nestedResponse.statusCode === 200 && nestedResponse.data) {
             journeysData = nestedResponse.data;
           } else {
@@ -71,15 +74,26 @@ export function useNearbyJourneys(
           // Direct backend response
           journeysData = response.data;
         } else {
+          console.error('[useNearbyJourneys] Unexpected response format:', response);
           throw new Error(
             response.message || 'Failed to fetch nearby journeys'
           );
         }
 
-        setJourneys(journeysData);
-        onSuccess?.(journeysData);
+        console.log('[useNearbyJourneys] Parsed journeys data:', {
+          count: journeysData?.length || 0,
+          journeys: journeysData,
+        });
+
+        setJourneys(journeysData || []);
+        onSuccess?.(journeysData || []);
       } catch (err: any) {
         const errorMessage = err.message || 'Failed to fetch nearby journeys';
+        console.error('[useNearbyJourneys] Error fetching journeys:', {
+          error: err,
+          message: errorMessage,
+          params,
+        });
         setError(errorMessage);
         onError?.(errorMessage);
         setJourneys([]);

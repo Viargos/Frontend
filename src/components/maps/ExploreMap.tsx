@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import {
@@ -8,8 +8,9 @@ import {
   useJsApiLoader,
   Marker,
   InfoWindow,
+  Circle,
 } from '@react-google-maps/api';
-import { Journey, JourneyPlace, PlaceType } from '@/types/journey.types';
+import { Journey, JourneyPlace } from '@/types/journey.types';
 import { viargoMapOptions } from '@/constants/map-styles';
 
 interface MapLocation {
@@ -27,9 +28,9 @@ interface MapLocation {
 interface ExploreMapProps {
   journeys: Journey[];
   selectedJourney?: Journey | null;
-  onLocationClick?: (location: MapLocation) => void;
   onMapClick?: (event: google.maps.MapMouseEvent) => void;
   center?: { lat: number; lng: number };
+  onBoundsChange?: (center: { lat: number; lng: number }, radius: number) => void;
 }
 
 const containerStyle = {
@@ -196,9 +197,9 @@ const getCoordinatesForPlace = (
 export default function ExploreMap({
   journeys,
   selectedJourney,
-  onLocationClick,
   onMapClick,
   center,
+  onBoundsChange,
 }: ExploreMapProps) {
   const router = useRouter();
   const [selectedLocation, setSelectedLocation] = useState<MapLocation | null>(
@@ -206,6 +207,11 @@ export default function ExploreMap({
   );
   const [mapLocations, setMapLocations] = useState<MapLocation[]>([]);
   const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [currentSearchRadius, setCurrentSearchRadius] = useState<number | null>(null);
+  const [currentSearchCenter, setCurrentSearchCenter] = useState<{ lat: number; lng: number } | null>(null);
+  const boundsChangeTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isInitialLoadRef = useRef(true);
+  const lastBoundsRef = useRef<{ center: { lat: number; lng: number }; radius: number } | null>(null);
 
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
@@ -229,128 +235,104 @@ export default function ExploreMap({
     );
   }, []);
 
-  // Helper function to get journey location (lat/lng) from its places
-  const getJourneyLocation = useCallback(
-    (journey: Journey): { lat: number; lng: number } | null => {
-      if (!journey.days || journey.days.length === 0) {
-        return null;
-      }
-
-      // Collect all valid coordinates from all places in the journey
-      const validCoords: { lat: number; lng: number }[] = [];
-
-      for (const day of journey.days) {
-        if (day.places) {
-          for (const place of day.places) {
-            // First, try to use real coordinates if available
-            if (place.latitude !== undefined && place.longitude !== undefined) {
-              const lat =
-                typeof place.latitude === 'number'
-                  ? place.latitude
-                  : parseFloat(place.latitude as any);
-              const lng =
-                typeof place.longitude === 'number'
-                  ? place.longitude
-                  : parseFloat(place.longitude as any);
-
-              if (isValidCoordinate(lat, lng)) {
-                validCoords.push({
-                  lat: lat,
-                  lng: lng,
-                });
-              }
-            }
-          }
-        }
-      }
-
-      // If we have valid coordinates, calculate center or use first one
-      if (validCoords.length > 0) {
-        // Calculate center point from all valid coordinates
-        const avgLat =
-          validCoords.reduce((sum, coord) => sum + coord.lat, 0) /
-          validCoords.length;
-        const avgLng =
-          validCoords.reduce((sum, coord) => sum + coord.lng, 0) /
-          validCoords.length;
-
-        // Validate the calculated center
-        if (isValidCoordinate(avgLat, avgLng)) {
-          return { lat: avgLat, lng: avgLng };
-        }
-      }
-
-      // Fallback: try to get coordinates from first place using mock coordinates
-      for (const day of journey.days) {
-        if (day.places && day.places.length > 0) {
-          const firstPlace = day.places[0];
-          const coords = getCoordinatesForPlace(firstPlace.name, journey.title);
-
-          // Validate fallback coordinates
-          if (isValidCoordinate(coords.lat, coords.lng)) {
-            return coords;
-          }
-        }
-      }
-
-      return null;
-    },
-    [isValidCoordinate]
-  );
-
-  // Convert journeys to map locations - ONE marker per journey
+  // Convert journeys to map locations - Show ALL places from each journey
   useEffect(() => {
     const locations: MapLocation[] = [];
     const journeysToProcess = selectedJourney ? [selectedJourney] : journeys;
 
-    journeysToProcess.forEach(journey => {
-      const journeyCoords = getJourneyLocation(journey);
+    console.log('[EXPLORE_MAP] Processing journeys for map display', {
+      totalJourneys: journeysToProcess.length,
+      selectedJourneyId: selectedJourney?.id,
+    });
 
-      // Double-check coordinates are valid before adding
-      if (
-        journeyCoords &&
-        isValidCoordinate(journeyCoords.lat, journeyCoords.lng)
-      ) {
-        // Get the first place for display purposes (or create a placeholder)
-        let firstPlace: JourneyPlace | null = null;
-        if (journey.days && journey.days.length > 0) {
-          for (const day of journey.days) {
-            if (day.places && day.places.length > 0) {
-              firstPlace = day.places[0];
-              break;
+    journeysToProcess.forEach(journey => {
+      if (!journey.days || journey.days.length === 0) {
+        console.log('[EXPLORE_MAP] Journey has no days', { journeyId: journey.id });
+        return;
+      }
+
+      // Iterate through all days and all places
+      journey.days.forEach((day) => {
+        if (!day.places || day.places.length === 0) {
+          console.log('[EXPLORE_MAP] Day has no places', { 
+            journeyId: journey.id, 
+            dayId: day.id 
+          });
+          return;
+        }
+
+        day.places.forEach((place, placeIndex) => {
+          // Get coordinates from the place
+          let lat: number | null = null;
+          let lng: number | null = null;
+          let usedRealCoords = false;
+
+          // Try to parse latitude and longitude from place
+          if (place.latitude !== undefined && place.longitude !== undefined) {
+            const latValue = typeof place.latitude === 'number' 
+              ? place.latitude 
+              : parseFloat(String(place.latitude));
+            const lngValue = typeof place.longitude === 'number'
+              ? place.longitude
+              : parseFloat(String(place.longitude));
+            
+            if (!isNaN(latValue) && !isNaN(lngValue)) {
+              lat = latValue;
+              lng = lngValue;
+              usedRealCoords = true;
             }
           }
-        }
 
-        // Create a placeholder place if none exists
-        if (!firstPlace) {
-          firstPlace = {
-            id: 'placeholder',
-            type: PlaceType.NOTE,
-            name: journey.title,
-            description: journey.description,
-            day: journey.days?.[0] || ({} as any),
-          } as JourneyPlace;
-        }
+          // Fallback to mock coordinates if no valid coords
+          if (!lat || !lng || !isValidCoordinate(lat, lng)) {
+            const mockCoords = getCoordinatesForPlace(place.name, journey.title);
+            lat = mockCoords.lat + (placeIndex * 0.002); // Small offset to prevent overlap
+            lng = mockCoords.lng + (placeIndex * 0.002);
+            console.log('[EXPLORE_MAP] Using mock coordinates for place', {
+              placeName: place.name,
+              journeyId: journey.id,
+              originalLat: place.latitude,
+              originalLng: place.longitude,
+            });
+          }
 
-        locations.push({
-          id: `journey-${journey.id}`,
-          name: journey.title,
-          lat: journeyCoords.lat,
-          lng: journeyCoords.lng,
-          type: 'journeyLocation',
-          day:
-            journey.days && journey.days.length > 0
-              ? `Day ${journey.days[0].dayNumber}`
-              : 'Day 1',
-          journey: journey,
-          place: firstPlace,
+          // Only add if we have valid coordinates
+          if (lat && lng && isValidCoordinate(lat, lng)) {
+            // Map place type to lowercase for consistency
+            const placeType = place.type.toLowerCase();
+
+            locations.push({
+              id: `journey-${journey.id}-day-${day.id}-place-${place.id}`,
+              name: place.name,
+              lat: lat,
+              lng: lng,
+              type: placeType,
+              address: place.address || place.description,
+              day: `Day ${day.dayNumber + 1}`,
+              journey: journey,
+              place: place,
+            });
+
+            console.log('[EXPLORE_MAP] Added place to map', {
+              placeName: place.name,
+              placeType,
+              coordinates: { lat, lng },
+              usedRealCoords,
+              journeyTitle: journey.title,
+            });
+          }
         });
-      }
+      });
+    });
+
+    console.log('[EXPLORE_MAP] Map locations processed', {
+      totalLocations: locations.length,
+      realCoordinates: locations.filter(l => l.place.latitude && l.place.longitude).length,
+      mockCoordinates: locations.filter(l => !l.place.latitude || !l.place.longitude).length,
     });
 
     setMapLocations(locations);
-  }, [journeys, selectedJourney, getJourneyLocation, isValidCoordinate]);
+  }, [journeys, selectedJourney, isValidCoordinate]);
 
   const onLoad = useCallback(
     (mapInstance: google.maps.Map) => {
@@ -379,9 +361,15 @@ export default function ExploreMap({
       } else {
         // If no locations, use provided center or default to world center
         const mapCenter = center || defaultCenter;
-        mapInstance.setZoom(center ? 10 : 3);
+        mapInstance.setZoom(center ? 10 : 2);
         mapInstance.setCenter(mapCenter);
       }
+
+      // Enable bounds change tracking after map loads and settles
+      setTimeout(() => {
+        isInitialLoadRef.current = false;
+        console.log('[EXPLORE_MAP] Map loaded, enabling bounds change tracking');
+      }, 2000); // Wait 2 seconds for map to settle
     },
     [mapLocations, center, isValidCoordinate]
   );
@@ -390,8 +378,18 @@ export default function ExploreMap({
   useEffect(() => {
     if (map && isLoaded && center && mapLocations.length === 0) {
       try {
+        // Temporarily disable bounds tracking during programmatic updates
+        isInitialLoadRef.current = true;
+        
         map.setCenter(center);
-        map.setZoom(10);
+        map.setZoom(11); // Zoom in a bit more to see local area
+        // Set initial search center
+        setCurrentSearchCenter(center);
+        
+        // Re-enable after a short delay
+        setTimeout(() => {
+          isInitialLoadRef.current = false;
+        }, 500);
       } catch (error) {
         console.error('Error updating map center:', error);
       }
@@ -399,127 +397,150 @@ export default function ExploreMap({
   }, [map, isLoaded, center, mapLocations.length]);
 
   const onUnmount = useCallback(() => {
-    // Cleanup if needed
+    // Cleanup timer on unmount
+    if (boundsChangeTimerRef.current) {
+      clearTimeout(boundsChangeTimerRef.current);
+    }
   }, []);
+
+  // Calculate radius from map bounds
+  const calculateRadiusFromBounds = useCallback((bounds: google.maps.LatLngBounds, center: google.maps.LatLng) => {
+    const ne = bounds.getNorthEast();
+    const sw = bounds.getSouthWest();
+    
+    // Calculate the distance from center to corner (diagonal)
+    const R = 6371; // Earth's radius in km
+    const lat1 = center.lat() * Math.PI / 180;
+    const lat2 = ne.lat() * Math.PI / 180;
+    const deltaLat = (ne.lat() - center.lat()) * Math.PI / 180;
+    const deltaLng = (ne.lng() - center.lng()) * Math.PI / 180;
+    
+    const a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+              Math.cos(lat1) * Math.cos(lat2) *
+              Math.sin(deltaLng / 2) * Math.sin(deltaLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
+    
+    return Math.ceil(distance);
+  }, []);
+
+  // Handle map bounds change (zoom/pan)
+  const handleBoundsChanged = useCallback(() => {
+    if (!map || !onBoundsChange) return;
+
+    // Skip initial map loads (first few bounds changes)
+    if (isInitialLoadRef.current) {
+      console.log('[EXPLORE_MAP] Skipping initial bounds change');
+      return;
+    }
+
+    // Clear existing timer
+    if (boundsChangeTimerRef.current) {
+      clearTimeout(boundsChangeTimerRef.current);
+    }
+
+    // Debounce the bounds change event
+    boundsChangeTimerRef.current = setTimeout(() => {
+      const bounds = map.getBounds();
+      const center = map.getCenter();
+      
+      if (bounds && center) {
+        const newCenter = {
+          lat: center.lat(),
+          lng: center.lng(),
+        };
+        const radius = calculateRadiusFromBounds(bounds, center);
+        
+        // Check if the change is significant enough to warrant a new fetch
+        const lastBounds = lastBoundsRef.current;
+        if (lastBounds) {
+          const centerDiff = Math.sqrt(
+            Math.pow(newCenter.lat - lastBounds.center.lat, 2) +
+            Math.pow(newCenter.lng - lastBounds.center.lng, 2)
+          );
+          const radiusDiff = Math.abs(radius - lastBounds.radius);
+          
+          // Only fetch if moved significantly (0.01 degrees ~= 1km) or radius changed by more than 5km
+          if (centerDiff < 0.01 && radiusDiff < 5) {
+            console.log('[EXPLORE_MAP] Change too small, skipping fetch', {
+              centerDiff,
+              radiusDiff,
+            });
+            return;
+          }
+        }
+        
+        console.log('[EXPLORE_MAP] Map bounds changed significantly', {
+          center: newCenter,
+          radius,
+          zoom: map.getZoom(),
+        });
+
+        // Update refs
+        lastBoundsRef.current = { center: newCenter, radius };
+        setCurrentSearchCenter(newCenter);
+        setCurrentSearchRadius(radius);
+        onBoundsChange(newCenter, radius);
+      }
+    }, 1500); // 1.5 second debounce
+  }, [map, onBoundsChange, calculateRadiusFromBounds]);
 
   const handleMarkerClick = useCallback(
     (location: MapLocation) => {
-      // Navigate to journey detail page
-      router.push(`/journey/${location.journey.id}`);
+      // Show info window with place details
+      setSelectedLocation(location);
     },
-    [router]
+    []
   );
 
-  // Generate marker icon with circular thumbnail and pin
+  // Generate marker icon based on place type with color coding
   const getMarkerIcon = useCallback((location: MapLocation) => {
-    const journey = location.journey;
-    const user = journey.user;
+    // Get color and icon based on place type
+    const getTypeColor = (type: string): string => {
+      const typeColors: { [key: string]: string } = {
+        'stay': '#2563eb',      // Blue for hotels/stays
+        'activity': '#16a34a',  // Green for activities
+        'food': '#dc2626',      // Red for food
+        'transport': '#7c3aed', // Purple for transport
+        'note': '#eab308',      // Yellow for notes
+      };
+      return typeColors[type.toLowerCase()] || '#6366f1'; // Default indigo
+    };
 
-    // Determine what to show: journey image > user profile > username initial
-    let imageUrl: string | null = null;
-    let showInitial = false;
-    let initial = '';
-    let backgroundColor = '#6366f1'; // Default indigo color
+    const getTypeEmoji = (type: string): string => {
+      const typeEmojis: { [key: string]: string } = {
+        'stay': '🏨',
+        'activity': '🎯',
+        'food': '🍽️',
+        'transport': '🚗',
+        'note': '📝',
+      };
+      return typeEmojis[type.toLowerCase()] || '📍';
+    };
 
-    if (journey.coverImage) {
-      imageUrl = journey.coverImage;
-    } else if ((user as any).profileImage) {
-      imageUrl = (user as any).profileImage;
-    } else {
-      showInitial = true;
-      initial = user.username.charAt(0).toUpperCase();
-      // Generate a blue-tinted color based on username for consistency with theme
-      const colors = [
-        '#001a6e', // Primary blue (blue-600)
-        '#1e3a8a', // Dark blue
-        '#2563eb', // Bright blue
-        '#3b82f6', // Sky blue
-        '#0ea5e9', // Cyan blue
-        '#06b6d4', // Teal blue
-        '#0891b2', // Darker teal
-        '#0e7490', // Deep teal
-        '#155e75', // Navy teal
-        '#164e63', // Dark navy
-      ];
-      const colorIndex = user.username.charCodeAt(0) % colors.length;
-      backgroundColor = colors[colorIndex];
-    }
+    const backgroundColor = getTypeColor(location.type);
+    const emoji = getTypeEmoji(location.type);
 
     // Marker dimensions
-    const circleSize = 40; // Size of the circular thumbnail
+    const circleSize = 40; // Size of the circular icon
     const pinHeight = 12; // Height of the pin
     const totalHeight = circleSize + pinHeight;
     const totalWidth = circleSize;
     const pinWidth = 8; // Width of the pin point
 
-    // Create SVG with circular thumbnail and pin
-    let svgContent = '';
-
-    if (imageUrl && !showInitial) {
-      // Escape image URL for SVG
-      const escapedImageUrl = imageUrl
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-      // Use image in circle
-      svgContent = `
-        <svg width="${totalWidth}" height="${totalHeight}" viewBox="0 0 ${totalWidth} ${totalHeight}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-          <defs>
-            <clipPath id="circleClip-${location.id.replace(
-              /[^a-zA-Z0-9]/g,
-              '_'
-            )}">
-              <circle cx="${totalWidth / 2}" cy="${totalWidth / 2}" r="${
-        circleSize / 2 - 2
-      }"/>
-            </clipPath>
-          </defs>
-          <!-- White border circle with blue tint -->
-          <circle cx="${totalWidth / 2}" cy="${totalWidth / 2}" r="${
-        circleSize / 2
-      }" fill="white" stroke="#d0dae8" stroke-width="2"/>
-          <!-- Image circle with blue-gray background -->
-          <circle cx="${totalWidth / 2}" cy="${totalWidth / 2}" r="${
-        circleSize / 2 - 2
-      }" fill="#eff2f9"/>
-          <image xlink:href="${escapedImageUrl}" x="2" y="2" width="${
-        circleSize - 4
-      }" height="${
-        circleSize - 4
-      }" clip-path="url(#circleClip-${location.id.replace(
-        /[^a-zA-Z0-9]/g,
-        '_'
-      )})" preserveAspectRatio="xMidYMid slice"/>
-          <!-- Pin with blue-gray stroke -->
-          <path d="M ${totalWidth / 2 - pinWidth / 2} ${circleSize} L ${
-        totalWidth / 2
-      } ${totalHeight} L ${
-        totalWidth / 2 + pinWidth / 2
-      } ${circleSize} Z" fill="white" stroke="#d0dae8" stroke-width="1"/>
-        </svg>
-      `;
-    } else {
-      // Use initial letter in colored circle
-      svgContent = `
-        <svg width="${totalWidth}" height="${totalHeight}" viewBox="0 0 ${totalWidth} ${totalHeight}" xmlns="http://www.w3.org/2000/svg">
-          <!-- Blue-themed circle with initial -->
-          <circle cx="${totalWidth / 2}" cy="${totalWidth / 2}" r="${
-        circleSize / 2
-      }" fill="${backgroundColor}" stroke="white" stroke-width="2"/>
-          <text x="${totalWidth / 2}" y="${
-        totalWidth / 2 + 4
-      }" text-anchor="middle" fill="white" font-size="18" font-weight="bold" font-family="Arial, sans-serif" dominant-baseline="middle">${initial}</text>
-          <!-- Pin with blue-gray stroke -->
-          <path d="M ${totalWidth / 2 - pinWidth / 2} ${circleSize} L ${
-        totalWidth / 2
-      } ${totalHeight} L ${
-        totalWidth / 2 + pinWidth / 2
-      } ${circleSize} Z" fill="white" stroke="#d0dae8" stroke-width="1"/>
-        </svg>
-      `;
-    }
+    // Create SVG with colored circle, emoji, and pin based on place type
+    const svgContent = `
+      <svg width="${totalWidth}" height="${totalHeight}" viewBox="0 0 ${totalWidth} ${totalHeight}" xmlns="http://www.w3.org/2000/svg">
+        <!-- Outer white border circle -->
+        <circle cx="${totalWidth / 2}" cy="${totalWidth / 2}" r="${circleSize / 2}" fill="white" stroke="${backgroundColor}" stroke-width="3"/>
+        <!-- Colored inner circle -->
+        <circle cx="${totalWidth / 2}" cy="${totalWidth / 2}" r="${circleSize / 2 - 3}" fill="${backgroundColor}"/>
+        <!-- Emoji icon -->
+        <text x="${totalWidth / 2}" y="${totalWidth / 2 + 4}" text-anchor="middle" fill="white" font-size="20" font-family="Arial, sans-serif" dominant-baseline="middle">${emoji}</text>
+        <!-- Pin pointing down -->
+        <path d="M ${totalWidth / 2 - pinWidth / 2} ${circleSize} L ${totalWidth / 2} ${totalHeight} L ${totalWidth / 2 + pinWidth / 2} ${circleSize} Z" fill="${backgroundColor}" stroke="white" stroke-width="1"/>
+      </svg>
+    `;
 
     return {
       url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgContent)}`,
@@ -596,12 +617,30 @@ export default function ExploreMap({
     <GoogleMap
       mapContainerStyle={containerStyle}
       center={mapCenter}
-      zoom={center ? 10 : 3}
+      zoom={center ? 10 : 2}
       onLoad={onLoad}
       onUnmount={onUnmount}
       onClick={onMapClick}
+      onBoundsChanged={handleBoundsChanged}
       options={viargoMapOptions}
     >
+      {/* Search radius circle */}
+      {currentSearchCenter && currentSearchRadius && (
+        <Circle
+          center={currentSearchCenter}
+          radius={currentSearchRadius * 1000} // Convert km to meters
+          options={{
+            fillColor: '#2563eb',
+            fillOpacity: 0.08,
+            strokeColor: '#2563eb',
+            strokeOpacity: 0.3,
+            strokeWeight: 2,
+            clickable: false,
+            zIndex: 1,
+          }}
+        />
+      )}
+
       {/* Render map markers */}
       {mapLocations
         .filter(location => isValidCoordinate(location.lat, location.lng))
@@ -620,44 +659,73 @@ export default function ExploreMap({
           position={{ lat: selectedLocation.lat, lng: selectedLocation.lng }}
           onCloseClick={() => setSelectedLocation(null)}
         >
-          <div className="p-2 min-w-[200px]">
-            <div className="flex items-start gap-2 mb-2">
-              <span className="text-lg">
-                {getTypeIcon(selectedLocation.type)}
+          <div className="p-3 min-w-[280px] max-w-[320px]">
+            {/* Place Type Badge */}
+            <div className="flex items-center gap-2 mb-3">
+              <span 
+                className="px-3 py-1 rounded-full text-xs font-semibold text-white"
+                style={{
+                  backgroundColor: 
+                    selectedLocation.type === 'stay' ? '#2563eb' :
+                    selectedLocation.type === 'activity' ? '#16a34a' :
+                    selectedLocation.type === 'food' ? '#dc2626' :
+                    selectedLocation.type === 'transport' ? '#7c3aed' :
+                    selectedLocation.type === 'note' ? '#eab308' : '#6366f1'
+                }}
+              >
+                {getTypeIcon(selectedLocation.type)} {getTypeLabel(selectedLocation.type)}
               </span>
-              <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 text-sm">
-                  {selectedLocation.name}
-                </h3>
-                <p className="text-xs text-gray-500">
-                  {getTypeLabel(selectedLocation.type)}
-                </p>
-              </div>
+              <span className="text-xs text-gray-500">{selectedLocation.day}</span>
             </div>
 
-            <div className="border-t pt-2 mt-2 space-y-1">
-              <div className="text-xs text-gray-600">
-                <strong>Journey:</strong> {selectedLocation.journey.title}
+            {/* Place Name */}
+            <h3 className="font-bold text-gray-900 text-base mb-2">
+              {selectedLocation.name}
+            </h3>
+
+            {/* Address */}
+            {selectedLocation.address && (
+              <p className="text-xs text-gray-600 mb-3 line-clamp-2">
+                📍 {selectedLocation.address}
+              </p>
+            )}
+
+            {/* Journey Info */}
+            <div className="border-t border-gray-200 pt-3 space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+                  <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                    <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd"/>
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-gray-900 truncate">
+                    {selectedLocation.journey.title}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    by {selectedLocation.journey.user.username}
+                  </p>
+                </div>
               </div>
-              <div className="text-xs text-gray-600">
-                <strong>Day:</strong> {selectedLocation.day}
-              </div>
-              <div className="text-xs text-gray-600">
-                <strong>By:</strong> {selectedLocation.journey.user.username}
-              </div>
-              {selectedLocation.place.description && (
-                <div className="text-xs text-gray-600 mt-1">
-                  <strong>Description:</strong>{' '}
-                  {selectedLocation.place.description}
+
+              {/* Time if available */}
+              {selectedLocation.place.startTime && selectedLocation.place.endTime && (
+                <div className="flex items-center gap-2 text-xs text-gray-600">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>{selectedLocation.place.startTime} - {selectedLocation.place.endTime}</span>
                 </div>
               )}
-              {selectedLocation.place.startTime &&
-                selectedLocation.place.endTime && (
-                  <div className="text-xs text-gray-600">
-                    <strong>Time:</strong> {selectedLocation.place.startTime} -{' '}
-                    {selectedLocation.place.endTime}
-                  </div>
-                )}
+
+              {/* View Journey Button */}
+              <button
+                onClick={() => router.push(`/journey/${selectedLocation.journey.id}`)}
+                className="w-full mt-2 px-3 py-2 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
+              >
+                View Full Journey
+              </button>
             </div>
           </div>
         </InfoWindow>

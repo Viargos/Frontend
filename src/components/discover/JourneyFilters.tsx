@@ -169,15 +169,16 @@ export default function JourneyFilters({
               </label>
               <input
                 type="range"
-                min="1"
-                max="500"
+                min="10"
+                max="10000"
+                step="50"
                 value={filters.radius}
                 onChange={e => updateFilter('radius', parseInt(e.target.value))}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
               />
               <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>1km</span>
-                <span>500km</span>
+                <span>10km (local)</span>
+                <span>10,000km (global)</span>
               </div>
             </div>
           </div>

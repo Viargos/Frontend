@@ -4,8 +4,6 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   MapPin,
-  Calendar,
-  User,
   ChevronRight,
   X,
   Search,
@@ -14,8 +12,7 @@ import {
 } from 'lucide-react';
 
 import ExploreMap from '@/components/maps/ExploreMap';
-import {  JourneyDay, JourneyPlace } from '@/types/journey.types';
-import { PlaceType } from '@/types/journey.types';
+import { JourneyDay, JourneyPlace } from '@/types/journey.types';
 import { PageLoading } from '@/components/common/Loading';
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';
 import { useNearbyJourneys } from '@/hooks/useNearbyJourneys';
@@ -29,15 +26,16 @@ export default function DiscoverPage() {
   const [isJourneyModalOpen, setIsJourneyModalOpen] = useState(false);
   const [modalJourney, setModalJourney] = useState<any | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [currentRadius, setCurrentRadius] = useState(50);
+  const [currentRadius, setCurrentRadius] = useState(500); // Maximum allowed by backend
   const [showFilters, setShowFilters] = useState(false);
+  const [autoSearch, setAutoSearch] = useState(false); // Disabled by default to prevent infinite loops
   const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(
     null
   );
 
   // Filter state
   const [filters, setFilters] = useState<JourneyFilterState>({
-    radius: 50,
+    radius: 500, // Maximum allowed by backend
     dateRange: { from: '', to: '' },
     createdWithin: 'all',
     tags: [],
@@ -51,13 +49,26 @@ export default function DiscoverPage() {
     refresh: refreshLocation,
   } = useCurrentLocation(true); // Auto-fetch on mount
 
+  // Debug logging for location
+  useEffect(() => {
+    console.log('[DISCOVER_PAGE] Location state updated', {
+      hasLocation: !!currentLocation,
+      location: currentLocation,
+      isLoading: locationLoading,
+      error: locationError,
+    });
+  }, [currentLocation, locationLoading, locationError]);
+
   // Convert currentLocation to coordinates format for compatibility
   // Memoize to prevent unnecessary re-renders
   const coordinates = useMemo(() => {
     return currentLocation
-      ? { latitude: currentLocation.latitude, longitude: currentLocation.longitude }
+      ? {
+          latitude: currentLocation.latitude,
+          longitude: currentLocation.longitude,
+        }
       : null;
-  }, [currentLocation?.latitude, currentLocation?.longitude]);
+  }, [currentLocation]);
 
   const {
     journeys,
@@ -66,6 +77,24 @@ export default function DiscoverPage() {
     fetchByLocation,
     clearError: clearJourneysError,
   } = useNearbyJourneys();
+
+  // Debug logging for journeys
+  useEffect(() => {
+    console.log('[DISCOVER_PAGE] Journeys state updated', {
+      journeyCount: journeys.length,
+      journeys: journeys.map(j => ({
+        id: j.id,
+        title: j.title,
+        dayCount: j.days?.length,
+        totalPlaces: j.days?.reduce(
+          (sum: number, d: any) => sum + (d.places?.length || 0),
+          0
+        ),
+      })),
+      isLoading: journeysLoading,
+      error: journeysError,
+    });
+  }, [journeys, journeysLoading, journeysError]);
 
   // Handle responsive sidebar behavior
   useEffect(() => {
@@ -85,8 +114,7 @@ export default function DiscoverPage() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState<'all' | PlaceType>('all');
+  const [searchQuery] = useState('');
 
   // Track last fetched coordinates/radius to prevent duplicate calls
   const lastFetchedRef = useRef<{
@@ -103,18 +131,39 @@ export default function DiscoverPage() {
 
   // Fetch journeys when location becomes available or radius changes
   useEffect(() => {
-    if (
-      coordinates &&
-      (lastFetchedRef.current.lat !== coordinates.latitude ||
+    console.log('[DISCOVER_PAGE] Location effect triggered', {
+      hasCoordinates: !!coordinates,
+      coordinates,
+      currentRadius,
+      lastFetched: lastFetchedRef.current,
+    });
+
+    if (coordinates) {
+      const shouldFetch =
+        lastFetchedRef.current.lat !== coordinates.latitude ||
         lastFetchedRef.current.lng !== coordinates.longitude ||
-        lastFetchedRef.current.radius !== currentRadius)
-    ) {
-      lastFetchedRef.current = {
-        lat: coordinates.latitude,
-        lng: coordinates.longitude,
+        lastFetchedRef.current.radius !== currentRadius;
+
+      console.log('[DISCOVER_PAGE] Should fetch?', shouldFetch, {
+        latitude: coordinates.latitude,
+        longitude: coordinates.longitude,
         radius: currentRadius,
-      };
-      fetchByLocationRef.current(coordinates, currentRadius);
+      });
+
+      if (shouldFetch) {
+        console.log('[DISCOVER_PAGE] Fetching journeys with new parameters');
+
+        lastFetchedRef.current = {
+          lat: coordinates.latitude,
+          lng: coordinates.longitude,
+          radius: currentRadius,
+        };
+        fetchByLocationRef.current(coordinates, currentRadius);
+      } else {
+        console.log('[DISCOVER_PAGE] Skipping fetch - same parameters');
+      }
+    } else {
+      console.log('[DISCOVER_PAGE] No coordinates available yet');
     }
   }, [coordinates, currentRadius]);
 
@@ -165,13 +214,13 @@ export default function DiscoverPage() {
 
   const handleResetFilters = () => {
     const defaultFilters: JourneyFilterState = {
-      radius: 50,
+      radius: 500,
       dateRange: { from: '', to: '' },
       createdWithin: 'all',
       tags: [],
     };
     setFilters(defaultFilters);
-    setCurrentRadius(50);
+    setCurrentRadius(500);
   };
 
   // Filter journeys based on search query and filters
@@ -218,6 +267,10 @@ export default function DiscoverPage() {
 
   const handleJourneyClick = (journey: any) => {
     setSelectedJourney(journey);
+    // Automatically open sidebar on mobile/tablet to show selection
+    if (window.innerWidth < 1024) {
+      setIsSidebarOpen(true);
+    }
   };
 
   const handleJourneyModalOpen = (journey: any) => {
@@ -230,51 +283,74 @@ export default function DiscoverPage() {
     setModalJourney(null);
   };
 
-  const handleShowAllJourneys = () => {
-    setSelectedJourney(null);
-  };
-
-  const handleLocationClick = (location: any) => {
-    if (location.journey && !selectedJourney) {
-      handleJourneyClick(location.journey);
-    }
-  };
-
   // Handle location retry
   const handleLocationRetry = async () => {
     clearJourneysError();
     await refreshLocation();
   };
 
+  // Handle map bounds change (when user zooms or pans)
+  const handleMapBoundsChange = useCallback(
+    (newCenter: { lat: number; lng: number }, radius: number) => {
+      // Only auto-fetch if enabled
+      if (!autoSearch) {
+        console.log('[DISCOVER_PAGE] Auto-search disabled, skipping fetch');
+        return;
+      }
+
+      // Cap radius at 20000km (backend max - half of Earth's circumference)
+      const cappedRadius = Math.min(radius, 20000);
+
+      console.log(
+        '[DISCOVER_PAGE] Map bounds changed, checking if fetch needed',
+        {
+          center: newCenter,
+          originalRadius: radius,
+          cappedRadius,
+          lastFetched: lastFetchedRef.current,
+        }
+      );
+
+      // Check if we already fetched for this location
+      const last = lastFetchedRef.current;
+      if (
+        last &&
+        last.lat !== null &&
+        last.lng !== null &&
+        Math.abs(last.lat - newCenter.lat) < 0.001 &&
+        Math.abs(last.lng - newCenter.lng) < 0.001 &&
+        Math.abs(last.radius - cappedRadius) < 1
+      ) {
+        console.log('[DISCOVER_PAGE] Same location, skipping fetch');
+        return;
+      }
+
+      console.log('[DISCOVER_PAGE] Fetching journeys for new area');
+
+      // Update current radius
+      setCurrentRadius(cappedRadius);
+      setFilters(prev => ({ ...prev, radius: cappedRadius }));
+
+      // Fetch journeys for the new center and radius
+      const newCoordinates = {
+        latitude: newCenter.lat,
+        longitude: newCenter.lng,
+      };
+
+      // Update last fetched ref to prevent duplicate calls
+      lastFetchedRef.current = {
+        lat: newCenter.lat,
+        lng: newCenter.lng,
+        radius: cappedRadius,
+      };
+
+      fetchByLocation(newCoordinates, cappedRadius, 50); // Increase limit for larger areas
+    },
+    [fetchByLocation, autoSearch]
+  );
+
   // Determine loading state - only show loading if we're actually fetching journeys
   const isLoading = journeysLoading;
-  const error = locationError || journeysError;
-
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'No date';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
-  const getPlaceTypeIcon = (type: string) => {
-    switch (type.toLowerCase()) {
-      case 'stay':
-        return '🏨';
-      case 'activity':
-        return '🎯';
-      case 'food':
-        return '🍽️';
-      case 'transport':
-        return '🚗';
-      case 'note':
-        return '📝';
-      default:
-        return '📍';
-    }
-  };
 
   if (isLoading && !journeys.length) {
     const loadingText = locationLoading
@@ -323,12 +399,12 @@ export default function DiscoverPage() {
             <ExploreMap
               journeys={journeys}
               selectedJourney={selectedJourney}
-              onLocationClick={handleLocationClick}
               center={
                 coordinates
                   ? { lat: coordinates.latitude, lng: coordinates.longitude }
                   : undefined
               }
+              onBoundsChange={handleMapBoundsChange}
             />
           </div>
 
@@ -364,72 +440,195 @@ export default function DiscoverPage() {
                 <Navigation className="w-5 h-5 text-gray-600" />
               )}
             </motion.button>
+
+            {/* Auto-Search Toggle */}
+            <motion.button
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              onClick={() => setAutoSearch(!autoSearch)}
+              className={`rounded-lg shadow-lg p-3 hover:shadow-xl transition-all duration-200 ${
+                autoSearch ? 'bg-blue-600' : 'bg-white'
+              }`}
+              title={autoSearch ? 'Auto-search: ON' : 'Auto-search: OFF'}
+            >
+              <Search
+                className={`w-5 h-5 ${
+                  autoSearch ? 'text-white' : 'text-gray-600'
+                }`}
+              />
+            </motion.button>
+
+            {/* Global Search Button */}
+            <motion.button
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+              onClick={() => {
+                if (coordinates) {
+                  console.log('[DEBUG] Searching worldwide (10000km radius)');
+                  setCurrentRadius(10000);
+                  setFilters(prev => ({ ...prev, radius: 10000 }));
+                  fetchByLocation(coordinates, 10000, 100);
+                }
+              }}
+              className="bg-green-600 rounded-lg shadow-lg p-3 hover:shadow-xl transition-all duration-200 text-white"
+              title="Search Worldwide"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </motion.button>
           </div>
 
-          {/* Selected Journey Info (stays within the map area) */}
-          <AnimatePresence>
-            {selectedJourney && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                // constrained to map area; right spacing adjusted when sidebar open
-                className={`absolute bottom-4 left-4 right-4 bg-white rounded-lg shadow-lg p-4 z-10 transition-all duration-300 ${
-                  isSidebarOpen ? 'lg:right-[26rem]' : ''
-                }`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                      {selectedJourney.title}
-                    </h3>
-                    {selectedJourney.description && (
-                      <p className="text-gray-600 text-sm mb-2 line-clamp-2">
-                        {selectedJourney.description}
-                      </p>
-                    )}
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <User className="w-4 h-4" />
-                        <span>{selectedJourney.user.username}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        <span>{formatDate(selectedJourney.createdAt)}</span>
-                      </div>
-                      {selectedJourney.days && (
-                        <div className="flex items-center gap-1">
-                          <MapPin className="w-4 h-4" />
-                          <span>
-                            {selectedJourney.days.reduce(
-                              (total: number, day: JourneyDay) =>
-                                total + (day.places?.length || 0),
-                              0
-                            )}{' '}
-                            places
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleJourneyModalOpen(selectedJourney)}
-                      className="px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-medium hover:bg-blue-700 transition-colors"
-                    >
-                      View Details
-                    </button>
-                    <button
-                      onClick={handleShowAllJourneys}
-                      className="p-1 rounded-full hover:bg-gray-100 transition-colors"
-                    >
-                      <X className="w-5 h-5 text-gray-400" />
-                    </button>
+          {/* Map Statistics & Legend */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="absolute bottom-4 left-4 z-10 bg-white rounded-lg shadow-lg p-4 max-w-xs"
+          >
+            {/* Statistics */}
+            <div className="mb-4 pb-3 border-b border-gray-200">
+              <h4 className="text-xs font-semibold text-gray-700 mb-2">
+                Map Statistics
+              </h4>
+              <div className="grid grid-cols-2 gap-2 text-xs mb-2">
+                <div className="bg-blue-50 rounded-md px-2 py-1.5">
+                  <div className="text-gray-500">Journeys</div>
+                  <div className="font-bold text-gray-900">
+                    {sortedJourneys.length}
                   </div>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                <div className="bg-green-50 rounded-md px-2 py-1.5">
+                  <div className="text-gray-500">Places</div>
+                  <div className="font-bold text-gray-900">
+                    {sortedJourneys.reduce(
+                      (total, journey) =>
+                        total +
+                        (journey.days?.reduce(
+                          (dayTotal: number, day: JourneyDay) =>
+                            dayTotal + (day.places?.length || 0),
+                          0
+                        ) || 0),
+                      0
+                    )}
+                  </div>
+                </div>
+              </div>
+              {/* Location Status */}
+              <div className="text-xs">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <div
+                    className={`w-2 h-2 rounded-full ${
+                      currentLocation
+                        ? 'bg-green-500'
+                        : locationLoading
+                        ? 'bg-yellow-500 animate-pulse'
+                        : 'bg-red-500'
+                    }`}
+                  ></div>
+                  <span className="text-gray-600">
+                    {currentLocation
+                      ? 'Location found'
+                      : locationLoading
+                      ? 'Finding location...'
+                      : 'Location unavailable'}
+                  </span>
+                </div>
+                {currentLocation && (
+                  <div className="text-gray-500 ml-3.5">
+                    {currentLocation.latitude.toFixed(4)},{' '}
+                    {currentLocation.longitude.toFixed(4)}
+                  </div>
+                )}
+                {journeysLoading && (
+                  <div className="flex items-center gap-1.5 text-blue-600 ml-3.5 animate-pulse">
+                    <svg
+                      className="w-3 h-3 animate-spin"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    <span>Searching area...</span>
+                  </div>
+                )}
+                <div className="text-gray-500 ml-3.5 mt-1">
+                  Radius: {currentRadius}km
+                </div>
+                <div className="flex items-center gap-1.5 ml-3.5 mt-1">
+                  <div
+                    className={`w-2 h-2 rounded-full ${
+                      autoSearch ? 'bg-green-500' : 'bg-gray-400'
+                    }`}
+                  ></div>
+                  <span className="text-gray-500 text-xs">
+                    Auto-search: {autoSearch ? 'ON' : 'OFF'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Legend */}
+            <h4 className="text-xs font-semibold text-gray-700 mb-2">
+              Place Types
+            </h4>
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-xs">
+                  🏨
+                </div>
+                <span className="text-xs text-gray-600">Accommodation</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center text-xs">
+                  🎯
+                </div>
+                <span className="text-xs text-gray-600">Activity</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center text-xs">
+                  🍽️
+                </div>
+                <span className="text-xs text-gray-600">Food & Dining</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center text-xs">
+                  🚗
+                </div>
+                <span className="text-xs text-gray-600">Transport</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-yellow-600 rounded-full flex items-center justify-center text-xs">
+                  📝
+                </div>
+                <span className="text-xs text-gray-600">Notes</span>
+              </div>
+            </div>
+          </motion.div>
         </div>
 
         {/* RIGHT SIDEBAR — now a sibling in the flex layout. Only this area scrolls. */}
@@ -459,7 +658,9 @@ export default function DiscoverPage() {
                     <button
                       onClick={() => setShowFilters(!showFilters)}
                       className={`p-2 rounded-full transition-colors ${
-                        showFilters ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100 text-gray-400'
+                        showFilters
+                          ? 'bg-blue-100 text-blue-600'
+                          : 'hover:bg-gray-100 text-gray-400'
                       }`}
                       title="Toggle Filters"
                     >
@@ -478,8 +679,8 @@ export default function DiscoverPage() {
                 {coordinates && (
                   <div className="flex items-center gap-2 mb-4">
                     <span className="text-sm text-gray-600">Radius:</span>
-                    <div className="flex gap-1">
-                      {[10, 25, 50, 100].map(radius => (
+                    <div className="flex gap-1 flex-wrap">
+                      {[100, 500, 1000, 5000, 10000].map(radius => (
                         <button
                           key={radius}
                           onClick={() => handleRadiusChange(radius)}
@@ -550,50 +751,6 @@ export default function DiscoverPage() {
                 ) : (
                   <div className="p-4 space-y-3">
                     {sortedJourneys.map((journey, index) => {
-                      const getJourneyLocation = () => {
-                        // Handle both old journey structure and new nearby journey structure
-                        if (journey.location) {
-                          return journey.location;
-                        }
-                        if (journey.days && journey.days.length > 0) {
-                          const firstDay = journey.days[0];
-                          if (firstDay.places && firstDay.places.length > 0) {
-                            const location = firstDay.places[0].location;
-                            const parts = location.split(',');
-                            if (parts.length >= 2) {
-                              return parts[parts.length - 1].trim();
-                            }
-                            return location;
-                          }
-                        }
-                        return 'Unknown location';
-                      };
-
-                      const getJourneyCategory = () => {
-                        // Handle category from nearby journeys API or fallback to days analysis
-                        if (journey.category) {
-                          return journey.category;
-                        }
-                        if (journey.days && journey.days.length > 0) {
-                          for (const day of journey.days) {
-                            if (day.places && day.places.length > 0) {
-                              const categories = day.places.map((place: JourneyPlace) =>
-                                place.type.toLowerCase()
-                              );
-                              if (categories.includes('activity'))
-                                return 'Amusement & Theme Parks';
-                              if (categories.includes('stay'))
-                                return 'Hotel or Stay';
-                              if (categories.includes('food'))
-                                return 'Restaurants & Cafes';
-                              if (categories.includes('transport'))
-                                return 'Transportation';
-                            }
-                          }
-                        }
-                        return 'Travel Experience';
-                      };
-
                       const getDistance = () => {
                         if (journey.distance !== undefined) {
                           return `${journey.distance.toFixed(1)}km away`;
@@ -601,16 +758,23 @@ export default function DiscoverPage() {
                         return null;
                       };
 
-                      const gradients = [
-                        'from-purple-400 via-pink-400 to-blue-400',
-                        'from-blue-400 via-purple-400 to-pink-400',
-                        'from-pink-400 via-purple-400 to-indigo-400',
-                        'from-indigo-400 via-blue-400 to-purple-400',
-                        'from-purple-500 via-blue-400 to-indigo-400',
-                        'from-blue-500 via-indigo-400 to-purple-400',
-                      ];
+                      // Calculate place types breakdown
+                      const getPlaceTypesBreakdown = () => {
+                        const typeCounts: { [key: string]: number } = {};
+                        if (journey.days) {
+                          journey.days.forEach((day: JourneyDay) => {
+                            day.places?.forEach((place: JourneyPlace) => {
+                              const type = place.type.toLowerCase();
+                              typeCounts[type] = (typeCounts[type] || 0) + 1;
+                            });
+                          });
+                        }
+                        return typeCounts;
+                      };
 
-                      const gradient = gradients[index % gradients.length];
+                      const placeTypes = getPlaceTypesBreakdown();
+
+                      const isSelected = selectedJourney?.id === journey.id;
 
                       return (
                         <motion.div
@@ -618,55 +782,300 @@ export default function DiscoverPage() {
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.1 }}
+                          whileHover={{ y: -4, transition: { duration: 0.2 } }}
                           onClick={() => handleJourneyClick(journey)}
-                          onDoubleClick={() => handleJourneyModalOpen(journey)}
-                          className={`bg-white rounded-lg cursor-pointer transition-all duration-200 hover:shadow-md border ${
-                            selectedJourney?.id === journey.id
-                              ? 'border-blue-500 shadow-md'
-                              : 'border-gray-100 hover:border-gray-200'
+                          className={`group relative overflow-hidden rounded-xl cursor-pointer transition-all duration-300 ${
+                            isSelected
+                              ? 'shadow-2xl ring-4 ring-blue-900 ring-opacity-50'
+                              : 'shadow-md hover:shadow-xl hover:ring-2 hover:ring-blue-900 hover:ring-opacity-20'
                           }`}
                         >
-                          <div className="flex items-center gap-3 p-3">
-                            {/* Journey Image/Gradient */}
-                            <div
-                              className={`w-16 h-16 rounded-lg bg-gradient-to-br ${gradient} flex-shrink-0 flex items-center justify-center`}
-                            >
-                              <div className="text-white text-lg font-semibold">
-                                {journey.title.charAt(0).toUpperCase()}
-                              </div>
-                            </div>
+                          {/* Gradient Background */}
+                          <div
+                            className={`absolute inset-0 bg-gradient-to-br transition-opacity duration-300 ${
+                              isSelected
+                                ? 'from-blue-900 via-blue-900 to-blue-800 opacity-100'
+                                : 'from-blue-900 via-blue-800 to-blue-700 opacity-0 group-hover:opacity-8'
+                            }`}
+                          />
 
-                            {/* Journey Info */}
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-gray-900 text-sm mb-1 truncate">
-                                {journey.title}
-                              </h3>
-                              <p className="text-xs text-gray-500 mb-1">
-                                {getJourneyCategory()}
-                              </p>
-                              {/* Journey stats and distance */}
-                              <div className="text-xs text-gray-400 space-y-1">
-                                {getDistance() && <div>{getDistance()}</div>}
-                                {journey.days && journey.days.length > 0 && (
-                                  <div>
-                                    {journey.days.reduce(
+                          {/* Content */}
+                          <div
+                            className={`relative ${
+                              isSelected
+                                ? 'bg-white/95 backdrop-blur-sm'
+                                : 'bg-white'
+                            }`}
+                          >
+                            {/* Header with gradient strip */}
+                            <div
+                              className={`h-1.5 bg-gradient-to-r ${
+                                isSelected
+                                  ? 'from-blue-900 via-blue-900 to-blue-800'
+                                  : 'from-blue-900 via-blue-800 to-blue-700'
+                              }`}
+                            />
+
+                            <div className="p-4">
+                              {/* Title Section */}
+                              <div className="mb-3">
+                                <div className="flex items-start justify-between gap-2 mb-2">
+                                  <h3
+                                    className={`font-bold text-lg leading-tight line-clamp-2 flex-1 ${
+                                      isSelected
+                                        ? 'text-blue-900'
+                                        : 'text-gray-900 group-hover:text-blue-900'
+                                    }`}
+                                  >
+                                    {journey.title}
+                                  </h3>
+                                  {isSelected && (
+                                    <motion.div
+                                      initial={{ scale: 0 }}
+                                      animate={{ scale: 1 }}
+                                      className="flex-shrink-0"
+                                    >
+                                      <div className="w-8 h-8 bg-gradient-to-br from-blue-900 to-blue-950 rounded-full flex items-center justify-center shadow-lg">
+                                        <svg
+                                          className="w-4 h-4 text-white"
+                                          fill="currentColor"
+                                          viewBox="0 0 20 20"
+                                        >
+                                          <path
+                                            fillRule="evenodd"
+                                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                            clipRule="evenodd"
+                                          />
+                                        </svg>
+                                      </div>
+                                    </motion.div>
+                                  )}
+                                </div>
+
+                                {/* User & Distance */}
+                                <div className="flex items-center gap-2 text-xs">
+                                  <div className="flex items-center gap-1.5 text-gray-600">
+                                    <div className="w-5 h-5 bg-gradient-to-br from-blue-900 to-blue-950 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+                                      <span className="text-white text-xs font-bold">
+                                        {(
+                                          journey.author?.username ||
+                                          journey.user?.username
+                                        )
+                                          .charAt(0)
+                                          .toUpperCase()}
+                                      </span>
+                                    </div>
+                                    <span className="font-medium">
+                                      {journey.author?.username ||
+                                        journey.user?.username}
+                                    </span>
+                                  </div>
+                                  {getDistance() && (
+                                    <>
+                                      <span className="text-gray-300">•</span>
+                                      <div className="flex items-center gap-1 text-gray-500">
+                                        <svg
+                                          className="w-3 h-3"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          viewBox="0 0 24 24"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                                          />
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                                          />
+                                        </svg>
+                                        <span className="font-medium">
+                                          {getDistance()}
+                                        </span>
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Place Types Badges */}
+                              <div className="flex flex-wrap gap-1.5 mb-3">
+                                {placeTypes.stay > 0 && (
+                                  <motion.div
+                                    whileHover={{ scale: 1.05 }}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 text-blue-700 rounded-full text-xs font-semibold shadow-sm"
+                                  >
+                                    <span>🏨</span>
+                                    <span>{placeTypes.stay}</span>
+                                  </motion.div>
+                                )}
+                                {placeTypes.activity > 0 && (
+                                  <motion.div
+                                    whileHover={{ scale: 1.05 }}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-green-50 to-green-100 border border-green-200 text-green-700 rounded-full text-xs font-semibold shadow-sm"
+                                  >
+                                    <span>🎯</span>
+                                    <span>{placeTypes.activity}</span>
+                                  </motion.div>
+                                )}
+                                {placeTypes.food > 0 && (
+                                  <motion.div
+                                    whileHover={{ scale: 1.05 }}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-red-50 to-red-100 border border-red-200 text-red-700 rounded-full text-xs font-semibold shadow-sm"
+                                  >
+                                    <span>🍽️</span>
+                                    <span>{placeTypes.food}</span>
+                                  </motion.div>
+                                )}
+                                {placeTypes.transport > 0 && (
+                                  <motion.div
+                                    whileHover={{ scale: 1.05 }}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 text-purple-700 rounded-full text-xs font-semibold shadow-sm"
+                                  >
+                                    <span>🚗</span>
+                                    <span>{placeTypes.transport}</span>
+                                  </motion.div>
+                                )}
+                                {placeTypes.note > 0 && (
+                                  <motion.div
+                                    whileHover={{ scale: 1.05 }}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-200 text-yellow-700 rounded-full text-xs font-semibold shadow-sm"
+                                  >
+                                    <span>📝</span>
+                                    <span>{placeTypes.note}</span>
+                                  </motion.div>
+                                )}
+                              </div>
+
+                              {/* Journey Stats with Icons */}
+                              <div
+                                className={`flex items-center gap-3 text-xs pt-3 border-t ${
+                                  isSelected
+                                    ? 'border-blue-900/20'
+                                    : 'border-gray-100'
+                                }`}
+                              >
+                                <div className="flex items-center gap-1.5 text-gray-600">
+                                  <svg
+                                    className="w-4 h-4 text-blue-900"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                                    />
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                                    />
+                                  </svg>
+                                  <span className="font-semibold">
+                                    {journey.days?.reduce(
                                       (total: number, day: JourneyDay) =>
                                         total + (day.places?.length || 0),
                                       0
-                                    )}{' '}
-                                    places •{journey.days.length} days
-                                  </div>
-                                )}
-                                {journey.author && (
-                                  <div>
-                                    by{' '}
-                                    {journey.author.username ||
-                                      journey.user?.username}
-                                  </div>
-                                )}
+                                    ) || 0}
+                                  </span>
+                                  <span className="text-gray-500">places</span>
+                                </div>
+                                <span className="text-gray-300">•</span>
+                                <div className="flex items-center gap-1.5 text-gray-600">
+                                  <svg
+                                    className="w-4 h-4 text-blue-900"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                    />
+                                  </svg>
+                                  <span className="font-semibold">
+                                    {journey.days?.length || 0}
+                                  </span>
+                                  <span className="text-gray-500">days</span>
+                                </div>
                               </div>
+
+                              {/* View Details Button - Only show when selected */}
+                              {isSelected && (
+                                <motion.button
+                                  initial={{
+                                    opacity: 0,
+                                    height: 0,
+                                    marginTop: 0,
+                                  }}
+                                  animate={{
+                                    opacity: 1,
+                                    height: 'auto',
+                                    marginTop: 12,
+                                  }}
+                                  exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    handleJourneyModalOpen(journey);
+                                  }}
+                                  className="w-full px-4 py-2.5 bg-gradient-to-r from-blue-900 to-blue-950 text-white rounded-lg hover:from-blue-800 hover:to-blue-900 transition-all duration-200 text-sm font-semibold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+                                >
+                                  <svg
+                                    className="w-4 h-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                    />
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                    />
+                                  </svg>
+                                  View Full Journey
+                                  <svg
+                                    className="w-4 h-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M9 5l7 7-7 7"
+                                    />
+                                  </svg>
+                                </motion.button>
+                              )}
                             </div>
                           </div>
+
+                          {/* Decorative Corner Element */}
+                          {isSelected && (
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-blue-900/25 to-transparent rounded-bl-full"
+                            />
+                          )}
                         </motion.div>
                       );
                     })}

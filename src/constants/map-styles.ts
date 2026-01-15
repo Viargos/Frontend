@@ -431,6 +431,8 @@ export const viargoMapOptions = {
   gestureHandling: 'greedy' as const,
   disableDefaultUI: false,
   clickableIcons: false,
+  minZoom: 2, // Prevent zooming out too far to avoid world duplication
+  maxZoom: 20, // Allow detailed zoom
   restriction: {
     latLngBounds: {
       north: 85,
@@ -438,5 +440,6 @@ export const viargoMapOptions = {
       west: -180,
       east: 180,
     },
+    strictBounds: false, // Allow some panning beyond bounds but prevent wrapping
   },
 };
