@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import { Post } from '@/types/post.types';
 import { serviceFactory } from '@/lib/services/service-factory';
-import PostCard from '@/components/post/PostCard';
-import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import CreatePostModal from '@/components/post/CreatePostModal';
+import PostMediaSlideshow from '@/components/post/PostMediaSlideshow';
 
 interface JourneyPostsProps {
   journeyId: string;
@@ -19,7 +19,8 @@ export default function JourneyPosts({
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
+  const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
   useEffect(() => {
     const fetchJourneyPosts = async () => {
@@ -42,22 +43,18 @@ export default function JourneyPosts({
     }
   }, [journeyId]);
 
-  const handleLikeChange = (
-    postId: string,
-    isLiked: boolean,
-    newCount: number
-  ) => {
-    setPosts(prevPosts =>
-      prevPosts.map(post =>
-        post.id === postId
-          ? { ...post, likeCount: newCount, isLikedByCurrentUser: isLiked }
-          : post
-      )
-    );
-  };
-
-  const handleJourneyClick = (journeyId: string) => {
-    router.push(`/journey/${journeyId}`);
+  const handlePostCreated = () => {
+    // Refresh the posts list after creating a new post
+    const fetchJourneyPosts = async () => {
+      try {
+        const postService = serviceFactory.postService;
+        const response = await postService.getPostsByJourney(journeyId);
+        setPosts(response.data || []);
+      } catch (err) {
+        console.error('Error fetching journey posts:', err);
+      }
+    };
+    fetchJourneyPosts();
   };
 
   // Loading state
@@ -147,7 +144,7 @@ export default function JourneyPosts({
             {journeyTitle || 'this journey'}.
           </p>
           <button
-            onClick={() => router.push('/dashboard')}
+            onClick={() => setIsCreatePostModalOpen(true)}
             className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
           >
             <svg
@@ -165,6 +162,13 @@ export default function JourneyPosts({
             </svg>
             Create Your First Post
           </button>
+
+          {/* Create Post Modal */}
+          <CreatePostModal
+            isOpen={isCreatePostModalOpen}
+            onClose={() => setIsCreatePostModalOpen(false)}
+            onSuccess={handlePostCreated}
+          />
         </div>
       </div>
     );
@@ -222,6 +226,7 @@ export default function JourneyPosts({
                   transform: `rotate(${rotation}deg)`,
                   transition: 'all 0.3s ease',
                 }}
+                onClick={() => setSelectedPost(post)}
                 onMouseEnter={e => {
                   e.currentTarget.style.transform = `rotate(0deg) scale(1.05) translateY(-10px)`;
                 }}
@@ -240,10 +245,12 @@ export default function JourneyPosts({
                 {/* Post Image */}
                 <div className="relative aspect-square bg-gray-100 mb-3 overflow-hidden">
                   {post.media && post.media.length > 0 ? (
-                    <img
+                    <Image
                       src={post.media[0].url}
                       alt={post.description}
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
@@ -284,6 +291,8 @@ export default function JourneyPosts({
                         src={post.user.profileImage}
                         alt={post.user.username}
                         className="w-6 h-6 rounded-full"
+                        width={24}
+                        height={24}
                       />
                     ) : (
                       <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
@@ -365,6 +374,21 @@ export default function JourneyPosts({
           }
         }
       `}</style>
+
+      {/* Media Slideshow Modal */}
+      {selectedPost && (
+        <PostMediaSlideshow
+          isOpen={!!selectedPost}
+          onClose={() => setSelectedPost(null)}
+          media={selectedPost.media || []}
+          postDescription={selectedPost.description}
+          username={selectedPost.user.username}
+          userProfileImage={selectedPost.user.profileImage || undefined}
+          likeCount={selectedPost.likeCount}
+          commentCount={selectedPost.commentCount}
+          isLikedByCurrentUser={selectedPost.isLikedByCurrentUser || false}
+        />
+      )}
     </div>
   );
 }

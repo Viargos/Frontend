@@ -12,6 +12,7 @@ import { journeyService, postService } from "@/lib/services/service-factory";
 import JourneyIcon from "@/components/icons/JourneyIcon";
 import { CalendarIcon } from "@/components/icons/CalendarIcon";
 import MapIcon from "@/components/icons/MapIcon";
+import Image from "next/image";
 
 interface JourneyLinkedPostFormProps {
   onSuccess: (postId: string) => void;
@@ -225,9 +226,11 @@ export default function JourneyLinkedPostForm({
               <div className="bg-blue-50 p-4 rounded-lg">
                 <div className="flex items-center space-x-3">
                   {selectedJourney.coverImage ? (
-                    <img
+                    <Image
                       src={selectedJourney.coverImage}
                       alt={selectedJourney.title}
+                      width={40}
+                      height={40}
                       className="w-10 h-10 object-cover rounded-lg"
                     />
                   ) : (
@@ -261,9 +264,6 @@ export default function JourneyLinkedPostForm({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Media (Optional)
-              </label>
               <PostMediaUploader
                 onMediaChange={handleMediaChange}
                 maxFiles={10}
