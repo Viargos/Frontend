@@ -195,7 +195,7 @@ export default function ProfileJourneyCard({
           {/* Header */}
           <div className="space-y-3">
             {/* Date Range */}
-            <div className="text-sm font-semibold text-indigo-600">
+            <div className="text-sm font-semibold text-blue-600">
               {formatDateRange()}
             </div>
 
