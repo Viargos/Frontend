@@ -3,6 +3,7 @@ import { Manrope, Outfit } from 'next/font/google';
 import './globals.css';
 import AuthInitializer from '@/components/auth/AuthInitializer';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Analytics } from '@vercel/analytics/next';
 
 // Primary font - Used for body text, buttons, inputs, and most UI elements
 const manrope = Manrope({
@@ -36,6 +37,7 @@ export default function RootLayout({
         <AuthInitializer>
           {children}
           <SpeedInsights />
+          <Analytics />
         </AuthInitializer>
       </body>
     </html>
