@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth.store';
 import { PageLoading } from '@/components/common/Loading';
@@ -23,6 +23,22 @@ export default function DashboardLayout({
 }) {
   const { user, isAuthenticated, logout } = useAuthStore();
   const router = useRouter();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  // Load sidebar state from localStorage on mount
+  useEffect(() => {
+    const savedState = localStorage.getItem('sidebarCollapsed');
+    if (savedState !== null) {
+      setIsSidebarCollapsed(savedState === 'true');
+    }
+  }, []);
+
+  // Save sidebar state to localStorage
+  const toggleSidebar = () => {
+    const newState = !isSidebarCollapsed;
+    setIsSidebarCollapsed(newState);
+    localStorage.setItem('sidebarCollapsed', String(newState));
+  };
 
   useEffect(() => {
     // Redirect unauthenticated users to home
@@ -48,13 +64,18 @@ export default function DashboardLayout({
 
         {/* Main Layout Container */}
         <div className="flex flex-1 overflow-hidden">
-          {/* Fixed Left Sidebar - Full width on lg+, narrow on md */}
-          <AnimatedSidebar>
-            <LeftSidebar user={user} onLogout={logout} />
+          {/* Fixed Left Sidebar - Collapsible on desktop */}
+          <AnimatedSidebar isCollapsed={isSidebarCollapsed}>
+            <LeftSidebar 
+              user={user} 
+              onLogout={logout}
+              isCollapsed={isSidebarCollapsed}
+              onToggleCollapse={toggleSidebar}
+            />
           </AnimatedSidebar>
 
-          {/* Scrollable Main Content Area */}
-          <div className="flex-1 overflow-y-auto">
+          {/* Scrollable Main Content Area - Expands when sidebar collapses */}
+          <div className="flex-1 overflow-y-auto transition-all duration-300">
             {/* Add bottom padding on small screens only to account for bottom navigation */}
             <div className="pb-20 sm:pb-0 flex justify-center">
               <div className="w-full">{children}</div>

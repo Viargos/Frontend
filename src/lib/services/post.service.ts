@@ -50,6 +50,7 @@ export interface IPostService {
     userId: string,
     filters?: PostFilters
   ): Promise<ApiResponse<Post[]>>;
+  getPostsByJourney(journeyId: string): Promise<ApiResponse<Post[]>>;
   getPostCount(userId: string): Promise<ApiResponse<{ count: number }>>;
   deletePost(postId: string): Promise<ApiResponse<void>>;
   updatePost(
@@ -221,6 +222,36 @@ export class PostService implements IPostService {
     } catch (error) {
       logger.error('Failed to fetch user posts', error as Error, { userId, filters });
       throw new Error(ErrorHandler.extractMessage(error) || ERROR_MESSAGES.POST.FETCH_USER_POSTS_FAILED);
+    }
+  }
+
+  /**
+   * Get posts by journey ID
+   */
+  async getPostsByJourney(journeyId: string): Promise<ApiResponse<Post[]>> {
+    logger.debug('Fetching journey posts', { journeyId });
+
+    try {
+      const response = await this.httpClient.get<Post[]>(
+        `/posts/journey/${journeyId}`
+      );
+
+      // Backend returns posts array directly, same as getPostsByUser
+      const posts = Array.isArray(response.data) ? response.data : [];
+
+      logger.debug('Journey posts fetched successfully', {
+        journeyId,
+        count: posts.length,
+      });
+
+      return {
+        statusCode: response.statusCode || 200,
+        message: response.message || 'Journey posts retrieved successfully',
+        data: posts,
+      };
+    } catch (error) {
+      logger.error('Failed to fetch journey posts', error as Error, { journeyId });
+      throw new Error(ErrorHandler.extractMessage(error) || 'Failed to fetch journey posts');
     }
   }
 

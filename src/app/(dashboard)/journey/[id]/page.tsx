@@ -17,6 +17,7 @@ import { TransportIcon } from '@/components/icons/TransportIcon';
 import { NotesIcon } from '@/components/icons/NotesIcon';
 import PhotoGallery from '@/components/media/PhotoGallery';
 import Modal from '@/components/ui/Modal';
+import JourneyPosts from '@/components/journey/JourneyPosts';
 
 interface Location {
   id: string;
@@ -443,17 +444,19 @@ export default function JourneyDetailsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 min-h-[calc(100vh-16rem)]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Left Content */}
-        <div className="lg:col-span-2 bg-white rounded-lg p-4 sm:p-6 overflow-y-auto shadow-sm">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-4">
-            <div>
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-                Journey Details
-              </h2>
+        <div className="lg:col-span-2 space-y-6">
+          {/* Journey Details Card */}
+          <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-4">
+              <div>
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+                  Journey Details
+                </h2>
+              </div>
             </div>
-          </div>
 
           {/* Day Tabs */}
           {journey.days && journey.days.length > 0 ? (
@@ -695,11 +698,20 @@ export default function JourneyDetailsPage() {
               )}
             </div>
           )}
+          </div>
+
+          {/* Journey Posts Section */}
+          <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
+            <JourneyPosts 
+              journeyId={journeyId} 
+              journeyTitle={journey?.title || generateJourneyTitle(journey)}
+            />
+          </div>
         </div>
 
         {/* Right Side - 3D WebGL Map */}
-        <div className="lg:col-span-1 rounded-lg overflow-hidden shadow-sm lg:sticky lg:top-0 lg:self-start">
-          <div className="h-[460px] sticky">
+        <div className="lg:col-span-1 rounded-lg overflow-hidden shadow-sm lg:sticky lg:top-6 lg:self-start">
+          <div className="h-[calc(100vh-8rem)] min-h-[460px]">
             <JourneyMapWebGL
               locations={getAllJourneyLocations()}
               center={getJourneyCenter()}
