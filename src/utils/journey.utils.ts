@@ -11,6 +11,7 @@ export function convertRecentJourneyToJourney(recentJourney: RecentJourney): Jou
     id: recentJourney.id,
     title: recentJourney.title,
     description: recentJourney.description,
+    coverImage: recentJourney.coverImage,
     user: {
       id: recentJourney.author.id,
       username: recentJourney.author.username,
