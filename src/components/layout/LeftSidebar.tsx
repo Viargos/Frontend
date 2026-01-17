@@ -3,11 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { User } from '@/types/auth.types';
 
 interface LeftSidebarProps {
-  user: User;
-  onLogout: () => void;
   onNavigate?: () => void;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;

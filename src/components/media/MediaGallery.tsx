@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { isImageFile, isVideoFile, formatFileSize } from '@/lib/aws/media-upload';
+import { formatFileSize } from '@/lib/aws/media-upload';
 
 interface MediaItem {
   id: string;

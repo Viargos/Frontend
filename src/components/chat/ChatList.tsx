@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { ChatConversation, ChatUser } from '@/types/chat.types';
+import { ChatUser } from '@/types/chat.types';
 import { useAuthStore } from '@/store/auth.store';
 import { useChatStore } from '@/store/chat.store';
 import ConversationItem from './ConversationItem';
@@ -45,33 +45,6 @@ export default function ChatList({
           ?.includes(searchQuery.toLowerCase())
     );
   }, [conversations, searchQuery]);
-
-  const formatTime = (date: Date | string) => {
-    // Ensure we have a valid Date object
-    const dateObj = date instanceof Date ? date : new Date(date);
-
-    // Check if the date is valid
-    if (isNaN(dateObj.getTime())) {
-      return 'now';
-    }
-
-    const now = new Date();
-    const diff = now.getTime() - dateObj.getTime();
-    const minutes = Math.floor(diff / (1000 * 60));
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-    if (minutes < 1) return 'now';
-    if (minutes < 60) return `${minutes}m`;
-    if (hours < 24) return `${hours}h`;
-    return `${days}d`;
-  };
-
-  const truncateMessage = (content: string, maxLength: number = 50) => {
-    return content.length > maxLength
-      ? `${content.substring(0, maxLength)}...`
-      : content;
-  };
 
   // 🔄 FIX: Memoized refresh handler
   const handleRefresh = useCallback(() => {
@@ -291,3 +264,7 @@ export default function ChatList({
     </div>
   );
 }
+
+// Unused helper functions (not called anywhere in the component)
+// const formatTime = (date: Date | string) => { ... }
+// const truncateMessage = (content: string, maxLength: number = 50) => { ... }

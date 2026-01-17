@@ -16,7 +16,6 @@ function ConversationItem({
   conversation,
   isSelected,
   onSelect,
-  index,
 }: ConversationItemProps) {
   const handleClick = () => {
     onSelect(conversation.user);

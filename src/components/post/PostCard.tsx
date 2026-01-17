@@ -47,7 +47,7 @@ export default function PostCard({
         onCommentClick?.(post.id);
     }, [post.id, onCommentClick]);
 
-    const handleCommentCountChange = useCallback((postId: string, newCount: number) => {
+    const handleCommentCountChange = useCallback((_postId: string, newCount: number) => {
         setLocalCommentCount(newCount);
     }, []);
 

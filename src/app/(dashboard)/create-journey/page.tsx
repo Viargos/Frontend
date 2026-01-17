@@ -178,7 +178,6 @@ export default function CreateJourneyPage() {
       togglePlaceExpansion,
     ]
   );
- 
 
   // Handle cover image upload with key storage
   const handleCoverImageUpload = useCallback(

@@ -53,7 +53,6 @@ export const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
   const handleClose = useCallback(() => {
     setUploadedPhotos([]);
     setUploadError(null);
-    reset();
     // Add a small delay to ensure cleanup happens properly
     setTimeout(() => {
       onClose();

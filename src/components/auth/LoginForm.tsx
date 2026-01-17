@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -31,7 +31,6 @@ export default function LoginForm({
 }: LoginFormProps) {
   const router = useRouter();
   const { login, isLoading, error, clearError } = useAuthStore();
-  const [showPassword, setShowPassword] = useState(false);
   const hasHandledVerificationErrorRef = useRef(false); // 🔄 NEW: Prevent duplicate handling
 
   const {
@@ -74,15 +73,15 @@ export default function LoginForm({
           await handleEmailVerificationError(data.email, errorToCheck);
         }
       }
-    } catch (error) {
-      console.error('Login form error:', error);
+    } catch (_error) {
+      console.error('Login form error:', _error);
 
       // 🔄 FIX: Also check error from store in case it's set there
       const userEmail = getValues('email');
       if (userEmail && !hasHandledVerificationErrorRef.current) {
         hasHandledVerificationErrorRef.current = true;
         // Check both caught error and store error
-        const errorToCheck = error || useAuthStore.getState().error;
+        const errorToCheck = _error || useAuthStore.getState().error;
         await handleEmailVerificationError(userEmail, errorToCheck);
       }
     }
@@ -223,63 +222,14 @@ export default function LoginForm({
           <div className="relative">
             <motion.input
               {...register('password')}
-              type={showPassword ? 'text' : 'password'}
+              type="password"
               id="password"
-              className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black transition-all duration-200"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black transition-all duration-200"
               placeholder="Enter your password"
               disabled={isLoading}
               autoComplete="current-password"
               whileFocus={{ scale: 1.02, borderColor: '#3B82F6' }}
             />
-            <motion.button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center"
-              tabIndex={-1}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <motion.div
-                animate={{ rotate: showPassword ? 0 : 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                {showPassword ? (
-                  <svg
-                    className="h-5 w-5 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
-                    />
-                  </svg>
-                ) : (
-                  <svg
-                    className="h-5 w-5 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                    />
-                  </svg>
-                )}
-              </motion.div>
-            </motion.button>
           </div>
           {errors.password && (
             <motion.p

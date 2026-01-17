@@ -76,7 +76,7 @@ export default function OtpVerificationForm({
         // If verification failed, allow resubmission
         setHasSubmitted(false);
       }
-    } catch (error) {
+    } catch (_error) {
       // Error is handled in the store
       // Allow resubmission after error
       setHasSubmitted(false);
@@ -110,7 +110,7 @@ export default function OtpVerificationForm({
     setResendTimer(60);
     try {
       await onResendOtp?.();
-    } catch (error) {
+    } catch (_error) {
       // Error is handled by parent component
     }
   };

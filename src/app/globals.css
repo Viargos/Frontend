@@ -129,10 +129,6 @@ body {
   color: var(--Primary-Blue);
 }
 
-.bg-[#001A6E] {
-  background-color: var(--Blue-600);
-}
-
 .text-blue-600 {
   color: var(--Blue-600);
 }

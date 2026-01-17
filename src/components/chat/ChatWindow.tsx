@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { ChatUser, ChatMessage } from '@/types/chat.types';
 import { useAuthStore } from '@/store/auth.store';
-import { motion } from 'framer-motion';
 import ChatHeader from './ChatHeader';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';

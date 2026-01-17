@@ -8,7 +8,6 @@ import {
   ArrowUpRight,
   Sparkles,
   Trash2,
-  MoreVertical,
 } from "lucide-react";
 import { Journey } from "@/types/journey.types";
 import { useRouter } from "next/navigation";

@@ -45,7 +45,6 @@ export function AnimatedCurvedRoute({
   const [markerPoints, setMarkerPoints] = useState<{ start: { x: number; y: number }; end: { x: number; y: number } } | null>(null);
   const [pathDrawComplete, setPathDrawComplete] = useState(false);
   const pathRef = useRef<SVGPathElement>(null);
-  const animationKeyRef = useRef(0); // Force re-render key for animation
 
   /**
    * Calculate the curved path between two points
@@ -291,7 +290,6 @@ export function AnimatedCurvedRoute({
   if (!pathData) return null;
 
   const { d, length } = pathData;
-  const totalDashLength = dashLength + gapLength;
 
   return (
     <svg

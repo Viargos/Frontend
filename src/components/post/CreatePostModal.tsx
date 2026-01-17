@@ -4,7 +4,7 @@ import React, { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Modal } from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
-import { PostType, CreatePostFormData } from "@/types/post.types";
+import { PostType } from "@/types/post.types";
 import JourneyIcon from "@/components/icons/JourneyIcon";
 import MapIcon from "@/components/icons/MapIcon";
 import ArrowLeftIcon from "@/components/icons/ArrowLeftIcon";

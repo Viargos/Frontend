@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { CloseIcon } from "@/components/icons";
 
 /**
  * Error UI for dashboard routes
@@ -23,19 +24,7 @@ export default function Error({
     <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
       <div className="bg-white border border-red-200 rounded-lg shadow-sm p-6 max-w-md w-full">
         <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
-          <svg
-            className="w-6 h-6 text-red-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
+          <CloseIcon className="w-6 h-6 text-red-600" />
         </div>
 
         <h2 className="text-xl font-bold text-gray-900 text-center mb-2">

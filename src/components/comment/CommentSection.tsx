@@ -37,7 +37,6 @@ export default function CommentSection({
 }: CommentSectionProps) {
   const [comments, setComments] = useState<PostComment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [isAddingComment, setIsAddingComment] = useState(false);
   const [localCommentCount, setLocalCommentCount] = useState(post.commentCount);
   const [showAllComments, setShowAllComments] = useState(false);
@@ -52,7 +51,6 @@ export default function CommentSection({
 
     const fetchComments = async () => {
       setIsLoading(true);
-      setError(null);
 
       try {
         const response = await postService.getComments(post.id, {
@@ -61,7 +59,6 @@ export default function CommentSection({
         });
         setComments(response.data || []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load comments');
         console.error('Error fetching comments:', err);
       } finally {
         setIsLoading(false);
@@ -141,16 +138,6 @@ export default function CommentSection({
             <div className="bg-white rounded-lg">
               {isLoading ? (
                 <LoadingSkeleton />
-              ) : error ? (
-                <div className="flex flex-col items-center justify-center py-8 px-4">
-                  <p className="text-red-500 text-center text-sm mb-3">{error}</p>
-                  <button
-                    onClick={() => window.location.reload()}
-                    className="text-blue-600 hover:underline text-sm font-medium"
-                  >
-                    Try again
-                  </button>
-                </div>
               ) : comments.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 px-4">
                   <p className="text-gray-500 text-sm">No comments yet</p>

@@ -1,7 +1,12 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ProfileTab, ProfileTabConfig } from '@/types/profile.types';
+import { ProfileTab } from '@/types/profile.types';
+
+interface ProfileTabConfig {
+  id: ProfileTab;
+  label: string;
+}
 
 interface ProfileTabsProps {
   activeTab: ProfileTab;

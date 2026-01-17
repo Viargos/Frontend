@@ -76,15 +76,6 @@ export default function JourneyFilters({
     });
   };
 
-  const toggleArrayFilter = (key: keyof JourneyFilterState, value: string) => {
-    const currentArray = filters[key] as string[];
-    const newArray = currentArray.includes(value)
-      ? currentArray.filter(item => item !== value)
-      : [...currentArray, value];
-
-    updateFilter(key, newArray);
-  };
-
   const FilterSection = ({
     title,
     icon: Icon,

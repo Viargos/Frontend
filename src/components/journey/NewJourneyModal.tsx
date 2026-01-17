@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Modal from "@/components/ui/Modal";
-import Button from "@/components/ui/Button";
 import InputField from "@/components/ui/InputField";
 import LocationSearch from "./LocationSearch";
 import { CalendarIcon } from "@/components/icons/CalendarIcon";

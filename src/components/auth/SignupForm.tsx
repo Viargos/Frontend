@@ -80,10 +80,10 @@ export default function SignupForm({
           // Also store them for additional display if needed
           setFieldErrors(validationErrors);
         }
-        
+
         return;
       }
-    } catch (error) {
+    } catch (_error) {
       // Error is handled in the store
     }
   };
@@ -98,7 +98,7 @@ export default function SignupForm({
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {error && (
+        {error && typeof error === 'string' && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
             {error}
           </div>

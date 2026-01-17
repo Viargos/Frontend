@@ -458,7 +458,7 @@ export default function JourneyMapWebGL({
         });
       };
 
-      webglOverlayView.onDraw = ({ gl, transformer }) => {
+      webglOverlayView.onDraw = ({ transformer }) => {
         if (!cameraRef.current || !rendererRef.current || !sceneRef.current)
           return;
 
@@ -584,8 +584,7 @@ export default function JourneyMapWebGL({
           if (!location) {
             // Marker is being removed - animate out
             const animState = marker.userData.animationState;
-            const animProgress = marker.userData.animationProgress;
-            
+
             if (animState === 'removing') {
               const elapsed = (Date.now() - marker.userData.startTime) / 1000;
               const duration = 0.5; // 500ms

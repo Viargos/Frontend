@@ -8,8 +8,6 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ProfileHeader, ProfileTabs, ProfileJourneyCard, ProfilePostsGrid } from '@/components/profile';
 import { Button, LoadingSpinner, UserProfileSkeleton } from '@/components/ui';
-import { PostsList } from '@/components/post';
-import { UserPostsGrid } from '@/components/user';
 import AllJourneysMap from '@/components/maps/AllJourneysMap';
 import YearFilter from '@/components/maps/YearFilter';
 import JourneyCard from '@/components/maps/JourneyCard';
@@ -21,8 +19,6 @@ export default function ProfilePage() {
   const {
     profile,
     stats,
-    recentJourneys,
-    recentPosts,
     profileImageUrl,
     bannerImageUrl,
     isLoading,
