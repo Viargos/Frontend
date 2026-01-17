@@ -545,7 +545,7 @@ export default function Header({ user }: HeaderProps) {
                         View Profile
                       </button>
 
-                      <button
+                      {/* <button
                         onClick={() => {
                           setShowDropdown(false);
                           router.push('/journeys');
@@ -566,7 +566,7 @@ export default function Header({ user }: HeaderProps) {
                           />
                         </svg>
                         My Journeys
-                      </button>
+                      </button> */}
 
                       <div className="border-t border-gray-100 mt-2 pt-2">
                         <button

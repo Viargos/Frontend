@@ -1,14 +1,15 @@
 /**
  * Reusable Google Maps Styles
  *
- * Custom map styling that matches the Viargos application theme
- * with white and blue-600 (#001a6e) color scheme.
+ * Default Google Maps styling - uses Google's standard color scheme.
+ * Locations with user journeys should be highlighted with blue markers/overlays.
  *
  * Usage:
  * import { mapStyles } from '@/constants/map-styles';
  * <GoogleMap options={{ styles: mapStyles }} />
  */
 
+<<<<<<< HEAD
 export const mapStyles: google.maps.MapTypeStyle[] = [
   // Water features - subtle blue tint matching blue-600
   {
@@ -359,42 +360,73 @@ export const mapStyles: google.maps.MapTypeStyle[] = [
     ],
   },
 ];
+=======
+/**
+ * Default map styles - uses Google Maps default appearance
+ * Empty array means no custom styling is applied
+ */
+export const mapStyles: google.maps.MapTypeStyle[] = [];
+>>>>>>> 2f046bdd461abb2fc1954e90cc123f1676d3f4e3
 
 /**
- * Alternative minimal style with even less visual noise
- * Perfect for focus on custom markers
+ * Journey-specific styling constants
+ * Use these to mark locations where users have journeys
  */
-export const mapStylesMinimal: google.maps.MapTypeStyle[] = [
-  {
-    featureType: 'all',
-    elementType: 'labels',
-    stylers: [
-      {
-        visibility: 'simplified',
-      },
-    ],
+export const journeyStyles = {
+  // Blue color for journey markers and routes
+  color: '#2563eb', // Blue-600
+  colorLight: '#60a5fa', // Blue-400
+  colorDark: '#1e40af', // Blue-700
+  
+  // Polyline styling for journey routes
+  polylineOptions: {
+    strokeColor: '#2563eb',
+    strokeOpacity: 0.8,
+    strokeWeight: 4,
   },
+  
+  // Polygon/circle styling for journey areas
+  areaOptions: {
+    fillColor: '#2563eb',
+    fillOpacity: 0.2,
+    strokeColor: '#2563eb',
+    strokeOpacity: 0.8,
+    strokeWeight: 2,
+  },
+};
+
+/**
+ * Get journey marker icon configuration
+ * Call this function when google.maps is available
+ */
+export const getJourneyMarkerIcon = (): google.maps.Symbol => ({
+  path: google.maps.SymbolPath.CIRCLE,
+  fillColor: '#2563eb',
+  fillOpacity: 1,
+  strokeColor: '#ffffff',
+  strokeWeight: 2,
+  scale: 8,
+});
+
+/**
+ * Custom Viargos theme map styles (alternative to default)
+ * White and blue color scheme for branded appearance
+ */
+export const mapStylesCustom: google.maps.MapTypeStyle[] = [
   {
     featureType: 'water',
     elementType: 'geometry',
-    stylers: [
-      {
-        color: '#e3ebf5', // Blue-tinted water
-      },
-    ],
+    stylers: [{ color: '#e3ebf5' }],
   },
   {
     featureType: 'landscape',
     elementType: 'geometry',
-    stylers: [
-      {
-        color: '#fafbff', // White with subtle blue tint
-      },
-    ],
+    stylers: [{ color: '#fafbff' }],
   },
   {
     featureType: 'road',
     elementType: 'geometry',
+<<<<<<< HEAD
     stylers: [
       {
         color: '#001a6e', // Blue-tinted gray
@@ -416,14 +448,21 @@ export const mapStylesMinimal: google.maps.MapTypeStyle[] = [
         visibility: 'on',
       },
     ],
+=======
+    stylers: [{ color: '#eff2f9' }],
+  },
+  {
+    featureType: 'poi',
+    stylers: [{ visibility: 'simplified' }],
+>>>>>>> 2f046bdd461abb2fc1954e90cc123f1676d3f4e3
   },
 ];
 
 /**
- * Map options preset for Viargos theme
+ * Map options preset for Viargos with default Google styling
  */
-export const viargoMapOptions = {
-  styles: mapStyles,
+export const viargoMapOptions: google.maps.MapOptions = {
+  styles: mapStyles, // Default Google Maps styles
   zoomControl: true,
   streetViewControl: false,
   mapTypeControl: false,
@@ -442,4 +481,61 @@ export const viargoMapOptions = {
     },
     strictBounds: false, // Allow some panning beyond bounds but prevent wrapping
   },
+};
+
+/**
+ * Helper function to create a journey marker
+ * @param position - Latitude and longitude of the journey location
+ * @param map - Google Maps instance
+ * @param title - Optional title for the marker
+ * @returns Google Maps Marker instance
+ */
+export const createJourneyMarker = (
+  position: google.maps.LatLngLiteral,
+  map: google.maps.Map,
+  title?: string
+): google.maps.Marker => {
+  return new google.maps.Marker({
+    position,
+    map,
+    title,
+    icon: getJourneyMarkerIcon(),
+  });
+};
+
+/**
+ * Helper function to create a journey route polyline
+ * @param path - Array of coordinates for the journey route
+ * @param map - Google Maps instance
+ * @returns Google Maps Polyline instance
+ */
+export const createJourneyPolyline = (
+  path: google.maps.LatLngLiteral[],
+  map: google.maps.Map
+): google.maps.Polyline => {
+  return new google.maps.Polyline({
+    ...journeyStyles.polylineOptions,
+    path,
+    map,
+  });
+};
+
+/**
+ * Helper function to create a journey area circle
+ * @param center - Center point of the journey area
+ * @param radius - Radius in meters
+ * @param map - Google Maps instance
+ * @returns Google Maps Circle instance
+ */
+export const createJourneyArea = (
+  center: google.maps.LatLngLiteral,
+  radius: number,
+  map: google.maps.Map
+): google.maps.Circle => {
+  return new google.maps.Circle({
+    ...journeyStyles.areaOptions,
+    center,
+    radius,
+    map,
+  });
 };
