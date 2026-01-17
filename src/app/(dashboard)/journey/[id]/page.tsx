@@ -466,7 +466,7 @@ export default function JourneyDetailsPage() {
                   onClick={() => setActiveDay(day.dayNumber)}
                   className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
                     activeDay === day.dayNumber
-                      ? 'bg-blue-600 text-white shadow-md'
+                      ? 'bg-[#001A6E] text-white shadow-md'
                       : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 shadow-sm'
                   }`}
                 >
@@ -690,7 +690,7 @@ export default function JourneyDetailsPage() {
                     Start planning your day by adding places to visit,
                     restaurants, or accommodations.
                   </p>
-                  <button className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors">
+                  <button className="bg-[#001A6E] text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors">
                     Add Your First Place
                   </button>
                 </div>

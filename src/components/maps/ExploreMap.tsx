@@ -722,7 +722,7 @@ export default function ExploreMap({
               {/* View Journey Button */}
               <button
                 onClick={() => router.push(`/journey/${selectedLocation.journey.id}`)}
-                className="w-full mt-2 px-3 py-2 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
+                className="w-full mt-2 px-3 py-2 bg-[#001A6E] text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
               >
                 View Full Journey
               </button>

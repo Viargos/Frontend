@@ -145,7 +145,7 @@ export default function JourneyPosts({
           </p>
           <button
             onClick={() => setIsCreatePostModalOpen(true)}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+            className="inline-flex items-center px-4 py-2 bg-[#001A6E] text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
           >
             <svg
               className="w-5 h-5 mr-2"
@@ -351,7 +351,7 @@ export default function JourneyPosts({
 
               {/* Pin/Tack Effect */}
               <div
-                className="absolute -top-2 right-8 w-3 h-3 bg-blue-900 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute -top-2 right-8 w-3 h-3 bg-[#001A6E] rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
                 style={{
                   boxShadow:
                     '0 2px 4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.3)',

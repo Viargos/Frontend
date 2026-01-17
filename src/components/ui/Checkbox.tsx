@@ -21,7 +21,7 @@ export default function Checkbox({
                 type="checkbox"
                 checked={checked}
                 onChange={(e) => onChange?.(e.target.checked)}
-                className="w-4 h-4 rounded border border-gray-300 bg-white checked:bg-blue-600 checked:border-blue-600 focus:ring-2 focus:ring-blue-600 focus:ring-offset-0 focus:outline-none cursor-pointer"
+                className="w-4 h-4 rounded border border-gray-300 bg-white checked:bg-[#001A6E] checked:border-blue-600 focus:ring-2 focus:ring-blue-600 focus:ring-offset-0 focus:outline-none cursor-pointer"
                 style={{ borderColor: "#D5D7DA" }}
             />
             <label

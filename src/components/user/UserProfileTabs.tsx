@@ -33,7 +33,7 @@ export default function UserProfileTabs({ activeTab, onTabChange }: UserProfileT
           >
             {activeTab === tab.id && (
               <motion.div
-                className="absolute inset-0 bg-blue-600 rounded-md"
+                className="absolute inset-0 bg-[#001A6E] rounded-md"
                 layoutId="activeTab"
                 initial={false}
                 transition={{

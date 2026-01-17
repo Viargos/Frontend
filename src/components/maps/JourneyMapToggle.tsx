@@ -39,7 +39,7 @@ export default function JourneyMapToggle({
           onClick={() => setMode(mode === '2d' ? '3d' : '2d')}
           className={`px-4 py-2 rounded-lg font-medium transition-all ${
             mode === '3d'
-              ? 'bg-blue-600 text-white'
+              ? 'bg-[#001A6E] text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
           title={mode === '2d' ? 'Switch to 3D View' : 'Switch to 2D View'}

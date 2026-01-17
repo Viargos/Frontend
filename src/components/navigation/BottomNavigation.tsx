@@ -151,7 +151,7 @@ const BottomNavigation = ({ user, onLogout }: BottomNavigationProps) => {
             {/* Active indicator */}
             {isActive(item.href) && (
               <motion.div
-                className="w-1 h-1 bg-blue-600 rounded-full mt-1"
+                className="w-1 h-1 bg-[#001A6E] rounded-full mt-1"
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.2 }}

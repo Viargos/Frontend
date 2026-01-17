@@ -72,7 +72,7 @@ export function CustomErrorFallback({
         <div className="space-y-3">
           <button
             onClick={resetError}
-            className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
+            className="w-full px-4 py-2 bg-[#001A6E] text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
           >
             Try Again
           </button>

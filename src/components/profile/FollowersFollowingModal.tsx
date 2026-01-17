@@ -38,7 +38,7 @@ function UserItem({ user, onUserClick, currentUserId }: UserItemProps) {
     >
       <div className="flex items-center gap-3">
         {/* Avatar */}
-        <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-purple-600 flex-shrink-0">
+        <div className="w-12 h-12 rounded-full overflow-hidden bg-[#001A6E] flex-shrink-0">
           {user.profileImage ? (
             <Image
               src={user.profileImage}

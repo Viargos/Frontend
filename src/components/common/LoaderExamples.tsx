@@ -25,7 +25,7 @@ export default function LoaderExamples() {
         <h2 className="text-xl font-semibold text-gray-800">1. Default Full Page Loader</h2>
         <button
           onClick={() => setShowFullPageLoader(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          className="px-4 py-2 bg-[#001A6E] text-white rounded-md hover:bg-blue-700"
         >
           Show Full Page Loader
         </button>

@@ -32,14 +32,14 @@ export default function Loading({
 
   const renderDots = () => (
     <div className="flex space-x-2">
-      <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-      <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-      <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
+      <div className="w-2 h-2 bg-[#001A6E] rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+      <div className="w-2 h-2 bg-[#001A6E] rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+      <div className="w-2 h-2 bg-[#001A6E] rounded-full animate-bounce"></div>
     </div>
   );
 
   const renderPulse = () => (
-    <div className={`bg-blue-600 rounded-full animate-pulse ${sizeClasses[size]}`} />
+    <div className={`bg-[#001A6E] rounded-full animate-pulse ${sizeClasses[size]}`} />
   );
 
   const renderLoader = () => {

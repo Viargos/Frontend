@@ -194,7 +194,7 @@ export default function ExplorePage() {
                   className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors text-sm font-medium ${
                     showNearbyJourneys
                       ? 'bg-red-600 text-white hover:bg-red-700'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                      : 'bg-[#001A6E] text-white hover:bg-blue-700'
                   } ${locationLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {locationLoading ? (
@@ -370,7 +370,7 @@ export default function ExplorePage() {
                   <div className="flex space-x-3">
                     <button
                       onClick={openSignup}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+                      className="px-4 py-2 bg-[#001A6E] text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
                     >
                       Join Now
                     </button>

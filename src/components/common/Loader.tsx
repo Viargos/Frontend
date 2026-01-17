@@ -72,7 +72,7 @@ export default function Loader({
 
   return (
     <motion.div
-      className={`${baseClassName} bg-blue-600 ${className}`}
+      className={`${baseClassName} bg-[#001A6E] ${className}`}
       exit={exitAnimation}
     >
       <div className="text-center">

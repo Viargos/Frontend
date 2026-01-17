@@ -183,7 +183,7 @@ export default function JourneyCard({ journey, onClose }: JourneyCardProps) {
         {/* Action Buttons */}
         <div className="flex gap-3">
           <motion.button
-            className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+            className="flex-1 bg-[#001A6E] text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
             onClick={handleViewJourney}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}

@@ -82,7 +82,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                     {/* Next Button */}
                     <button
                         onClick={handleNextClick}
-                        className="flex px-4.5 py-2.5 justify-center items-center gap-2 w-full rounded-lg border border-blue-600 bg-blue-600 shadow-button hover:bg-blue-700 transition-colors cursor-pointer"
+                        className="flex px-4.5 py-2.5 justify-center items-center gap-2 w-full rounded-lg border border-blue-600 bg-[#001A6E] shadow-button hover:bg-blue-700 transition-colors cursor-pointer"
                         style={{
                             backgroundColor: "#001A6E",
                             borderColor: "#001A6E",

@@ -394,7 +394,7 @@ export default function Home() {
                     variants={buttonVariants}
                     whileHover="hover"
                     whileTap="tap"
-                    className="px-4 py-3 sm:px-8 sm:py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all font-semibold text-sm sm:text-lg shadow-lg cursor-pointer"
+                    className="px-4 py-3 sm:px-8 sm:py-4 bg-[#001A6E] text-white rounded-xl hover:bg-blue-700 transition-all font-semibold text-sm sm:text-lg shadow-lg cursor-pointer"
                   >
                     Start Your Journey
                   </motion.button>
@@ -475,7 +475,7 @@ export default function Home() {
                             </span>
                             <motion.button
                               onClick={openSignup}
-                              className="ml-auto px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer"
+                              className="ml-auto px-4 py-2 bg-[#001A6E] text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer"
                               whileHover={{
                                 scale: 1.02,
                               }}

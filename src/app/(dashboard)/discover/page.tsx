@@ -374,7 +374,7 @@ export default function DiscoverPage() {
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
               onClick={handleLocationRetry}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+              className="px-4 py-2 bg-[#001A6E] text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
             >
               <RefreshCw className="w-4 h-4" />
               Retry
@@ -448,7 +448,7 @@ export default function DiscoverPage() {
               transition={{ delay: 0.2 }}
               onClick={() => setAutoSearch(!autoSearch)}
               className={`rounded-lg shadow-lg p-3 hover:shadow-xl transition-all duration-200 ${
-                autoSearch ? 'bg-blue-600' : 'bg-white'
+                autoSearch ? 'bg-[#001A6E]' : 'bg-white'
               }`}
               title={autoSearch ? 'Auto-search: ON' : 'Auto-search: OFF'}
             >
@@ -598,7 +598,7 @@ export default function DiscoverPage() {
             </h4>
             <div className="space-y-1.5">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-xs">
+                <div className="w-6 h-6 bg-[#001A6E] rounded-full flex items-center justify-center text-xs">
                   🏨
                 </div>
                 <span className="text-xs text-gray-600">Accommodation</span>
@@ -687,7 +687,7 @@ export default function DiscoverPage() {
                           disabled={journeysLoading}
                           className={`px-3 py-1 text-xs rounded-full transition-colors ${
                             currentRadius === radius
-                              ? 'bg-blue-600 text-white'
+                              ? 'bg-[#001A6E] text-white'
                               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                           } disabled:opacity-50`}
                         >
@@ -740,7 +740,7 @@ export default function DiscoverPage() {
                       <div className="mt-4 space-y-2">
                         <button
                           onClick={handleLocationRetry}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 mx-auto"
+                          className="px-4 py-2 bg-[#001A6E] text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 mx-auto"
                         >
                           <Navigation className="w-4 h-4" />
                           Try Again
