@@ -1,4 +1,4 @@
-import { PageLoading } from '@/components/common/Loading';
+import { PageLoading } from '@/components/common';
 
 /**
  * Loading UI for dashboard routes

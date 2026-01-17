@@ -13,13 +13,10 @@ import {
 
 import ExploreMap from '@/components/maps/ExploreMap';
 import { JourneyDay, JourneyPlace } from '@/types/journey.types';
-import { PageLoading } from '@/components/common/Loading';
+import { PageLoading } from '@/components/common';
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';
 import { useNearbyJourneys } from '@/hooks/useNearbyJourneys';
-import JourneyDetailsModal from '@/components/discover/JourneyDetailsModal';
-import JourneyFilters, {
-  JourneyFilterState,
-} from '@/components/discover/JourneyFilters';
+import { JourneyDetailsModal, JourneyFilters, JourneyFilterState } from '@/components/discover';
 
 export default function DiscoverPage() {
   const [selectedJourney, setSelectedJourney] = useState<any | null>(null);

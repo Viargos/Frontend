@@ -2,8 +2,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import DayFilter from '@/components/journey/DayFilter';
-import PlanningCategory from '@/components/journey/PlanningCategory';
+import { DayFilter, PlanningCategory, JourneyHeader, CoverImage, PlaceCard } from '@/components/journey';
 import PlaceToStayIcon from '@/components/icons/PlaceToStayIcon';
 import { TreesIcon } from '@/components/icons/TreesIcon';
 import { FoodIcon } from '@/components/icons/FoodIcon';
@@ -11,10 +10,7 @@ import { TransportIcon } from '@/components/icons/TransportIcon';
 import { NotesIcon } from '@/components/icons/NotesIcon';
 import { PlaceType, CreateJourneyPlace } from '@/types/journey.types';
 import { useJourneyForm } from '@/hooks/useJourneyForm';
-import { JourneyHeader } from '@/components/journey/JourneyHeader';
-import { ErrorAlert } from '@/components/ui/ErrorAlert';
-import { CoverImage } from '@/components/journey/CoverImage';
-import { PlaceCard } from '@/components/journey/PlaceCard';
+import { ErrorAlert } from '@/components/ui';
 import PhotoGallery from '@/components/media/PhotoGallery';
 import { JourneyMapWebGL } from '@/components/maps';
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';

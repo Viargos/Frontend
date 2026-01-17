@@ -5,14 +5,15 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import ImagePlusIcon from '@/components/icons/ImagePlusIcon';
 import JourneyIcon from '@/components/icons/JourneyIcon';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui';
 import { User } from '@/types/auth.types';
 import { User as SearchUser } from '@/types/user.types';
 import { useAuthStore } from '@/store/auth.store';
 import { useClickOutside } from '@/hooks/useClickOutside';
 import { useUserSearch } from '@/hooks/useUserSearch';
 import ModalContainer from '@/components/auth/ModalContainer';
-import CreatePostModal from '@/components/post/CreatePostModal';
+import { CreatePostModal } from '@/components/post';
+import { SearchIcon, BellIcon, UserProfileIcon, LogoutIcon } from '@/components/icons';
 
 interface HeaderProps {
   user?: User | null;
@@ -181,19 +182,7 @@ export default function Header({ user }: HeaderProps) {
                   className="w-10 h-10 p-2 text-blue-900 hover:text-blue-900 hover:bg-gray-100 rounded-lg border border-blue-900 hover:border-blue-900 transition-all duration-200 shadow-button flex items-center justify-center cursor-pointer"
                   aria-label="Search"
                 >
-                  <svg
-                    className="h-5 w-5 transition-transform duration-200 hover:scale-110"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
+                  <SearchIcon className="h-5 w-5 transition-transform duration-200 hover:scale-110" />
                 </button>
               )}
 
@@ -216,23 +205,13 @@ export default function Header({ user }: HeaderProps) {
                   />
 
                   {/* Search Icon */}
-                  <svg
+                  <SearchIcon
                     className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 transition-all duration-300 delay-300 ${
                       isSearchExpanded
                         ? 'opacity-100 scale-100'
                         : 'opacity-0 scale-75'
                     }`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
+                  />
 
                   {/* Close Button */}
                   <button
@@ -353,19 +332,7 @@ export default function Header({ user }: HeaderProps) {
                   onClick={() => setShowNotifications(!showNotifications)}
                   className="p-2 text-blue-900 hover:text-blue-900 transition-colors cursor-pointer"
                 >
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                    />
-                  </svg>
+                  <BellIcon className="w-6 h-6" />
 
                   {/* Notification Badge */}
                   {notificationCount > 0 && (
@@ -425,19 +392,7 @@ export default function Header({ user }: HeaderProps) {
                         ))
                       ) : (
                         <div className="px-4 py-8 text-center">
-                          <svg
-                            className="w-12 h-12 text-gray-300 mx-auto mb-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                            />
-                          </svg>
+                          <BellIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                           <p className="text-gray-500 text-sm">
                             No new notifications
                           </p>
@@ -529,19 +484,7 @@ export default function Header({ user }: HeaderProps) {
                         }}
                         className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
                       >
-                        <svg
-                          className="w-4 h-4 mr-3"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                          />
-                        </svg>
+                        <UserProfileIcon className="w-4 h-4 mr-3" />
                         View Profile
                       </button>
 
@@ -576,19 +519,7 @@ export default function Header({ user }: HeaderProps) {
                           }}
                           className="flex items-center w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
                         >
-                          <svg
-                            className="w-4 h-4 mr-3 text-blue-600"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                            />
-                          </svg>
+                          <LogoutIcon className="w-4 h-4 mr-3 text-blue-600" />
                           Logout
                         </button>
                       </div>

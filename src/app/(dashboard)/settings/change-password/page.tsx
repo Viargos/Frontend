@@ -3,9 +3,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import SettingsHeader from '@/components/settings/SettingsHeader';
-import InputField from '@/components/ui/InputField';
-import Button from '@/components/ui/Button';
+import { SettingsHeader } from '@/components/settings';
+import { InputField, Button } from '@/components/ui';
 
 export default function ChangePasswordPage() {
   const router = useRouter();

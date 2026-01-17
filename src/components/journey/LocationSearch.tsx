@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useJsApiLoader } from '@react-google-maps/api';
-import InputField from '@/components/ui/InputField';
+import { InputField } from '@/components/ui';
 import { googleMapsCache } from '@/lib/google-maps-cache';
 
 interface Location {

@@ -2,8 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { useEffect, useState, useCallback, useRef } from 'react';
-import ChatList from '@/components/chat/ChatList';
-import ChatWindow from '@/components/chat/ChatWindow';
+import { ChatList, ChatWindow } from '@/components/chat';
 import { useChatStore } from '@/store/chat.store';
 import { useAuthStore } from '@/store/auth.store';
 import { ChatUser } from '@/types/chat.types';

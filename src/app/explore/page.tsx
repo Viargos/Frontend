@@ -3,11 +3,10 @@
 import React, { useState, useEffect  } from 'react'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { motion } from 'framer-motion';
 import { MapPin, Navigation, RefreshCw, Search, X } from 'lucide-react';
-import Header from '@/components/home/Header';
+import { Header } from '@/components/home';
 import ModalContainer from '@/components/auth/ModalContainer';
-import ErrorBoundary from '@/components/common/ErrorBoundary';
-import GuestPostsList from '@/components/post/GuestPostsList';
-import RadiusSlider from '@/components/common/RadiusSlider';
+import { ErrorBoundary, RadiusSlider } from '@/components/common';
+import { GuestPostsList } from '@/components/post';
 import { useAuthStore } from '@/store/auth.store';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useNearbyJourneys } from '@/hooks/useNearbyJourneys';

@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { UserProfile, UserStats } from '@/types/profile.types';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { LoadingSpinner } from '@/components/ui';
 import FollowersFollowingModal, { ModalType } from './FollowersFollowingModal';
 
 interface ProfileHeaderProps {

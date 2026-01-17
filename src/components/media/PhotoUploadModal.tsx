@@ -4,9 +4,9 @@ import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMediaUpload } from '@/hooks/useMediaUpload';
 import MediaUploader from '@/components/media/MediaUploader';
-import Modal from '@/components/ui/Modal';
-import Button from '@/components/ui/Button';
+import { Modal, Button } from '@/components/ui';
 import { useScrollResetOnUnmount } from '@/hooks/useBodyScrollLock';
+import { CloseIcon, ErrorCircleIcon } from '@/components/icons';
 
 interface PhotoUploadModalProps {
   isOpen: boolean;
@@ -73,9 +73,7 @@ export const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
             onClick={handleClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <CloseIcon className="w-6 h-6" />
           </button>
         </div>
 
@@ -104,9 +102,7 @@ export const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
               className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md"
             >
               <div className="flex">
-                <svg className="w-5 h-5 text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
+                <ErrorCircleIcon className="w-5 h-5 text-red-400 mr-2" size={20} />
                 <div>
                   <p className="text-sm text-red-800 font-medium">Upload Error</p>
                   <p className="text-xs text-red-700">{uploadError}</p>

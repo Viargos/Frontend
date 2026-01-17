@@ -4,9 +4,8 @@ import { useEffect } from 'react';
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { useJourneyStore } from '@/store/journey.store';
 import { useAuthStore } from '@/store/auth.store';
-import JourneysHeader from '@/components/journeys/JourneysHeader';
-import JourneysGrid from '@/components/journeys/JourneysGrid';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { JourneysHeader, JourneysGrid } from '@/components/journeys';
+import { LoadingSpinner } from '@/components/ui';
 
 export default function JourneysPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuthStore();

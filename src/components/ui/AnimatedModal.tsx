@@ -3,6 +3,7 @@
 import { ReactNode, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { CloseIcon } from '@/components/icons';
 
 export interface AnimatedModalProps {
   isOpen: boolean;
@@ -162,19 +163,7 @@ export default function AnimatedModal({
                 animate={{ opacity: 1, scale: 1, rotate: 0 }}
                 transition={{ delay: 0.2, duration: 0.2 }}
               >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+                <CloseIcon className="w-4 h-4" size={16} />
               </motion.button>
             )}
 

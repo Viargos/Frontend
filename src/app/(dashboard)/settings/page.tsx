@@ -4,11 +4,8 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth.store';
-import SettingsHeader from '@/components/settings/SettingsHeader';
-import SettingsSection from '@/components/settings/SettingsSection';
-import SettingsItem from '@/components/settings/SettingsItem';
-import SettingsToggle from '@/components/settings/SettingsToggle';
-import Modal from '@/components/ui/Modal';
+import { SettingsHeader, SettingsSection, SettingsItem, SettingsToggle } from '@/components/settings';
+import { Modal } from '@/components/ui';
 
 export default function SettingsPage() {
   const { user, logout } = useAuthStore();

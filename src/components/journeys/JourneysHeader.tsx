@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Search, Filter } from 'lucide-react';
 import { useJourneyStore } from '@/store/journey.store';
-import NewJourneyModal from '@/components/journey/NewJourneyModal';
+import { NewJourneyModal } from '@/components/journey';
 import { useRouter } from 'next/navigation';
 
 interface JourneysHeaderProps {

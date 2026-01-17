@@ -9,8 +9,7 @@ import {
   CreateJourneyPlace 
 } from '@/types/journey.types';
 import { JourneyService } from '@/lib/services/journey.service';
-import Button from '@/components/ui/Button';
-import InputField from '@/components/ui/InputField';
+import { Button, InputField } from '@/components/ui';
 import PlaceToStayIcon from '@/components/icons/PlaceToStayIcon';
 import { TreesIcon } from '@/components/icons/TreesIcon';
 import { FoodIcon } from '@/components/icons/FoodIcon';

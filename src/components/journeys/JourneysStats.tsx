@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { Map, Calendar, MapPin, Star } from 'lucide-react';
 import { JourneyStats } from '@/types/journey.types';
 import { useJourneyStore } from '@/store/journey.store';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { LoadingSpinner } from '@/components/ui';
 
 interface JourneysStatsProps {
   className?: string;

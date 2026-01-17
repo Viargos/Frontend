@@ -3,8 +3,8 @@
 import { motion } from 'framer-motion';
 import { Map, Plus } from 'lucide-react';
 import { Journey } from '@/types/journey.types';
-import JourneyCard from './JourneyCard';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { JourneyCard } from '@/components/journeys';
+import { LoadingSpinner } from '@/components/ui';
 
 interface JourneysGridProps {
   journeys: Journey[];

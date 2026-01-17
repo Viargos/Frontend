@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { UserStats } from '@/types/profile.types';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { LoadingSpinner } from '@/components/ui';
 
 interface ProfileStatsProps {
   stats: UserStats | null;

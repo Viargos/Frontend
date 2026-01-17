@@ -1,6 +1,4 @@
-import ArrowUpRightIcon from "@/components/icons/ArrowUpRightIcon";
-import CalendarIcon from "@/components/icons/CalendarIcon";
-import LocationIcon from "@/components/icons/LocationIcon";
+import { ArrowUpRightIcon, CalendarIcon, LocationIcon } from "@/components/icons";
 
 interface JourneyItemProps {
     title: string;

@@ -3,13 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth.store';
-import { PageLoading } from '@/components/common/Loading';
-import ErrorBoundary from '@/components/common/ErrorBoundary';
-import LeftSidebar from '@/app/components/LeftSidebar';
-import Header from '@/components/home/Header';
-import BottomNavigation from '@/components/navigation/BottomNavigation';
-import { AnimatedHeader } from './components/AnimatedHeader';
-import { AnimatedSidebar } from './components/AnimatedSidebar';
+import { PageLoading, ErrorBoundary } from '@/components/common';
+import { LeftSidebar } from '@/components/layout';
+import { Header } from '@/components/home';
+import { BottomNavigation } from '@/components/navigation';
+import { AnimatedHeader, AnimatedSidebar } from '@/components/dashboard';
 
 /**
  * Dashboard Layout - Layout for all authenticated routes

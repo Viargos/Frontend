@@ -15,8 +15,8 @@ import { FoodIcon } from '@/components/icons/FoodIcon';
 import { TransportIcon } from '@/components/icons/TransportIcon';
 import { NotesIcon } from '@/components/icons/NotesIcon';
 import PhotoGallery from '@/components/media/PhotoGallery';
-import Modal from '@/components/ui/Modal';
-import JourneyPosts from '@/components/journey/JourneyPosts';
+import { Modal } from '@/components/ui';
+import { JourneyPosts } from '@/components/journey';
 
 interface Location {
   id: string;

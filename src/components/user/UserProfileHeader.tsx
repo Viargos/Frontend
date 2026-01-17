@@ -5,14 +5,12 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { User, UserStats, RelationshipStatus } from '@/types/user.types';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui';
 import { UserPlus, UserMinus, UserCheck, MessageCircle } from 'lucide-react';
 import { userService } from '@/lib/services/service-factory';
 import { useChatStore } from '@/store/chat.store';
 import { useAuthStore } from '@/store/auth.store';
-import FollowersFollowingModal, {
-  ModalType,
-} from '@/components/profile/FollowersFollowingModal';
+import { FollowersFollowingModal, ModalType } from '@/components/profile';
 
 interface UserProfileHeaderProps {
   user: User;

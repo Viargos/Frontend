@@ -4,9 +4,8 @@ import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { PostComment } from '@/types/post.types';
 import { postService } from '@/lib/services/service-factory';
-import CommentItem from './CommentItem';
-import CommentForm from './CommentForm';
-import Button from '@/components/ui/Button';
+import { CommentItem, CommentForm } from '@/components/comment';
+import { Button } from '@/components/ui';
 import { MessageSquare, Loader2 } from 'lucide-react';
 
 interface CommentListProps {

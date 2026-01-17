@@ -4,8 +4,7 @@ import { useEffect, useState } from 'react';
 import { Post } from '@/types/post.types';
 import { serviceFactory } from '@/lib/services/service-factory';
 import Image from 'next/image';
-import CreatePostModal from '@/components/post/CreatePostModal';
-import PostMediaSlideshow from '@/components/post/PostMediaSlideshow';
+import { CreatePostModal, PostMediaSlideshow } from '@/components/post';
 
 interface JourneyPostsProps {
   journeyId: string;
