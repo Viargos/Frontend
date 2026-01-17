@@ -25,7 +25,7 @@ export const mapStyles: google.maps.MapTypeStyle[] = [
     elementType: 'labels.text.fill',
     stylers: [
       {
-        color: '#001a6e', // Blue-600
+        color: '#fffff', // Blue-600
       },
     ],
   },
@@ -68,7 +68,7 @@ export const mapStyles: google.maps.MapTypeStyle[] = [
     elementType: 'geometry',
     stylers: [
       {
-        color: '#eef4ff', // Indigo-50 for parks
+        color: '#00000', // Indigo-50 for parks
       },
     ],
   },
@@ -397,7 +397,7 @@ export const mapStylesMinimal: google.maps.MapTypeStyle[] = [
     elementType: 'geometry',
     stylers: [
       {
-        color: '#eff2f9', // Blue-tinted gray
+        color: '#001a6e', // Blue-tinted gray
       },
     ],
   },
@@ -413,7 +413,7 @@ export const mapStylesMinimal: google.maps.MapTypeStyle[] = [
     featureType: 'transit',
     stylers: [
       {
-        visibility: 'off',
+        visibility: 'on',
       },
     ],
   },
