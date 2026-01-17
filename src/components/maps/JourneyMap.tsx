@@ -310,13 +310,13 @@ export default function JourneyMap({
     const markerColor = isNew
       ? newMarkerColor
       : colors[type as keyof typeof colors] || colors.notes;
-    const markerSize = isNew ? 28 : 24; // Slightly larger for new markers
+    const markerSize = isNew ? 36 : 32; // Slightly larger for new markers
 
     if (type === 'journeyLocation') {
       // Special marker for journey location
       return {
         url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             ${
               isNew
                 ? '<circle cx="12" cy="12" r="11" fill="' +
@@ -329,10 +329,10 @@ export default function JourneyMap({
           </svg>
         `)}`,
         scaledSize: window.google?.maps?.Size
-          ? new window.google.maps.Size(32, 32)
+          ? new window.google.maps.Size(40, 40)
           : undefined,
         anchor: window.google?.maps?.Point
-          ? new window.google.maps.Point(16, 32)
+          ? new window.google.maps.Point(20, 40)
           : undefined,
       };
     }

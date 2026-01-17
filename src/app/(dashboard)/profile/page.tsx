@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useAuthStore } from '@/store/auth.store';
 import { useProfileStore } from '@/store/profile.store';
 import { useJourneyStore } from '@/store/journey.store';
@@ -104,15 +104,67 @@ export default function ProfilePage() {
     }
   }, [journeys, activeTab]);
 
+  // Hover state management
+  const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const [isHoverMode, setIsHoverMode] = React.useState(false);
+
   // Map event handlers
   const handleJourneyClick = (journey: Journey) => {
+    // Clear any pending hover timeout
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    setIsHoverMode(false); // Click mode - card stays until closed
     setSelectedJourney(journey);
     setShowJourneyCard(true);
   };
 
+  const handleJourneyHover = (journey: Journey) => {
+    // Clear any pending hide timeout
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    setIsHoverMode(true); // Hover mode - card will hide on mouse leave
+    setSelectedJourney(journey);
+    setShowJourneyCard(true);
+  };
+
+  const handleJourneyHoverEnd = () => {
+    // Only auto-hide in hover mode
+    if (!isHoverMode) return;
+    
+    // Delay hiding to allow mouse to enter the card
+    hoverTimeoutRef.current = setTimeout(() => {
+      setShowJourneyCard(false);
+      setSelectedJourney(null);
+      setIsHoverMode(false);
+    }, 500); // 500ms delay for stability
+  };
+
   const handleCloseJourneyCard = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
     setShowJourneyCard(false);
     setSelectedJourney(null);
+    setIsHoverMode(false);
+  };
+
+  // Keep card visible when hovering over it
+  const handleCardMouseEnter = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+  };
+
+  const handleCardMouseLeave = () => {
+    if (isHoverMode) {
+      handleJourneyHoverEnd();
+    }
   };
 
   // Handle image uploads
@@ -388,31 +440,43 @@ export default function ProfilePage() {
                 <AllJourneysMap
                   journeys={filteredJourneys}
                   onJourneyClick={handleJourneyClick}
+                  onJourneyHover={handleJourneyHover}
+                  onJourneyHoverEnd={handleJourneyHoverEnd}
                   selectedJourney={selectedJourney}
                 />
               </>
             )}
 
-            {/* Journey Card Overlay */}
+            {/* Journey Card Overlay - Shows on hover */}
             {showJourneyCard && selectedJourney && (
               <motion.div
-                className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+                className={`absolute inset-0 flex items-center justify-center p-4 z-50 ${
+                  isHoverMode 
+                    ? 'pointer-events-none' // Don't block map interactions in hover mode
+                    : 'bg-white/30 backdrop-blur-md' // Full overlay in click mode
+                }`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-                onClick={handleCloseJourneyCard}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                onClick={isHoverMode ? undefined : handleCloseJourneyCard}
               >
                 <motion.div
-                  className="max-w-md w-full"
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.3, delay: 0.1 }}
+                  className="max-w-md w-full pointer-events-auto"
+                  initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                  transition={{ duration: 0.2 }}
                   onClick={e => e.stopPropagation()}
+                  onMouseEnter={handleCardMouseEnter}
+                  onMouseLeave={handleCardMouseLeave}
                 >
-                  <JourneyCard
-                    journey={selectedJourney}
-                    onClose={handleCloseJourneyCard}
-                  />
+                  <div className={isHoverMode ? 'shadow-2xl rounded-xl' : ''}>
+                    <JourneyCard
+                      journey={selectedJourney}
+                      onClose={handleCloseJourneyCard}
+                    />
+                  </div>
                 </motion.div>
               </motion.div>
             )}

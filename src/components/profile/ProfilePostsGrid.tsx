@@ -229,13 +229,13 @@ export default function ProfilePostsGrid({
                   )}
 
                   {/* Overlay with actions - appears on hover */}
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                    <div className="flex space-x-2">
+                  <div className="absolute inset-0 bg-white/0 group-hover:bg-white/30 backdrop-blur-0 group-hover:backdrop-blur-md transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                    <div className="flex space-x-3">
                       <Button
                         variant="secondary"
                         size="sm"
                         onClick={() => handleEditPost(post.id)}
-                        className="bg-white bg-opacity-90 hover:bg-opacity-100 text-gray-700 border-none"
+                        className="bg-white/80 backdrop-blur-sm hover:bg-white text-gray-700 border border-white/50 shadow-lg"
                       >
                         <EditIcon className="w-4 h-4" />
                       </Button>
@@ -244,7 +244,7 @@ export default function ProfilePostsGrid({
                         size="sm"
                         onClick={() => handleDeletePost(post.id)}
                         disabled={deletingPostId === post.id}
-                        className="bg-red-500 bg-opacity-90 hover:bg-opacity-100 text-white border-none hover:bg-red-600"
+                        className="bg-red-500/80 backdrop-blur-sm hover:bg-red-500 text-white border border-red-400/50 shadow-lg"
                       >
                         {deletingPostId === post.id ? (
                           <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

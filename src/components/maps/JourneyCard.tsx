@@ -55,7 +55,7 @@ export default function JourneyCard({ journey, onClose }: JourneyCardProps) {
             className="w-full h-48 object-cover"
           />
         ) : (
-          <div className="w-full h-48 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+          <div className="w-full h-48 bg-gradient-to-br from-[#3B82F6] to-[#001A6E] flex items-center justify-center">
             <svg
               className="w-16 h-16 text-white opacity-50"
               fill="none"

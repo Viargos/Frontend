@@ -28,6 +28,8 @@ interface MapLocation {
 interface AllJourneysMapProps {
   journeys: Journey[];
   onJourneyClick: (journey: Journey) => void;
+  onJourneyHover?: (journey: Journey) => void;
+  onJourneyHoverEnd?: () => void;
   selectedJourney?: Journey | null;
 }
 
@@ -63,24 +65,28 @@ const mockCoordinates: { [key: string]: { lat: number; lng: number } } = {
   // Add more cities as needed
 };
 
+// Helper function to parse coordinate (handles string or number from DB)
+const parseCoordinate = (value: number | string | null | undefined): number | null => {
+  if (value === null || value === undefined) return null;
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  return isNaN(num) ? null : num;
+};
+
 // Helper function to validate coordinates
 const isValidCoordinate = (
-  lat: number | null | undefined,
-  lng: number | null | undefined
+  lat: number | string | null | undefined,
+  lng: number | string | null | undefined
 ): boolean => {
+  const parsedLat = parseCoordinate(lat);
+  const parsedLng = parseCoordinate(lng);
+  
   return (
-    lat !== null &&
-    lat !== undefined &&
-    lng !== null &&
-    lng !== undefined &&
-    typeof lat === 'number' &&
-    typeof lng === 'number' &&
-    !isNaN(lat) &&
-    !isNaN(lng) &&
-    lat >= -90 &&
-    lat <= 90 &&
-    lng >= -180 &&
-    lng <= 180
+    parsedLat !== null &&
+    parsedLng !== null &&
+    parsedLat >= -90 &&
+    parsedLat <= 90 &&
+    parsedLng >= -180 &&
+    parsedLng <= 180
   );
 };
 
@@ -122,11 +128,14 @@ const getCoordinatesForPlace = (
 export default function AllJourneysMap({
   journeys,
   onJourneyClick,
+  onJourneyHover,
+  onJourneyHoverEnd,
   selectedJourney,
 }: AllJourneysMapProps) {
   const [selectedLocation, setSelectedLocation] = useState<MapLocation | null>(
     null
   );
+  const [hoveredLocation, setHoveredLocation] = useState<string | null>(null);
   const [mapLocations, setMapLocations] = useState<MapLocation[]>([]);
 
   const { isLoaded } = useJsApiLoader({
@@ -164,8 +173,8 @@ export default function AllJourneysMap({
           // Use real coordinates if available and valid
           if (isValidCoordinate(firstPlace.latitude, firstPlace.longitude)) {
             journeyCoords = {
-              lat: firstPlace.latitude!,
-              lng: firstPlace.longitude!,
+              lat: parseCoordinate(firstPlace.latitude)!,
+              lng: parseCoordinate(firstPlace.longitude)!,
             };
             console.log('  ✅ Using real coordinates:', journeyCoords);
           } else {
@@ -227,8 +236,8 @@ export default function AllJourneysMap({
               // Use real coordinates if available and valid
               if (isValidCoordinate(place.latitude, place.longitude)) {
                 coords = {
-                  lat: place.latitude!,
-                  lng: place.longitude!,
+                  lat: parseCoordinate(place.latitude)!,
+                  lng: parseCoordinate(place.longitude)!,
                 };
                 console.log('      ✅ Using real coordinates:', coords);
               } else {
@@ -338,8 +347,10 @@ export default function AllJourneysMap({
 
   const getMarkerIcon = (
     type: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     isSelected: boolean = false,
-    location?: MapLocation
+    location?: MapLocation,
+    isHovered: boolean = false
   ) => {
     // For stay types, detect if it's hotel or rental
     let stayColor = '#1e40af'; // Default deep blue for stays
@@ -351,55 +362,80 @@ export default function AllJourneysMap({
       stayColor = getAccommodationColor(accommodationType);
     }
 
-    // Blue-themed colors for different place types
+    // Brand color themed markers - using #001A6E as primary
     const colors = {
-      journeyStart: '#0ea5e9', // Bright cyan blue for journey start
+      journeyStart: '#001A6E', // Brand navy blue for journey start
       stay: stayColor,         // Varies: Hotel (deep blue) or Rental (teal)
-      activity: '#2563eb',     // Bright blue (activities)
-      food: '#3b82f6',         // Sky blue (food)
-      transport: '#0891b2',    // Teal blue (transport)
-      note: '#06b6d4',         // Cyan blue (notes)
+      activity: '#001A6E',     // Brand blue (activities)
+      food: '#001A6E',         // Brand blue (food)
+      transport: '#001A6E',    // Brand blue (transport)
+      note: '#001A6E',         // Brand blue (notes)
     };
 
-    const markerColor = colors[type as keyof typeof colors] || '#001a6e';
-    const markerSize = type === 'journeyStart' ? 32 : 24;
-    const strokeWidth = isSelected ? 3 : 2;
-    const strokeColor = isSelected ? '#001a6e' : '#ffffff'; // Blue when selected
+    const markerColor = colors[type as keyof typeof colors] || '#001A6E';
+    // Marker sizes - smaller for cleaner look
+    const baseSize = type === 'journeyStart' ? 36 : 30;
+    const markerSize = isHovered ? baseSize + 4 : baseSize;
+
+    // White marker with Viargos logo and pointed bottom
+    const viargosMarker = `
+      <svg width="${markerSize}" height="${markerSize * 1.3}" viewBox="0 0 50 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="shadow" x="-20%" y="-10%" width="140%" height="130%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.35"/>
+          </filter>
+        </defs>
+        
+        <g filter="url(%23shadow)">
+          <!-- White pin body with navy border -->
+          <path d="M25 2C12.85 2 3 11.85 3 24c0 16.5 22 42 22 42s22-25.5 22-42C47 11.85 37.15 2 25 2z" fill="${markerColor}" stroke="#001A6E" stroke-width="2"/>
+          
+          <!-- Viargos logo circle area -->
+          <circle cx="25" cy="22" r="16" fill="white" stroke="${markerColor}" stroke-width="1.5"/>
+          
+          <!-- Viargos logo -->
+          <image href="viargos.svg" width="${markerSize}" height="${markerSize * 1.4}" />
+          
+        </g>
+      </svg>
+    `;
 
     if (type === 'journeyStart') {
       return {
-        url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-          <svg width="${markerSize}" height="${markerSize}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            ${
-              isSelected
-                ? '<circle cx="12" cy="12" r="11" fill="' +
-                  markerColor +
-                  '" opacity="0.3"><animate attributeName="r" values="11;15;11" dur="1s" repeatCount="indefinite"/></circle>'
-                : ''
-            }
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="${markerColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/>
-            <circle cx="12" cy="9" r="2" fill="white"/>
-            <text x="12" y="20" text-anchor="middle" fill="${markerColor}" font-size="8" font-weight="bold">J</text>
-          </svg>
-        `)}`,
+        url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(viargosMarker)}`,
         scaledSize: window.google?.maps?.Size
-          ? new window.google.maps.Size(markerSize, markerSize)
+          ? new window.google.maps.Size(markerSize, markerSize * 1.4)
           : undefined,
         anchor: window.google?.maps?.Point
-          ? new window.google.maps.Point(markerSize / 2, markerSize)
+          ? new window.google.maps.Point(markerSize / 2, markerSize * 1.4)
           : undefined,
       };
     }
 
+    // Regular place markers - white pin with simpler design
     return {
       url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-        <svg width="${markerSize}" height="${markerSize}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="10" fill="${markerColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/>
-          <circle cx="12" cy="12" r="4" fill="white"/>
+        <svg width="${markerSize}" height="${markerSize * 1.3}" viewBox="0 0 40 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="shadow2" x="-20%" y="-10%" width="140%" height="130%">
+              <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.3"/>
+            </filter>
+          </defs>
+          <g filter="url(%23shadow2)">
+            <!-- White pin with navy border -->
+            <path d="M20 2C10.06 2 2 10.06 2 20c0 13 18 30 18 30s18-17 18-30C38 10.06 29.94 2 20 2z" fill="white" stroke="#001A6E" stroke-width="2"/>
+            <!-- Navy inner circle -->
+            <circle cx="20" cy="18" r="10" fill="#001A6E"/>
+            <!-- White V icon -->
+            <path d="M16 14L20 20L24 14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </g>
         </svg>
       `)}`,
       scaledSize: window.google?.maps?.Size
-        ? new window.google.maps.Size(markerSize, markerSize)
+        ? new window.google.maps.Size(markerSize, markerSize * 1.3)
+        : undefined,
+      anchor: window.google?.maps?.Point
+        ? new window.google.maps.Point(markerSize / 2, markerSize * 1.3)
         : undefined,
     };
   };
@@ -498,12 +534,28 @@ export default function AllJourneysMap({
         const isSelected =
           selectedJourney?.id === location.journey.id &&
           location.isJourneyStart;
+        const isHovered = hoveredLocation === location.id;
         return (
           <Marker
             key={location.id}
             position={{ lat: location.lat, lng: location.lng }}
-            icon={getMarkerIcon(location.type, isSelected, location)}
+            icon={getMarkerIcon(location.type, isSelected, location, isHovered)}
             onClick={() => handleMarkerClick(location)}
+            onMouseOver={() => {
+              setHoveredLocation(location.id);
+              // Show journey card on hover for journey start markers
+              if (location.isJourneyStart && onJourneyHover) {
+                onJourneyHover(location.journey);
+              }
+            }}
+            onMouseOut={() => {
+              setHoveredLocation(null);
+              // Hide journey card when hover ends
+              if (location.isJourneyStart && onJourneyHoverEnd) {
+                onJourneyHoverEnd();
+              }
+            }}
+            zIndex={isHovered ? 1000 : isSelected ? 999 : 1}
           />
         );
       })}
