@@ -1,11 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CreateJourneyPlace, PlaceType } from '@/types/journey.types';
-import PlaceToStayIcon from "@/components/icons/PlaceToStayIcon";
-import { TreesIcon } from "@/components/icons/TreesIcon";
-import { FoodIcon } from "@/components/icons/FoodIcon";
-import { TransportIcon } from "@/components/icons/TransportIcon";
-import { NotesIcon } from "@/components/icons/NotesIcon";
+import { Hotel, Trees, UtensilsCrossed, Car, FileText } from 'lucide-react';
 import { PlaceForm } from './PlaceForm';
 
 interface PlaceCardProps {
@@ -34,17 +30,17 @@ export const PlaceCard: React.FC<PlaceCardProps> = ({
   const getPlaceIcon = () => {
     switch (place.type) {
       case PlaceType.STAY:
-        return <PlaceToStayIcon />;
+        return <Hotel className="w-6 h-6" strokeWidth={2} color="#001A6E" />;
       case PlaceType.ACTIVITY:
-        return <TreesIcon className="text-black" />;
+        return <Trees className="w-6 h-6" strokeWidth={2} color="#001A6E" />;
       case PlaceType.FOOD:
-        return <FoodIcon className="text-black" />;
+        return <UtensilsCrossed className="w-6 h-6" strokeWidth={2} color="#001A6E" />;
       case PlaceType.TRANSPORT:
-        return <TransportIcon className="text-black" />;
+        return <Car className="w-6 h-6" strokeWidth={2} color="#001A6E" />;
       case PlaceType.NOTE:
-        return <NotesIcon className="text-black" />;
+        return <FileText className="w-6 h-6" strokeWidth={2} color="#001A6E" />;
       default:
-        return <PlaceToStayIcon />;
+        return <Hotel className="w-6 h-6" strokeWidth={2} color="#001A6E" />;
     }
   };
 

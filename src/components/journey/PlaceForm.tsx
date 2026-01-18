@@ -72,11 +72,18 @@ export const PlaceForm: React.FC<PlaceFormProps> = ({
 
   const onPlaceSelected = (placeId: string, description: string) => {
     handlePlaceSelect(placeId, description, (lat, lng, address, name) => {
+      console.log('📍 Place selected from autocomplete:', {
+        name,
+        lat,
+        lng,
+        address,
+      });
       onUpdateField('name', name);
       onUpdateField('latitude', lat);
       onUpdateField('longitude', lng);
       onUpdateField('address', address);
       lastGeocodedAddressRef.current = address;
+      console.log('✅ Coordinates updated for place');
     });
   };
 
@@ -226,12 +233,35 @@ export const PlaceForm: React.FC<PlaceFormProps> = ({
             className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md text-sm text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent"
             autoComplete="off"
           />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 gap-2 pointer-events-none">
+            {/* Show checkmark if coordinates are set */}
+            {place.latitude && place.longitude && place.latitude !== 0 && place.longitude !== 0 ? (
+              <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            ) : isGeocoding ? (
+              <svg className="w-4 h-4 text-blue-500 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            ) : (
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            )}
           </div>
           
+          {/* Location coordinates indicator */}
+          {place.latitude && place.longitude && place.latitude !== 0 && place.longitude !== 0 && (
+            <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              Location found: {place.latitude.toFixed(6)}, {place.longitude.toFixed(6)}
+            </p>
+          )}
+
           {/* Autocomplete Suggestions Dropdown */}
           {showSuggestions[fieldKey] && placeSuggestions[fieldKey]?.length > 0 && (
             <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">

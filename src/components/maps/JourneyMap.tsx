@@ -93,10 +93,25 @@ export default function JourneyMap({
       // Sort by ID which contains day and index information
       const sortedLocations = [...dayLocations].sort((a, b) => {
         // Extract index from ID (assuming format 'Day X-Y' where Y is the index)
-        const indexA = parseInt(a.id.split('-')[1]);
-        const indexB = parseInt(b.id.split('-')[1]);
+        const partsA = a.id.split('-');
+        const partsB = b.id.split('-');
+        const indexA = parseInt(partsA[partsA.length - 1]) || 0;
+        const indexB = parseInt(partsB[partsB.length - 1]) || 0;
+        
+        console.log('📍 Sorting locations:', {
+          a: { id: a.id, index: indexA, lat: a.lat, lng: a.lng },
+          b: { id: b.id, index: indexB, lat: b.lat, lng: b.lng }
+        });
+        
         return indexA - indexB;
       });
+
+      console.log('🗺️ Creating path for', day, ':', sortedLocations.map(l => ({
+        id: l.id,
+        name: l.name,
+        lat: l.lat,
+        lng: l.lng
+      })));
 
       pathsByDay[day] = sortedLocations.map(loc => ({
         lat: loc.lat,
@@ -124,8 +139,10 @@ export default function JourneyMap({
 
     Object.entries(locationsByDay).forEach(([day, dayLocations]) => {
       const sortedLocations = [...dayLocations].sort((a, b) => {
-        const indexA = parseInt(a.id.split('-')[1]);
-        const indexB = parseInt(b.id.split('-')[1]);
+        const partsA = a.id.split('-');
+        const partsB = b.id.split('-');
+        const indexA = parseInt(partsA[partsA.length - 1]) || 0;
+        const indexB = parseInt(partsB[partsB.length - 1]) || 0;
         return indexA - indexB;
       });
 
@@ -142,6 +159,7 @@ export default function JourneyMap({
   useEffect(() => {
     if (!locations.length) {
       setNewlyAddedMarkers(new Set());
+      setAnimatedPaths({}); // Clear all animated paths
       prevLocationsRef.current = [];
       return;
     }
@@ -153,6 +171,31 @@ export default function JourneyMap({
     const newLocationIds = locations
       .filter(loc => !prevLocationIds.has(loc.id))
       .map(loc => loc.id);
+
+    // Find removed locations
+    const currentLocationIds = new Set(locations.map(loc => loc.id));
+    const removedLocationIds = prevLocationsRef.current
+      .filter(loc => !currentLocationIds.has(loc.id))
+      .map(loc => loc.id);
+
+    // Clean up animated paths for days that no longer have enough points
+    if (removedLocationIds.length > 0) {
+      console.log('🗑️ Locations removed:', removedLocationIds);
+      const currentPathsByDay = pathsByDay;
+      
+      setAnimatedPaths(prev => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach(day => {
+          const currentPath = currentPathsByDay[day];
+          // Remove animation if path doesn't exist or has less than 2 points
+          if (!currentPath || currentPath.length < 2) {
+            console.log('🗑️ Removing animated path for', day);
+            delete updated[day];
+          }
+        });
+        return updated;
+      });
+    }
 
     if (newLocationIds.length > 0) {
       // Mark these as newly added markers for animation
@@ -193,7 +236,7 @@ export default function JourneyMap({
 
     // Update previous locations ref
     prevLocationsRef.current = [...locations];
-  }, [locations]); // Removed pathsByDay and getPathsByDayFromLocations dependencies
+  }, [locations, pathsByDay, getPathsByDayFromLocations]); // Added dependencies back
 
   // Animation progress effect - always called
   useEffect(() => {
@@ -281,78 +324,76 @@ export default function JourneyMap({
     isNew: boolean = false,
     location?: Location
   ) => {
-    // Blue-themed colors for different place types
-    const newMarkerColor = '#0ea5e9'; // Bright blue for new markers (matches theme)
+    const markerSize = isNew ? 56 : 50; // Increased size from 44/40 to 56/50
+    const pulseAnimation = isNew ? '<circle cx="25" cy="25" r="23" fill="#001A6E" opacity="0.3"><animate attributeName="r" values="23;28;23" dur="1.5s" repeatCount="indefinite"/></circle>' : '';
 
-    // For stay types, detect if it's hotel or rental
-    let stayColor = '#1e40af'; // Default deep blue for stays
-    if ((type === 'stay' || type === 'placeToStay') && location?.name) {
-      const accommodationType = detectAccommodationType(
-        location.name,
-        location.description
-      );
-      stayColor = getAccommodationColor(accommodationType);
-    }
-
-    const colors = {
-      journeyLocation: '#001a6e', // Primary blue
-      stay: stayColor, // Varies: Hotel (deep blue) or Rental (teal)
-      activity: '#2563eb', // Bright blue (activities/attractions)
-      food: '#3b82f6', // Sky blue (restaurants/food)
-      transport: '#0891b2', // Teal blue (transportation)
-      note: '#06b6d4', // Cyan blue (notes/info)
-      // Legacy support
-      placeToStay: stayColor, // Varies: Hotel or Rental
-      placesToGo: '#2563eb', // Bright blue
-      notes: '#06b6d4', // Cyan blue
+    // Icon SVGs for each category (Lucide-style icons)
+    const icons: { [key: string]: string } = {
+      stay: `
+        <!-- Hotel/Building icon -->
+        <rect x="9" y="6" width="8" height="10" stroke="white" stroke-width="1.5" fill="none" rx="1"/>
+        <line x1="11" y1="8" x2="11" y2="10" stroke="white" stroke-width="1.5"/>
+        <line x1="13" y1="8" x2="13" y2="10" stroke="white" stroke-width="1.5"/>
+        <line x1="15" y1="8" x2="15" y2="10" stroke="white" stroke-width="1.5"/>
+        <line x1="11" y1="12" x2="11" y2="14" stroke="white" stroke-width="1.5"/>
+        <line x1="13" y1="12" x2="13" y2="14" stroke="white" stroke-width="1.5"/>
+        <line x1="15" y1="12" x2="15" y2="14" stroke="white" stroke-width="1.5"/>
+        <rect x="11" y="14" width="4" height="2" fill="white"/>
+      `,
+      activity: `
+        <!-- Trees icon -->
+        <path d="M13 3 L15 6 L14 6 L16 9 L15 9 L17 12 L11 12 L13 9 L12 9 L14 6 L13 6 Z" fill="white"/>
+        <rect x="12.5" y="12" width="1" height="4" fill="white"/>
+      `,
+      food: `
+        <!-- Utensils Crossed icon -->
+        <path d="M11 4 v6 M11 4 L9 6 M11 4 L13 6 M11 10 v6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <path d="M15 4 v4 c0 1-1 2-2 2 v6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      `,
+      transport: `
+        <!-- Car icon -->
+        <path d="M7 11 L8 7 L18 7 L19 11 M5 11 h16 v5 h-16 z" stroke="white" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
+        <circle cx="9" cy="14" r="1.5" fill="white"/>
+        <circle cx="17" cy="14" r="1.5" fill="white"/>
+        <line x1="5" y1="16" x2="5" y2="17" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="21" y1="16" x2="21" y2="17" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      `,
+      note: `
+        <!-- Document/Note icon -->
+        <path d="M9 4 h6 l3 3 v9 h-9 z" stroke="white" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
+        <path d="M15 4 v3 h3" stroke="white" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
+        <line x1="11" y1="10" x2="15" y2="10" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="11" y1="12" x2="15" y2="12" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="11" y1="14" x2="13" y2="14" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      `,
     };
 
-    const markerColor = isNew
-      ? newMarkerColor
-      : colors[type as keyof typeof colors] || colors.notes;
-    const markerSize = isNew ? 36 : 32; // Slightly larger for new markers
-
-    if (type === 'journeyLocation') {
-      // Special marker for journey location
-      return {
-        url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            ${
-              isNew
-                ? '<circle cx="12" cy="12" r="11" fill="' +
-                  newMarkerColor +
-                  '" opacity="0.3"><animate attributeName="r" values="11;15;11" dur="1s" repeatCount="indefinite"/></circle>'
-                : ''
-            }
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="${markerColor}" stroke="white" stroke-width="1"/>
-            <circle cx="12" cy="9" r="2" fill="white"/>
-          </svg>
-        `)}`,
-        scaledSize: window.google?.maps?.Size
-          ? new window.google.maps.Size(40, 40)
-          : undefined,
-        anchor: window.google?.maps?.Point
-          ? new window.google.maps.Point(20, 40)
-          : undefined,
-      };
-    }
+    // Get the icon based on type
+    const iconPath = icons[type] || icons['note'];
+    const markerColor = '#001A6E'; // Brand blue for all markers
 
     return {
       url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-        <svg width="${markerSize}" height="${markerSize}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          ${
-            isNew
-              ? '<circle cx="12" cy="12" r="11" fill="' +
-                newMarkerColor +
-                '" opacity="0.3"><animate attributeName="r" values="11;15;11" dur="1s" repeatCount="indefinite"/></circle>'
-              : ''
-          }
-          <circle cx="12" cy="12" r="10" fill="${markerColor}" stroke="white" stroke-width="2"/>
-          <circle cx="12" cy="12" r="4" fill="white"/>
+        <svg width="${markerSize}" height="${markerSize}" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+          ${pulseAnimation}
+          <g transform="translate(25, 25)">
+            <!-- Pin shape -->
+            <path d="M 0,-18 C -10,-18 -15,-10 -15,0 C -15,8 0,18 0,18 C 0,18 15,8 15,0 C 15,-10 10,-18 0,-18 Z" 
+                  fill="${markerColor}" 
+                  stroke="white" 
+                  stroke-width="2.5"/>
+            <!-- Icon -->
+            <g transform="translate(-13, -15)">
+              ${iconPath}
+            </g>
+          </g>
         </svg>
       `)}`,
       scaledSize: window.google?.maps?.Size
         ? new window.google.maps.Size(markerSize, markerSize)
+        : undefined,
+      anchor: window.google?.maps?.Point
+        ? new window.google.maps.Point(markerSize / 2, markerSize)
         : undefined,
     };
   };

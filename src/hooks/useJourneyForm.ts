@@ -328,6 +328,11 @@ export const useJourneyForm = (): UseJourneyFormReturn => {
       field: keyof CreateJourneyPlace,
       value: string | number
     ) => {
+      // Log coordinate updates
+      if (field === 'latitude' || field === 'longitude') {
+        console.log(`📍 useJourneyForm: Updating ${field} for place ${index}:`, value);
+      }
+
       const isTimeField = field === 'startTime' || field === 'endTime';
       const isStartTime = field === 'startTime';
       const isEndTime = field === 'endTime';
@@ -350,6 +355,16 @@ export const useJourneyForm = (): UseJourneyFormReturn => {
           ...currentPlace,
           [field]: formattedValue,
         };
+
+        // Log the updated place if coordinates changed
+        if (field === 'latitude' || field === 'longitude') {
+          console.log('📍 useJourneyForm: Updated place:', {
+            index,
+            name: updatedPlace.name,
+            latitude: updatedPlace.latitude,
+            longitude: updatedPlace.longitude,
+          });
+        }
 
         // Mark time fields as manually edited when user changes them
         if (isStartTime) {

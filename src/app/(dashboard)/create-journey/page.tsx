@@ -3,16 +3,12 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { DayFilter, PlanningCategory, JourneyHeader, CoverImage, PlaceCard } from '@/components/journey';
-import PlaceToStayIcon from '@/components/icons/PlaceToStayIcon';
-import { TreesIcon } from '@/components/icons/TreesIcon';
-import { FoodIcon } from '@/components/icons/FoodIcon';
-import { TransportIcon } from '@/components/icons/TransportIcon';
-import { NotesIcon } from '@/components/icons/NotesIcon';
+import { Hotel, Trees, UtensilsCrossed, Car, FileText } from 'lucide-react';
 import { PlaceType, CreateJourneyPlace } from '@/types/journey.types';
 import { useJourneyForm } from '@/hooks/useJourneyForm';
 import { ErrorAlert } from '@/components/ui';
 import PhotoGallery from '@/components/media/PhotoGallery';
-import { JourneyMapWebGL } from '@/components/maps';
+import JourneyMap from '@/components/maps/JourneyMap';
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';
 
 export default function CreateJourneyPage() {
@@ -88,6 +84,8 @@ export default function CreateJourneyPage() {
     }> = [];
 
     const activeDayPlaces = getActiveDayPlaces();
+    console.log('🗺️ Creating map locations from places:', activeDayPlaces);
+    
     activeDayPlaces.forEach((place, index) => {
       // Show marker if place has valid coordinates
       // (address without coordinates will be geocoded automatically by PlaceForm)
@@ -97,9 +95,16 @@ export default function CreateJourneyPage() {
         place.latitude !== 0 &&
         place.longitude !== 0;
 
+      console.log(`📍 Place ${index}:`, {
+        name: place.name,
+        latitude: place.latitude,
+        longitude: place.longitude,
+        hasValidCoordinates,
+      });
+
       // Only add marker if we have valid coordinates
       if (hasValidCoordinates && place.latitude !== undefined && place.longitude !== undefined) {
-        locations.push({
+        const location = {
           id: `${activeDay}-${index}`,
           name: place.name,
           lat: place.latitude,
@@ -107,10 +112,15 @@ export default function CreateJourneyPage() {
           type: place.type.toLowerCase(),
           address: place.address || undefined,
           day: activeDay,
-        });
+        };
+        console.log('✅ Adding location to map:', location);
+        locations.push(location);
+      } else {
+        console.log('❌ Skipping place (invalid coordinates)');
       }
     });
 
+    console.log('🗺️ Final map locations:', locations);
     return locations;
   }, [getActiveDayPlaces, activeDay]);
 
@@ -267,31 +277,31 @@ export default function CreateJourneyPage() {
                     {/* Planning Categories */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 w-full">
                       <PlanningCategory
-                        icon={<PlaceToStayIcon className="w-8 h-8" />}
+                        icon={<Hotel className="w-8 h-8" strokeWidth={2} color="#001A6E" />}
                         label="Hotel / Stay"
                         isActive={activePlaceType === PlaceType.STAY}
                         onClick={() => addPlaceToActiveDay(PlaceType.STAY)}
                       />
                       <PlanningCategory
-                        icon={<TreesIcon className="w-8 h-8 text-black" />}
+                        icon={<Trees className="w-8 h-8" strokeWidth={2} color="#001A6E" />}
                         label="Places to go"
                         isActive={activePlaceType === PlaceType.ACTIVITY}
                         onClick={() => addPlaceToActiveDay(PlaceType.ACTIVITY)}
                       />
                       <PlanningCategory
-                        icon={<FoodIcon className="w-8 h-8 text-black" />}
+                        icon={<UtensilsCrossed className="w-8 h-8" strokeWidth={2} color="#001A6E" />}
                         label="Food"
                         isActive={activePlaceType === PlaceType.FOOD}
                         onClick={() => addPlaceToActiveDay(PlaceType.FOOD)}
                       />
                       <PlanningCategory
-                        icon={<TransportIcon className="w-8 h-8 text-black" />}
+                        icon={<Car className="w-8 h-8" strokeWidth={2} color="#001A6E" />}
                         label="Transport"
                         isActive={activePlaceType === PlaceType.TRANSPORT}
                         onClick={() => addPlaceToActiveDay(PlaceType.TRANSPORT)}
                       />
                       <PlanningCategory
-                        icon={<NotesIcon className="w-8 h-8 text-black" />}
+                        icon={<FileText className="w-8 h-8" strokeWidth={2} color="#001A6E" />}
                         label="Notes"
                         isActive={activePlaceType === PlaceType.NOTE}
                         onClick={() => addPlaceToActiveDay(PlaceType.NOTE)}
@@ -358,14 +368,13 @@ export default function CreateJourneyPage() {
           {/* Map Section */}
           <div className="w-full lg:col-span-1 lg:sticky lg:top-4 lg:self-start" style={{ height: 'calc(100vh - 115px)' }}>
             <div className="w-full h-[500px] sm:h-[600px] lg:h-full rounded-lg bg-gray-200 relative overflow-hidden shadow-inner">
-              <JourneyMapWebGL
+              <JourneyMap
                 locations={mapLocations}
                 center={getMapCenter()}
                 onLocationClick={location => {
                   console.log('Location clicked:', location);
                   // You can add additional functionality here, like highlighting the corresponding place card
                 }}
-                enableAnimation={true}
                 onMapClick={handleMapClick}
               />
             </div>

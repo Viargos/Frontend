@@ -73,7 +73,7 @@ export const CoverImage: React.FC<CoverImageProps> = ({
             value={journeyName}
             onChange={(e) => onJourneyNameChange?.(e.target.value)}
             placeholder="Enter journey name..."
-            className="w-full text-center text-2xl sm:text-3xl lg:text-4xl font-bold bg-transparent border-none outline-none placeholder-white/70 text-white"
+            className="no-focus-ring w-full text-center text-2xl sm:text-3xl lg:text-4xl font-bold bg-transparent border-none outline-none placeholder-white/70 text-white"
             style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.7)" }}
           />
         </div>
@@ -85,7 +85,7 @@ export const CoverImage: React.FC<CoverImageProps> = ({
             value={subtitle}
             onChange={(e) => onSubtitleChange?.(e.target.value)}
             placeholder="Add a subtitle..."
-            className="w-full text-center text-sm sm:text-base lg:text-lg bg-transparent border-none outline-none placeholder-white/60 text-white/90"
+            className="no-focus-ring w-full text-center text-sm sm:text-base lg:text-lg bg-transparent border-none outline-none placeholder-white/60 text-white/90"
             style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.7)" }}
           />
         </div>

@@ -10,12 +10,7 @@ import {
 } from '@/types/journey.types';
 import { JourneyService } from '@/lib/services/journey.service';
 import { Button, InputField } from '@/components/ui';
-import PlaceToStayIcon from '@/components/icons/PlaceToStayIcon';
-import { TreesIcon } from '@/components/icons/TreesIcon';
-import { FoodIcon } from '@/components/icons/FoodIcon';
-import { TransportIcon } from '@/components/icons/TransportIcon';
-import { NotesIcon } from '@/components/icons/NotesIcon';
-import { CalendarIcon } from '@/components/icons/CalendarIcon';
+import { Hotel, Trees, UtensilsCrossed, Car, FileText, Calendar } from 'lucide-react';
 
 interface JourneyCreationFormProps {
   onSuccess?: (journeyId: string) => void;
@@ -23,11 +18,11 @@ interface JourneyCreationFormProps {
 }
 
 const PlaceTypeIcons: Record<PlaceType, React.ReactNode> = {
-  [PlaceType.STAY]: <PlaceToStayIcon />,
-  [PlaceType.ACTIVITY]: <TreesIcon className="w-5 h-5" />,
-  [PlaceType.FOOD]: <FoodIcon className="w-5 h-5" />,
-  [PlaceType.TRANSPORT]: <TransportIcon className="w-5 h-5" />,
-  [PlaceType.NOTE]: <NotesIcon className="w-5 h-5" />,
+  [PlaceType.STAY]: <Hotel className="w-5 h-5" strokeWidth={2} />,
+  [PlaceType.ACTIVITY]: <Trees className="w-5 h-5" strokeWidth={2} />,
+  [PlaceType.FOOD]: <UtensilsCrossed className="w-5 h-5" strokeWidth={2} />,
+  [PlaceType.TRANSPORT]: <Car className="w-5 h-5" strokeWidth={2} />,
+  [PlaceType.NOTE]: <FileText className="w-5 h-5" strokeWidth={2} />,
 };
 
 const PlaceTypeLabels: Record<PlaceType, string> = {
@@ -281,7 +276,7 @@ export default function JourneyCreationForm({ onSuccess, onCancel }: JourneyCrea
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <CalendarIcon className="inline w-4 h-4 mr-1" />
+                    <Calendar className="inline w-4 h-4 mr-1" strokeWidth={2} />
                     Date
                   </label>
                   <input

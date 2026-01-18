@@ -181,11 +181,19 @@ body {
   border-color: var(--Primary-Blue);
 }
 
-input:focus {
+input:focus:not(.no-focus-ring) {
   outline: 2px solid var(--Primary-Blue) !important;
   outline-offset: 0px;
   border-color: var(--Primary-Blue) !important;
   box-shadow: 0 0 0 3px rgba(0, 26, 110, 0.1) !important;
+}
+
+/* Remove focus ring for inputs with no-focus-ring class */
+input.no-focus-ring:focus {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  ring: 0 !important;
 }
 
 /* Scrollbar hide utility */

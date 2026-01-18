@@ -56,8 +56,16 @@ export default function JourneyMapWebGL({
 }: JourneyMapWebGLProps) {
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(
     null
-  );
+  );  
   const [mapLoaded, setMapLoaded] = useState(false);
+
+  // Debug: Log locations when they change
+  useEffect(() => {
+    console.log('🗺️ JourneyMapWebGL: Locations prop changed:', {
+      count: locations.length,
+      locations: locations,
+    });
+  }, [locations]);
   const mapRef = useRef<google.maps.Map | null>(null);
   const webglOverlayRef = useRef<google.maps.WebGLOverlayView | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -133,11 +141,13 @@ export default function JourneyMapWebGL({
   // Create 3D marker based on place type
   const createMarker = useCallback(
     (location: Location, altitude: number = 100) => {
+      console.log('🎨 createMarker called:', { location, altitude });
       const group = new THREE.Group();
 
       const typeConfig =
         PLACE_TYPE_CONFIG[location.type as keyof typeof PLACE_TYPE_CONFIG] ||
         PLACE_TYPE_CONFIG.note;
+      console.log('🎨 Using type config:', typeConfig);
 
       // Create pin geometry
       const pinGeometry = new THREE.ConeGeometry(5, 20, 8);
@@ -190,6 +200,7 @@ export default function JourneyMapWebGL({
         group.add(ring);
       }
 
+      console.log('✅ Marker created with', group.children.length, 'children');
       return group;
     },
     []
@@ -286,21 +297,25 @@ export default function JourneyMapWebGL({
   // Initialize WebGL Overlay
   const initWebGLOverlay = useCallback(
     (map: google.maps.Map) => {
+      console.log('🗺️ initWebGLOverlay called with', locations.length, 'locations');
       if (!window.google?.maps?.WebGLOverlayView) {
         console.error('WebGLOverlayView not available');
         return;
       }
 
+      console.log('✅ Creating WebGL overlay...');
       const webglOverlayView = new google.maps.WebGLOverlayView();
       webglOverlayRef.current = webglOverlayView;
 
       webglOverlayView.onAdd = () => {
+        console.log('🎬 WebGL overlay onAdd called');
         // Set up the scene
         const scene = new THREE.Scene();
         sceneRef.current = scene;
 
         const camera = new THREE.PerspectiveCamera();
         cameraRef.current = camera;
+        console.log('✅ Scene and camera initialized');
 
         // Add lights
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
@@ -316,6 +331,7 @@ export default function JourneyMapWebGL({
       };
 
       webglOverlayView.onContextRestored = ({ gl }) => {
+        console.log('🎨 WebGL context restored');
         const renderer = new THREE.WebGLRenderer({
           canvas: gl.canvas,
           context: gl,
@@ -323,12 +339,15 @@ export default function JourneyMapWebGL({
         });
         renderer.autoClear = false;
         rendererRef.current = renderer;
+        console.log('✅ Renderer created');
 
         // Create markers for all locations
+        console.log('📍 Creating initial markers for', locations.length, 'locations');
         locations.forEach((location, index) => {
           const marker = createMarker(location, 100);
           sceneRef.current?.add(marker);
           markersRef.current.set(location.id, marker);
+          console.log(`✅ Initial marker ${index + 1}/${locations.length} added`);
         });
 
         // Note: Polylines will be created in onDraw when transformer is available
@@ -459,8 +478,10 @@ export default function JourneyMapWebGL({
       };
 
       webglOverlayView.onDraw = ({ transformer }) => {
-        if (!cameraRef.current || !rendererRef.current || !sceneRef.current)
+        if (!cameraRef.current || !rendererRef.current || !sceneRef.current) {
+          console.log('⚠️ WebGL onDraw: Missing refs, skipping render');
           return;
+        }
 
         // Create a single continuous route connecting all locations in order
         // Sort all locations by day and time to ensure correct order
@@ -542,11 +563,13 @@ export default function JourneyMapWebGL({
         });
 
         // Add or update markers
+        console.log('🗺️ JourneyMapWebGL: Processing locations:', locations);
         locations.forEach(location => {
           const existingMarker = markersRef.current.get(location.id);
           
           if (!existingMarker) {
             // New marker - create with drop animation
+            console.log('➕ Creating new marker for location:', location);
             const altitude = 100;
             const marker = createMarker(location, altitude);
             marker.userData.animationState = 'adding';
@@ -554,6 +577,7 @@ export default function JourneyMapWebGL({
             marker.userData.startTime = Date.now();
             markersRef.current.set(location.id, marker);
             sceneRef.current?.add(marker);
+            console.log('✅ Marker added to scene');
           } else {
             // Existing marker - check if location changed
             const oldLocation = existingMarker.userData.location;

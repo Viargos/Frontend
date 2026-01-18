@@ -19,14 +19,14 @@ export function NotesIcon({ className = "w-8 h-8" }: NotesIconProps) {
       stroke="#182779"
       strokeLinecap="round"
       strokeLinejoin="round"
-      strokeWidth={2.188}
+      strokeWidth={2}
       rx={2.5}
     />
     <path
       stroke="#182779"
       strokeLinecap="round"
       strokeLinejoin="round"
-      strokeWidth={2.188}
+      strokeWidth={2}
       d="M9.875 7.392h6.25M9.875 11.558h6.25M9.875 15.725h4.167"
     />
   </svg>

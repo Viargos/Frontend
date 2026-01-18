@@ -9,11 +9,7 @@ import { Journey } from '@/types/journey.types';
 import { format } from 'date-fns';
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';
 import { extractJourneyLocations, calculateLocationsCenter } from '@/utils/journey-locations.utils';
-import PlaceToStayIcon from '@/components/icons/PlaceToStayIcon';
-import { TreesIcon } from '@/components/icons/TreesIcon';
-import { FoodIcon } from '@/components/icons/FoodIcon';
-import { TransportIcon } from '@/components/icons/TransportIcon';
-import { NotesIcon } from '@/components/icons/NotesIcon';
+import { Hotel, Trees, UtensilsCrossed, Car, FileText } from 'lucide-react';
 import PhotoGallery from '@/components/media/PhotoGallery';
 import { Modal } from '@/components/ui';
 import { JourneyPosts } from '@/components/journey';
@@ -411,36 +407,6 @@ export default function JourneyDetailsPage() {
           </svg>
           <span className="hidden sm:inline">Edit</span>
         </button>
-
-        {/* Journey Name and Subtitle Overlay */}
-        <div
-          className="absolute inset-0 flex flex-col items-center justify-center text-center px-4"
-          style={{ zIndex: 3 }}
-        >
-          {/* Journey Name */}
-          <div className="w-full max-w-4xl mb-2">
-            <h1
-              className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white"
-              style={{
-                textShadow: '2px 2px 4px rgba(0,0,0,0.7)',
-              }}
-            >
-              {journey?.title || 'Journey'}
-            </h1>
-          </div>
-
-          {/* Subtitle/Description */}
-          <div className="w-full max-w-xl">
-            <p
-              className="text-sm sm:text-base lg:text-lg text-white/90"
-              style={{
-                textShadow: '1px 1px 2px rgba(0,0,0,0.7)',
-              }}
-            >
-              {journey?.description || 'Explore amazing places'}
-            </p>
-          </div>
-        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -523,19 +489,19 @@ export default function JourneyDetailsPage() {
                         >
                           <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center p-0 m-0">
                             {place.type === 'stay' && (
-                              <PlaceToStayIcon className="w-6 h-6" />
+                              <Hotel className="w-4 h-4" strokeWidth={2} />
                             )}
                             {place.type === 'activity' && (
-                              <TreesIcon className="w-6 h-6" />
+                              <Trees className="w-4 h-4" strokeWidth={2} />
                             )}
                             {place.type === 'food' && (
-                              <FoodIcon className="w-6 h-6" />
+                              <UtensilsCrossed className="w-4 h-4" strokeWidth={2} />
                             )}
                             {place.type === 'transport' && (
-                              <TransportIcon className="w-6 h-6" />
+                              <Car className="w-4 h-4" strokeWidth={2} />
                             )}
                             {place.type === 'note' && (
-                              <NotesIcon className="w-6 h-6" />
+                              <FileText className="w-4 h-4" strokeWidth={2} />
                             )}
                           </div>
                         </div>
@@ -558,16 +524,16 @@ export default function JourneyDetailsPage() {
                                 ) : (
                                   <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center p-0 m-0">
                                     {place.type === 'stay' && (
-                                      <PlaceToStayIcon className="w-6 h-6 text-white" />
+                                      <Hotel className="w-5 h-5 text-white" strokeWidth={2} />
                                     )}
                                     {place.type === 'activity' && (
-                                      <TreesIcon className="w-6 h-6 text-white" />
+                                      <Trees className="w-5 h-5 text-white" strokeWidth={2} />
                                     )}
                                     {place.type === 'food' && (
-                                      <FoodIcon className="w-6 h-6 text-white" />
+                                      <UtensilsCrossed className="w-5 h-5 text-white" strokeWidth={2} />
                                     )}
                                     {place.type === 'transport' && (
-                                      <TransportIcon className="w-6 h-6 text-white" />
+                                      <Car className="w-5 h-5 text-white" strokeWidth={2} />
                                     )}
                                   </div>
                                 )}
@@ -652,7 +618,7 @@ export default function JourneyDetailsPage() {
                         {/* Timeline Dot for Notes */}
                         <div className="relative z-10 w-12 h-12 bg-white border-2 border-yellow-500 rounded-full flex-shrink-0 flex items-center justify-center p-0 m-0">
                           <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center p-0 m-0">
-                            <NotesIcon className="w-6 h-6" />
+                            <FileText className="w-4 h-4 text-white" strokeWidth={2} />
                           </div>
                         </div>
 
@@ -661,7 +627,7 @@ export default function JourneyDetailsPage() {
                           <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
                             <div className="flex items-start">
                               <div className="text-yellow-600 mr-2">
-                                <NotesIcon className="w-5 h-5" />
+                                <FileText className="w-5 h-5" strokeWidth={2} />
                               </div>
                               <div>
                                 <h4 className="font-medium text-yellow-800 mb-1">
