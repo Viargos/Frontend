@@ -3,6 +3,7 @@
 import { ReactNode, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { CloseIcon } from '@/components/icons';
 
 export interface AnimatedSidebarProps {
   children: ReactNode;
@@ -171,19 +172,7 @@ export default function AnimatedSidebar({
           animate={{ opacity: 1, rotate: 0 }}
           transition={{ delay: 0.25, duration: 0.2 }}
         >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
+          <CloseIcon className="w-5 h-5" />
         </motion.button>
       </div>
 

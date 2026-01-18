@@ -4,6 +4,7 @@ import React, { useState, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import Button from "@/components/ui/Button";
 import { postService } from "@/lib/services/service-factory";
+import { ImageUploadIcon, CloseIcon } from "@/components/icons";
 
 interface MediaItem {
   id: string;
@@ -127,19 +128,7 @@ export default function PostMediaUploader({
                 </>
               ) : (
                 <>
-                  <svg
-                    className="mx-auto h-8 w-8 text-gray-400 mb-2"
-                    stroke="currentColor"
-                    fill="none"
-                    viewBox="0 0 48 48"
-                  >
-                    <path
-                      d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                      strokeWidth={2}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+<ImageUploadIcon className="mx-auto h-8 w-8 text-gray-400 mb-2" />
                   <p className="text-sm text-gray-600">
                     Click to upload images
                   </p>
@@ -197,19 +186,7 @@ export default function PostMediaUploader({
                 onClick={() => handleDelete(item.id)}
                 className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
               >
-                <svg
-                  className="w-3 h-3"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+<CloseIcon className="w-3 h-3" />
               </button>
             </motion.div>
           ))}

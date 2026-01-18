@@ -2,6 +2,14 @@
 
 import { useState } from 'react';
 import { JourneyMapToggle } from '@/components/maps';
+import {
+  XIcon,
+  MapPinIcon,
+  Box3DIcon,
+  LightningIcon,
+  VideoIcon,
+  InfoIcon,
+} from '@/components/icons';
 
 /**
  * Demo page for WebGL 3D Journey Map
@@ -147,44 +155,14 @@ export default function Journey3DDemo() {
               onClick={() => setSelectedLocation(null)}
               className="text-gray-400 hover:text-gray-600 transition-colors"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
+              <XIcon className="w-5 h-5" />
             </button>
           </div>
 
           {selectedLocation.address && (
             <div className="mb-4">
               <p className="text-sm text-gray-600 flex items-start gap-2">
-                <svg
-                  className="w-4 h-4 mt-0.5 flex-shrink-0"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
+                <MapPinIcon className="w-4 h-4 mt-0.5 flex-shrink-0" />
                 {selectedLocation.address}
               </p>
             </div>
@@ -207,19 +185,7 @@ export default function Journey3DDemo() {
         <div className="bg-white rounded-lg shadow-lg p-4">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-              <svg
-                className="w-5 h-5 text-blue-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                />
-              </svg>
+              <Box3DIcon className="w-5 h-5 text-blue-600" />
             </div>
             <h4 className="font-semibold text-gray-900">3D Markers</h4>
           </div>
@@ -231,19 +197,7 @@ export default function Journey3DDemo() {
         <div className="bg-white rounded-lg shadow-lg p-4">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-              <svg
-                className="w-5 h-5 text-purple-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 10V3L4 14h7v7l9-11h-7z"
-                />
-              </svg>
+              <LightningIcon className="w-5 h-5 text-purple-600" />
             </div>
             <h4 className="font-semibold text-gray-900">Animated Routes</h4>
           </div>
@@ -255,19 +209,7 @@ export default function Journey3DDemo() {
         <div className="bg-white rounded-lg shadow-lg p-4">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-              <svg
-                className="w-5 h-5 text-green-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                />
-              </svg>
+              <VideoIcon className="w-5 h-5 text-green-600" />
             </div>
             <h4 className="font-semibold text-gray-900">Camera Animation</h4>
           </div>
@@ -280,19 +222,7 @@ export default function Journey3DDemo() {
       {/* Instructions */}
       <div className="bg-blue-50 border-t border-blue-100 px-6 py-3">
         <div className="flex items-center gap-2 text-sm text-blue-900">
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
+          <InfoIcon className="w-5 h-5" />
           <span>
             <strong>Tip:</strong> Use the toggle buttons in the top-left to
             switch between 2D/3D views and control animations

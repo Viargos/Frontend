@@ -4,6 +4,7 @@ import { useGooglePlaces } from '@/hooks/useGooglePlaces';
 import { PlacePhotoSection } from './PlacePhotoSection';
 import { geocodeAddress } from '@/utils/geocoding.utils';
 import { validateTimeRange } from '@/utils/time.utils';
+import { SearchIcon, MapPinIcon } from '@/components/icons';
 
 interface PlaceFormProps {
   place: CreateJourneyPlace;
@@ -38,7 +39,7 @@ export const PlaceForm: React.FC<PlaceFormProps> = ({
   const handleAddressChange = (value: string) => {
     onUpdateField('address', value);
     handleAutocompletePredictions(value, fieldKey);
-    
+
     // Clear existing geocode timeout
     if (geocodeTimeoutRef.current) {
       clearTimeout(geocodeTimeoutRef.current);
@@ -83,7 +84,7 @@ export const PlaceForm: React.FC<PlaceFormProps> = ({
   // Geocode on blur if address exists but no coordinates
   const handleAddressBlur = async () => {
     hideSuggestions(fieldKey);
-    
+
     const address = place.address?.trim();
     if (address && (!place.latitude || !place.longitude)) {
       setIsGeocoding(true);
@@ -227,11 +228,9 @@ export const PlaceForm: React.FC<PlaceFormProps> = ({
             autoComplete="off"
           />
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+            <SearchIcon className="w-4 h-4 text-gray-400" />
           </div>
-          
+
           {/* Autocomplete Suggestions Dropdown */}
           {showSuggestions[fieldKey] && placeSuggestions[fieldKey]?.length > 0 && (
             <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
@@ -246,10 +245,7 @@ export const PlaceForm: React.FC<PlaceFormProps> = ({
                   }}
                 >
                   <div className="flex items-start gap-2">
-                    <svg className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
+<MapPinIcon className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="text-sm text-black font-medium truncate">
                         {suggestion.structured_formatting.main_text}

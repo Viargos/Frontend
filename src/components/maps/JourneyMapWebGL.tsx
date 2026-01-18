@@ -4,6 +4,7 @@ import { useCallback, useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
 import * as THREE from 'three';
+import { WarningIcon } from '@/components/icons';
 
 interface Location {
   id: string;
@@ -112,14 +113,14 @@ export default function JourneyMapWebGL({
         if (aTime && bTime) {
           return aTime.localeCompare(bTime);
         }
-        
+
         // Fallback: sort by day number and index
         const dayNumA = parseInt(day.replace('Day ', '') || '1');
         const dayNumB = parseInt(day.replace('Day ', '') || '1');
         if (dayNumA !== dayNumB) {
           return dayNumA - dayNumB;
         }
-        
+
         // Extract index from ID (format: journeyId-dayId-placeId or dayIndex-placeIndex)
         const indexA = parseInt(a.id.split('-').pop() || '0');
         const indexB = parseInt(b.id.split('-').pop() || '0');
@@ -417,22 +418,22 @@ export default function JourneyMapWebGL({
               const elapsed = (Date.now() - animState.startTime) / 1000;
               const duration = 2.0; // 2 seconds to draw the line
               const progress = Math.min(elapsed / duration, 1);
-              
+
               // Ease out cubic for smooth animation
               const easeOut = 1 - Math.pow(1 - progress, 3);
               animState.progress = easeOut;
-              
+
               // Update polyline opacity and visibility with vibrant red
               polyline.children.forEach((child) => {
                 if (child instanceof THREE.Mesh && child.userData.isPolyline && child.material instanceof THREE.MeshPhongMaterial) {
                   // Fade in the line with full vibrant opacity
                   child.material.opacity = 0.95 * easeOut;
-                  
+
                   // Increase emissive intensity as it animates for vibrant effect
                   child.material.emissiveIntensity = 0.3 + (0.2 * easeOut);
                 }
               });
-              
+
               polyline.userData.animationProgress = easeOut;
             }
           });
@@ -471,12 +472,12 @@ export default function JourneyMapWebGL({
           if (dayA !== dayB) {
             return dayA - dayB;
           }
-          
+
           // Then sort by startTime if available
           if (a.startTime && b.startTime) {
             return a.startTime.localeCompare(b.startTime);
           }
-          
+
           // Fallback: maintain array order
           return 0;
         });
@@ -487,9 +488,9 @@ export default function JourneyMapWebGL({
 
         // Check if we need to recreate the route
         const existingRoute = polylinesRef.current.get(routeKey);
-        const needsUpdate = !existingRoute || 
+        const needsUpdate = !existingRoute ||
           existingRoute.userData.points?.length !== sortedLocations.length ||
-          existingRoute.userData.points?.some((point: Location, index: number) => 
+          existingRoute.userData.points?.some((point: Location, index: number) =>
             point.id !== sortedLocations[index]?.id
           );
 
@@ -511,7 +512,7 @@ export default function JourneyMapWebGL({
           );
           polylinesRef.current.set(routeKey, routeGroup);
           sceneRef.current?.add(routeGroup);
-          
+
           // Initialize animation state
           if (enableAnimation) {
             polylineAnimationStatesRef.current.set(routeKey, {
@@ -530,7 +531,7 @@ export default function JourneyMapWebGL({
 
         // Update marker lifecycle and positions
         const currentLocationIds = new Set(locations.map(loc => loc.id));
-        
+
         // Remove markers that no longer exist
         markersRef.current.forEach((marker, locationId) => {
           if (!currentLocationIds.has(locationId)) {
@@ -544,7 +545,7 @@ export default function JourneyMapWebGL({
         // Add or update markers
         locations.forEach(location => {
           const existingMarker = markersRef.current.get(location.id);
-          
+
           if (!existingMarker) {
             // New marker - create with drop animation
             const altitude = 100;
@@ -557,22 +558,22 @@ export default function JourneyMapWebGL({
           } else {
             // Existing marker - check if location changed
             const oldLocation = existingMarker.userData.location;
-            const locationChanged = 
-              oldLocation.lat !== location.lat || 
+            const locationChanged =
+              oldLocation.lat !== location.lat ||
               oldLocation.lng !== location.lng;
-            
+
             if (locationChanged) {
               // Location updated - mark for update animation
               existingMarker.userData.oldLocation = { ...oldLocation };
               existingMarker.userData.animationState = 'updating';
               existingMarker.userData.animationProgress = 0;
               existingMarker.userData.startTime = Date.now();
-            } else if (existingMarker.userData.animationState === 'adding' && 
+            } else if (existingMarker.userData.animationState === 'adding' &&
                        existingMarker.userData.animationProgress >= 1) {
               // Animation complete, mark as stable
               existingMarker.userData.animationState = 'stable';
             }
-            
+
             // Update location data
             existingMarker.userData.location = location;
           }
@@ -590,7 +591,7 @@ export default function JourneyMapWebGL({
               const duration = 0.5; // 500ms
               const progress = Math.min(elapsed / duration, 1);
               marker.userData.animationProgress = progress;
-              
+
               // Shrink and fade out
               const scale = 1 - progress * 0.6; // Shrink to 40%
               const opacity = 1 - progress;
@@ -601,7 +602,7 @@ export default function JourneyMapWebGL({
                   child.material.opacity = opacity;
                 }
               });
-              
+
               if (progress >= 1) {
                 // Remove from scene
                 sceneRef.current?.remove(marker);
@@ -610,22 +611,22 @@ export default function JourneyMapWebGL({
             }
             return;
           }
-          
+
           const altitude = marker.userData.altitude || 100;
           const animState = marker.userData.animationState;
           const elapsed = (Date.now() - marker.userData.startTime) / 1000;
-          
+
           // Handle animation states
           if (animState === 'adding') {
             const duration = 0.6; // 600ms drop animation
             const progress = Math.min(elapsed / duration, 1);
             marker.userData.animationProgress = progress;
-            
+
             // Drop animation: start from above, ease down
             const easeOut = 1 - Math.pow(1 - progress, 3); // Ease out cubic
             const dropHeight = 200 * (1 - easeOut);
             const currentAltitude = altitude + dropHeight;
-            
+
             const matrix = transformer.fromLatLngAltitude({
               lat: location.lat,
               lng: location.lng,
@@ -633,7 +634,7 @@ export default function JourneyMapWebGL({
             });
             marker.matrix = new THREE.Matrix4().fromArray(matrix);
             marker.matrixAutoUpdate = false;
-            
+
             // Fade in
             const opacity = easeOut;
             marker.children.forEach((child) => {
@@ -642,7 +643,7 @@ export default function JourneyMapWebGL({
                 child.material.opacity = opacity;
               }
             });
-            
+
             if (progress >= 1) {
               marker.userData.animationState = 'stable';
             }
@@ -650,7 +651,7 @@ export default function JourneyMapWebGL({
             const duration = 0.4; // 400ms update animation
             const progress = Math.min(elapsed / duration, 1);
             marker.userData.animationProgress = progress;
-            
+
             if (progress < 0.5) {
               // Fade out old position
               const fadeOut = progress * 2;
@@ -670,13 +671,13 @@ export default function JourneyMapWebGL({
                 }
               });
             }
-            
+
             // Interpolate position
             const oldLocation = marker.userData.oldLocation || location;
             const t = progress;
             const lat = oldLocation.lat + (location.lat - oldLocation.lat) * t;
             const lng = oldLocation.lng + (location.lng - oldLocation.lng) * t;
-            
+
             const matrix = transformer.fromLatLngAltitude({
               lat,
               lng,
@@ -684,7 +685,7 @@ export default function JourneyMapWebGL({
             });
             marker.matrix = new THREE.Matrix4().fromArray(matrix);
             marker.matrixAutoUpdate = false;
-            
+
             if (progress >= 1) {
               marker.userData.animationState = 'stable';
               marker.userData.oldLocation = undefined;
@@ -755,10 +756,10 @@ export default function JourneyMapWebGL({
       };
 
       webglOverlayView.setMap(map);
-      
+
       // Initialize previous locations for change detection
       previousLocationsRef.current = new Set(locations.map(loc => loc.id));
-      
+
       // Clear polylines on reinit
       polylinesRef.current.clear();
       polylineAnimationStatesRef.current.clear();
@@ -769,7 +770,7 @@ export default function JourneyMapWebGL({
   // Extract and sort locations for route rendering
   const getSortedLocationsForRoute = useCallback(() => {
     if (!locations || locations.length === 0) return [];
-    
+
     // Sort locations by day and time to ensure correct route order
     const sorted = [...locations].sort((a, b) => {
       // First sort by day
@@ -778,22 +779,22 @@ export default function JourneyMapWebGL({
       if (dayA !== dayB) {
         return dayA - dayB;
       }
-      
+
       // Then sort by startTime if available
       if (a.startTime && b.startTime) {
         return a.startTime.localeCompare(b.startTime);
       }
-      
+
       // Fallback: maintain array order
       return 0;
     });
 
     // Extract lat/lng coordinates
     return sorted
-      .filter(loc => 
-        typeof loc.lat === 'number' && 
+      .filter(loc =>
+        typeof loc.lat === 'number' &&
         typeof loc.lng === 'number' &&
-        !isNaN(loc.lat) && 
+        !isNaN(loc.lat) &&
         !isNaN(loc.lng)
       )
       .map(loc => ({ lat: loc.lat, lng: loc.lng }));
@@ -802,7 +803,7 @@ export default function JourneyMapWebGL({
   // Render Google Maps route using DirectionsService
   const renderRoute = useCallback((map: google.maps.Map) => {
     const routeLocations = getSortedLocationsForRoute();
-    
+
     // Need at least 2 locations to draw a route
     if (routeLocations.length < 2) {
       // Clear existing route if locations are insufficient
@@ -884,7 +885,7 @@ export default function JourneyMapWebGL({
       setTimeout(() => {
         initWebGLOverlay(map);
         setMapLoaded(true);
-        
+
         // Render Google Maps route after map is fully loaded
         setTimeout(() => {
           renderRoute(map);
@@ -940,19 +941,7 @@ export default function JourneyMapWebGL({
       >
         <div className="text-center p-6">
           <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg
-              className="w-6 h-6 text-red-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"
-              />
-            </svg>
+            <WarningIcon className="w-6 h-6 text-red-600" />
           </div>
           <h3 className="text-lg font-medium text-red-800 mb-2">Map Error</h3>
           <p className="text-red-600 text-sm mb-4">

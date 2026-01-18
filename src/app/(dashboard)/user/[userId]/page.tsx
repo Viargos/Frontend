@@ -16,6 +16,7 @@ import ProfileJourneyCard from "@/components/profile/ProfileJourneyCard";
 import UserProfileSkeleton from "@/components/ui/UserProfileSkeleton";
 import UserPostsGrid from "@/components/user/UserPostsGrid";
 import Button from "@/components/ui/Button";
+import { UserCircleIcon, JourneyIcon } from "@/components/icons";
 
 export default function UserDetailsPage() {
   const params = useParams();
@@ -23,7 +24,7 @@ export default function UserDetailsPage() {
   const userId = params.userId as string;
   const { user: currentUser } = useAuthStore();
   const isViewingOwnProfile = currentUser?.id === userId;
-  
+
   const [userDetails, setUserDetails] = useState<UserDetailsData | null>(null);
   const [allJourneys, setAllJourneys] = useState<Journey[]>([]);
   const [allPosts, setAllPosts] = useState<RecentPost[]>([]);
@@ -38,14 +39,14 @@ export default function UserDetailsPage() {
   useEffect(() => {
     const loadUserDetails = async () => {
       if (!userId) return;
-      
+
       setIsLoading(true);
       setShowSkeleton(true);
       setError(null);
-      
+
       try {
         const response = await userService.getUserDetails(userId);
-        
+
         // Log API response for debugging
         console.log("[API_USER_DETAILS_RESPONSE]", {
           statusCode: response.statusCode,
@@ -55,15 +56,15 @@ export default function UserDetailsPage() {
           statsPostsCount: response.data?.stats?.postsCount || 0,
           response: response
         });
-        
+
         if (response.statusCode === 10000) {
           setUserDetails(response.data);
-          
+
           // Fetch ALL journeys and posts separately to bypass the 5-item limit
           // Check if we need to fetch more based on stats
           const needsMoreJourneys = (response.data?.stats?.journeysCount || 0) > (response.data?.recentJourneys?.length || 0);
           const needsMorePosts = (response.data?.stats?.postsCount || 0) > (response.data?.recentPosts?.length || 0);
-          
+
           // Always try to fetch all journeys if there's a discrepancy, or if journey/map tab is active
           // This ensures we get all available journeys, not just the 5 from recentJourneys
           if (needsMoreJourneys || activeTab === 'journey' || activeTab === 'map' || response.data?.stats?.journeysCount > 5) {
@@ -75,12 +76,12 @@ export default function UserDetailsPage() {
                 statsCount: response.data?.stats?.journeysCount,
                 recentCount: response.data?.recentJourneys?.length
               });
-              
+
               if (isViewingOwnProfile) {
                 // For own profile, fetch ALL journeys using getMyJourneys (no limit)
                 const allJourneysData = await journeyService.getMyJourneys({ limit: undefined, offset: undefined });
                 setAllJourneys(allJourneysData);
-                
+
                 console.log("[STATE_JOURNEYS_COUNT_OWN_PROFILE]", {
                   count: allJourneysData.length,
                   journeys: allJourneysData
@@ -91,12 +92,12 @@ export default function UserDetailsPage() {
                 try {
                   console.log("[ATTEMPTING_TO_FETCH_ALL_JOURNEYS_FOR_USER]", { userId });
                   const allPublicJourneys = await journeyService.getAllJourneys({ limit: undefined, offset: undefined });
-                  
+
                   console.log("[ALL_PUBLIC_JOURNEYS_RECEIVED]", {
                     totalCount: allPublicJourneys.length,
                     sampleUserIds: allPublicJourneys.slice(0, 5).map(j => j.user?.id)
                   });
-                  
+
                   const userJourneys = allPublicJourneys.filter(journey => {
                     const matches = journey.user?.id === userId;
                     if (matches) {
@@ -104,13 +105,13 @@ export default function UserDetailsPage() {
                     }
                     return matches;
                   });
-                  
+
                   console.log("[FILTERING_RESULT]", {
                     targetUserId: userId,
                     filteredCount: userJourneys.length,
                     statsCount: response.data?.stats?.journeysCount
                   });
-                  
+
                   // Always use filtered journeys if we found any, even if less than stats count
                   // (some journeys might be private and not in public list)
                   if (userJourneys.length > 0) {
@@ -169,7 +170,7 @@ export default function UserDetailsPage() {
               discrepancy: (response.data?.stats?.journeysCount || 0) - convertedJourneys.length
             });
           }
-          
+
           // Always ensure journeys are set, even if fetching failed
           if (allJourneys.length === 0 && response.data?.recentJourneys?.length > 0) {
             const convertedJourneys = convertRecentJourneysToJourneys(response.data.recentJourneys);
@@ -179,21 +180,21 @@ export default function UserDetailsPage() {
               statsCount: response.data?.stats?.journeysCount
             });
           }
-          
+
           if (needsMorePosts || activeTab === 'post') {
             setIsLoadingPosts(true);
             try {
               // Fetch ALL posts - pass a very large limit to get all posts (backend doesn't support unlimited)
               // Using 1000 as a reasonable upper bound that should cover all user posts
               const postsResponse = await postService.getPostsByUser(userId, { limit: 1000, offset: 0 });
-              
+
               console.log("[API_POSTS_RESPONSE]", {
                 userId,
                 statusCode: postsResponse.statusCode,
                 postsCount: postsResponse.data?.length || 0,
                 posts: postsResponse.data
               });
-              
+
               if (postsResponse.data) {
                 // Convert Post[] to RecentPost[] format
                 const recentPosts: RecentPost[] = postsResponse.data.map(post => ({
@@ -204,9 +205,9 @@ export default function UserDetailsPage() {
                   createdAt: post.createdAt,
                   mediaUrls: post.media?.map(m => m.url) || []
                 }));
-                
+
                 setAllPosts(recentPosts);
-                
+
                 console.log("[STATE_POSTS_COUNT]", {
                   count: recentPosts.length,
                   posts: recentPosts
@@ -273,19 +274,7 @@ export default function UserDetailsPage() {
         transition={{ duration: 0.6 }}
       >
         <div className="text-center">
-          <svg
-            className="w-16 h-16 text-gray-300 mx-auto mb-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-            />
-          </svg>
+          <UserCircleIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h2 className="text-2xl font-semibold text-gray-900 mb-2">
             User Not Found
           </h2>
@@ -328,8 +317,8 @@ export default function UserDetailsPage() {
             },
             stats: {
               ...prev.stats,
-              followersCount: isFollowing 
-                ? prev.stats.followersCount + 1 
+              followersCount: isFollowing
+                ? prev.stats.followersCount + 1
                 : prev.stats.followersCount - 1
             }
           } : null);
@@ -367,19 +356,7 @@ export default function UserDetailsPage() {
               </div>
             ) : (
               <div className="w-full text-center py-8">
-                <svg
-                  className="w-16 h-16 mx-auto mb-4 text-gray-300"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m0 0L9 7"
-                  />
-                </svg>
+                <JourneyIcon className="w-16 h-16 mx-auto mb-4 text-gray-300" />
                 <p className="text-gray-500">
                   {userDetails.user.username} hasn't created any journeys yet.
                 </p>
@@ -399,7 +376,7 @@ export default function UserDetailsPage() {
               <div className="text-gray-500">Loading posts...</div>
             </div>
           ) : (
-            <UserPostsGrid 
+            <UserPostsGrid
               posts={allPosts}
               username={userDetails.user.username}
             />
@@ -413,19 +390,7 @@ export default function UserDetailsPage() {
             {userDetails.user.username}'s Travel Map
           </h2>
           <div className="text-center text-gray-500 py-8 w-full">
-            <svg
-              className="w-16 h-16 mx-auto mb-4 text-gray-300"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m0 0L9 7"
-              />
-            </svg>
+            <JourneyIcon className="w-16 h-16 mx-auto mb-4 text-gray-300" />
             <p>{userDetails.user.username}'s travel map will appear here!</p>
           </div>
         </div>

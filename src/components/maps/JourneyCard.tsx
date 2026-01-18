@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { Journey } from '@/types/journey.types';
 import { useRouter } from 'next/navigation';
+import { JourneyIcon, XIcon, UserCircleIcon, CalendarIcon } from '@/components/icons';
 
 interface JourneyCardProps {
   journey: Journey;
@@ -56,19 +57,7 @@ export default function JourneyCard({ journey, onClose }: JourneyCardProps) {
           />
         ) : (
           <div className="w-full h-48 bg-gradient-to-br from-[#3B82F6] to-[#001A6E] flex items-center justify-center">
-            <svg
-              className="w-16 h-16 text-white opacity-50"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m0 0L9 7"
-              />
-            </svg>
+            <JourneyIcon className="w-16 h-16 text-white opacity-50" />
           </div>
         )}
 
@@ -77,19 +66,7 @@ export default function JourneyCard({ journey, onClose }: JourneyCardProps) {
           onClick={onClose}
           className="absolute top-4 right-4 w-8 h-8 bg-black bg-opacity-50 text-white rounded-full flex items-center justify-center hover:bg-opacity-70 transition-colors"
         >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
+          <XIcon className="w-4 h-4" />
         </button>
       </div>
 
@@ -132,17 +109,7 @@ export default function JourneyCard({ journey, onClose }: JourneyCardProps) {
           {/* Author */}
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-              <svg
-                className="w-4 h-4 text-gray-600"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                  clipRule="evenodd"
-                />
-              </svg>
+              <UserCircleIcon className="w-4 h-4 text-gray-600" />
             </div>
             <div>
               <p className="text-sm font-medium text-gray-900">
@@ -156,19 +123,7 @@ export default function JourneyCard({ journey, onClose }: JourneyCardProps) {
           {journey.createdAt && (
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                <svg
-                  className="w-4 h-4 text-gray-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
+                <CalendarIcon className="w-4 h-4 text-gray-600" />
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-900">

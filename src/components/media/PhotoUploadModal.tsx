@@ -6,7 +6,7 @@ import { useMediaUpload } from '@/hooks/useMediaUpload';
 import MediaUploader from '@/components/media/MediaUploader';
 import { Modal, Button } from '@/components/ui';
 import { useScrollResetOnUnmount } from '@/hooks/useBodyScrollLock';
-import { CloseIcon, ErrorCircleIcon } from '@/components/icons';
+import { CloseIcon, ErrorCircleIcon, XIcon } from '@/components/icons';
 
 interface PhotoUploadModalProps {
   isOpen: boolean;
@@ -22,7 +22,7 @@ export const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
   const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const { isUploading, reset } = useMediaUpload();
-  
+
   // Failsafe to reset scroll if modal gets stuck
   useScrollResetOnUnmount();
 
@@ -136,9 +136,7 @@ export const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
                     onClick={() => removePhoto(index)}
                     className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <XIcon className="w-4 h-4" />
                   </button>
                   <div className="absolute bottom-2 left-2 text-xs text-white bg-black/50 px-2 py-1 rounded max-w-[90%] truncate">
                     {photoUrl.split("/").pop()}

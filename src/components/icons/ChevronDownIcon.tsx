@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 interface ChevronDownIconProps {
   className?: string;
@@ -6,7 +6,7 @@ interface ChevronDownIconProps {
 }
 
 export const ChevronDownIcon: React.FC<ChevronDownIconProps> = ({
-  className = "",
+  className = '',
   size = 24,
 }) => {
   return (
@@ -21,7 +21,7 @@ export const ChevronDownIcon: React.FC<ChevronDownIconProps> = ({
       strokeLinejoin="round"
       className={className}
     >
-      <path d="M19 9l-7 7-7-7" />
+      <polyline points="6 9 12 15 18 9" />
     </svg>
   );
 };

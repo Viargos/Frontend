@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Modal from '@/components/ui/Modal';
 import OtpVerificationForm from './OtpVerificationForm';
 import { useAuthStore } from '@/store/auth.store';
+import { XIcon } from '@/components/icons';
 
 export interface OtpModalProps {
   isOpen: boolean;
@@ -35,7 +36,7 @@ export default function OtpModal({
     if (error) {
       return;
     }
-    
+
     clearError();
     onClose();
   };
@@ -50,7 +51,7 @@ export default function OtpModal({
     // After successful OTP verification, user is automatically logged in
     clearError();
     onClose();
-    
+
     // Redirect to dashboard with a small delay to ensure modal closes
     setTimeout(() => {
       try {
@@ -65,7 +66,7 @@ export default function OtpModal({
   const handleResendOtp = async () => {
     try {
       const result = await resendOtp(email);
-      
+
       if (result.success) {
         clearError();
       }
@@ -84,7 +85,7 @@ export default function OtpModal({
   if (!email) {
     return (
       <Modal isOpen={isOpen} onClose={handleForceClose} className="max-w-md">
-        <motion.div 
+        <motion.div
           className="bg-white rounded-xl shadow-xl p-8 w-full relative"
           initial={{ opacity: 0, scale: 0.8, y: -20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -107,7 +108,7 @@ export default function OtpModal({
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} className="max-w-md">
-      <motion.div 
+      <motion.div
         className="bg-white rounded-xl shadow-xl p-8 w-full relative"
         initial={{ opacity: 0, scale: 0.8, y: -20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -125,19 +126,7 @@ export default function OtpModal({
           animate={{ opacity: 1, scale: 1, rotate: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
+          <XIcon className="w-6 h-6" />
         </motion.button>
 
         {/* OTP Form */}

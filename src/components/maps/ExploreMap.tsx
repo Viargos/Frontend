@@ -11,6 +11,7 @@ import {
 } from '@react-google-maps/api';
 import { Journey, JourneyPlace } from '@/types/journey.types';
 import { viargoMapOptions } from '@/constants/map-styles';
+import { ClockIcon, ClipboardListIcon } from '@/components/icons';
 
 interface MapLocation {
   id: string;
@@ -29,7 +30,10 @@ interface ExploreMapProps {
   selectedJourney?: Journey | null;
   onMapClick?: (event: google.maps.MapMouseEvent) => void;
   center?: { lat: number; lng: number };
-  onBoundsChange?: (center: { lat: number; lng: number }, radius: number) => void;
+  onBoundsChange?: (
+    center: { lat: number; lng: number },
+    radius: number
+  ) => void;
 }
 
 const containerStyle = {
@@ -208,7 +212,10 @@ export default function ExploreMap({
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const boundsChangeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isInitialLoadRef = useRef(true);
-  const lastBoundsRef = useRef<{ center: { lat: number; lng: number }; radius: number } | null>(null);
+  const lastBoundsRef = useRef<{
+    center: { lat: number; lng: number };
+    radius: number;
+  } | null>(null);
 
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
@@ -244,16 +251,18 @@ export default function ExploreMap({
 
     journeysToProcess.forEach(journey => {
       if (!journey.days || journey.days.length === 0) {
-        console.log('[EXPLORE_MAP] Journey has no days', { journeyId: journey.id });
+        console.log('[EXPLORE_MAP] Journey has no days', {
+          journeyId: journey.id,
+        });
         return;
       }
 
       // Iterate through all days and all places
-      journey.days.forEach((day) => {
+      journey.days.forEach(day => {
         if (!day.places || day.places.length === 0) {
-          console.log('[EXPLORE_MAP] Day has no places', { 
-            journeyId: journey.id, 
-            dayId: day.id 
+          console.log('[EXPLORE_MAP] Day has no places', {
+            journeyId: journey.id,
+            dayId: day.id,
           });
           return;
         }
@@ -266,13 +275,15 @@ export default function ExploreMap({
 
           // Try to parse latitude and longitude from place
           if (place.latitude !== undefined && place.longitude !== undefined) {
-            const latValue = typeof place.latitude === 'number' 
-              ? place.latitude 
-              : parseFloat(String(place.latitude));
-            const lngValue = typeof place.longitude === 'number'
-              ? place.longitude
-              : parseFloat(String(place.longitude));
-            
+            const latValue =
+              typeof place.latitude === 'number'
+                ? place.latitude
+                : parseFloat(String(place.latitude));
+            const lngValue =
+              typeof place.longitude === 'number'
+                ? place.longitude
+                : parseFloat(String(place.longitude));
+
             if (!isNaN(latValue) && !isNaN(lngValue)) {
               lat = latValue;
               lng = lngValue;
@@ -282,9 +293,12 @@ export default function ExploreMap({
 
           // Fallback to mock coordinates if no valid coords
           if (!lat || !lng || !isValidCoordinate(lat, lng)) {
-            const mockCoords = getCoordinatesForPlace(place.name, journey.title);
-            lat = mockCoords.lat + (placeIndex * 0.002); // Small offset to prevent overlap
-            lng = mockCoords.lng + (placeIndex * 0.002);
+            const mockCoords = getCoordinatesForPlace(
+              place.name,
+              journey.title
+            );
+            lat = mockCoords.lat + placeIndex * 0.002; // Small offset to prevent overlap
+            lng = mockCoords.lng + placeIndex * 0.002;
             console.log('[EXPLORE_MAP] Using mock coordinates for place', {
               placeName: place.name,
               journeyId: journey.id,
@@ -324,8 +338,12 @@ export default function ExploreMap({
 
     console.log('[EXPLORE_MAP] Map locations processed', {
       totalLocations: locations.length,
-      realCoordinates: locations.filter(l => l.place.latitude && l.place.longitude).length,
-      mockCoordinates: locations.filter(l => !l.place.latitude || !l.place.longitude).length,
+      realCoordinates: locations.filter(
+        l => l.place.latitude && l.place.longitude
+      ).length,
+      mockCoordinates: locations.filter(
+        l => !l.place.latitude || !l.place.longitude
+      ).length,
     });
 
     setMapLocations(locations);
@@ -365,7 +383,9 @@ export default function ExploreMap({
       // Enable bounds change tracking after map loads and settles
       setTimeout(() => {
         isInitialLoadRef.current = false;
-        console.log('[EXPLORE_MAP] Map loaded, enabling bounds change tracking');
+        console.log(
+          '[EXPLORE_MAP] Map loaded, enabling bounds change tracking'
+        );
       }, 2000); // Wait 2 seconds for map to settle
     },
     [mapLocations, center, isValidCoordinate]
@@ -377,10 +397,10 @@ export default function ExploreMap({
       try {
         // Temporarily disable bounds tracking during programmatic updates
         isInitialLoadRef.current = true;
-        
+
         map.setCenter(center);
         map.setZoom(11); // Zoom in a bit more to see local area
-        
+
         // Re-enable after a short delay
         setTimeout(() => {
           isInitialLoadRef.current = false;
@@ -399,25 +419,30 @@ export default function ExploreMap({
   }, []);
 
   // Calculate radius from map bounds
-  const calculateRadiusFromBounds = useCallback((bounds: google.maps.LatLngBounds, center: google.maps.LatLng) => {
-    const ne = bounds.getNorthEast();
-    const sw = bounds.getSouthWest();
-    
-    // Calculate the distance from center to corner (diagonal)
-    const R = 6371; // Earth's radius in km
-    const lat1 = center.lat() * Math.PI / 180;
-    const lat2 = ne.lat() * Math.PI / 180;
-    const deltaLat = (ne.lat() - center.lat()) * Math.PI / 180;
-    const deltaLng = (ne.lng() - center.lng()) * Math.PI / 180;
-    
-    const a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-              Math.cos(lat1) * Math.cos(lat2) *
-              Math.sin(deltaLng / 2) * Math.sin(deltaLng / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c;
-    
-    return Math.ceil(distance);
-  }, []);
+  const calculateRadiusFromBounds = useCallback(
+    (bounds: google.maps.LatLngBounds, center: google.maps.LatLng) => {
+      const ne = bounds.getNorthEast();
+
+      // Calculate the distance from center to corner (diagonal)
+      const R = 6371; // Earth's radius in km
+      const lat1 = (center.lat() * Math.PI) / 180;
+      const lat2 = (ne.lat() * Math.PI) / 180;
+      const deltaLat = ((ne.lat() - center.lat()) * Math.PI) / 180;
+      const deltaLng = ((ne.lng() - center.lng()) * Math.PI) / 180;
+
+      const a =
+        Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+        Math.cos(lat1) *
+          Math.cos(lat2) *
+          Math.sin(deltaLng / 2) *
+          Math.sin(deltaLng / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const distance = R * c;
+
+      return Math.ceil(distance);
+    },
+    []
+  );
 
   // Handle map bounds change (zoom/pan)
   const handleBoundsChanged = useCallback(() => {
@@ -438,23 +463,23 @@ export default function ExploreMap({
     boundsChangeTimerRef.current = setTimeout(() => {
       const bounds = map.getBounds();
       const center = map.getCenter();
-      
+
       if (bounds && center) {
         const newCenter = {
           lat: center.lat(),
           lng: center.lng(),
         };
         const radius = calculateRadiusFromBounds(bounds, center);
-        
+
         // Check if the change is significant enough to warrant a new fetch
         const lastBounds = lastBoundsRef.current;
         if (lastBounds) {
           const centerDiff = Math.sqrt(
             Math.pow(newCenter.lat - lastBounds.center.lat, 2) +
-            Math.pow(newCenter.lng - lastBounds.center.lng, 2)
+              Math.pow(newCenter.lng - lastBounds.center.lng, 2)
           );
           const radiusDiff = Math.abs(radius - lastBounds.radius);
-          
+
           // Only fetch if moved significantly (0.01 degrees ~= 1km) or radius changed by more than 5km
           if (centerDiff < 0.01 && radiusDiff < 5) {
             console.log('[EXPLORE_MAP] Change too small, skipping fetch', {
@@ -464,7 +489,7 @@ export default function ExploreMap({
             return;
           }
         }
-        
+
         console.log('[EXPLORE_MAP] Map bounds changed significantly', {
           center: newCenter,
           radius,
@@ -478,35 +503,32 @@ export default function ExploreMap({
     }, 1500); // 1.5 second debounce
   }, [map, onBoundsChange, calculateRadiusFromBounds]);
 
-  const handleMarkerClick = useCallback(
-    (location: MapLocation) => {
-      // Show info window with place details
-      setSelectedLocation(location);
-    },
-    []
-  );
+  const handleMarkerClick = useCallback((location: MapLocation) => {
+    // Show info window with place details
+    setSelectedLocation(location);
+  }, []);
 
   // Generate marker icon based on place type with color coding
   const getMarkerIcon = useCallback((location: MapLocation) => {
-    // Get color and icon based on place type - Light blue theme
+    // Get color and icon based on place type
     const getTypeColor = (type: string): string => {
       const typeColors: { [key: string]: string } = {
-        'stay': '#3b82f6',      // Bright sky blue for hotels/stays
-        'activity': '#60a5fa',  // Light blue for activities
-        'food': '#2563eb',      // Medium blue for food
-        'transport': '#0ea5e9', // Cyan blue for transport
-        'note': '#06b6d4',      // Teal blue for notes
+        stay: '#2563eb', // Blue for hotels/stays
+        activity: '#16a34a', // Green for activities
+        food: '#dc2626', // Red for food
+        transport: '#7c3aed', // Purple for transport
+        note: '#eab308', // Yellow for notes
       };
-      return typeColors[type.toLowerCase()] || '#3b82f6'; // Default to bright blue
+      return typeColors[type.toLowerCase()] || '#2563eb'; // Default to blue
     };
 
     const getTypeEmoji = (type: string): string => {
       const typeEmojis: { [key: string]: string } = {
-        'stay': '🏨',
-        'activity': '🎯',
-        'food': '🍽️',
-        'transport': '🚗',
-        'note': '📝',
+        stay: '🏨',
+        activity: '🎯',
+        food: '🍽️',
+        transport: '🚗',
+        note: '📝',
       };
       return typeEmojis[type.toLowerCase()] || '📍';
     };
@@ -526,7 +548,9 @@ export default function ExploreMap({
       <svg width="${markerWidth}" height="${markerHeight}" viewBox="0 0 ${markerWidth} ${markerHeight}" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <!-- Shadow filter for depth -->
-          <filter id="shadow-${location.id}" x="-50%" y="-50%" width="200%" height="200%">
+          <filter id="shadow-${
+            location.id
+          }" x="-50%" y="-50%" width="200%" height="200%">
             <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
             <feOffset dx="0" dy="2" result="offsetblur"/>
             <feComponentTransfer>
@@ -538,42 +562,50 @@ export default function ExploreMap({
             </feMerge>
           </filter>
           <!-- Gradient for depth -->
-          <linearGradient id="grad-${location.id}" x1="0%" y1="0%" x2="0%" y2="100%">
+          <linearGradient id="grad-${
+            location.id
+          }" x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" style="stop-color:${backgroundColor};stop-opacity:1" />
             <stop offset="100%" style="stop-color:${backgroundColor};stop-opacity:0.85" />
           </linearGradient>
         </defs>
-        
+
         <!-- Pin shape with shadow -->
         <g filter="url(#shadow-${location.id})">
           <!-- Main pin body -->
-          <path d="M ${circleCenterX} ${markerHeight - 2} 
-                   Q ${circleCenterX} ${circleCenterY + circleRadius + 8}, 
+          <path d="M ${circleCenterX} ${markerHeight - 2}
+                   Q ${circleCenterX} ${circleCenterY + circleRadius + 8},
                      ${circleCenterX} ${circleCenterY + circleRadius}
-                   A ${circleRadius} ${circleRadius} 0 1 1 ${circleCenterX} ${circleCenterY + circleRadius}
-                   Z" 
-                fill="url(#grad-${location.id})" 
-                stroke="white" 
+                   A ${circleRadius} ${circleRadius} 0 1 1 ${circleCenterX} ${
+      circleCenterY + circleRadius
+    }
+                   Z"
+                fill="url(#grad-${location.id})"
+                stroke="white"
                 stroke-width="2.5"/>
-          
+
           <!-- Inner white circle for emoji background -->
-          <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${circleRadius - 4}" 
+          <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${
+      circleRadius - 4
+    }"
                   fill="white" opacity="0.95"/>
-          
+
           <!-- Colored circle behind emoji -->
-          <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${circleRadius - 6}" 
+          <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${
+      circleRadius - 6
+    }"
                   fill="${backgroundColor}" opacity="0.15"/>
         </g>
-        
+
         <!-- Emoji icon -->
-        <text x="${circleCenterX}" y="${circleCenterY + 1}" 
-              text-anchor="middle" 
-              font-size="20" 
-              font-family="Arial, sans-serif" 
+        <text x="${circleCenterX}" y="${circleCenterY + 1}"
+              text-anchor="middle"
+              font-size="20"
+              font-family="Arial, sans-serif"
               dominant-baseline="middle">${emoji}</text>
-        
+
         <!-- Subtle highlight on top -->
-        <circle cx="${circleCenterX}" cy="${circleCenterY - 6}" r="4" 
+        <circle cx="${circleCenterX}" cy="${circleCenterY - 6}" r="4"
                 fill="white" opacity="0.4"/>
       </svg>
     `;
@@ -681,20 +713,29 @@ export default function ExploreMap({
           <div className="p-3 min-w-[280px] max-w-[320px]">
             {/* Place Type Badge */}
             <div className="flex items-center gap-2 mb-3">
-              <span 
+              <span
                 className="px-3 py-1 rounded-full text-xs font-semibold text-white"
                 style={{
-                  backgroundColor: 
-                    selectedLocation.type === 'stay' ? '#2563eb' :
-                    selectedLocation.type === 'activity' ? '#16a34a' :
-                    selectedLocation.type === 'food' ? '#dc2626' :
-                    selectedLocation.type === 'transport' ? '#7c3aed' :
-                    selectedLocation.type === 'note' ? '#eab308' : '#6366f1'
+                  backgroundColor:
+                    selectedLocation.type === 'stay'
+                      ? '#2563eb'
+                      : selectedLocation.type === 'activity'
+                      ? '#16a34a'
+                      : selectedLocation.type === 'food'
+                      ? '#dc2626'
+                      : selectedLocation.type === 'transport'
+                      ? '#7c3aed'
+                      : selectedLocation.type === 'note'
+                      ? '#eab308'
+                      : '#6366f1',
                 }}
               >
-                {getTypeIcon(selectedLocation.type)} {getTypeLabel(selectedLocation.type)}
+                {getTypeIcon(selectedLocation.type)}{' '}
+                {getTypeLabel(selectedLocation.type)}
               </span>
-              <span className="text-xs text-gray-500">{selectedLocation.day}</span>
+              <span className="text-xs text-gray-500">
+                {selectedLocation.day}
+              </span>
             </div>
 
             {/* Place Name */}
@@ -713,10 +754,7 @@ export default function ExploreMap({
             <div className="border-t border-gray-200 pt-3 space-y-2">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
-                  <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
-                    <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd"/>
-                  </svg>
+                  <ClipboardListIcon className="w-3 h-3 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-gray-900 truncate">
@@ -729,18 +767,22 @@ export default function ExploreMap({
               </div>
 
               {/* Time if available */}
-              {selectedLocation.place.startTime && selectedLocation.place.endTime && (
-                <div className="flex items-center gap-2 text-xs text-gray-600">
-                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span>{selectedLocation.place.startTime} - {selectedLocation.place.endTime}</span>
-                </div>
-              )}
+              {selectedLocation.place.startTime &&
+                selectedLocation.place.endTime && (
+                  <div className="flex items-center gap-2 text-xs text-gray-600">
+                    <ClockIcon className="w-4 h-4 text-gray-400" />
+                    <span>
+                      {selectedLocation.place.startTime} -{' '}
+                      {selectedLocation.place.endTime}
+                    </span>
+                  </div>
+                )}
 
               {/* View Journey Button */}
               <button
-                onClick={() => router.push(`/journey/${selectedLocation.journey.id}`)}
+                onClick={() =>
+                  router.push(`/journey/${selectedLocation.journey.id}`)
+                }
                 className="w-full mt-2 px-3 py-2 bg-[#001A6E] text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
               >
                 View Full Journey

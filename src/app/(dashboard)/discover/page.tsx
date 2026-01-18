@@ -16,7 +16,17 @@ import { JourneyDay, JourneyPlace } from '@/types/journey.types';
 import { PageLoading } from '@/components/common';
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';
 import { useNearbyJourneys } from '@/hooks/useNearbyJourneys';
-import { JourneyDetailsModal, JourneyFilters, JourneyFilterState } from '@/components/discover';
+import { JourneyDetailsModal, JourneyFilters } from '@/components/discover';
+import type { JourneyFilterState } from '@/components/discover/JourneyFilters';
+import {
+  GlobeIcon,
+  SpinnerIcon,
+  CheckIcon,
+  PinIcon,
+  CalendarIcon,
+  EyeIcon,
+  ChevronRightIcon as ChevronRightCustom,
+} from '@/components/icons';
 
 export default function DiscoverPage() {
   const [selectedJourney, setSelectedJourney] = useState<any | null>(null);
@@ -255,12 +265,12 @@ export default function DiscoverPage() {
       // Filter based on journey's first day date if available
       if (journey.days && journey.days.length > 0) {
         const firstDayDate = new Date(journey.days[0].date);
-        
+
         if (filters.dateRange.from) {
           const fromDate = new Date(filters.dateRange.from);
           if (firstDayDate < fromDate) return false;
         }
-        
+
         if (filters.dateRange.to) {
           const toDate = new Date(filters.dateRange.to);
           if (firstDayDate > toDate) return false;
@@ -484,21 +494,130 @@ export default function DiscoverPage() {
               className="bg-green-600 rounded-lg shadow-lg p-3 hover:shadow-xl transition-all duration-200 text-white"
               title="Search Worldwide"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
+              <GlobeIcon className="w-5 h-5" />
             </motion.button>
           </div>
+
+          {/* Map Statistics & Legend */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="absolute bottom-4 left-4 z-10 bg-white rounded-lg shadow-lg p-4 max-w-xs"
+          >
+            {/* Statistics */}
+            <div className="mb-4 pb-3 border-b border-gray-200">
+              <h4 className="text-xs font-semibold text-gray-700 mb-2">
+                Map Statistics
+              </h4>
+              <div className="grid grid-cols-2 gap-2 text-xs mb-2">
+                <div className="bg-blue-50 rounded-md px-2 py-1.5">
+                  <div className="text-gray-500">Journeys</div>
+                  <div className="font-bold text-gray-900">
+                    {sortedJourneys.length}
+                  </div>
+                </div>
+                <div className="bg-green-50 rounded-md px-2 py-1.5">
+                  <div className="text-gray-500">Places</div>
+                  <div className="font-bold text-gray-900">
+                    {sortedJourneys.reduce(
+                      (total, journey) =>
+                        total +
+                        (journey.days?.reduce(
+                          (dayTotal: number, day: JourneyDay) =>
+                            dayTotal + (day.places?.length || 0),
+                          0
+                        ) || 0),
+                      0
+                    )}
+                  </div>
+                </div>
+              </div>
+              {/* Location Status */}
+              <div className="text-xs">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <div
+                    className={`w-2 h-2 rounded-full ${
+                      currentLocation
+                        ? 'bg-green-500'
+                        : locationLoading
+                        ? 'bg-yellow-500 animate-pulse'
+                        : 'bg-red-500'
+                    }`}
+                  ></div>
+                  <span className="text-gray-600">
+                    {currentLocation
+                      ? 'Location found'
+                      : locationLoading
+                      ? 'Finding location...'
+                      : 'Location unavailable'}
+                  </span>
+                </div>
+                {currentLocation && (
+                  <div className="text-gray-500 ml-3.5">
+                    {currentLocation.latitude.toFixed(4)},{' '}
+                    {currentLocation.longitude.toFixed(4)}
+                  </div>
+                )}
+                {journeysLoading && (
+                  <div className="flex items-center gap-1.5 text-blue-600 ml-3.5 animate-pulse">
+                    <SpinnerIcon className="w-3 h-3" />
+                    <span>Searching area...</span>
+                  </div>
+                )}
+                <div className="text-gray-500 ml-3.5 mt-1">
+                  Radius: {currentRadius}km
+                </div>
+                <div className="flex items-center gap-1.5 ml-3.5 mt-1">
+                  <div
+                    className={`w-2 h-2 rounded-full ${
+                      autoSearch ? 'bg-green-500' : 'bg-gray-400'
+                    }`}
+                  ></div>
+                  <span className="text-gray-500 text-xs">
+                    Auto-search: {autoSearch ? 'ON' : 'OFF'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Legend */}
+            <h4 className="text-xs font-semibold text-gray-700 mb-2">
+              Place Types
+            </h4>
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-[#001A6E] rounded-full flex items-center justify-center text-xs">
+                  🏨
+                </div>
+                <span className="text-xs text-gray-600">Accommodation</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center text-xs">
+                  🎯
+                </div>
+                <span className="text-xs text-gray-600">Activity</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center text-xs">
+                  🍽️
+                </div>
+                <span className="text-xs text-gray-600">Food & Dining</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center text-xs">
+                  🚗
+                </div>
+                <span className="text-xs text-gray-600">Transport</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-yellow-600 rounded-full flex items-center justify-center text-xs">
+                  📝
+                </div>
+                <span className="text-xs text-gray-600">Notes</span>
+              </div>
+            </div>
+          </motion.div>
         </div>
 
         {/* RIGHT SIDEBAR — now a sibling in the flex layout. Only this area scrolls. */}
@@ -697,17 +816,7 @@ export default function DiscoverPage() {
                                       className="flex-shrink-0"
                                     >
                                       <div className="w-8 h-8 bg-gradient-to-br from-blue-900 to-blue-950 rounded-full flex items-center justify-center shadow-lg">
-                                        <svg
-                                          className="w-4 h-4 text-white"
-                                          fill="currentColor"
-                                          viewBox="0 0 20 20"
-                                        >
-                                          <path
-                                            fillRule="evenodd"
-                                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                            clipRule="evenodd"
-                                          />
-                                        </svg>
+                                        <CheckIcon className="w-4 h-4 text-white" />
                                       </div>
                                     </motion.div>
                                   )}
@@ -735,25 +844,7 @@ export default function DiscoverPage() {
                                     <>
                                       <span className="text-gray-300">•</span>
                                       <div className="flex items-center gap-1 text-gray-500">
-                                        <svg
-                                          className="w-3 h-3"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          viewBox="0 0 24 24"
-                                        >
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                                          />
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                                          />
-                                        </svg>
+                                        <PinIcon className="w-3 h-3" />
                                         <span className="font-medium">
                                           {getDistance()}
                                         </span>
@@ -821,25 +912,7 @@ export default function DiscoverPage() {
                                 }`}
                               >
                                 <div className="flex items-center gap-1.5 text-gray-600">
-                                  <svg
-                                    className="w-4 h-4 text-blue-900"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                                    />
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                                    />
-                                  </svg>
+                                  <PinIcon className="w-4 h-4 text-blue-900" />
                                   <span className="font-semibold">
                                     {journey.days?.reduce(
                                       (total: number, day: JourneyDay) =>
@@ -851,19 +924,7 @@ export default function DiscoverPage() {
                                 </div>
                                 <span className="text-gray-300">•</span>
                                 <div className="flex items-center gap-1.5 text-gray-600">
-                                  <svg
-                                    className="w-4 h-4 text-blue-900"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                    />
-                                  </svg>
+                                  <CalendarIcon className="w-4 h-4 text-blue-900" />
                                   <span className="font-semibold">
                                     {journey.days?.length || 0}
                                   </span>
@@ -891,39 +952,9 @@ export default function DiscoverPage() {
                                   }}
                                   className="w-full px-4 py-2.5 bg-gradient-to-r from-blue-900 to-blue-950 text-white rounded-lg hover:from-blue-800 hover:to-blue-900 transition-all duration-200 text-sm font-semibold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
                                 >
-                                  <svg
-                                    className="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                    />
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                    />
-                                  </svg>
+                                  <EyeIcon className="w-4 h-4" />
                                   View Full Journey
-                                  <svg
-                                    className="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M9 5l7 7-7 7"
-                                    />
-                                  </svg>
+                                  <ChevronRightCustom className="w-4 h-4" />
                                 </motion.button>
                               )}
                             </div>

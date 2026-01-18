@@ -10,6 +10,7 @@ import OtpVerificationForm from './OtpVerificationForm';
 import ForgotPasswordForm from './ForgotPasswordForm';
 import ResetPasswordForm from './ResetPasswordForm';
 import { useAuthStore } from '@/store/auth.store';
+import { CloseIcon } from '@/components/icons';
 
 export type AuthStep = 'login' | 'signup' | 'otp' | 'forgot-password' | 'reset-password';
 
@@ -301,19 +302,7 @@ export default function AuthModal({
           animate={{ opacity: 1, scale: 1, rotate: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
+          <CloseIcon className="w-6 h-6" />
         </motion.button>
 
         {/* Animated Step Content */}

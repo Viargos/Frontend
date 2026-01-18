@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useMediaUpload } from '@/hooks/useMediaUpload';
 import { UploadOptions } from '@/lib/aws/media-upload';
 import { formatFileSize, isImageFile, isVideoFile } from '@/lib/aws/media-upload';
+import { UploadIcon, ErrorCircleIcon, FileTextIcon, XIcon } from '@/components/icons';
 
 interface MediaUploaderProps {
   onUploadComplete?: (urls: string[]) => void;
@@ -212,7 +213,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
-    
+
     if (disabled) return;
 
     const files = e.dataTransfer.files;
@@ -254,7 +255,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
   }, []);
 
   // Get overall progress
-  const overallProgress = Object.keys(uploadProgress).length > 0 
+  const overallProgress = Object.keys(uploadProgress).length > 0
     ? Object.values(uploadProgress).reduce((sum, progress) => sum + progress.percentage, 0) / Object.keys(uploadProgress).length
     : 0;
 
@@ -282,19 +283,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
       >
         {/* Upload Icon */}
         <div className="mx-auto w-12 h-12 mb-4">
-          <svg
-            className="w-full h-full text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 48 48"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-            />
-          </svg>
+          <UploadIcon className="w-full h-full text-gray-400" />
         </div>
 
         {/* Upload Text */}
@@ -303,7 +292,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
             {isDragOver ? 'Drop files here' : 'Upload files'}
           </p>
           <p className="text-sm text-gray-500">
-            {multiple 
+            {multiple
               ? `Drag and drop up to ${maxFiles} files, or click to browse`
               : 'Drag and drop a file, or click to browse'
             }
@@ -356,9 +345,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
             exit={{ opacity: 0, height: 0 }}
           >
             <div className="flex">
-              <svg className="w-5 h-5 text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
+              <ErrorCircleIcon className="w-5 h-5 text-red-400 mr-2" />
               <div>
                 <p className="text-sm text-red-800 font-medium">Upload Error</p>
                 <p className="text-xs text-red-700">{errorMessage}</p>
@@ -400,9 +387,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
                       )
                     ) : (
                       <div className="flex items-center justify-center h-full">
-                        <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6z" clipRule="evenodd" />
-                        </svg>
+                        <FileTextIcon className="w-8 h-8 text-gray-400" />
                       </div>
                     )}
                   </div>
@@ -422,9 +407,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <XIcon className="w-4 h-4" />
                   </motion.button>
 
                   {/* File Info */}
