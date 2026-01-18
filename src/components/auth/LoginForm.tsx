@@ -198,7 +198,7 @@ export default function LoginForm({
             placeholder="Enter your email"
             disabled={isLoading}
             autoComplete="email"
-            whileFocus={{ scale: 1.02, borderColor: '#3B82F6' }}
+            whileFocus={{ scale: 1.02, borderColor: '#160E53' }}
           />
           {errors.email && (
             <motion.p

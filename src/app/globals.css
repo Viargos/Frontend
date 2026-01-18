@@ -60,7 +60,7 @@ body {
 
 /* Placeholder styling */
 .login-input::placeholder {
-  color: #717680;
+  color: #160E53;
   font-family: var(--font-manrope);
   font-size: 16px;
   font-weight: 400;
@@ -172,6 +172,20 @@ body {
 
 .text-indigo-700 {
   color: var(--Indigo-700);
+}
+
+/* Focus ring utilities for inputs */
+.focus-ring-primary {
+  outline: 2px solid var(--Primary-Blue);
+  outline-offset: 2px;
+  border-color: var(--Primary-Blue);
+}
+
+input:focus {
+  outline: 2px solid var(--Primary-Blue) !important;
+  outline-offset: 0px;
+  border-color: var(--Primary-Blue) !important;
+  box-shadow: 0 0 0 3px rgba(0, 26, 110, 0.1) !important;
 }
 
 /* Scrollbar hide utility */
