@@ -134,7 +134,7 @@ export function MapWithAnimatedRoutesExample() {
  */
 export function SingleRouteExample() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const [map, setMap] = useState<any>(null);
+  const [map, _setMap] = useState<any>(null);
 
   // Initialize map (same as above)
   useEffect(() => {
@@ -168,7 +168,7 @@ export function SingleRouteExample() {
  */
 export function DynamicRoutesExample() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const [map, setMap] = useState<any>(null);
+  const [map, _setMap] = useState<any>(null);
   const [routes, setRoutes] = useState<RouteData[]>([]);
 
   // Fetch routes from API

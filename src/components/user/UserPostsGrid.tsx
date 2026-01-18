@@ -6,7 +6,6 @@ import { RecentPost } from '@/types/user.types';
 import { formatDistanceToNow } from 'date-fns';
 import HeartIcon from '@/components/icons/HeartIcon';
 import ChatIcon from '@/components/icons/ChatIcon';
-import Image from 'next/image';
 import { PostsEmptyIcon, ImageIcon } from '@/components/icons';
 
 interface UserPostsGridProps {
@@ -29,7 +28,7 @@ export default function UserPostsGrid({
       <div className={`text-center py-12 ${className}`}>
         <PostsEmptyIcon className="w-16 h-16 mx-auto mb-4 text-gray-300" />
         <h3 className="text-lg font-medium text-gray-900 mb-2">No posts yet</h3>
-        <p className="text-gray-500">{username} hasn't shared any posts yet.</p>
+        <p className="text-gray-500">{username} hasn&apos;t shared any posts yet.</p>
       </div>
     );
   }

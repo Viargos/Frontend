@@ -93,7 +93,7 @@ export function useAdvancedDebounce<T>(
   } = {}
 ) {
   const { leading = false, trailing = true, maxWait } = options;
-  
+
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
   const timeoutRef = useRef<NodeJS.Timeout>();
   const maxTimeoutRef = useRef<NodeJS.Timeout>();
@@ -102,7 +102,6 @@ export function useAdvancedDebounce<T>(
 
   useEffect(() => {
     const currentTime = Date.now();
-    const timeSinceLastCall = currentTime - (lastCallTimeRef.current || 0);
     const timeSinceLastInvoke = currentTime - lastInvokeTimeRef.current;
 
     lastCallTimeRef.current = currentTime;

@@ -29,14 +29,10 @@ import {
   PostMedia,
   PostComment,
   PostFilters,
-  PostResponse,
-  PostsResponse,
-  PostCountResponse,
   LikeResponse,
 } from "@/types/post.types";
-import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants";
+import { ERROR_MESSAGES } from "@/constants";
 import { logger } from "@/utils/logger";
-import { ErrorHandler } from "@/utils/error-handler";
 import { FileValidator } from "@/utils/file-validator";
 
 export interface IPostService {
@@ -185,7 +181,7 @@ export class PostService implements IPostService {
 
     try {
       const queryParams = new URLSearchParams();
-      
+
       // Only add limit/offset if they have valid numeric values
       if (hasValidLimit && limit !== undefined) {
         queryParams.append("limit", limit.toString());
@@ -194,10 +190,10 @@ export class PostService implements IPostService {
         queryParams.append("offset", offset.toString());
       }
 
-      const url = queryParams.toString() 
+      const url = queryParams.toString()
         ? `/posts/user/${userId}?${queryParams.toString()}`
         : `/posts/user/${userId}`;
-      
+
       const response = await this.httpClient.get<Post[]>(url);
 
       // Log full API response for debugging

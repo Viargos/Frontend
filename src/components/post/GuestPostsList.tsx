@@ -185,20 +185,20 @@ export default function GuestPostsList({
   // Use static posts data, limited by maxPosts
   const posts = STATIC_POSTS.slice(0, maxPosts);
 
-  const handleJourneyClick = (journeyId: string) => {
+  const handleJourneyClick = (_journeyId: string) => {
     // For guests, show auth prompt when trying to view journey
     setShowAuthPrompt(true);
   };
 
-  const handleCommentClick = (postId: string) => {
+  const handleCommentClick = (_postId: string) => {
     // For guests, show auth prompt when trying to comment
     setShowAuthPrompt(true);
   };
 
   const handleLikeChange = (
-    postId: string,
-    isLiked: boolean,
-    newCount: number
+    _postId: string,
+    _isLiked: boolean,
+    _newCount: number
   ) => {
     // For guests, show auth prompt when trying to like
     setShowAuthPrompt(true);

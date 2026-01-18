@@ -326,7 +326,7 @@ export default function JourneyMapWebGL({
         rendererRef.current = renderer;
 
         // Create markers for all locations
-        locations.forEach((location, index) => {
+        locations.forEach((location) => {
           const marker = createMarker(location, 100);
           sceneRef.current?.add(marker);
           markersRef.current.set(location.id, marker);

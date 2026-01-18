@@ -1,11 +1,8 @@
 import { HttpClientService } from '@/lib/services/http-client.service';
-import { TokenService, tokenService } from '@/lib/services/token.service';
+import { tokenService } from '@/lib/services/token.service';
 import { AuthService } from '@/lib/services/auth.service';
 import { UserService } from '@/lib/services/user.service';
-import {
-  ValidationService,
-  validationService,
-} from '@/lib/services/validation.service';
+import { validationService } from '@/lib/services/validation.service';
 import { ProfileService } from '@/lib/services/profile.service';
 import { JourneyService } from './journey.service';
 import { PostService, IPostService } from './post.service';

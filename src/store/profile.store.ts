@@ -7,7 +7,6 @@ import {
   ProfileUpdateData,
   ImageUploadResult,
 } from "@/types/profile.types";
-import { RecentPost } from "@/types/user.types";
 import { serviceFactory } from "@/lib/services/service-factory";
 import { ApiError } from "@/lib/interfaces/http-client.interface";
 
@@ -304,7 +303,7 @@ export const useProfileStore = create<ProfileStore>()(
             journeys: Math.max(0, currentStats.journeys - 1)
           } : null;
 
-          set({ 
+          set({
             recentJourneys: updatedJourneys,
             stats: updatedStats
           });
@@ -312,7 +311,7 @@ export const useProfileStore = create<ProfileStore>()(
           return { success: true };
         } catch (error) {
           const errorMessage = get().extractErrorMessage(error);
-          
+
           // Handle "Journey not found" gracefully - treat as success since journey is already deleted
           if (errorMessage.toLowerCase().includes('journey not found')) {
             // Remove from local state anyway since it's already deleted
@@ -320,21 +319,21 @@ export const useProfileStore = create<ProfileStore>()(
             const updatedJourneys = currentJourneys.filter(
               (journey) => journey.id !== journeyId
             );
-            
+
             // Update stats - decrement journeys count
             const currentStats = get().stats;
             const updatedStats = currentStats ? {
               ...currentStats,
               journeys: Math.max(0, currentStats.journeys - 1)
             } : null;
-            
-            set({ 
+
+            set({
               recentJourneys: updatedJourneys,
               stats: updatedStats
             });
             return { success: true };
           }
-          
+
           set({ error: errorMessage });
           return { success: false, error: errorMessage };
         } finally {

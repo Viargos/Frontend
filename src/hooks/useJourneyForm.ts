@@ -8,8 +8,6 @@ import {
 import apiClient from "@/lib/api.legacy";
 import {
   validateTimeRange,
-  compareTimes,
-  formatTime,
   addMinutesToTime,
 } from "@/utils/time.utils";
 
@@ -193,11 +191,11 @@ export const useJourneyForm = (): UseJourneyFormReturn => {
     const baseHour = 9; // Start at 09:00
     const startHour = baseHour + index;
     const endHour = startHour + 1;
-    
+
     const formatTime = (hour: number): string => {
       return `${hour.toString().padStart(2, '0')}:00`;
     };
-    
+
     return {
       startTime: formatTime(startHour),
       endTime: formatTime(endHour),
@@ -219,11 +217,11 @@ export const useJourneyForm = (): UseJourneyFormReturn => {
 
       const existingPlaces = journeyPlaces[activeDay] || [];
       const newIndex = existingPlaces.length;
-      
+
       // Default behavior: Activity[0] keeps its own time, Activity[i] auto-sets
       let startTime: string;
       let endTime: string;
-      
+
       if (newIndex === 0) {
         // Activity[0] keeps its own time (calculated based on index)
         const calculated = calculateTimeForIndex(newIndex);
@@ -270,13 +268,13 @@ export const useJourneyForm = (): UseJourneyFormReturn => {
       setJourneyPlaces((prev) => {
         const currentPlaces = prev[activeDay] || [];
         const updatedPlaces = currentPlaces.filter((_, i) => i !== index);
-        
+
         // Preserve time linking: link each place's start time to previous end time
         // ONLY if it hasn't been manually edited
         const placesWithLinkedTimes = updatedPlaces.map((place, newIndex) => {
           let startTime = place.startTime;
           let endTime = place.endTime;
-          
+
           // Link start time to previous activity's end time (no gap)
           // ONLY if start time hasn't been manually edited
           if (newIndex > 0 && updatedPlaces[newIndex - 1].endTime && !place.hasManualStart) {
@@ -291,7 +289,7 @@ export const useJourneyForm = (): UseJourneyFormReturn => {
             const calculated = calculateTimeForIndex(newIndex);
             startTime = calculated.startTime;
           }
-          
+
           // Ensure end time exists and is valid
           if (!endTime || (startTime && !validateTimeRange(startTime, endTime))) {
             if (startTime && !place.hasManualEnd) {
@@ -302,7 +300,7 @@ export const useJourneyForm = (): UseJourneyFormReturn => {
               endTime = calculated.endTime;
             }
           }
-          
+
           return {
             ...place,
             startTime,
@@ -312,7 +310,7 @@ export const useJourneyForm = (): UseJourneyFormReturn => {
             hasManualEnd: place.hasManualEnd || false,
           };
         });
-        
+
         return {
           ...prev,
           [activeDay]: placesWithLinkedTimes,
@@ -335,12 +333,12 @@ export const useJourneyForm = (): UseJourneyFormReturn => {
       setJourneyPlaces((prev) => {
         const currentPlaces = prev[activeDay] || [];
         const currentPlace = currentPlaces[index];
-        
+
         if (!currentPlace) return prev;
 
         // Format time value if it's a time field
         // For HTML5 time inputs, the value is already in HH:mm format, so we can use it directly
-        const formattedValue = isTimeField && typeof value === 'string' 
+        const formattedValue = isTimeField && typeof value === 'string'
           ? value.trim() // Just trim, don't reformat (HTML5 time inputs already provide correct format)
           : value;
 
@@ -368,27 +366,27 @@ export const useJourneyForm = (): UseJourneyFormReturn => {
           // - Update start time of activity i+1 to match this new end time
           // - Update end time of activity i+1 to startTime + 1 hour
           // - Continue cascading only for activities that have not been manually edited
-          
+
           let currentEndTime = formattedValue;
           let cascadeIndex = index + 1;
-          
+
           // Cascade through all subsequent activities that haven't been manually edited
           while (cascadeIndex < updatedPlaces.length) {
             const nextPlace = updatedPlaces[cascadeIndex];
-            
+
             // Stop cascading if start time is manually edited (can't update it)
             if (nextPlace.hasManualStart) {
               break;
             }
-            
+
             // startTime[i+1] = endTime[i] (match the new end time)
             const newStartTime = currentEndTime;
-            
+
             // Update end time if not manually edited
             if (!nextPlace.hasManualEnd) {
               // endTime[i+1] = startTime + 1 hour (default duration)
               const newEndTime = addMinutesToTime(newStartTime, 60);
-              
+
               // Validate the time range
               if (validateTimeRange(newStartTime, newEndTime)) {
                 updatedPlaces[cascadeIndex] = {

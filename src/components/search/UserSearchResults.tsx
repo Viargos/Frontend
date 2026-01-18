@@ -20,7 +20,7 @@ export default function UserSearchResults({
   isVisible,
   isLoading,
   onUserClick,
-  onClose
+  onClose: _onClose
 }: UserSearchResultsProps) {
   const router = useRouter();
 

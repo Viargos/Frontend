@@ -47,8 +47,8 @@ export const forceScrollReset = () => {
   );
 
   // Force multiple reflows
-  body.offsetHeight;
-  html.offsetHeight;
+  void body.offsetHeight;
+  void html.offsetHeight;
   window.dispatchEvent(new Event("resize"));
 
   console.log("🔧 Emergency scroll reset applied!");

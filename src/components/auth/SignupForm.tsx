@@ -34,7 +34,6 @@ export default function SignupForm({
   const { signup, isLoading, error } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const {
     register,
@@ -47,9 +46,6 @@ export default function SignupForm({
 
   const onSubmit = async (data: SignupFormData) => {
     try {
-      // Clear previous field errors
-      setFieldErrors({});
-
       const result = await signup({
         username: data.username,
         email: data.email,
@@ -82,14 +78,11 @@ export default function SignupForm({
               setError('username', { type: 'server', message });
             }
           });
-
-          // Also store them for additional display if needed
-          setFieldErrors(validationErrors);
         }
 
         return;
       }
-    } catch (_error) {
+    } catch {
       // Error is handled in the store
     }
   };

@@ -113,3 +113,4 @@ export { MountainIcon } from "./MountainIcon";
 export { GlobeIllustration } from "./GlobeIllustration";
 export { MapRouteIllustration } from "./MapRouteIllustration";
 export { SocialNetworkIllustration } from "./SocialNetworkIllustration";
+export { FolderDocumentIcon } from "./FolderDocumentIcon";

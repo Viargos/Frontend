@@ -12,7 +12,7 @@ interface BottomNavigationProps {
   onLogout: () => void;
 }
 
-const BottomNavigation = ({ user, onLogout }: BottomNavigationProps) => {
+const BottomNavigation = ({ user: _user, onLogout: _onLogout }: BottomNavigationProps) => {
   const pathname = usePathname();
 
   // Main navigation items (same as sidebar but without labels on mobile)

@@ -3,7 +3,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import Button from "@/components/ui/Button";
-import InputField from "@/components/ui/InputField";
 import { TextArea } from "@/components/ui/TextArea";
 import PostMediaUploader from "./PostMediaUploader";
 import { Journey } from "@/types/journey.types";
@@ -143,7 +142,7 @@ export default function JourneyLinkedPostForm({
                 Select a Journey
               </h3>
               <p className="text-gray-600 text-sm">
-                Choose which journey you'd like to link this post with
+                Choose which journey you&apos;d like to link this post with
               </p>
             </div>
 
@@ -162,7 +161,7 @@ export default function JourneyLinkedPostForm({
               <div className="text-center py-8">
                 <JourneyIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-600 mb-4">
-                  You don't have any journeys yet
+                  You don&apos;t have any journeys yet
                 </p>
                 <Button variant="secondary" onClick={onCancel}>
                   Create Journey First

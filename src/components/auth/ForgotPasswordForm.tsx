@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -37,10 +36,10 @@ export default function ForgotPasswordForm({
 
   const onSubmit = async (data: ForgotPasswordFormData) => {
     clearError();
-    
+
     try {
       const result = await forgotPassword(data.email);
-      
+
       if (result.success) {
         reset();
         onSuccess?.(data.email);
@@ -70,7 +69,7 @@ export default function ForgotPasswordForm({
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="w-full max-w-md mx-auto"
       variants={containerVariants}
       initial="hidden"
@@ -85,7 +84,7 @@ export default function ForgotPasswordForm({
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
         {error && (
-          <motion.div 
+          <motion.div
             className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm"
             initial={{ opacity: 0, scale: 0.95, y: -10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -114,7 +113,7 @@ export default function ForgotPasswordForm({
             whileFocus={{ scale: 1.02, borderColor: '#3B82F6' }}
           />
           {errors.email && (
-            <motion.p 
+            <motion.p
               className="mt-1 text-sm text-red-600"
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}

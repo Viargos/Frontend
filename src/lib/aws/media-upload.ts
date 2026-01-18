@@ -379,7 +379,7 @@ export const isVideoFile = (file: File): boolean => {
 // Generate thumbnail URL (assuming you have a thumbnail generation service)
 export const generateThumbnailUrl = (
   originalUrl: string,
-  size: string = "150x150"
+  _size: string = "150x150"
 ): string => {
   // This would depend on your thumbnail generation service
   // For now, return the original URL

@@ -69,7 +69,7 @@ export default function OtpVerificationForm({
   const onSubmit = async (data: OtpFormData) => {
     try {
       const result = await verifyOtp(email, data.otp, isPasswordReset);
-      
+
       if (result.success) {
         // Call the success callback (handles modal closing and redirect)
         onSuccess?.();
@@ -77,7 +77,7 @@ export default function OtpVerificationForm({
         // If verification failed, allow resubmission
         setHasSubmitted(false);
       }
-    } catch (_error) {
+    } catch {
       // Error is handled in the store
       // Allow resubmission after error
       setHasSubmitted(false);
@@ -86,7 +86,7 @@ export default function OtpVerificationForm({
 
   const handleOtpChange = (index: number, value: string) => {
     if (value.length > 1) return; // Only allow single digit
-    
+
     // Only allow digits
     if (!/^\d*$/.test(value)) return;
 
@@ -111,7 +111,7 @@ export default function OtpVerificationForm({
     setResendTimer(60);
     try {
       await onResendOtp?.();
-    } catch (_error) {
+    } catch {
       // Error is handled by parent component
     }
   };
@@ -123,7 +123,7 @@ export default function OtpVerificationForm({
           {isPasswordReset ? 'Verify Password Reset' : 'Verify your email'}
         </h2>
         <p className="text-gray-600">
-          {isPasswordReset 
+          {isPasswordReset
             ? `We've sent a password reset code to `
             : `We've sent a verification code to `}
           <span className="font-medium">{email}</span>

@@ -70,9 +70,6 @@ class ApiClient {
       try {
         const payload = JSON.parse(atob(token.split(".")[1]));
         const currentTime = Math.floor(Date.now() / 1000);
-        // Add 5 minutes buffer to account for server/client time differences
-        const bufferTime = 5 * 60;
-        const isExpired = payload.exp < currentTime + bufferTime;
 
         // Token validation (removed console logs)
 
@@ -113,7 +110,7 @@ class ApiClient {
       let data: any;
       const contentType = response.headers.get('content-type');
       const hasContent = response.status !== 204 && response.status !== 205;
-      
+
       if (hasContent && contentType && contentType.includes('application/json')) {
         try {
           const text = await response.text();
@@ -138,10 +135,10 @@ class ApiClient {
         // Only remove token if it's a genuine 401 Unauthorized error
         if (response.status === 401) {
           // Check if the error data indicates an auth issue
-          const isAuthError = data?.statusCode === 10001 || 
+          const isAuthError = data?.statusCode === 10001 ||
                              data?.message?.toLowerCase().includes('unauthorized') ||
                              data?.message?.toLowerCase().includes('token');
-          
+
           if (isAuthError) {
             console.warn(
               "Authentication failed, removing token via TokenService"
@@ -313,7 +310,7 @@ class ApiClient {
       radius: radius.toString(),
       limit: limit.toString(),
     });
-    
+
     return this.request<any[]>(`/journeys/nearby?${queryParams.toString()}`);
   }
 

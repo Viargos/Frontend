@@ -68,7 +68,7 @@ export default function CreatePostModal({
                 Create New Post
               </h2>
               <p className="text-gray-600">
-                Choose how you'd like to create your post
+                Choose how you&apos;d like to create your post
               </p>
             </div>
 

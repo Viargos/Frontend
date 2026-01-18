@@ -1,5 +1,5 @@
 import { User } from '@/types/auth.types';
-import { UserStats, UserProfile, ProfileUpdateData } from '@/types/profile.types';
+import { UserStats, UserProfile } from '@/types/profile.types';
 import { ApiResponse } from './http-client.interface';
 
 export interface IProfileService {

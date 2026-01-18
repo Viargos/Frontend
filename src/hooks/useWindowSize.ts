@@ -37,7 +37,7 @@ export function useWindowSize(): UseWindowSizeReturn {
     handleResize();
 
     window.addEventListener('resize', handleResize);
-    
+
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
@@ -69,7 +69,7 @@ export function useBreakpoint(breakpoint: number): boolean {
     handleResize();
 
     window.addEventListener('resize', handleResize);
-    
+
     return () => window.removeEventListener('resize', handleResize);
   }, [breakpoint]);
 
@@ -86,7 +86,7 @@ export function useMediaQuery(query: string): boolean {
     if (typeof window === 'undefined') return;
 
     const mediaQuery = window.matchMedia(query);
-    
+
     function handleChange() {
       setMatches(mediaQuery.matches);
     }
@@ -148,7 +148,7 @@ export function useIsTouchDevice(): boolean {
       return (
         'ontouchstart' in window ||
         navigator.maxTouchPoints > 0 ||
-        // @ts-ignore - for IE
+        // @ts-expect-error - for IE
         navigator.msMaxTouchPoints > 0
       );
     };

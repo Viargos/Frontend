@@ -132,7 +132,6 @@ export function useApiWithParams<T = any, P = any>(
   options: UseApiOptions<T> = {}
 ) {
   const {
-    immediate = false,
     onSuccess,
     onError,
     retryCount = 0,

@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  Calendar,
   MapPin,
   ArrowUpRight,
   Sparkles,
@@ -280,7 +279,7 @@ export default function ProfileJourneyCard({
 
             <p className="text-gray-600 mb-6">
               Are you sure you want to delete{" "}
-              <span className="font-medium">"{journey.title}"</span>? This will
+              <span className="font-medium">&quot;{journey.title}&quot;</span>? This will
               permanently remove the journey and all its data.
             </p>
 

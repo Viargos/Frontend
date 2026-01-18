@@ -44,11 +44,9 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
     isUploading,
     uploadProgress,
     errors,
-    results,
     uploadSingle,
     uploadMultiple,
     clearErrors,
-    reset,
   } = useMediaUpload();
 
   const [isDragOver, setIsDragOver] = useState(false);

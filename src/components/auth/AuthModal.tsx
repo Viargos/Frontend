@@ -60,7 +60,7 @@ export default function AuthModal({
     if (error) {
       return;
     }
-    
+
     resetModalState();
     onClose();
   };
@@ -96,12 +96,12 @@ export default function AuthModal({
       // After successful OTP verification for signup, user is automatically logged in
       // Close the modal and let the header show the authenticated state
       handleClose();
-      
+
       // Redirect to dashboard with a small delay to ensure modal closes
       setTimeout(() => {
         try {
           router.push('/dashboard');
-        } catch (error) {
+        } catch {
           window.location.href = '/dashboard';
         }
       }, 100);
@@ -112,7 +112,7 @@ export default function AuthModal({
     try {
       const { resendOtp, forgotPassword, clearError } = useAuthStore.getState();
       const email = isPasswordResetFlow ? passwordResetEmail : signupEmail;
-      
+
       if (isPasswordResetFlow) {
         // For password reset, use forgotPassword to resend OTP
         const result = await forgotPassword(email);
@@ -126,7 +126,7 @@ export default function AuthModal({
           clearError();
         }
       }
-    } catch (error) {
+    } catch {
       // Error is handled by the store
     }
   };
@@ -248,7 +248,7 @@ export default function AuthModal({
             </div>
           );
         }
-        
+
         return (
           <OtpVerificationForm
             email={otpEmail}
@@ -284,7 +284,7 @@ export default function AuthModal({
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} showBackdrop={false}>
-      <motion.div 
+      <motion.div
         className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md mx-auto relative"
         initial={{ opacity: 0, scale: 0.8, y: -20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}

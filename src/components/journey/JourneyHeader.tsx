@@ -13,9 +13,9 @@ interface JourneyHeaderProps {
 }
 
 export const JourneyHeader: React.FC<JourneyHeaderProps> = ({
-    title,
+    title: _title,
     startDate,
-    onTitleChange,
+    onTitleChange: _onTitleChange,
     onDateChange,
     onSubmit,
     isSubmitting,

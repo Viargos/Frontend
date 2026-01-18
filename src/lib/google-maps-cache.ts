@@ -77,6 +77,7 @@ class GoogleMapsCache {
         this.cache.delete(key);
       }
     }
+    // Note: isExpired check result is used implicitly via cache.delete
   }
 
   /**
