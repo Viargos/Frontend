@@ -677,15 +677,6 @@ export default function DiscoverPage() {
                                 : 'bg-white'
                             }`}
                           >
-                            {/* Header with gradient strip */}
-                            <div
-                              className={`h-1.5 bg-gradient-to-r ${
-                                isSelected
-                                  ? 'from-blue-900 via-blue-900 to-blue-800'
-                                  : 'from-blue-900 via-blue-800 to-blue-700'
-                              }`}
-                            />
-
                             <div className="p-4">
                               {/* Title Section */}
                               <div className="mb-3">
