@@ -196,16 +196,16 @@ export default function DiscoverPage() {
     // Set new timer for debounced API call
     const newTimer = setTimeout(() => {
       debouncedFetchJourneys(newRadius);
-    }, 500); // 500ms delay
+    }, 300); // 300ms delay - reduced since filter component already debounces
 
     setDebounceTimer(newTimer);
   };
 
   const handleFiltersChange = (newFilters: JourneyFilterState) => {
     setFilters(newFilters);
-    // Update radius if changed
+    // Update radius if changed and trigger new fetch
     if (newFilters.radius !== currentRadius) {
-      setCurrentRadius(newFilters.radius);
+      handleRadiusChange(newFilters.radius);
     }
   };
 
@@ -252,8 +252,20 @@ export default function DiscoverPage() {
 
     // Journey date range filter
     if (filters.dateRange.from || filters.dateRange.to) {
-      // This would need to be implemented based on journey day dates
-      // For now, we'll skip this filter
+      // Filter based on journey's first day date if available
+      if (journey.days && journey.days.length > 0) {
+        const firstDayDate = new Date(journey.days[0].date);
+        
+        if (filters.dateRange.from) {
+          const fromDate = new Date(filters.dateRange.from);
+          if (firstDayDate < fromDate) return false;
+        }
+        
+        if (filters.dateRange.to) {
+          const toDate = new Date(filters.dateRange.to);
+          if (firstDayDate > toDate) return false;
+        }
+      }
     }
 
     return true;
@@ -487,145 +499,6 @@ export default function DiscoverPage() {
               </svg>
             </motion.button>
           </div>
-
-          {/* Map Statistics & Legend */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="absolute bottom-4 left-4 z-10 bg-white rounded-lg shadow-lg p-4 max-w-xs"
-          >
-            {/* Statistics */}
-            <div className="mb-4 pb-3 border-b border-gray-200">
-              <h4 className="text-xs font-semibold text-gray-700 mb-2">
-                Map Statistics
-              </h4>
-              <div className="grid grid-cols-2 gap-2 text-xs mb-2">
-                <div className="bg-blue-50 rounded-md px-2 py-1.5">
-                  <div className="text-gray-500">Journeys</div>
-                  <div className="font-bold text-gray-900">
-                    {sortedJourneys.length}
-                  </div>
-                </div>
-                <div className="bg-green-50 rounded-md px-2 py-1.5">
-                  <div className="text-gray-500">Places</div>
-                  <div className="font-bold text-gray-900">
-                    {sortedJourneys.reduce(
-                      (total, journey) =>
-                        total +
-                        (journey.days?.reduce(
-                          (dayTotal: number, day: JourneyDay) =>
-                            dayTotal + (day.places?.length || 0),
-                          0
-                        ) || 0),
-                      0
-                    )}
-                  </div>
-                </div>
-              </div>
-              {/* Location Status */}
-              <div className="text-xs">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <div
-                    className={`w-2 h-2 rounded-full ${
-                      currentLocation
-                        ? 'bg-green-500'
-                        : locationLoading
-                        ? 'bg-yellow-500 animate-pulse'
-                        : 'bg-red-500'
-                    }`}
-                  ></div>
-                  <span className="text-gray-600">
-                    {currentLocation
-                      ? 'Location found'
-                      : locationLoading
-                      ? 'Finding location...'
-                      : 'Location unavailable'}
-                  </span>
-                </div>
-                {currentLocation && (
-                  <div className="text-gray-500 ml-3.5">
-                    {currentLocation.latitude.toFixed(4)},{' '}
-                    {currentLocation.longitude.toFixed(4)}
-                  </div>
-                )}
-                {journeysLoading && (
-                  <div className="flex items-center gap-1.5 text-blue-600 ml-3.5 animate-pulse">
-                    <svg
-                      className="w-3 h-3 animate-spin"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    <span>Searching area...</span>
-                  </div>
-                )}
-                <div className="text-gray-500 ml-3.5 mt-1">
-                  Radius: {currentRadius}km
-                </div>
-                <div className="flex items-center gap-1.5 ml-3.5 mt-1">
-                  <div
-                    className={`w-2 h-2 rounded-full ${
-                      autoSearch ? 'bg-green-500' : 'bg-gray-400'
-                    }`}
-                  ></div>
-                  <span className="text-gray-500 text-xs">
-                    Auto-search: {autoSearch ? 'ON' : 'OFF'}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Legend */}
-            <h4 className="text-xs font-semibold text-gray-700 mb-2">
-              Place Types
-            </h4>
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-[#001A6E] rounded-full flex items-center justify-center text-xs">
-                  🏨
-                </div>
-                <span className="text-xs text-gray-600">Accommodation</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center text-xs">
-                  🎯
-                </div>
-                <span className="text-xs text-gray-600">Activity</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center text-xs">
-                  🍽️
-                </div>
-                <span className="text-xs text-gray-600">Food & Dining</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center text-xs">
-                  🚗
-                </div>
-                <span className="text-xs text-gray-600">Transport</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-yellow-600 rounded-full flex items-center justify-center text-xs">
-                  📝
-                </div>
-                <span className="text-xs text-gray-600">Notes</span>
-              </div>
-            </div>
-          </motion.div>
         </div>
 
         {/* RIGHT SIDEBAR — now a sibling in the flex layout. Only this area scrolls. */}

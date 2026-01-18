@@ -8,7 +8,6 @@ import {
   useJsApiLoader,
   Marker,
   InfoWindow,
-  Circle,
 } from '@react-google-maps/api';
 import { Journey, JourneyPlace } from '@/types/journey.types';
 import { viargoMapOptions } from '@/constants/map-styles';
@@ -207,8 +206,6 @@ export default function ExploreMap({
   );
   const [mapLocations, setMapLocations] = useState<MapLocation[]>([]);
   const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [currentSearchRadius, setCurrentSearchRadius] = useState<number | null>(null);
-  const [currentSearchCenter, setCurrentSearchCenter] = useState<{ lat: number; lng: number } | null>(null);
   const boundsChangeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isInitialLoadRef = useRef(true);
   const lastBoundsRef = useRef<{ center: { lat: number; lng: number }; radius: number } | null>(null);
@@ -383,8 +380,6 @@ export default function ExploreMap({
         
         map.setCenter(center);
         map.setZoom(11); // Zoom in a bit more to see local area
-        // Set initial search center
-        setCurrentSearchCenter(center);
         
         // Re-enable after a short delay
         setTimeout(() => {
@@ -478,8 +473,6 @@ export default function ExploreMap({
 
         // Update refs
         lastBoundsRef.current = { center: newCenter, radius };
-        setCurrentSearchCenter(newCenter);
-        setCurrentSearchRadius(radius);
         onBoundsChange(newCenter, radius);
       }
     }, 1500); // 1.5 second debounce
@@ -495,16 +488,16 @@ export default function ExploreMap({
 
   // Generate marker icon based on place type with color coding
   const getMarkerIcon = useCallback((location: MapLocation) => {
-    // Get color and icon based on place type
+    // Get color and icon based on place type - Light blue theme
     const getTypeColor = (type: string): string => {
       const typeColors: { [key: string]: string } = {
-        'stay': '#2563eb',      // Blue for hotels/stays
-        'activity': '#16a34a',  // Green for activities
-        'food': '#dc2626',      // Red for food
-        'transport': '#7c3aed', // Purple for transport
-        'note': '#eab308',      // Yellow for notes
+        'stay': '#3b82f6',      // Bright sky blue for hotels/stays
+        'activity': '#60a5fa',  // Light blue for activities
+        'food': '#2563eb',      // Medium blue for food
+        'transport': '#0ea5e9', // Cyan blue for transport
+        'note': '#06b6d4',      // Teal blue for notes
       };
-      return typeColors[type.toLowerCase()] || '#6366f1'; // Default indigo
+      return typeColors[type.toLowerCase()] || '#3b82f6'; // Default to bright blue
     };
 
     const getTypeEmoji = (type: string): string => {
@@ -521,31 +514,74 @@ export default function ExploreMap({
     const backgroundColor = getTypeColor(location.type);
     const emoji = getTypeEmoji(location.type);
 
-    // Marker dimensions
-    const circleSize = 40; // Size of the circular icon
-    const pinHeight = 12; // Height of the pin
-    const totalHeight = circleSize + pinHeight;
-    const totalWidth = circleSize;
-    const pinWidth = 8; // Width of the pin point
+    // Modern marker dimensions - larger and more visible
+    const markerWidth = 44;
+    const markerHeight = 54;
+    const circleRadius = 18;
+    const circleCenterX = markerWidth / 2;
+    const circleCenterY = circleRadius + 2;
 
-    // Create SVG with colored circle, emoji, and pin based on place type
+    // Create modern SVG marker with pin shape
     const svgContent = `
-      <svg width="${totalWidth}" height="${totalHeight}" viewBox="0 0 ${totalWidth} ${totalHeight}" xmlns="http://www.w3.org/2000/svg">
-        <!-- Outer white border circle -->
-        <circle cx="${totalWidth / 2}" cy="${totalWidth / 2}" r="${circleSize / 2}" fill="white" stroke="${backgroundColor}" stroke-width="3"/>
-        <!-- Colored inner circle -->
-        <circle cx="${totalWidth / 2}" cy="${totalWidth / 2}" r="${circleSize / 2 - 3}" fill="${backgroundColor}"/>
+      <svg width="${markerWidth}" height="${markerHeight}" viewBox="0 0 ${markerWidth} ${markerHeight}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <!-- Shadow filter for depth -->
+          <filter id="shadow-${location.id}" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+            <feOffset dx="0" dy="2" result="offsetblur"/>
+            <feComponentTransfer>
+              <feFuncA type="linear" slope="0.3"/>
+            </feComponentTransfer>
+            <feMerge>
+              <feMergeNode/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+          <!-- Gradient for depth -->
+          <linearGradient id="grad-${location.id}" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:${backgroundColor};stop-opacity:1" />
+            <stop offset="100%" style="stop-color:${backgroundColor};stop-opacity:0.85" />
+          </linearGradient>
+        </defs>
+        
+        <!-- Pin shape with shadow -->
+        <g filter="url(#shadow-${location.id})">
+          <!-- Main pin body -->
+          <path d="M ${circleCenterX} ${markerHeight - 2} 
+                   Q ${circleCenterX} ${circleCenterY + circleRadius + 8}, 
+                     ${circleCenterX} ${circleCenterY + circleRadius}
+                   A ${circleRadius} ${circleRadius} 0 1 1 ${circleCenterX} ${circleCenterY + circleRadius}
+                   Z" 
+                fill="url(#grad-${location.id})" 
+                stroke="white" 
+                stroke-width="2.5"/>
+          
+          <!-- Inner white circle for emoji background -->
+          <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${circleRadius - 4}" 
+                  fill="white" opacity="0.95"/>
+          
+          <!-- Colored circle behind emoji -->
+          <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${circleRadius - 6}" 
+                  fill="${backgroundColor}" opacity="0.15"/>
+        </g>
+        
         <!-- Emoji icon -->
-        <text x="${totalWidth / 2}" y="${totalWidth / 2 + 4}" text-anchor="middle" fill="white" font-size="20" font-family="Arial, sans-serif" dominant-baseline="middle">${emoji}</text>
-        <!-- Pin pointing down -->
-        <path d="M ${totalWidth / 2 - pinWidth / 2} ${circleSize} L ${totalWidth / 2} ${totalHeight} L ${totalWidth / 2 + pinWidth / 2} ${circleSize} Z" fill="${backgroundColor}" stroke="white" stroke-width="1"/>
+        <text x="${circleCenterX}" y="${circleCenterY + 1}" 
+              text-anchor="middle" 
+              font-size="20" 
+              font-family="Arial, sans-serif" 
+              dominant-baseline="middle">${emoji}</text>
+        
+        <!-- Subtle highlight on top -->
+        <circle cx="${circleCenterX}" cy="${circleCenterY - 6}" r="4" 
+                fill="white" opacity="0.4"/>
       </svg>
     `;
 
     return {
       url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgContent)}`,
-      scaledSize: new window.google.maps.Size(totalWidth, totalHeight),
-      anchor: new window.google.maps.Point(totalWidth / 2, totalHeight),
+      scaledSize: new window.google.maps.Size(markerWidth, markerHeight),
+      anchor: new window.google.maps.Point(markerWidth / 2, markerHeight - 2),
     };
   }, []);
 
@@ -624,23 +660,6 @@ export default function ExploreMap({
       onBoundsChanged={handleBoundsChanged}
       options={viargoMapOptions}
     >
-      {/* Search radius circle */}
-      {currentSearchCenter && currentSearchRadius && (
-        <Circle
-          center={currentSearchCenter}
-          radius={currentSearchRadius * 1000} // Convert km to meters
-          options={{
-            fillColor: '#2563eb',
-            fillOpacity: 0.08,
-            strokeColor: '#2563eb',
-            strokeOpacity: 0.3,
-            strokeWeight: 2,
-            clickable: false,
-            zIndex: 1,
-          }}
-        />
-      )}
-
       {/* Render map markers */}
       {mapLocations
         .filter(location => isValidCoordinate(location.lat, location.lng))
