@@ -12,6 +12,7 @@ import {
 import { Journey, JourneyPlace } from '@/types/journey.types';
 import { viargoMapOptions } from '@/constants/map-styles';
 import { ClockIcon, ClipboardListIcon } from '@/components/icons';
+import { generateEmojiMarker, getPlaceTypeEmoji, getPlaceTypeColor } from '@/utils/map-markers';
 
 interface MapLocation {
   id: string;
@@ -510,111 +511,11 @@ export default function ExploreMap({
 
   // Generate marker icon based on place type with color coding
   const getMarkerIcon = useCallback((location: MapLocation) => {
-    // Get color and icon based on place type
-    const getTypeColor = (type: string): string => {
-      const typeColors: { [key: string]: string } = {
-        stay: '#2563eb', // Blue for hotels/stays
-        activity: '#16a34a', // Green for activities
-        food: '#dc2626', // Red for food
-        transport: '#7c3aed', // Purple for transport
-        note: '#eab308', // Yellow for notes
-      };
-      return typeColors[type.toLowerCase()] || '#2563eb'; // Default to blue
-    };
-
-    const getTypeEmoji = (type: string): string => {
-      const typeEmojis: { [key: string]: string } = {
-        stay: '🏨',
-        activity: '🎯',
-        food: '🍽️',
-        transport: '🚗',
-        note: '📝',
-      };
-      return typeEmojis[type.toLowerCase()] || '📍';
-    };
-
-    const backgroundColor = getTypeColor(location.type);
-    const emoji = getTypeEmoji(location.type);
-
-    // Modern marker dimensions - larger and more visible
-    const markerWidth = 44;
-    const markerHeight = 54;
-    const circleRadius = 18;
-    const circleCenterX = markerWidth / 2;
-    const circleCenterY = circleRadius + 2;
-
-    // Create modern SVG marker with pin shape
-    const svgContent = `
-      <svg width="${markerWidth}" height="${markerHeight}" viewBox="0 0 ${markerWidth} ${markerHeight}" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <!-- Shadow filter for depth -->
-          <filter id="shadow-${
-            location.id
-          }" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
-            <feOffset dx="0" dy="2" result="offsetblur"/>
-            <feComponentTransfer>
-              <feFuncA type="linear" slope="0.3"/>
-            </feComponentTransfer>
-            <feMerge>
-              <feMergeNode/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>
-          <!-- Gradient for depth -->
-          <linearGradient id="grad-${
-            location.id
-          }" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" style="stop-color:${backgroundColor};stop-opacity:1" />
-            <stop offset="100%" style="stop-color:${backgroundColor};stop-opacity:0.85" />
-          </linearGradient>
-        </defs>
-
-        <!-- Pin shape with shadow -->
-        <g filter="url(#shadow-${location.id})">
-          <!-- Main pin body -->
-          <path d="M ${circleCenterX} ${markerHeight - 2}
-                   Q ${circleCenterX} ${circleCenterY + circleRadius + 8},
-                     ${circleCenterX} ${circleCenterY + circleRadius}
-                   A ${circleRadius} ${circleRadius} 0 1 1 ${circleCenterX} ${
-      circleCenterY + circleRadius
-    }
-                   Z"
-                fill="url(#grad-${location.id})"
-                stroke="white"
-                stroke-width="2.5"/>
-
-          <!-- Inner white circle for emoji background -->
-          <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${
-      circleRadius - 4
-    }"
-                  fill="white" opacity="0.95"/>
-
-          <!-- Colored circle behind emoji -->
-          <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${
-      circleRadius - 6
-    }"
-                  fill="${backgroundColor}" opacity="0.15"/>
-        </g>
-
-        <!-- Emoji icon -->
-        <text x="${circleCenterX}" y="${circleCenterY + 1}"
-              text-anchor="middle"
-              font-size="20"
-              font-family="Arial, sans-serif"
-              dominant-baseline="middle">${emoji}</text>
-
-        <!-- Subtle highlight on top -->
-        <circle cx="${circleCenterX}" cy="${circleCenterY - 6}" r="4"
-                fill="white" opacity="0.4"/>
-      </svg>
-    `;
-
-    return {
-      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgContent)}`,
-      scaledSize: new window.google.maps.Size(markerWidth, markerHeight),
-      anchor: new window.google.maps.Point(markerWidth / 2, markerHeight - 2),
-    };
+    return generateEmojiMarker({
+      size: 32,
+      color: getPlaceTypeColor(location.type),
+      emoji: getPlaceTypeEmoji(location.type),
+    });
   }, []);
 
   const getTypeLabel = (type: string) => {
@@ -626,17 +527,6 @@ export default function ExploreMap({
       note: 'Note',
     };
     return labels[type as keyof typeof labels] || type;
-  };
-
-  const getTypeIcon = (type: string) => {
-    const icons = {
-      stay: '🏨',
-      activity: '🎯',
-      food: '🍽️',
-      transport: '🚗',
-      note: '📝',
-    };
-    return icons[type as keyof typeof icons] || '📍';
   };
 
   // Ensure center is always a valid object
@@ -730,7 +620,7 @@ export default function ExploreMap({
                       : '#6366f1',
                 }}
               >
-                {getTypeIcon(selectedLocation.type)}{' '}
+                {getPlaceTypeEmoji(selectedLocation.type)}{' '}
                 {getTypeLabel(selectedLocation.type)}
               </span>
               <span className="text-xs text-gray-500">

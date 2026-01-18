@@ -14,6 +14,7 @@ import {
   detectAccommodationType,
   getAccommodationColor,
 } from '@/utils/accommodation-detector';
+import { generateJourneyLocationMarker, generateSimpleMarker } from '@/utils/map-markers';
 import { WarningIcon } from '@/components/icons';
 
 interface Location {
@@ -314,48 +315,18 @@ export default function JourneyMap({
     const markerSize = isNew ? 36 : 32; // Slightly larger for new markers
 
     if (type === 'journeyLocation') {
-      // Special marker for journey location
-      return {
-        url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            ${
-              isNew
-                ? '<circle cx="12" cy="12" r="11" fill="' +
-                  newMarkerColor +
-                  '" opacity="0.3"><animate attributeName="r" values="11;15;11" dur="1s" repeatCount="indefinite"/></circle>'
-                : ''
-            }
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="${markerColor}" stroke="white" stroke-width="1"/>
-            <circle cx="12" cy="9" r="2" fill="white"/>
-          </svg>
-        `)}`,
-        scaledSize: window.google?.maps?.Size
-          ? new window.google.maps.Size(40, 40)
-          : undefined,
-        anchor: window.google?.maps?.Point
-          ? new window.google.maps.Point(20, 40)
-          : undefined,
-      };
+      return generateJourneyLocationMarker({
+        size: 40,
+        color: markerColor,
+        isNew,
+      });
     }
 
-    return {
-      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-        <svg width="${markerSize}" height="${markerSize}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          ${
-            isNew
-              ? '<circle cx="12" cy="12" r="11" fill="' +
-                newMarkerColor +
-                '" opacity="0.3"><animate attributeName="r" values="11;15;11" dur="1s" repeatCount="indefinite"/></circle>'
-              : ''
-          }
-          <circle cx="12" cy="12" r="10" fill="${markerColor}" stroke="white" stroke-width="2"/>
-          <circle cx="12" cy="12" r="4" fill="white"/>
-        </svg>
-      `)}`,
-      scaledSize: window.google?.maps?.Size
-        ? new window.google.maps.Size(markerSize, markerSize)
-        : undefined,
-    };
+    return generateSimpleMarker({
+      size: markerSize,
+      color: markerColor,
+      isNew,
+    });
   };
 
   if (loadError) {
