@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CreateJourneyPlace, PlaceType } from '@/types/journey.types';
-import { Hotel, Trees, UtensilsCrossed, Car, FileText } from 'lucide-react';
+import { Hotel, Trees, UtensilsCrossed, Car, FileText, ChevronDownIcon, TrashIcon } from 'lucide-react';
 import { PlaceForm } from './PlaceForm';
 
 interface PlaceCardProps {
@@ -99,7 +99,7 @@ export const PlaceCard: React.FC<PlaceCardProps> = ({
             whileHover={{ scale: 1.1, backgroundColor: "rgba(254, 242, 242, 1)" }}
             whileTap={{ scale: 0.95 }}
           >
-<TrashIcon className="w-4 h-4 text-red-500" />
+<TrashIcon className="w-4 h-4 text-red-500" strokeWidth={2} />
           </motion.button>
           {/* Expand/Collapse Icon */}
 <motion.div
