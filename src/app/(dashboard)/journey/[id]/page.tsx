@@ -381,10 +381,23 @@ export default function JourneyDetailsPage() {
           style={{ zIndex: 2 }}
         ></div>
 
+        {/* Title and Description Overlay */}
+        <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-6 md:p-8" style={{ zIndex: 3 }}>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 drop-shadow-lg">
+            {journey.title}
+          </h1>
+          {journey.description && (
+            <p className="text-sm sm:text-base md:text-lg text-white/90 line-clamp-2 drop-shadow-md max-w-3xl">
+              {journey.description}
+            </p>
+          )}
+        </div>
+
         {/* Edit Button */}
         <button
           onClick={() => setIsBannerEditModalOpen(true)}
           className="absolute top-2 right-2 sm:top-4 sm:right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white/20 backdrop-blur-sm text-white px-2 py-1 sm:px-3 sm:py-2 rounded-md text-xs sm:text-sm hover:bg-white/30 flex items-center gap-1 sm:gap-2"
+          style={{ zIndex: 4 }}
         >
           <EditIcon className="w-3 h-3 sm:w-4 sm:h-4" />
           <span className="hidden sm:inline">Edit</span>
@@ -423,8 +436,8 @@ export default function JourneyDetailsPage() {
                 ))}
               </div>
             ) : (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 sm:mb-6">
-                <p className="text-yellow-800">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 sm:mb-6">
+                <p className="text-[#001A6E]">
                   This journey doesn&apos;t have any days planned yet.
                 </p>
               </div>
@@ -461,29 +474,29 @@ export default function JourneyDetailsPage() {
                         {/* Timeline Dot */}
                         <div 
                           className={`relative z-10 w-12 h-12 bg-white border-2 rounded-full flex-shrink-0 flex items-center justify-center p-0 m-0 transition-transform duration-300 hover:scale-110 ${
-                            place.type === 'stay' ? 'border-[#2563eb]' :
-                            place.type === 'activity' ? 'border-[#16a34a]' :
-                            place.type === 'food' ? 'border-[#dc2626]' :
-                            place.type === 'transport' ? 'border-[#7c3aed]' :
-                            place.type === 'note' ? 'border-[#eab308]' :
-                            'border-blue-600'
+                            place.type === 'stay' ? 'border-[#001A6E]' :
+                            place.type === 'activity' ? 'border-[#001A6E]' :
+                            place.type === 'food' ? 'border-[#001A6E]' :
+                            place.type === 'transport' ? 'border-[#001A6E]' :
+                            place.type === 'note' ? 'border-[#001A6E]' :
+                            'border-[#001A6E]'
                           }`}
                         >
                           <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center p-0 m-0">
                             {place.type === 'stay' && (
-                              <Hotel className="w-4 h-4" strokeWidth={2} />
+                              <Hotel className="w-4 h-4 text-[#001A6E]" strokeWidth={2} />
                             )}
                             {place.type === 'activity' && (
-                              <Trees className="w-4 h-4" strokeWidth={2} />
+                              <Trees className="w-4 h-4 text-[#001A6E]" strokeWidth={2} />
                             )}
                             {place.type === 'food' && (
-                              <UtensilsCrossed className="w-4 h-4" strokeWidth={2} />
+                              <UtensilsCrossed className="w-4 h-4 text-[#001A6E]" strokeWidth={2} />
                             )}
                             {place.type === 'transport' && (
-                              <Car className="w-4 h-4" strokeWidth={2} />
+                              <Car className="w-4 h-4 text-[#001A6E]" strokeWidth={2} />
                             )}
                             {place.type === 'note' && (
-                              <FileText className="w-4 h-4" strokeWidth={2} />
+                              <FileText className="w-4 h-4 text-[#001A6E]" strokeWidth={2} />
                             )}
                           </div>
                         </div>
@@ -568,24 +581,24 @@ export default function JourneyDetailsPage() {
                     {currentDay.notes && (
                       <div className="relative flex items-start">
                         {/* Timeline Dot for Notes */}
-                        <div className="relative z-10 w-12 h-12 bg-white border-2 border-yellow-500 rounded-full flex-shrink-0 flex items-center justify-center p-0 m-0">
-                          <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center p-0 m-0">
+                        <div className="relative z-10 w-12 h-12 bg-white border-2 border-[#001A6E] rounded-full flex-shrink-0 flex items-center justify-center p-0 m-0">
+                          <div className="w-6 h-6 bg-[#001A6E] rounded-full flex items-center justify-center p-0 m-0">
                             <FileText className="w-4 h-4 text-white" strokeWidth={2} />
                           </div>
                         </div>
 
                         {/* Notes Content */}
                         <div className="ml-6 flex-1">
-                          <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+                          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
                             <div className="flex items-start">
-                              <div className="text-yellow-600 mr-2">
+                              <div className="text-[#001A6E] mr-2">
                                 <FileText className="w-5 h-5" strokeWidth={2} />
                               </div>
                               <div>
-                                <h4 className="font-medium text-yellow-800 mb-1">
+                                <h4 className="font-medium text-[#001A6E] mb-1">
                                   Notes
                                 </h4>
-                                <p className="text-sm text-yellow-700">
+                                <p className="text-sm text-gray-700">
                                   {currentDay.notes}
                                 </p>
                               </div>

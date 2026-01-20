@@ -551,19 +551,19 @@ export default function DiscoverPage() {
 
                 {/* Radius Controls */}
                 {coordinates && (
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="text-sm text-gray-600">Radius:</span>
-                    <div className="flex gap-1 flex-wrap">
+                  <div className="mb-4">
+                    <span className="text-xs font-semibold text-gray-700 mb-2 block">Search Radius</span>
+                    <div className="flex gap-2 flex-wrap">
                       {[100, 500, 1000, 5000, 10000].map(radius => (
                         <button
                           key={radius}
                           onClick={() => handleRadiusChange(radius)}
                           disabled={journeysLoading}
-                          className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                          className={`px-3.5 py-2 text-xs font-medium rounded-lg transition-all duration-200 ${
                             currentRadius === radius
-                              ? 'bg-[#001A6E] text-white'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                          } disabled:opacity-50`}
+                              ? 'bg-[#001A6E] text-white shadow-md ring-2 ring-[#001A6E] ring-opacity-20'
+                              : 'bg-white text-gray-700 border border-gray-300 hover:border-[#001A6E] hover:text-[#001A6E] hover:shadow-sm'
+                          } disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
                           {radius}km
                         </button>
@@ -797,7 +797,7 @@ export default function DiscoverPage() {
                                 }`}
                               >
                                 <div className="flex items-center gap-1.5 text-gray-600">
-                                  <PinIcon className="w-4 h-4 text-blue-900" />
+                                  <PinIcon className="w-4 h-4 text-[#001A6E]" />
                                   <span className="font-semibold">
                                     {journey.days?.reduce(
                                       (total: number, day: JourneyDay) =>
@@ -809,7 +809,7 @@ export default function DiscoverPage() {
                                 </div>
                                 <span className="text-gray-300">•</span>
                                 <div className="flex items-center gap-1.5 text-gray-600">
-                                  <CalendarIcon className="w-4 h-4 text-blue-900" />
+                                  <CalendarIcon className="w-4 h-4 text-[#001A6E]" />
                                   <span className="font-semibold">
                                     {journey.days?.length || 0}
                                   </span>
