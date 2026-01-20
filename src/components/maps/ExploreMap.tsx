@@ -12,7 +12,7 @@ import {
 import { Journey, JourneyPlace } from '@/types/journey.types';
 import { viargoMapOptions } from '@/constants/map-styles';
 import { ClockIcon, ClipboardListIcon } from '@/components/icons';
-import { generateEmojiMarker, getPlaceTypeEmoji, getPlaceTypeColor } from '@/utils/map-markers';
+// Removed unused imports
 
 interface MapLocation {
   id: string;
@@ -354,6 +354,15 @@ export default function ExploreMap({
     (mapInstance: google.maps.Map) => {
       setMap(mapInstance);
 
+      // Set fullscreen control position to bottom-right
+      if (window.google?.maps?.ControlPosition) {
+        mapInstance.setOptions({
+          fullscreenControlOptions: {
+            position: window.google.maps.ControlPosition.RIGHT_BOTTOM,
+          },
+        });
+      }
+
       if (mapLocations.length > 0) {
         const bounds = new window.google.maps.LatLngBounds();
         mapLocations.forEach(location => {
@@ -509,13 +518,124 @@ export default function ExploreMap({
     setSelectedLocation(location);
   }, []);
 
-  // Generate marker icon based on place type with color coding
+  // Generate marker icon - White 3D style marker
   const getMarkerIcon = useCallback((location: MapLocation) => {
-    return generateEmojiMarker({
-      size: 32,
-      color: getPlaceTypeColor(location.type),
-      emoji: getPlaceTypeEmoji(location.type),
-    });
+    const markerSize = 44;
+
+    // Color for place types
+    const colorMap: Record<string, string> = {
+      stay: '#3b82f6',      // blue
+      activity: '#10b981',  // green
+      food: '#ef4444',      // red
+      transport: '#8b5cf6', // purple
+      note: '#f59e0b',      // amber
+    };
+
+    // Lucide-style icon SVGs
+    const icons: { [key: string]: string } = {
+      stay: `
+        <!-- Hotel icon -->
+        <rect x="18" y="16" width="8" height="8" stroke="currentColor" stroke-width="2" fill="none" rx="1"/>
+        <line x1="20" y1="18" x2="20" y2="19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="22" y1="18" x2="22" y2="19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="24" y1="18" x2="24" y2="19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="20" y1="21" x2="20" y2="22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="22" y1="21" x2="22" y2="22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="24" y1="21" x2="24" y2="22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      `,
+      activity: `
+        <!-- Trees icon -->
+        <path d="M 22 14 L 19 18 L 20 18 L 17 21 L 19 21 L 16 24 L 28 24 L 25 21 L 27 21 L 24 18 L 25 18 Z" fill="currentColor"/>
+        <line x1="22" y1="24" x2="22" y2="27" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      `,
+      food: `
+        <!-- Utensils icon -->
+        <path d="M 19 16 L 19 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M 19 16 L 17.5 17.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M 19 16 L 20.5 17.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M 19 20 L 19 26" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M 25 16 L 25 19 C 25 20 24 21 22.5 21 L 22.5 26" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      `,
+      transport: `
+        <!-- Car icon -->
+        <path d="M 16 22 L 17 18 L 27 18 L 28 22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="14" y="22" width="16" height="4" stroke="currentColor" stroke-width="2" fill="none" rx="1"/>
+        <circle cx="18" cy="24" r="1.5" fill="currentColor"/>
+        <circle cx="26" cy="24" r="1.5" fill="currentColor"/>
+      `,
+      note: `
+        <!-- Note icon -->
+        <path d="M 18 16 L 23 16 L 26 19 L 26 27 L 18 27 Z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M 23 16 L 23 19 L 26 19" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <line x1="20" y1="21" x2="24" y2="21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="20" y1="23" x2="24" y2="23" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      `,
+    };
+
+    const iconPath = icons[location.type] || icons['note'];
+    const accentColor = colorMap[location.type] || '#001A6E';
+
+    const svgContent = `
+      <svg width="${markerSize}" height="${markerSize * 1.4}" viewBox="0 0 44 62" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <!-- Drop shadow -->
+          <filter id="shadow-${location.id}" x="-50%" y="-30%" width="200%" height="160%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="2.5"/>
+            <feOffset dx="0" dy="4" result="offsetblur"/>
+            <feComponentTransfer>
+              <feFuncA type="linear" slope="0.35"/>
+            </feComponentTransfer>
+            <feMerge>
+              <feMergeNode/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+          <!-- Gradient for 3D effect -->
+          <linearGradient id="grad-${location.id}" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#f8f9fa;stop-opacity:1" />
+          </linearGradient>
+          <!-- Shine gradient -->
+          <linearGradient id="shine-${location.id}" x1="30%" y1="0%" x2="70%" y2="100%">
+            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.7" />
+            <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0" />
+          </linearGradient>
+        </defs>
+        
+        <g filter="url(#shadow-${location.id})">
+          <!-- Main white pin shape with gradient -->
+          <path d="M 22,4 C 13,4 6,11 6,20 C 6,30 22,50 22,50 C 22,50 38,30 38,20 C 38,11 31,4 22,4 Z" 
+                fill="url(#grad-${location.id})" 
+                stroke="#d1d5db" 
+                stroke-width="1.5"/>
+          
+          <!-- Inner colored circle with subtle gradient -->
+          <circle cx="22" cy="19" r="11" fill="${accentColor}" opacity="0.12"/>
+          <circle cx="22" cy="19" r="9" fill="${accentColor}" opacity="0.15"/>
+          
+          <!-- Shine/highlight for 3D effect -->
+          <ellipse cx="18" cy="12" rx="8" ry="6" fill="url(#shine-${location.id})" opacity="0.6"/>
+          
+          <!-- Icon with color -->
+          <g style="color: ${accentColor}">
+            ${iconPath}
+          </g>
+          
+          <!-- Subtle inner stroke for depth -->
+          <path d="M 22,4 C 13,4 6,11 6,20 C 6,30 22,50 22,50 C 22,50 38,30 38,20 C 38,11 31,4 22,4 Z" 
+                fill="none" 
+                stroke="white" 
+                stroke-width="2" 
+                opacity="0.5"/>
+        </g>
+      </svg>
+    `;
+
+    return {
+      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgContent)}`,
+      scaledSize: new window.google.maps.Size(markerSize, markerSize * 1.4),
+      anchor: new window.google.maps.Point(markerSize / 2, markerSize * 1.4),
+    };
   }, []);
 
   const getTypeLabel = (type: string) => {
@@ -603,27 +723,10 @@ export default function ExploreMap({
           <div className="p-3 min-w-[280px] max-w-[320px]">
             {/* Place Type Badge */}
             <div className="flex items-center gap-2 mb-3">
-              <span
-                className="px-3 py-1 rounded-full text-xs font-semibold text-white"
-                style={{
-                  backgroundColor:
-                    selectedLocation.type === 'stay'
-                      ? '#2563eb'
-                      : selectedLocation.type === 'activity'
-                      ? '#16a34a'
-                      : selectedLocation.type === 'food'
-                      ? '#dc2626'
-                      : selectedLocation.type === 'transport'
-                      ? '#7c3aed'
-                      : selectedLocation.type === 'note'
-                      ? '#eab308'
-                      : '#6366f1',
-                }}
-              >
-                {getPlaceTypeEmoji(selectedLocation.type)}{' '}
+              <span className="px-3 py-1 rounded-lg text-xs font-semibold text-white bg-[#001A6E]">
                 {getTypeLabel(selectedLocation.type)}
               </span>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-gray-500 font-medium">
                 {selectedLocation.day}
               </span>
             </div>
@@ -636,14 +739,14 @@ export default function ExploreMap({
             {/* Address */}
             {selectedLocation.address && (
               <p className="text-xs text-gray-600 mb-3 line-clamp-2">
-                📍 {selectedLocation.address}
+                {selectedLocation.address}
               </p>
             )}
 
             {/* Journey Info */}
             <div className="border-t border-gray-200 pt-3 space-y-2">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="w-6 h-6 bg-[#001A6E] rounded-full flex items-center justify-center flex-shrink-0">
                   <ClipboardListIcon className="w-3 h-3 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -673,7 +776,7 @@ export default function ExploreMap({
                 onClick={() =>
                   router.push(`/journey/${selectedLocation.journey.id}`)
                 }
-                className="w-full mt-2 px-3 py-2 bg-[#001A6E] text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
+                className="w-full mt-2 px-3 py-2 bg-[#001A6E] text-white text-xs font-medium rounded-md hover:bg-[#002b9e] transition-colors shadow-sm hover:shadow-md"
               >
                 View Full Journey
               </button>

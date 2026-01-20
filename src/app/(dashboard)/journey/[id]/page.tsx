@@ -13,6 +13,7 @@ import { Hotel, Trees, UtensilsCrossed, Car, FileText } from 'lucide-react';
 import PhotoGallery from '@/components/media/PhotoGallery';
 import { Modal } from '@/components/ui';
 import { JourneyPosts } from '@/components/journey';
+import { EditIcon, AlertCircleIcon, MapPinIcon, ImageIcon, CloseIcon } from '@/components/icons';
 
 interface Location {
   id: string;

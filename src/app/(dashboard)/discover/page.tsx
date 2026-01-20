@@ -9,6 +9,11 @@ import {
   Search,
   Navigation,
   RefreshCw,
+  Hotel,
+  TreePine,
+  UtensilsCrossed,
+  Car,
+  FileText,
 } from 'lucide-react';
 
 import ExploreMap from '@/components/maps/ExploreMap';
@@ -428,9 +433,9 @@ export default function DiscoverPage() {
           </div>
 
           {/* Map Controls */}
-          <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+          <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
             <motion.button
-              initial={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               className="bg-white rounded-lg shadow-lg p-3 hover:shadow-xl transition-all duration-200"
@@ -445,7 +450,7 @@ export default function DiscoverPage() {
 
             {/* Location Controls */}
             <motion.button
-              initial={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 }}
               onClick={refreshLocation}
@@ -462,7 +467,7 @@ export default function DiscoverPage() {
 
             {/* Auto-Search Toggle */}
             <motion.button
-              initial={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
               onClick={() => setAutoSearch(!autoSearch)}
@@ -480,7 +485,7 @@ export default function DiscoverPage() {
 
             {/* Global Search Button */}
             <motion.button
-              initial={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
               onClick={() => {
@@ -498,126 +503,6 @@ export default function DiscoverPage() {
             </motion.button>
           </div>
 
-          {/* Map Statistics & Legend */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="absolute bottom-4 left-4 z-10 bg-white rounded-lg shadow-lg p-4 max-w-xs"
-          >
-            {/* Statistics */}
-            <div className="mb-4 pb-3 border-b border-gray-200">
-              <h4 className="text-xs font-semibold text-gray-700 mb-2">
-                Map Statistics
-              </h4>
-              <div className="grid grid-cols-2 gap-2 text-xs mb-2">
-                <div className="bg-blue-50 rounded-md px-2 py-1.5">
-                  <div className="text-gray-500">Journeys</div>
-                  <div className="font-bold text-gray-900">
-                    {sortedJourneys.length}
-                  </div>
-                </div>
-                <div className="bg-green-50 rounded-md px-2 py-1.5">
-                  <div className="text-gray-500">Places</div>
-                  <div className="font-bold text-gray-900">
-                    {sortedJourneys.reduce(
-                      (total, journey) =>
-                        total +
-                        (journey.days?.reduce(
-                          (dayTotal: number, day: JourneyDay) =>
-                            dayTotal + (day.places?.length || 0),
-                          0
-                        ) || 0),
-                      0
-                    )}
-                  </div>
-                </div>
-              </div>
-              {/* Location Status */}
-              <div className="text-xs">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <div
-                    className={`w-2 h-2 rounded-full ${
-                      currentLocation
-                        ? 'bg-green-500'
-                        : locationLoading
-                        ? 'bg-yellow-500 animate-pulse'
-                        : 'bg-red-500'
-                    }`}
-                  ></div>
-                  <span className="text-gray-600">
-                    {currentLocation
-                      ? 'Location found'
-                      : locationLoading
-                      ? 'Finding location...'
-                      : 'Location unavailable'}
-                  </span>
-                </div>
-                {currentLocation && (
-                  <div className="text-gray-500 ml-3.5">
-                    {currentLocation.latitude.toFixed(4)},{' '}
-                    {currentLocation.longitude.toFixed(4)}
-                  </div>
-                )}
-                {journeysLoading && (
-                  <div className="flex items-center gap-1.5 text-blue-600 ml-3.5 animate-pulse">
-                    <SpinnerIcon className="w-3 h-3" />
-                    <span>Searching area...</span>
-                  </div>
-                )}
-                <div className="text-gray-500 ml-3.5 mt-1">
-                  Radius: {currentRadius}km
-                </div>
-                <div className="flex items-center gap-1.5 ml-3.5 mt-1">
-                  <div
-                    className={`w-2 h-2 rounded-full ${
-                      autoSearch ? 'bg-green-500' : 'bg-gray-400'
-                    }`}
-                  ></div>
-                  <span className="text-gray-500 text-xs">
-                    Auto-search: {autoSearch ? 'ON' : 'OFF'}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Legend */}
-            <h4 className="text-xs font-semibold text-gray-700 mb-2">
-              Place Types
-            </h4>
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-[#001A6E] rounded-full flex items-center justify-center text-xs">
-                  🏨
-                </div>
-                <span className="text-xs text-gray-600">Accommodation</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center text-xs">
-                  🎯
-                </div>
-                <span className="text-xs text-gray-600">Activity</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center text-xs">
-                  🍽️
-                </div>
-                <span className="text-xs text-gray-600">Food & Dining</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center text-xs">
-                  🚗
-                </div>
-                <span className="text-xs text-gray-600">Transport</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-yellow-600 rounded-full flex items-center justify-center text-xs">
-                  📝
-                </div>
-                <span className="text-xs text-gray-600">Notes</span>
-              </div>
-            </div>
-          </motion.div>
         </div>
 
         {/* RIGHT SIDEBAR — now a sibling in the flex layout. Only this area scrolls. */}
@@ -861,7 +746,7 @@ export default function DiscoverPage() {
                                     whileHover={{ scale: 1.05 }}
                                     className="inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 text-blue-700 rounded-full text-xs font-semibold shadow-sm"
                                   >
-                                    <span>🏨</span>
+                                    <Hotel className="w-3.5 h-3.5" />
                                     <span>{placeTypes.stay}</span>
                                   </motion.div>
                                 )}
@@ -870,7 +755,7 @@ export default function DiscoverPage() {
                                     whileHover={{ scale: 1.05 }}
                                     className="inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-green-50 to-green-100 border border-green-200 text-green-700 rounded-full text-xs font-semibold shadow-sm"
                                   >
-                                    <span>🎯</span>
+                                    <TreePine className="w-3.5 h-3.5" />
                                     <span>{placeTypes.activity}</span>
                                   </motion.div>
                                 )}
@@ -879,7 +764,7 @@ export default function DiscoverPage() {
                                     whileHover={{ scale: 1.05 }}
                                     className="inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-red-50 to-red-100 border border-red-200 text-red-700 rounded-full text-xs font-semibold shadow-sm"
                                   >
-                                    <span>🍽️</span>
+                                    <UtensilsCrossed className="w-3.5 h-3.5" />
                                     <span>{placeTypes.food}</span>
                                   </motion.div>
                                 )}
@@ -888,7 +773,7 @@ export default function DiscoverPage() {
                                     whileHover={{ scale: 1.05 }}
                                     className="inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 text-purple-700 rounded-full text-xs font-semibold shadow-sm"
                                   >
-                                    <span>🚗</span>
+                                    <Car className="w-3.5 h-3.5" />
                                     <span>{placeTypes.transport}</span>
                                   </motion.div>
                                 )}
@@ -897,7 +782,7 @@ export default function DiscoverPage() {
                                     whileHover={{ scale: 1.05 }}
                                     className="inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-200 text-yellow-700 rounded-full text-xs font-semibold shadow-sm"
                                   >
-                                    <span>📝</span>
+                                    <FileText className="w-3.5 h-3.5" />
                                     <span>{placeTypes.note}</span>
                                   </motion.div>
                                 )}
