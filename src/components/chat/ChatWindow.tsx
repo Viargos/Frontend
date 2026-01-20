@@ -318,7 +318,7 @@ export default function ChatWindow({
                       className="w-full h-full rounded-full object-cover border-4 border-blue-100 shadow-lg"
                     />
                   ) : (
-                    <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-3xl font-bold border-4 border-blue-100 shadow-lg">
+                    <div className="w-full h-full rounded-full bg-[#001A6E] flex items-center justify-center text-white text-3xl font-bold border-4 border-blue-100 shadow-lg">
                       {(chat.name || chat.username).charAt(0).toUpperCase()}
                     </div>
                   )}

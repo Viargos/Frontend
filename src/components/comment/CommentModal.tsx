@@ -154,7 +154,7 @@ export default function CommentModal({
                     className="w-8 h-8 rounded-full object-cover"
                   />
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs">
+                  <div className="w-8 h-8 rounded-full bg-[#001A6E] flex items-center justify-center text-white font-bold text-xs">
                     {post.user.username.charAt(0).toUpperCase()}
                   </div>
                 )}

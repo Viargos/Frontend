@@ -182,7 +182,7 @@ export default function ProfileHeader({
                 className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-lg absolute left-0 top-0 object-cover"
               />
             ) : (
-              <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-lg absolute left-0 top-0 bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white text-lg sm:text-xl lg:text-2xl font-bold">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-lg absolute left-0 top-0 bg-[#001A6E] flex items-center justify-center text-white text-lg sm:text-xl lg:text-2xl font-bold">
                 {profile.username?.charAt(0).toUpperCase() || 'U'}
               </div>
             )}

@@ -86,8 +86,8 @@ export default function PostCard({
                                 className="w-10 h-10 rounded-full object-cover"
                             />
                         ) : (
-                            <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                                <span className="text-gray-600 font-medium text-sm">
+                            <div className="w-10 h-10 bg-[#001A6E] rounded-full flex items-center justify-center">
+                                <span className="text-white font-medium text-sm">
                                     {post.user.username.charAt(0).toUpperCase()}
                                 </span>
                             </div>

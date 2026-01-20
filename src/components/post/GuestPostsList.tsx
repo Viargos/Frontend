@@ -255,7 +255,7 @@ export default function GuestPostsList({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-8 text-center"
+            className="bg-gradient-to-r from-indigo-50 to-blue-50 border border-blue-200 rounded-xl p-8 text-center"
           >
             <div className="max-w-md mx-auto">
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
