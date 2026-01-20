@@ -26,6 +26,7 @@ interface Location {
   address?: string;
   day?: string; // Add day property to identify which day the location belongs to
   description?: string; // For accommodation type detection
+  photos?: string[]; // Photos for the location
 }
 
 interface JourneyMapProps {
@@ -326,76 +327,126 @@ export default function JourneyMap({
     isNew: boolean = false,
     location?: Location
   ) => {
-    const markerSize = isNew ? 56 : 50; // Increased size from 44/40 to 56/50
-    const pulseAnimation = isNew ? '<circle cx="25" cy="25" r="23" fill="#001A6E" opacity="0.3"><animate attributeName="r" values="23;28;23" dur="1.5s" repeatCount="indefinite"/></circle>' : '';
+    const markerSize = 44;
 
-    // Icon SVGs for each category (Lucide-style icons)
+    // Color for place types
+    const colorMap: Record<string, string> = {
+      stay: '#3b82f6',      // blue
+      activity: '#10b981',  // green
+      food: '#ef4444',      // red
+      transport: '#8b5cf6', // purple
+      note: '#f59e0b',      // amber
+    };
+
+    // Lucide-style icon SVGs
     const icons: { [key: string]: string } = {
       stay: `
-        <!-- Hotel/Building icon -->
-        <rect x="9" y="6" width="8" height="10" stroke="white" stroke-width="1.5" fill="none" rx="1"/>
-        <line x1="11" y1="8" x2="11" y2="10" stroke="white" stroke-width="1.5"/>
-        <line x1="13" y1="8" x2="13" y2="10" stroke="white" stroke-width="1.5"/>
-        <line x1="15" y1="8" x2="15" y2="10" stroke="white" stroke-width="1.5"/>
-        <line x1="11" y1="12" x2="11" y2="14" stroke="white" stroke-width="1.5"/>
-        <line x1="13" y1="12" x2="13" y2="14" stroke="white" stroke-width="1.5"/>
-        <line x1="15" y1="12" x2="15" y2="14" stroke="white" stroke-width="1.5"/>
-        <rect x="11" y="14" width="4" height="2" fill="white"/>
+        <!-- Hotel icon -->
+        <rect x="18" y="16" width="8" height="8" stroke="currentColor" stroke-width="2" fill="none" rx="1"/>
+        <line x1="20" y1="18" x2="20" y2="19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="22" y1="18" x2="22" y2="19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="24" y1="18" x2="24" y2="19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="20" y1="21" x2="20" y2="22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="22" y1="21" x2="22" y2="22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="24" y1="21" x2="24" y2="22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
       `,
       activity: `
         <!-- Trees icon -->
-        <path d="M13 3 L15 6 L14 6 L16 9 L15 9 L17 12 L11 12 L13 9 L12 9 L14 6 L13 6 Z" fill="white"/>
-        <rect x="12.5" y="12" width="1" height="4" fill="white"/>
+        <path d="M 22 14 L 19 18 L 20 18 L 17 21 L 19 21 L 16 24 L 28 24 L 25 21 L 27 21 L 24 18 L 25 18 Z" fill="currentColor"/>
+        <line x1="22" y1="24" x2="22" y2="27" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       `,
       food: `
-        <!-- Utensils Crossed icon -->
-        <path d="M11 4 v6 M11 4 L9 6 M11 4 L13 6 M11 10 v6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-        <path d="M15 4 v4 c0 1-1 2-2 2 v6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <!-- Utensils icon -->
+        <path d="M 19 16 L 19 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M 19 16 L 17.5 17.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M 19 16 L 20.5 17.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M 19 20 L 19 26" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M 25 16 L 25 19 C 25 20 24 21 22.5 21 L 22.5 26" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       `,
       transport: `
         <!-- Car icon -->
-        <path d="M7 11 L8 7 L18 7 L19 11 M5 11 h16 v5 h-16 z" stroke="white" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
-        <circle cx="9" cy="14" r="1.5" fill="white"/>
-        <circle cx="17" cy="14" r="1.5" fill="white"/>
-        <line x1="5" y1="16" x2="5" y2="17" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="21" y1="16" x2="21" y2="17" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M 16 22 L 17 18 L 27 18 L 28 22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="14" y="22" width="16" height="4" stroke="currentColor" stroke-width="2" fill="none" rx="1"/>
+        <circle cx="18" cy="24" r="1.5" fill="currentColor"/>
+        <circle cx="26" cy="24" r="1.5" fill="currentColor"/>
       `,
       note: `
-        <!-- Document/Note icon -->
-        <path d="M9 4 h6 l3 3 v9 h-9 z" stroke="white" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
-        <path d="M15 4 v3 h3" stroke="white" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
-        <line x1="11" y1="10" x2="15" y2="10" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="11" y1="12" x2="15" y2="12" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="11" y1="14" x2="13" y2="14" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        <!-- Note icon -->
+        <path d="M 18 16 L 23 16 L 26 19 L 26 27 L 18 27 Z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M 23 16 L 23 19 L 26 19" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <line x1="20" y1="21" x2="24" y2="21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="20" y1="23" x2="24" y2="23" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
       `,
     };
 
-    // Get the icon based on type
     const iconPath = icons[type] || icons['note'];
-    const markerColor = '#001A6E'; // Brand blue for all markers
+    const accentColor = colorMap[type] || '#001A6E';
+    const locationId = location?.id || Math.random().toString();
+
+    const svgContent = `
+      <svg width="${markerSize}" height="${markerSize * 1.4}" viewBox="0 0 44 62" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <!-- Drop shadow -->
+          <filter id="shadow-${locationId}" x="-50%" y="-30%" width="200%" height="160%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="2.5"/>
+            <feOffset dx="0" dy="4" result="offsetblur"/>
+            <feComponentTransfer>
+              <feFuncA type="linear" slope="0.35"/>
+            </feComponentTransfer>
+            <feMerge>
+              <feMergeNode/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+          <!-- Gradient for 3D effect -->
+          <linearGradient id="grad-${locationId}" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#f8f9fa;stop-opacity:1" />
+          </linearGradient>
+          <!-- Shine gradient -->
+          <linearGradient id="shine-${locationId}" x1="30%" y1="0%" x2="70%" y2="100%">
+            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.7" />
+            <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0" />
+          </linearGradient>
+        </defs>
+        
+        <g filter="url(#shadow-${locationId})">
+          <!-- Main white pin shape with gradient -->
+          <path d="M 22,4 C 13,4 6,11 6,20 C 6,30 22,50 22,50 C 22,50 38,30 38,20 C 38,11 31,4 22,4 Z" 
+                fill="url(#grad-${locationId})" 
+                stroke="#d1d5db" 
+                stroke-width="1.5"/>
+          
+          <!-- Inner colored circle with subtle gradient -->
+          <circle cx="22" cy="19" r="11" fill="${accentColor}" opacity="0.12"/>
+          <circle cx="22" cy="19" r="9" fill="${accentColor}" opacity="0.15"/>
+          
+          <!-- Shine/highlight for 3D effect -->
+          <ellipse cx="18" cy="12" rx="8" ry="6" fill="url(#shine-${locationId})" opacity="0.6"/>
+          
+          <!-- Icon with color -->
+          <g style="color: ${accentColor}">
+            ${iconPath}
+          </g>
+          
+          <!-- Subtle inner stroke for depth -->
+          <path d="M 22,4 C 13,4 6,11 6,20 C 6,30 22,50 22,50 C 22,50 38,30 38,20 C 38,11 31,4 22,4 Z" 
+                fill="none" 
+                stroke="white" 
+                stroke-width="2" 
+                opacity="0.5"/>
+        </g>
+        ${isNew ? `<circle cx="22" cy="19" r="16" fill="${accentColor}" opacity="0.2"><animate attributeName="r" values="16;20;16" dur="1.5s" repeatCount="indefinite"/></circle>` : ''}
+      </svg>
+    `;
 
     return {
-      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-        <svg width="${markerSize}" height="${markerSize}" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
-          ${pulseAnimation}
-          <g transform="translate(25, 25)">
-            <!-- Pin shape -->
-            <path d="M 0,-18 C -10,-18 -15,-10 -15,0 C -15,8 0,18 0,18 C 0,18 15,8 15,0 C 15,-10 10,-18 0,-18 Z" 
-                  fill="${markerColor}" 
-                  stroke="white" 
-                  stroke-width="2.5"/>
-            <!-- Icon -->
-            <g transform="translate(-13, -15)">
-              ${iconPath}
-            </g>
-          </g>
-        </svg>
-      `)}`,
+      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgContent)}`,
       scaledSize: window.google?.maps?.Size
-        ? new window.google.maps.Size(markerSize, markerSize)
+        ? new window.google.maps.Size(markerSize, markerSize * 1.4)
         : undefined,
       anchor: window.google?.maps?.Point
-        ? new window.google.maps.Point(markerSize / 2, markerSize)
+        ? new window.google.maps.Point(markerSize / 2, markerSize * 1.4)
         : undefined,
     };
   };
@@ -576,24 +627,61 @@ export default function JourneyMap({
           position={{ lat: selectedLocation.lat, lng: selectedLocation.lng }}
           onCloseClick={() => setSelectedLocation(null)}
         >
-          <div className="p-2">
-            <h3 className="font-semibold text-gray-900">
+          <div className="p-3 min-w-[280px] max-w-[320px]">
+            {/* Place Type and Day */}
+            <div className="flex items-center gap-2 mb-2">
+              <span className="px-3 py-1 rounded-lg text-xs font-semibold text-white bg-[#001A6E] capitalize">
+                {selectedLocation.type === 'journeyLocation'
+                  ? 'Journey Location'
+                  : selectedLocation.type.replace(/([A-Z])/g, ' $1').trim()}
+              </span>
+              {selectedLocation.day && (
+                <span className="text-xs text-gray-500 font-medium">
+                  {selectedLocation.day}
+                </span>
+              )}
+            </div>
+
+            {/* Place Name */}
+            <h3 className="font-bold text-gray-900 text-base mb-2">
               {selectedLocation.name}
             </h3>
+
+            {/* Address */}
             {selectedLocation.address && (
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-xs text-gray-600 mb-3 line-clamp-2">
                 {selectedLocation.address}
               </p>
             )}
-            <p className="text-xs text-gray-500 mt-1 capitalize">
-              {selectedLocation.type === 'journeyLocation'
-                ? 'Journey Location'
-                : selectedLocation.type.replace(/([A-Z])/g, ' $1').trim()}
-            </p>
-            {selectedLocation.day && (
-              <p className="text-xs font-medium text-blue-600 mt-1">
-                {selectedLocation.day}
-              </p>
+
+            {/* Photos Preview */}
+            {selectedLocation.photos && selectedLocation.photos.length > 0 && (
+              <div className="mb-3">
+                <div className="flex gap-1.5 overflow-x-auto">
+                  {selectedLocation.photos.slice(0, 3).map((photo, index) => (
+                    <div
+                      key={index}
+                      className="relative w-20 h-20 flex-shrink-0 rounded-md overflow-hidden bg-gray-100"
+                    >
+                      <img
+                        src={photo}
+                        alt={`${selectedLocation.name} photo ${index + 1}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  ))}
+                  {selectedLocation.photos.length > 3 && (
+                    <div className="w-20 h-20 flex-shrink-0 rounded-md bg-gray-100 flex items-center justify-center">
+                      <span className="text-xs text-gray-600 font-medium">
+                        +{selectedLocation.photos.length - 3}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
           </div>
         </InfoWindow>

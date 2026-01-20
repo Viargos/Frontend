@@ -743,6 +743,44 @@ export default function ExploreMap({
               </p>
             )}
 
+            {/* Photos Preview */}
+            {selectedLocation.place.media && selectedLocation.place.media.length > 0 && (
+              <div className="mb-3">
+                <div className="flex gap-1.5 overflow-x-auto">
+                  {selectedLocation.place.media
+                    .filter(m => m.type === 'image')
+                    .slice(0, 3)
+                    .map((media, index) => {
+                      const imageUrl = media.url.startsWith('http')
+                        ? media.url
+                        : `https://viargos.s3.us-east-2.amazonaws.com/${media.url}`;
+                      return (
+                        <div
+                          key={index}
+                          className="relative w-20 h-20 flex-shrink-0 rounded-md overflow-hidden bg-gray-100"
+                        >
+                          <img
+                            src={media.thumbnailUrl || imageUrl}
+                            alt={`${selectedLocation.name} photo ${index + 1}`}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      );
+                    })}
+                  {selectedLocation.place.media.filter(m => m.type === 'image').length > 3 && (
+                    <div className="w-20 h-20 flex-shrink-0 rounded-md bg-gray-100 flex items-center justify-center">
+                      <span className="text-xs text-gray-600 font-medium">
+                        +{selectedLocation.place.media.filter(m => m.type === 'image').length - 3}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Journey Info */}
             <div className="border-t border-gray-200 pt-3 space-y-2">
               <div className="flex items-center gap-2">

@@ -281,30 +281,35 @@ export default function CreateJourneyPage() {
                         label="Hotel / Stay"
                         isActive={activePlaceType === PlaceType.STAY}
                         onClick={() => addPlaceToActiveDay(PlaceType.STAY)}
+                        bgColor="#ffffff"
                       />
                       <PlanningCategory
                         icon={<Trees className="w-8 h-8" strokeWidth={2} color="#001A6E" />}
                         label="Places to go"
                         isActive={activePlaceType === PlaceType.ACTIVITY}
                         onClick={() => addPlaceToActiveDay(PlaceType.ACTIVITY)}
+                        bgColor="#ffffff"
                       />
                       <PlanningCategory
                         icon={<UtensilsCrossed className="w-8 h-8" strokeWidth={2} color="#001A6E" />}
                         label="Food"
                         isActive={activePlaceType === PlaceType.FOOD}
                         onClick={() => addPlaceToActiveDay(PlaceType.FOOD)}
+                        bgColor="#ffffff"
                       />
                       <PlanningCategory
                         icon={<Car className="w-8 h-8" strokeWidth={2} color="#001A6E" />}
                         label="Transport"
                         isActive={activePlaceType === PlaceType.TRANSPORT}
                         onClick={() => addPlaceToActiveDay(PlaceType.TRANSPORT)}
+                        bgColor="#ffffff"
                       />
                       <PlanningCategory
                         icon={<FileText className="w-8 h-8" strokeWidth={2} color="#001A6E" />}
                         label="Notes"
                         isActive={activePlaceType === PlaceType.NOTE}
                         onClick={() => addPlaceToActiveDay(PlaceType.NOTE)}
+                        bgColor="#ffffff"
                       />
                     </div>
                   </div>

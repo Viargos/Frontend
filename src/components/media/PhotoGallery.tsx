@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ImageIcon, XIcon } from '@/components/icons';
+import { ImageIcon, XIcon, ChevronLeftIcon, ChevronRightIcon } from '@/components/icons';
 
 interface PhotoGalleryProps {
   photos: string[];
@@ -17,6 +17,8 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
   className = '',
   showRemoveButton = false,
 }) => {
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+
   if (!photos || photos.length === 0) {
     return (
       <div className={`w-full ${className}`}>
@@ -25,62 +27,147 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
     );
   }
 
+  const handlePrevImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (selectedImageIndex !== null) {
+      setSelectedImageIndex((selectedImageIndex - 1 + photos.length) % photos.length);
+    }
+  };
+
+  const handleNextImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (selectedImageIndex !== null) {
+      setSelectedImageIndex((selectedImageIndex + 1) % photos.length);
+    }
+  };
+
   return (
-    <div className={`w-full ${className}`}>
-      <div className="mb-3">
-        <h4 className="text-sm font-medium text-gray-900">
-          Photos ({photos.length})
-        </h4>
-      </div>
+    <>
+      <div className={`w-full ${className}`}>
+        <div className="mb-3">
+          <h4 className="text-sm font-medium text-gray-900">
+            Photos ({photos.length})
+          </h4>
+        </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
-        <AnimatePresence>
-          {photos.map((photo, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              className="relative group aspect-square bg-gray-100 rounded-lg overflow-hidden"
-            >
-              {/* Actual image using final public URL, with graceful fallback */}
-              {photo && typeof photo === 'string' ? (
-                <img
-                  src={photo}
-                  alt={`Journey photo ${index + 1}`}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    // Hide broken image; gradient background from parent will show through
-                    (e.currentTarget as HTMLImageElement).style.display = 'none';
-                  }}
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
-                  <ImageIcon className="w-8 h-8 text-gray-400" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          <AnimatePresence>
+            {photos.map((photo, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                className="relative group aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
+                onClick={() => setSelectedImageIndex(index)}
+              >
+                {/* Actual image using final public URL, with graceful fallback */}
+                {photo && typeof photo === 'string' ? (
+                  <img
+                    src={photo}
+                    alt={`Journey photo ${index + 1}`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // Hide broken image; gradient background from parent will show through
+                      (e.currentTarget as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+                    <ImageIcon className="w-8 h-8 text-gray-400" />
+                  </div>
+                )}
+
+                {/* Remove button */}
+                {showRemoveButton && onRemovePhoto && (
+                  <motion.button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRemovePhoto(index);
+                    }}
+                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm z-10"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <XIcon className="w-3 h-3" />
+                  </motion.button>
+                )}
+
+                {/* Photo indicator */}
+                <div className="absolute bottom-1 left-1 text-xs text-white bg-black/50 px-1 py-0.5 rounded text-[10px]">
+                  {index + 1}
                 </div>
-              )}
 
-              {/* Remove button */}
-              {showRemoveButton && onRemovePhoto && (
-                <motion.button
-                  onClick={() => onRemovePhoto(index)}
-                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <XIcon className="w-3 h-3" />
-                </motion.button>
-              )}
-
-              {/* Photo indicator */}
-              <div className="absolute bottom-1 left-1 text-xs text-white bg-black/50 px-1 py-0.5 rounded text-[10px]">
-                {index + 1}
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+                {/* Hover overlay */}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                  <span className="text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                    Click to view
+                  </span>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
       </div>
-    </div>
+
+      {/* Full Screen Lightbox */}
+      <AnimatePresence>
+        {selectedImageIndex !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
+            onClick={() => setSelectedImageIndex(null)}
+          >
+            {/* Close button */}
+            <button
+              onClick={() => setSelectedImageIndex(null)}
+              className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-10"
+            >
+              <XIcon className="w-8 h-8" />
+            </button>
+
+            {/* Image counter */}
+            <div className="absolute top-4 left-4 text-white text-sm bg-black/50 px-3 py-1 rounded-full">
+              {selectedImageIndex + 1} / {photos.length}
+            </div>
+
+            {/* Previous button */}
+            {photos.length > 1 && (
+              <button
+                onClick={handlePrevImage}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors bg-black/50 rounded-full p-3"
+              >
+                <ChevronLeftIcon className="w-8 h-8" />
+              </button>
+            )}
+
+            {/* Image */}
+            <motion.img
+              key={selectedImageIndex}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              src={photos[selectedImageIndex]}
+              alt={`Photo ${selectedImageIndex + 1}`}
+              className="max-w-full max-h-full object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+
+            {/* Next button */}
+            {photos.length > 1 && (
+              <button
+                onClick={handleNextImage}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors bg-black/50 rounded-full p-3"
+              >
+                <ChevronRightIcon className="w-8 h-8" />
+              </button>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 

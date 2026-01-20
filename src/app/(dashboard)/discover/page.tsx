@@ -739,6 +739,55 @@ export default function DiscoverPage() {
                                 </div>
                               </div>
 
+                              {/* Journey Images Preview */}
+                              {(() => {
+                                const allImages: string[] = [];
+                                journey.days?.forEach((day: JourneyDay) => {
+                                  day.places?.forEach((place: JourneyPlace) => {
+                                    place.media?.forEach((media) => {
+                                      if (media.type === 'image') {
+                                        const imageUrl = media.url.startsWith('http')
+                                          ? media.url
+                                          : `https://viargos.s3.us-east-2.amazonaws.com/${media.url}`;
+                                        allImages.push(media.thumbnailUrl || imageUrl);
+                                      }
+                                    });
+                                  });
+                                });
+
+                                if (allImages.length > 0) {
+                                  return (
+                                    <div className="mb-3 -mx-4 px-4 overflow-hidden">
+                                      <div className="flex gap-1.5 overflow-x-auto pb-2 scrollbar-hide">
+                                        {allImages.slice(0, 4).map((imageUrl, idx) => (
+                                          <div
+                                            key={idx}
+                                            className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 shadow-sm"
+                                          >
+                                            <img
+                                              src={imageUrl}
+                                              alt={`Journey photo ${idx + 1}`}
+                                              className="w-full h-full object-cover"
+                                              onError={(e) => {
+                                                (e.currentTarget as HTMLImageElement).style.display = 'none';
+                                              }}
+                                            />
+                                          </div>
+                                        ))}
+                                        {allImages.length > 4 && (
+                                          <div className="relative w-20 h-20 flex-shrink-0 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center shadow-sm">
+                                            <span className="text-sm text-gray-600 font-bold">
+                                              +{allImages.length - 4}
+                                            </span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              })()}
+
                               {/* Place Types Badges */}
                               <div className="flex flex-wrap gap-1.5 mb-3">
                                 {placeTypes.stay > 0 && (

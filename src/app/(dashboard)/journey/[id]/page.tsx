@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
-import { JourneyMapWebGL } from '@/components/maps';
+import { JourneyMap } from '@/components/maps';
 import { serviceFactory } from '@/lib/services/service-factory';
 import { Journey } from '@/types/journey.types';
 import { format } from 'date-fns';
@@ -270,17 +270,37 @@ export default function JourneyDetailsPage() {
     const journeyLocations = extractJourneyLocations(journey);
 
     // Convert to Location format expected by map
-    return journeyLocations.map(loc => ({
-      id: loc.id,
-      name: loc.name,
-      lat: loc.lat,
-      lng: loc.lng,
-      type: loc.type,
-      address: loc.address,
-      day: loc.day,
-      startTime: loc.startTime,
-      endTime: loc.endTime,
-    }));
+    return journeyLocations.map(loc => {
+      // Find the original place to get media data
+      let photos: string[] = [];
+      if (journey.days) {
+        for (const day of journey.days) {
+          const place = day.places?.find(p => p.id === loc.placeId);
+          if (place && place.media) {
+            photos = place.media
+              .filter(m => m.type === 'image')
+              .map(m => m.url.startsWith('http') 
+                ? m.url 
+                : `https://viargos.s3.us-east-2.amazonaws.com/${m.url}`
+              );
+            break;
+          }
+        }
+      }
+
+      return {
+        id: loc.id,
+        name: loc.name,
+        lat: loc.lat,
+        lng: loc.lng,
+        type: loc.type,
+        address: loc.address,
+        day: loc.day,
+        startTime: loc.startTime,
+        endTime: loc.endTime,
+        photos: photos.length > 0 ? photos : undefined,
+      };
+    });
   };
 
   // Get journey center location for map
@@ -639,27 +659,26 @@ export default function JourneyDetailsPage() {
           </div>
         </div>
 
-        {/* Right Side - 3D WebGL Map */}
+        {/* Right Side - Map */}
         <div className="lg:col-span-1 rounded-lg overflow-hidden shadow-sm lg:sticky lg:top-6 lg:self-start">
           <div className="h-[calc(100vh-8rem)] min-h-[460px]">
-            <JourneyMapWebGL
+            <JourneyMap
               locations={getAllJourneyLocations()}
               center={getJourneyCenter()}
               onLocationClick={handleLocationClick}
-              enableAnimation={true}
             />
           </div>
         </div>
       </div>
 
-      {/* View Images Modal */}
+      {/* View Images Modal - Full Screen */}
       <Modal
         isOpen={!!selectedLocation}
         onClose={() => setSelectedLocation(null)}
-        className="max-w-3xl"
+        className="max-w-7xl w-full h-[90vh]"
       >
-        <div className="p-4 sm:p-6">
-          <div className="flex justify-between items-center mb-4">
+        <div className="p-4 sm:p-6 h-full flex flex-col">
+          <div className="flex justify-between items-center mb-4 flex-shrink-0">
             <h3 className="text-lg font-semibold text-gray-900">
               {selectedLocation?.name || 'Location images'}
             </h3>
@@ -672,13 +691,15 @@ export default function JourneyDetailsPage() {
           </div>
 
           {selectedLocation?.photos && selectedLocation.photos.length > 0 ? (
-            <PhotoGallery
-              // Use final public file URLs; if backend stored keys, convert via getImageUrl
-              photos={selectedLocation.photos
-                .filter(p => !!p)
-                .map(p => getImageUrl(p))}
-              showRemoveButton={false}
-            />
+            <div className="flex-1 overflow-auto">
+              <PhotoGallery
+                // Use final public file URLs; if backend stored keys, convert via getImageUrl
+                photos={selectedLocation.photos
+                  .filter(p => !!p)
+                  .map(p => getImageUrl(p))}
+                showRemoveButton={false}
+              />
+            </div>
           ) : (
             <p className="text-sm text-gray-500">No images available</p>
           )}
