@@ -72,7 +72,7 @@ export default function Loader({
 
   return (
     <motion.div
-      className={`${baseClassName} bg-[#001A6E] ${className}`}
+      className={`${baseClassName} bg-[#160E53] ${className}`}
       exit={exitAnimation}
     >
       <div className="text-center">
@@ -92,7 +92,7 @@ export default function Loader({
           <div
             className={`${config.logo} bg-white rounded-2xl mx-auto flex items-center justify-center shadow-2xl`}
           >
-            <span className={`${config.logoText} font-bold text-blue-600`}>
+            <span className={`${config.logoText} font-bold text-blue-[#160E53]`}>
               {logoText}
             </span>
           </div>

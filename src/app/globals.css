@@ -17,8 +17,8 @@
   --Gray-50: #f9fafb;
   --White: #fff;
   --Black: #000;
-  --Primary-Blue: #001a6e;
-  --Blue-600: #001a6e;
+  --Primary-Blue: #160E53;
+  --Blue-600: #160E53;
   --Blue-700: #001456;
   --Yellow-Banner: #ffcf56;
   --sds-size-depth-0: 0px;
@@ -42,6 +42,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-manrope: var(--font-manrope);
+  --font-century-gothic: Century Gothic, sans-serif;
   --font-outfit: var(--font-outfit);
 }
 
@@ -55,13 +56,13 @@
 body {
   background: var(--foreground);
   color: var(--foreground);
-  font-family: var(--font-manrope), Arial, Helvetica, sans-serif;
+  font-family: var(--font-century-gothic), Arial, Helvetica, sans-serif;
 }
 
 /* Placeholder styling */
 .login-input::placeholder {
   color: #160E53;
-  font-family: var(--font-manrope);
+  font-family: var(--font-century-gothic);
   font-size: 16px;
   font-weight: 400;
   line-height: 24px;
