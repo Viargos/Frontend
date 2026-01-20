@@ -56,7 +56,7 @@ export default function JourneyCard({ journey, onClose }: JourneyCardProps) {
             className="w-full h-48 object-cover"
           />
         ) : (
-          <div className="w-full h-48 bg-gradient-to-br from-[#3B82F6] to-[#001A6E] flex items-center justify-center">
+          <div className="w-full h-48 bg-gradient-to-br from-[#3B82F6] to-[#160E53] flex items-center justify-center">
             <JourneyIcon className="w-16 h-16 text-white opacity-50" />
           </div>
         )}
@@ -138,7 +138,7 @@ export default function JourneyCard({ journey, onClose }: JourneyCardProps) {
         {/* Action Buttons */}
         <div className="flex gap-3">
           <motion.button
-            className="flex-1 bg-[#001A6E] text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+            className="flex-1 bg-[#160E53] text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
             onClick={handleViewJourney}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}

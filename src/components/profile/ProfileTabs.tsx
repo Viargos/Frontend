@@ -47,7 +47,7 @@ export default function ProfileTabs({ activeTab, onTabChange }: ProfileTabsProps
           {/* Active indicator */}
           {activeTab === tab.id && (
             <motion.div
-              className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#001A6E] rounded-full"
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#160E53] rounded-full"
               layoutId="activeTab"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

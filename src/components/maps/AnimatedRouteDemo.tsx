@@ -98,7 +98,7 @@ export function AnimatedRouteDemo({ className = "" }: AnimatedRouteDemoProps) {
             onClick={() => setAnimationMode("sequential")}
             className={`px-3 py-2 rounded text-xs font-medium transition-all ${
               animationMode === "sequential"
-                ? "bg-[#001A6E] text-white shadow-md"
+                ? "bg-[#160E53] text-white shadow-md"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
@@ -111,7 +111,7 @@ export function AnimatedRouteDemo({ className = "" }: AnimatedRouteDemoProps) {
             onClick={() => setAnimationMode("traveling")}
             className={`px-3 py-2 rounded text-xs font-medium transition-all ${
               animationMode === "traveling"
-                ? "bg-[#001A6E] text-white shadow-md"
+                ? "bg-[#160E53] text-white shadow-md"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
@@ -124,7 +124,7 @@ export function AnimatedRouteDemo({ className = "" }: AnimatedRouteDemoProps) {
             onClick={() => setAnimationMode("continuous")}
             className={`px-3 py-2 rounded text-xs font-medium transition-all ${
               animationMode === "continuous"
-                ? "bg-[#001A6E] text-white shadow-md"
+                ? "bg-[#160E53] text-white shadow-md"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >

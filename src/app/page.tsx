@@ -160,7 +160,7 @@ export default function Home() {
                     variants={buttonVariants}
                     whileHover="hover"
                     whileTap="tap"
-                    className="px-4 py-3 sm:px-8 sm:py-4 bg-[#001A6E] text-white rounded-xl hover:bg-[#001456] transition-all font-semibold text-sm sm:text-lg shadow-lg cursor-pointer"
+                    className="px-4 py-3 sm:px-8 sm:py-4 bg-[#160E53] text-white rounded-xl hover:bg-[#001456] transition-all font-semibold text-sm sm:text-lg shadow-lg cursor-pointer"
                   >
                     Start Your Journey
                   </motion.button>

@@ -154,7 +154,7 @@ export default function ProfileJourneyCard({
     >
       <div className="flex flex-col h-full p-4">
         {/* Journey Image */}
-        <div className="relative w-full h-[200px] rounded-xl overflow-hidden bg-gradient-to-br from-[#001A6E]/10 to-[#001A6E]/5 flex-shrink-0 mb-4">
+        <div className="relative w-full h-[200px] rounded-xl overflow-hidden bg-gradient-to-br from-[#160E53]/10 to-[#160E53]/5 flex-shrink-0 mb-4">
           {journeyImage && !imageError ? (
             <img
               src={journeyImage}
@@ -163,9 +163,9 @@ export default function ProfileJourneyCard({
               onError={() => setImageError(true)}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#001A6E]/10 via-[#001A6E]/5 to-[#001A6E]/10">
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#160E53]/10 via-[#160E53]/5 to-[#160E53]/10">
               <div className="text-center">
-                <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-[#001A6E] flex items-center justify-center">
+                <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-[#160E53] flex items-center justify-center">
                   <MapPin className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-xs font-medium text-gray-500">Journey</div>
@@ -199,12 +199,12 @@ export default function ProfileJourneyCard({
 
             {/* Title and Arrow */}
             <div className="flex items-start justify-between">
-              <h3 className="text-lg font-bold text-gray-900 group-hover:text-[#001A6E] transition-colors duration-200 line-clamp-2 flex-1 pr-4">
+              <h3 className="text-lg font-bold text-gray-900 group-hover:text-[#160E53] transition-colors duration-200 line-clamp-2 flex-1 pr-4">
                 {journey.title || 'Journey'}
               </h3>
               {/* Arrow */}
               <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex-shrink-0">
-                <ArrowUpRight className="w-5 h-5 text-gray-400 group-hover:text-[#001A6E]" />
+                <ArrowUpRight className="w-5 h-5 text-gray-400 group-hover:text-[#160E53]" />
               </div>
             </div>
 
@@ -224,7 +224,7 @@ export default function ProfileJourneyCard({
             <div
               className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
                 status === "completed"
-                  ? "bg-[#001A6E]/10 text-[#001A6E] border border-[#001A6E]/20"
+                  ? "bg-[#160E53]/10 text-[#160E53] border border-[#160E53]/20"
                   : "bg-yellow-100 text-yellow-700 border border-yellow-200"
               }`}
             >
@@ -233,7 +233,7 @@ export default function ProfileJourneyCard({
 
             {/* Highlight Badge */}
             {highlight && (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#001A6E]/10 text-[#001A6E] border border-[#001A6E]/20">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#160E53]/10 text-[#160E53] border border-[#160E53]/20">
                 <Sparkles className="w-3 h-3" />
                 <span
                   className="truncate max-w-[120px]"

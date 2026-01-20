@@ -363,17 +363,17 @@ export default function AllJourneysMap({
       stayColor = getAccommodationColor(accommodationType);
     }
 
-    // Brand color themed markers - using #001A6E as primary
+    // Brand color themed markers - using #160E53 as primary
     const colors = {
-      journeyStart: '#001A6E', // Brand navy blue for journey start
+      journeyStart: '#160E53', // Brand navy blue for journey start
       stay: stayColor,         // Varies: Hotel (deep blue) or Rental (teal)
-      activity: '#001A6E',     // Brand blue (activities)
-      food: '#001A6E',         // Brand blue (food)
-      transport: '#001A6E',    // Brand blue (transport)
-      note: '#001A6E',         // Brand blue (notes)
+      activity: '#160E53',     // Brand blue (activities)
+      food: '#160E53',         // Brand blue (food)
+      transport: '#160E53',    // Brand blue (transport)
+      note: '#160E53',         // Brand blue (notes)
     };
 
-    const markerColor = colors[type as keyof typeof colors] || '#001A6E';
+    const markerColor = colors[type as keyof typeof colors] || '#160E53';
     const baseSize = type === 'journeyStart' ? 36 : 30;
 
     if (type === 'journeyStart') {

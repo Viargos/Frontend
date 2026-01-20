@@ -86,7 +86,7 @@ export default function PostCard({
                                 className="w-10 h-10 rounded-full object-cover"
                             />
                         ) : (
-                            <div className="w-10 h-10 bg-[#001A6E] rounded-full flex items-center justify-center">
+                            <div className="w-10 h-10 bg-[#160E53] rounded-full flex items-center justify-center">
                                 <span className="text-white font-medium text-sm">
                                     {post.user.username.charAt(0).toUpperCase()}
                                 </span>
@@ -110,7 +110,7 @@ export default function PostCard({
                             variant="primary"
                             size="sm"
                             onClick={handleJourneyClick}
-                            className="flex items-center space-x-1 text-xs bg-[#001A6E] hover:bg-blue-700 text-white border-none"
+                            className="flex items-center space-x-1 text-xs bg-[#160E53] hover:bg-blue-700 text-white border-none"
                         >
                             <JourneyIcon className="w-3 h-3" />
                             <span>See full journey</span>

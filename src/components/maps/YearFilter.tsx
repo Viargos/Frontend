@@ -123,7 +123,7 @@ export default function YearFilter({
                       <span className="flex items-center gap-2">
                         {year}
                         {hasJourneys && (
-                          <span className="w-2 h-2 rounded-full bg-[#001A6E]" title="Has journeys" />
+                          <span className="w-2 h-2 rounded-full bg-[#160E53]" title="Has journeys" />
                         )}
                       </span>
                       {selectedYear === year && (

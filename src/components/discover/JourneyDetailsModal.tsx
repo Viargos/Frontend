@@ -106,7 +106,7 @@ export default function JourneyDetailsModal({
         {/* Header */}
         <div className="relative">
           {/* Cover Image or Gradient */}
-          <div className="h-48 bg-gradient-to-br from-[#001A6E] via-[#001456] to-[#0891b2] relative">
+          <div className="h-48 bg-gradient-to-br from-[#160E53] via-[#001456] to-[#0891b2] relative">
             {journey.coverImage && (
               <img
                 src={journey.coverImage}
@@ -175,8 +175,8 @@ export default function JourneyDetailsModal({
           {journey.days && journey.days.length > 0 ? (
             <div className="space-y-6">
               <div className="flex items-center gap-3 mb-6">
-                <div className="h-0.5 w-8 bg-gradient-to-r from-[#001A6E] to-[#0891b2] rounded"></div>
-                <h2 className="text-xl font-bold text-[#001A6E]">
+                <div className="h-0.5 w-8 bg-gradient-to-r from-[#160E53] to-[#0891b2] rounded"></div>
+                <h2 className="text-xl font-bold text-[#160E53]">
                   Journey Itinerary
                 </h2>
                 <div className="h-0.5 flex-1 bg-gradient-to-r from-[#0891b2] to-transparent rounded"></div>
@@ -188,14 +188,14 @@ export default function JourneyDetailsModal({
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="bg-gradient-to-br from-gray-50 to-[#001A6E]/5 rounded-xl p-5 border border-gray-200 hover:border-[#001A6E]/30 transition-colors"
+                  className="bg-gradient-to-br from-gray-50 to-[#160E53]/5 rounded-xl p-5 border border-gray-200 hover:border-[#160E53]/30 transition-colors"
                 >
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-gradient-to-br from-[#001A6E] to-[#001456] rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">
+                      <div className="w-8 h-8 bg-gradient-to-br from-[#160E53] to-[#001456] rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">
                         {day.dayNumber + 1}
                       </div>
-                      <h3 className="text-lg font-bold text-[#001A6E]">
+                      <h3 className="text-lg font-bold text-[#160E53]">
                         Day {day.dayNumber + 1}
                       </h3>
                     </div>
@@ -207,10 +207,10 @@ export default function JourneyDetailsModal({
                       {day.places.map((place) => (
                         <div
                           key={place.id}
-                          className="bg-white rounded-lg p-4 border border-gray-200 hover:border-[#001A6E]/40 hover:shadow-md transition-all"
+                          className="bg-white rounded-lg p-4 border border-gray-200 hover:border-[#160E53]/40 hover:shadow-md transition-all"
                         >
                           <div className="flex items-start gap-3">
-                            <div className="w-9 h-9 bg-gradient-to-br from-[#001A6E] to-[#0891b2] rounded-lg flex items-center justify-center text-lg shadow-sm flex-shrink-0">
+                            <div className="w-9 h-9 bg-gradient-to-br from-[#160E53] to-[#0891b2] rounded-lg flex items-center justify-center text-lg shadow-sm flex-shrink-0">
                               {getPlaceTypeIcon(place.type)}
                             </div>
                             <div className="flex-1">
@@ -308,7 +308,7 @@ export default function JourneyDetailsModal({
                       <div className="flex items-start gap-2">
                         <span className="text-xl">📝</span>
                         <div>
-                          <h5 className="font-semibold text-[#001A6E] text-sm">Notes</h5>
+                          <h5 className="font-semibold text-[#160E53] text-sm">Notes</h5>
                           <p className="text-sm text-gray-700 mt-1">{day.notes}</p>
                         </div>
                       </div>
@@ -333,16 +333,16 @@ export default function JourneyDetailsModal({
         </div>
 
         {/* Footer */}
-        <div className="bg-gradient-to-r from-gray-50 to-[#001A6E]/5 px-6 py-4 flex justify-between items-center rounded-b-xl border-t border-gray-200">
+        <div className="bg-gradient-to-r from-gray-50 to-[#160E53]/5 px-6 py-4 flex justify-between items-center rounded-b-xl border-t border-gray-200">
           <button
             onClick={onClose}
-            className="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-[#001A6E] transition-colors font-medium"
+            className="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-[#160E53] transition-colors font-medium"
           >
             Close
           </button>
           <button
             onClick={handleViewFullJourney}
-            className="px-5 py-2.5 bg-gradient-to-r from-[#001A6E] to-[#001456] text-white rounded-lg hover:from-[#001456] hover:to-[#001A6E] transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-xl font-medium"
+            className="px-5 py-2.5 bg-gradient-to-r from-[#160E53] to-[#001456] text-white rounded-lg hover:from-[#001456] hover:to-[#160E53] transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-xl font-medium"
           >
             View Full Journey
             <ArrowRight className="w-4 h-4" />

@@ -358,7 +358,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
                         href={item.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-block mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-[#001A6E] transition-colors"
+                        className="inline-block mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-[#160E53] transition-colors"
                       >
                         Download
                       </a>

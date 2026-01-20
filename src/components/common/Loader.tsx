@@ -90,9 +90,9 @@ export default function Loader({
           }}
         >
           <div
-            className={`${config.logo} bg-white rounded-2xl mx-auto flex items-center justify-center shadow-2xl`}
+            className={`${config.logo} bg-white rounded-2xl mx-auto flex items-center justify-center shadow-2xl text-[#160E53]`}
           >
-            <span className={`${config.logoText} font-bold text-blue-[#160E53]`}>
+            <span className={`${config.logoText} font-bold`}>
               {logoText}
             </span>
           </div>

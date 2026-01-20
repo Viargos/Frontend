@@ -268,7 +268,7 @@ export default function Header({ user }: HeaderProps) {
                                 className="w-8 h-8 rounded-full object-cover"
                               />
                             ) : (
-                              <div className="w-8 h-8 rounded-full bg-[#001A6E] flex items-center justify-center text-white text-sm font-medium">
+                              <div className="w-8 h-8 rounded-full bg-[#160E53] flex items-center justify-center text-white text-sm font-medium">
                                 {user.username.charAt(0).toUpperCase()}
                               </div>
                             )}
@@ -341,7 +341,7 @@ export default function Header({ user }: HeaderProps) {
 
                   {/* Notification Badge */}
                   {notificationCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-[#001A6E] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium min-w-[20px]">
+                    <span className="absolute -top-1 -right-1 bg-[#160E53] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium min-w-[20px]">
                       {notificationCount > 99 ? '99+' : notificationCount}
                     </span>
                   )}
@@ -380,7 +380,7 @@ export default function Header({ user }: HeaderProps) {
                               <div
                                 className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
                                   !notification.read
-                                    ? 'bg-[#001A6E]'
+                                    ? 'bg-[#160E53]'
                                     : 'bg-transparent'
                                 }`}
                               />
@@ -432,7 +432,7 @@ export default function Header({ user }: HeaderProps) {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-[#001A6E] flex items-center justify-center text-white font-medium">
+                    <div className="w-full h-full bg-[#160E53] flex items-center justify-center text-white font-medium">
                       {user?.username?.charAt(0).toUpperCase() || 'U'}
                     </div>
                   )}
@@ -454,7 +454,7 @@ export default function Header({ user }: HeaderProps) {
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <div className="w-full h-full bg-[#001A6E] flex items-center justify-center text-white font-medium text-lg">
+                            <div className="w-full h-full bg-[#160E53] flex items-center justify-center text-white font-medium text-lg">
                               {user?.username?.charAt(0).toUpperCase() || 'U'}
                             </div>
                           )}

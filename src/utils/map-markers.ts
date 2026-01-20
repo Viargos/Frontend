@@ -16,7 +16,7 @@ interface MarkerOptions {
  * White pin with navy border and Viargos logo
  */
 export const generateViargosMarker = (options: MarkerOptions = {}): google.maps.Icon => {
-  const { size = 32, color = '#001A6E', isHovered = false } = options;
+  const { size = 32, color = '#160E53', isHovered = false } = options;
   const baseSize = size;
   const markerSize = isHovered ? baseSize + 4 : baseSize;
 
@@ -30,7 +30,7 @@ export const generateViargosMarker = (options: MarkerOptions = {}): google.maps.
 
       <g filter="url(%23shadow)">
         <!-- White pin body with navy border -->
-        <path d="M25 2C12.85 2 3 11.85 3 24c0 16.5 22 42 22 42s22-25.5 22-42C47 11.85 37.15 2 25 2z" fill="${color}" stroke="#001A6E" stroke-width="2"/>
+        <path d="M25 2C12.85 2 3 11.85 3 24c0 16.5 22 42 22 42s22-25.5 22-42C47 11.85 37.15 2 25 2z" fill="${color}" stroke="#160E53" stroke-width="2"/>
 
         <!-- Viargos logo circle area -->
         <circle cx="25" cy="22" r="16" fill="white" stroke="${color}" stroke-width="1.5"/>
@@ -66,9 +66,9 @@ export const generatePlaceMarker = (options: MarkerOptions = {}): google.maps.Ic
       </defs>
       <g filter="url(%23shadow2)">
         <!-- White pin with navy border -->
-        <path d="M20 2C10.06 2 2 10.06 2 20c0 13 18 30 18 30s18-17 18-30C38 10.06 29.94 2 20 2z" fill="white" stroke="#001A6E" stroke-width="2"/>
+        <path d="M20 2C10.06 2 2 10.06 2 20c0 13 18 30 18 30s18-17 18-30C38 10.06 29.94 2 20 2z" fill="white" stroke="#160E53" stroke-width="2"/>
         <!-- Navy inner circle -->
-        <circle cx="20" cy="18" r="10" fill="#001A6E"/>
+        <circle cx="20" cy="18" r="10" fill="#160E53"/>
         <!-- White V icon -->
         <path d="M16 14L20 20L24 14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
       </g>
@@ -87,7 +87,7 @@ export const generatePlaceMarker = (options: MarkerOptions = {}): google.maps.Ic
  * Used for different place types (food, transport, etc.)
  */
 export const generateEmojiMarker = (options: MarkerOptions): google.maps.Icon => {
-  const { size = 32, color = '#001A6E', emoji = '📍' } = options;
+  const { size = 32, color = '#160E53', emoji = '📍' } = options;
   const circleSize = size;
   const pinHeight = 8;
   const totalHeight = circleSize + pinHeight;
@@ -119,7 +119,7 @@ export const generateEmojiMarker = (options: MarkerOptions): google.maps.Icon =>
  * Used for marking specific journey locations
  */
 export const generateJourneyLocationMarker = (options: MarkerOptions = {}): google.maps.Icon => {
-  const { size = 40, color = '#001A6E', isNew = false } = options;
+  const { size = 40, color = '#160E53', isNew = false } = options;
   const newMarkerColor = '#10b981'; // green color for new markers
 
   const svgContent = `
@@ -142,7 +142,7 @@ export const generateJourneyLocationMarker = (options: MarkerOptions = {}): goog
  * Used for journey waypoints
  */
 export const generateSimpleMarker = (options: MarkerOptions = {}): google.maps.Icon => {
-  const { size = 30, color = '#001A6E', isNew = false } = options;
+  const { size = 30, color = '#160E53', isNew = false } = options;
   const newMarkerColor = '#10b981';
 
   const svgContent = `
@@ -184,5 +184,5 @@ export const getPlaceTypeColor = (type: string): string => {
     transport: '#8b5cf6', // purple
     note: '#f59e0b',      // yellow
   };
-  return colorMap[type] || '#001A6E';
+  return colorMap[type] || '#160E53';
 };

@@ -110,7 +110,7 @@ export default function CompactPostCard({
                                 variant="primary"
                                 size="sm"
                                 onClick={handleJourneyClick}
-                                className="flex items-center space-x-1 text-xs bg-[#001A6E] hover:bg-blue-700 text-white border-none"
+                                className="flex items-center space-x-1 text-xs bg-[#160E53] hover:bg-blue-700 text-white border-none"
                             >
                                 <JourneyIcon className="w-3 h-3" />
                                 <span>Journey</span>
@@ -259,7 +259,7 @@ export default function CompactPostCard({
                                     variant="primary"
                                     size="sm"
                                     onClick={handleJourneyClick}
-                                    className="flex items-center space-x-1 text-xs bg-[#001A6E] hover:bg-blue-700 text-white border-none"
+                                    className="flex items-center space-x-1 text-xs bg-[#160E53] hover:bg-blue-700 text-white border-none"
                                 >
                                     <JourneyIcon className="w-3 h-3" />
                                     <span>See journey</span>

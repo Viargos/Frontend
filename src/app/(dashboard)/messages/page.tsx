@@ -356,7 +356,7 @@ export default function MessagesPage() {
                   {/* Feature Cards */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                     <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 text-left">
-                      <div className="w-10 h-10 bg-[#001A6E] rounded-lg flex items-center justify-center mb-3">
+                      <div className="w-10 h-10 bg-[#160E53] rounded-lg flex items-center justify-center mb-3">
 <UsersIcon className="w-5 h-5 text-white" />
                       </div>
                       <h4 className="font-semibold text-gray-900 mb-1">

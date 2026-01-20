@@ -58,7 +58,7 @@ export default function ChatHeader({
                   const parent = target.parentElement;
                   if (parent) {
                     parent.innerHTML = `
-                      <div class="w-full h-full bg-[#001A6E] flex items-center justify-center text-white font-semibold text-sm">
+                      <div class="w-full h-full bg-[#160E53] flex items-center justify-center text-white font-semibold text-sm">
                         ${(chat.username || 'U').charAt(0).toUpperCase()}
                       </div>
                     `;
@@ -66,7 +66,7 @@ export default function ChatHeader({
                 }}
               />
             ) : (
-              <div className="w-full h-full bg-[#001A6E] flex items-center justify-center text-white font-semibold text-sm">
+              <div className="w-full h-full bg-[#160E53] flex items-center justify-center text-white font-semibold text-sm">
                 {(chat.username || 'U').charAt(0).toUpperCase()}
               </div>
             )}

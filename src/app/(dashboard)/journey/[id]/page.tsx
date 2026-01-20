@@ -447,7 +447,7 @@ export default function JourneyDetailsPage() {
                     onClick={() => setActiveDay(day.dayNumber)}
                     className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
                       activeDay === day.dayNumber
-                        ? 'bg-[#001A6E] text-white shadow-md'
+                        ? 'bg-[#160E53] text-white shadow-md'
                         : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 shadow-sm'
                     }`}
                   >
@@ -457,7 +457,7 @@ export default function JourneyDetailsPage() {
               </div>
             ) : (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 sm:mb-6">
-                <p className="text-[#001A6E]">
+                <p className="text-[#160E53]">
                   This journey doesn&apos;t have any days planned yet.
                 </p>
               </div>
@@ -494,29 +494,29 @@ export default function JourneyDetailsPage() {
                         {/* Timeline Dot */}
                         <div 
                           className={`relative z-10 w-12 h-12 bg-white border-2 rounded-full flex-shrink-0 flex items-center justify-center p-0 m-0 transition-transform duration-300 hover:scale-110 ${
-                            place.type === 'stay' ? 'border-[#001A6E]' :
-                            place.type === 'activity' ? 'border-[#001A6E]' :
-                            place.type === 'food' ? 'border-[#001A6E]' :
-                            place.type === 'transport' ? 'border-[#001A6E]' :
-                            place.type === 'note' ? 'border-[#001A6E]' :
-                            'border-[#001A6E]'
+                            place.type === 'stay' ? 'border-[#160E53]' :
+                            place.type === 'activity' ? 'border-[#160E53]' :
+                            place.type === 'food' ? 'border-[#160E53]' :
+                            place.type === 'transport' ? 'border-[#160E53]' :
+                            place.type === 'note' ? 'border-[#160E53]' :
+                            'border-[#160E53]'
                           }`}
                         >
                           <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center p-0 m-0">
                             {place.type === 'stay' && (
-                              <Hotel className="w-4 h-4 text-[#001A6E]" strokeWidth={2} />
+                              <Hotel className="w-4 h-4 text-[#160E53]" strokeWidth={2} />
                             )}
                             {place.type === 'activity' && (
-                              <Trees className="w-4 h-4 text-[#001A6E]" strokeWidth={2} />
+                              <Trees className="w-4 h-4 text-[#160E53]" strokeWidth={2} />
                             )}
                             {place.type === 'food' && (
-                              <UtensilsCrossed className="w-4 h-4 text-[#001A6E]" strokeWidth={2} />
+                              <UtensilsCrossed className="w-4 h-4 text-[#160E53]" strokeWidth={2} />
                             )}
                             {place.type === 'transport' && (
-                              <Car className="w-4 h-4 text-[#001A6E]" strokeWidth={2} />
+                              <Car className="w-4 h-4 text-[#160E53]" strokeWidth={2} />
                             )}
                             {place.type === 'note' && (
-                              <FileText className="w-4 h-4 text-[#001A6E]" strokeWidth={2} />
+                              <FileText className="w-4 h-4 text-[#160E53]" strokeWidth={2} />
                             )}
                           </div>
                         </div>
@@ -601,8 +601,8 @@ export default function JourneyDetailsPage() {
                     {currentDay.notes && (
                       <div className="relative flex items-start">
                         {/* Timeline Dot for Notes */}
-                        <div className="relative z-10 w-12 h-12 bg-white border-2 border-[#001A6E] rounded-full flex-shrink-0 flex items-center justify-center p-0 m-0">
-                          <div className="w-6 h-6 bg-[#001A6E] rounded-full flex items-center justify-center p-0 m-0">
+                        <div className="relative z-10 w-12 h-12 bg-white border-2 border-[#160E53] rounded-full flex-shrink-0 flex items-center justify-center p-0 m-0">
+                          <div className="w-6 h-6 bg-[#160E53] rounded-full flex items-center justify-center p-0 m-0">
                             <FileText className="w-4 h-4 text-white" strokeWidth={2} />
                           </div>
                         </div>
@@ -611,11 +611,11 @@ export default function JourneyDetailsPage() {
                         <div className="ml-6 flex-1">
                           <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
                             <div className="flex items-start">
-                              <div className="text-[#001A6E] mr-2">
+                              <div className="text-[#160E53] mr-2">
                                 <FileText className="w-5 h-5" strokeWidth={2} />
                               </div>
                               <div>
-                                <h4 className="font-medium text-[#001A6E] mb-1">
+                                <h4 className="font-medium text-[#160E53] mb-1">
                                   Notes
                                 </h4>
                                 <p className="text-sm text-gray-700">
@@ -641,7 +641,7 @@ export default function JourneyDetailsPage() {
                     Start planning your day by adding places to visit,
                     restaurants, or accommodations.
                   </p>
-                  <button className="bg-[#001A6E] text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors">
+                  <button className="bg-[#160E53] text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors">
                     Add Your First Place
                   </button>
                 </div>

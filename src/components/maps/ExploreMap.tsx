@@ -573,7 +573,7 @@ export default function ExploreMap({
     };
 
     const iconPath = icons[location.type] || icons['note'];
-    const accentColor = colorMap[location.type] || '#001A6E';
+    const accentColor = colorMap[location.type] || '#160E53';
 
     const svgContent = `
       <svg width="${markerSize}" height="${markerSize * 1.4}" viewBox="0 0 44 62" xmlns="http://www.w3.org/2000/svg">
@@ -723,7 +723,7 @@ export default function ExploreMap({
           <div className="p-3 min-w-[280px] max-w-[320px]">
             {/* Place Type Badge */}
             <div className="flex items-center gap-2 mb-3">
-              <span className="px-3 py-1 rounded-lg text-xs font-semibold text-white bg-[#001A6E]">
+              <span className="px-3 py-1 rounded-lg text-xs font-semibold text-white bg-[#160E53]">
                 {getTypeLabel(selectedLocation.type)}
               </span>
               <span className="text-xs text-gray-500 font-medium">
@@ -784,7 +784,7 @@ export default function ExploreMap({
             {/* Journey Info */}
             <div className="border-t border-gray-200 pt-3 space-y-2">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-[#001A6E] rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="w-6 h-6 bg-[#160E53] rounded-full flex items-center justify-center flex-shrink-0">
                   <ClipboardListIcon className="w-3 h-3 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -814,7 +814,7 @@ export default function ExploreMap({
                 onClick={() =>
                   router.push(`/journey/${selectedLocation.journey.id}`)
                 }
-                className="w-full mt-2 px-3 py-2 bg-[#001A6E] text-white text-xs font-medium rounded-md hover:bg-[#002b9e] transition-colors shadow-sm hover:shadow-md"
+                className="w-full mt-2 px-3 py-2 bg-[#160E53] text-white text-xs font-medium rounded-md hover:bg-[#002b9e] transition-colors shadow-sm hover:shadow-md"
               >
                 View Full Journey
               </button>

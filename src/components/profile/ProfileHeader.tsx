@@ -133,7 +133,7 @@ export default function ProfileHeader({
         <motion.button
           onClick={() => bannerInputRef.current?.click()}
           disabled={isImageUploading}
-          className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-white backdrop-blur-sm text-blue-600 px-2 py-1 sm:px-3 sm:py-2 rounded-md text-xs sm:text-sm hover:bg-[#001A6E] hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-2"
+          className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-white backdrop-blur-sm text-blue-600 px-2 py-1 sm:px-3 sm:py-2 rounded-md text-xs sm:text-sm hover:bg-[#160E53] hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-2"
           whileHover={{
             scale: 1.05,
             backgroundColor: '#001a6e',
@@ -182,7 +182,7 @@ export default function ProfileHeader({
                 className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-lg absolute left-0 top-0 object-cover"
               />
             ) : (
-              <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-lg absolute left-0 top-0 bg-[#001A6E] flex items-center justify-center text-white text-lg sm:text-xl lg:text-2xl font-bold">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-lg absolute left-0 top-0 bg-[#160E53] flex items-center justify-center text-white text-lg sm:text-xl lg:text-2xl font-bold">
                 {profile.username?.charAt(0).toUpperCase() || 'U'}
               </div>
             )}
@@ -191,7 +191,7 @@ export default function ProfileHeader({
             <motion.button
               onClick={() => profileInputRef.current?.click()}
               disabled={isImageUploading}
-              className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 bg-[#001A6E] text-white p-1.5 sm:p-2 rounded-full hover:bg-blue-700 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 bg-[#160E53] text-white p-1.5 sm:p-2 rounded-full hover:bg-blue-700 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
             >

@@ -13,7 +13,7 @@ export default function PlanningCategory({
   label,
   isActive = false,
   onClick,
-  bgColor = "#001A6E",
+  bgColor = "#160E53",
 }: PlanningCategoryProps) {
   return (
     <button 
@@ -30,7 +30,7 @@ export default function PlanningCategory({
       `}
         style={{ 
           backgroundColor: bgColor,
-          borderColor: '#001A6E'
+          borderColor: '#160E53'
         }}
       >
         <div className="w-8 h-8 flex items-center justify-center">

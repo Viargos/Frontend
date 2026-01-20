@@ -380,7 +380,7 @@ export default function JourneyMap({
     };
 
     const iconPath = icons[type] || icons['note'];
-    const accentColor = colorMap[type] || '#001A6E';
+    const accentColor = colorMap[type] || '#160E53';
     const locationId = location?.id || Math.random().toString();
 
     const svgContent = `
@@ -630,7 +630,7 @@ export default function JourneyMap({
           <div className="p-3 min-w-[280px] max-w-[320px]">
             {/* Place Type and Day */}
             <div className="flex items-center gap-2 mb-2">
-              <span className="px-3 py-1 rounded-lg text-xs font-semibold text-white bg-[#001A6E] capitalize">
+              <span className="px-3 py-1 rounded-lg text-xs font-semibold text-white bg-[#160E53] capitalize">
                 {selectedLocation.type === 'journeyLocation'
                   ? 'Journey Location'
                   : selectedLocation.type.replace(/([A-Z])/g, ' $1').trim()}

@@ -277,35 +277,35 @@ export default function CreateJourneyPage() {
                     {/* Planning Categories */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 w-full">
                       <PlanningCategory
-                        icon={<Hotel className="w-8 h-8" strokeWidth={2} color="#001A6E" />}
+                        icon={<Hotel className="w-8 h-8" strokeWidth={2} color="#160E53" />}
                         label="Hotel / Stay"
                         isActive={activePlaceType === PlaceType.STAY}
                         onClick={() => addPlaceToActiveDay(PlaceType.STAY)}
                         bgColor="#ffffff"
                       />
                       <PlanningCategory
-                        icon={<Trees className="w-8 h-8" strokeWidth={2} color="#001A6E" />}
+                        icon={<Trees className="w-8 h-8" strokeWidth={2} color="#160E53" />}
                         label="Places to go"
                         isActive={activePlaceType === PlaceType.ACTIVITY}
                         onClick={() => addPlaceToActiveDay(PlaceType.ACTIVITY)}
                         bgColor="#ffffff"
                       />
                       <PlanningCategory
-                        icon={<UtensilsCrossed className="w-8 h-8" strokeWidth={2} color="#001A6E" />}
+                        icon={<UtensilsCrossed className="w-8 h-8" strokeWidth={2} color="#160E53" />}
                         label="Food"
                         isActive={activePlaceType === PlaceType.FOOD}
                         onClick={() => addPlaceToActiveDay(PlaceType.FOOD)}
                         bgColor="#ffffff"
                       />
                       <PlanningCategory
-                        icon={<Car className="w-8 h-8" strokeWidth={2} color="#001A6E" />}
+                        icon={<Car className="w-8 h-8" strokeWidth={2} color="#160E53" />}
                         label="Transport"
                         isActive={activePlaceType === PlaceType.TRANSPORT}
                         onClick={() => addPlaceToActiveDay(PlaceType.TRANSPORT)}
                         bgColor="#ffffff"
                       />
                       <PlanningCategory
-                        icon={<FileText className="w-8 h-8" strokeWidth={2} color="#001A6E" />}
+                        icon={<FileText className="w-8 h-8" strokeWidth={2} color="#160E53" />}
                         label="Notes"
                         isActive={activePlaceType === PlaceType.NOTE}
                         onClick={() => addPlaceToActiveDay(PlaceType.NOTE)}

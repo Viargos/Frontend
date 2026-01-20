@@ -30,17 +30,17 @@ export const PlaceCard: React.FC<PlaceCardProps> = ({
   const getPlaceIcon = () => {
     switch (place.type) {
       case PlaceType.STAY:
-        return <Hotel className="w-6 h-6" strokeWidth={2} color="#001A6E" />;
+        return <Hotel className="w-6 h-6" strokeWidth={2} color="#160E53" />;
       case PlaceType.ACTIVITY:
-        return <Trees className="w-6 h-6" strokeWidth={2} color="#001A6E" />;
+        return <Trees className="w-6 h-6" strokeWidth={2} color="#160E53" />;
       case PlaceType.FOOD:
-        return <UtensilsCrossed className="w-6 h-6" strokeWidth={2} color="#001A6E" />;
+        return <UtensilsCrossed className="w-6 h-6" strokeWidth={2} color="#160E53" />;
       case PlaceType.TRANSPORT:
-        return <Car className="w-6 h-6" strokeWidth={2} color="#001A6E" />;
+        return <Car className="w-6 h-6" strokeWidth={2} color="#160E53" />;
       case PlaceType.NOTE:
-        return <FileText className="w-6 h-6" strokeWidth={2} color="#001A6E" />;
+        return <FileText className="w-6 h-6" strokeWidth={2} color="#160E53" />;
       default:
-        return <Hotel className="w-6 h-6" strokeWidth={2} color="#001A6E" />;
+        return <Hotel className="w-6 h-6" strokeWidth={2} color="#160E53" />;
     }
   };
 

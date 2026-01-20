@@ -122,7 +122,7 @@ export default function CommentForm({
                 className="w-9 h-9 rounded-full object-cover"
               />
             ) : (
-              <div className="w-9 h-9 rounded-full bg-[#001A6E] flex items-center justify-center text-white font-bold text-sm">
+              <div className="w-9 h-9 rounded-full bg-[#160E53] flex items-center justify-center text-white font-bold text-sm">
                 {user.username?.charAt(0).toUpperCase() || 'U'}
               </div>
             )}

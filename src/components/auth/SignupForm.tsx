@@ -114,7 +114,7 @@ export default function SignupForm({
             {...register('username')}
             type="text"
             id="username"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#001A6E] focus:border-[#001A6E] text-black"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#160E53] focus:border-[#160E53] text-black"
             placeholder="Enter your username"
           />
           {errors.username && (
@@ -135,7 +135,7 @@ export default function SignupForm({
             {...register('email')}
             type="email"
             id="email"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#001A6E] focus:border-[#001A6E] text-black"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#160E53] focus:border-[#160E53] text-black"
             placeholder="Enter your email"
           />
           {errors.email && (
@@ -154,7 +154,7 @@ export default function SignupForm({
             {...register('phoneNumber')}
             type="tel"
             id="phoneNumber"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#001A6E] focus:border-[#001A6E] text-black"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#160E53] focus:border-[#160E53] text-black"
             placeholder="Enter your phone number"
           />
           {errors.phoneNumber && (
@@ -176,7 +176,7 @@ export default function SignupForm({
               {...register('password')}
               type={showPassword ? 'text' : 'password'}
               id="password"
-              className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#001A6E] focus:border-[#001A6E] text-black"
+              className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#160E53] focus:border-[#160E53] text-black"
               placeholder="Enter your password"
             />
             <button
@@ -210,7 +210,7 @@ export default function SignupForm({
               {...register('confirmPassword')}
               type={showConfirmPassword ? 'text' : 'password'}
               id="confirmPassword"
-              className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#001A6E] focus:border-[#001A6E] text-black"
+              className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#160E53] focus:border-[#160E53] text-black"
               placeholder="Confirm your password"
             />
             <button
@@ -235,7 +235,7 @@ export default function SignupForm({
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#001A6E] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#001A6E] disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#160E53] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#160E53] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? (
             <div className="flex items-center">

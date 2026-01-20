@@ -398,7 +398,7 @@ export default function DiscoverPage() {
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
               onClick={handleLocationRetry}
-              className="px-4 py-2 bg-[#001A6E] text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+              className="px-4 py-2 bg-[#160E53] text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
             >
               <RefreshCw className="w-4 h-4" />
               Retry
@@ -472,7 +472,7 @@ export default function DiscoverPage() {
               transition={{ delay: 0.2 }}
               onClick={() => setAutoSearch(!autoSearch)}
               className={`rounded-lg shadow-lg p-3 hover:shadow-xl transition-all duration-200 ${
-                autoSearch ? 'bg-[#001A6E]' : 'bg-white'
+                autoSearch ? 'bg-[#160E53]' : 'bg-white'
               }`}
               title={autoSearch ? 'Auto-search: ON' : 'Auto-search: OFF'}
             >
@@ -561,8 +561,8 @@ export default function DiscoverPage() {
                           disabled={journeysLoading}
                           className={`px-3.5 py-2 text-xs font-medium rounded-lg transition-all duration-200 ${
                             currentRadius === radius
-                              ? 'bg-[#001A6E] text-white shadow-md ring-2 ring-[#001A6E] ring-opacity-20'
-                              : 'bg-white text-gray-700 border border-gray-300 hover:border-[#001A6E] hover:text-[#001A6E] hover:shadow-sm'
+                              ? 'bg-[#160E53] text-white shadow-md ring-2 ring-[#160E53] ring-opacity-20'
+                              : 'bg-white text-gray-700 border border-gray-300 hover:border-[#160E53] hover:text-[#160E53] hover:shadow-sm'
                           } disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
                           {radius}km
@@ -614,7 +614,7 @@ export default function DiscoverPage() {
                       <div className="mt-4 space-y-2">
                         <button
                           onClick={handleLocationRetry}
-                          className="px-4 py-2 bg-[#001A6E] text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 mx-auto"
+                          className="px-4 py-2 bg-[#160E53] text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 mx-auto"
                         >
                           <Navigation className="w-4 h-4" />
                           Try Again
@@ -846,7 +846,7 @@ export default function DiscoverPage() {
                                 }`}
                               >
                                 <div className="flex items-center gap-1.5 text-gray-600">
-                                  <PinIcon className="w-4 h-4 text-[#001A6E]" />
+                                  <PinIcon className="w-4 h-4 text-[#160E53]" />
                                   <span className="font-semibold">
                                     {journey.days?.reduce(
                                       (total: number, day: JourneyDay) =>
@@ -858,7 +858,7 @@ export default function DiscoverPage() {
                                 </div>
                                 <span className="text-gray-300">•</span>
                                 <div className="flex items-center gap-1.5 text-gray-600">
-                                  <CalendarIcon className="w-4 h-4 text-[#001A6E]" />
+                                  <CalendarIcon className="w-4 h-4 text-[#160E53]" />
                                   <span className="font-semibold">
                                     {journey.days?.length || 0}
                                   </span>

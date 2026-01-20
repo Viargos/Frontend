@@ -64,7 +64,7 @@ export default function ChatList({
     return (
       <div className="bg-white rounded-2xl border border-gray-200 shadow-lg h-full flex flex-col overflow-hidden">
         {/* Header Skeleton */}
-        <div className="p-5 border-b border-gray-100 bg-[#001A6E] flex-shrink-0">
+        <div className="p-5 border-b border-gray-100 bg-[#160E53] flex-shrink-0">
           <div className="flex items-center justify-between mb-4">
             <div className="h-6 bg-white/30 rounded-lg w-16 animate-pulse"></div>
             <div className="w-8 h-8 bg-white/20 rounded-lg animate-pulse"></div>
@@ -103,7 +103,7 @@ export default function ChatList({
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-lg h-full flex flex-col overflow-hidden">
       {/* Fixed Header with Gradient */}
-      <div className="p-5 border-b border-gray-100 bg-[#001A6E] flex-shrink-0 sticky top-0 z-10">
+      <div className="p-5 border-b border-gray-100 bg-[#160E53] flex-shrink-0 sticky top-0 z-10">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-white">Chats</h2>
           <div className="flex items-center gap-2">

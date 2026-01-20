@@ -125,18 +125,18 @@ export default function JourneyFilters({
       <div className="border-b border-gray-200 last:border-b-0">
         <button
           onClick={() => toggleSection(sectionKey)}
-          className="w-full flex items-center justify-between p-4 hover:bg-[#001A6E]/5 transition-colors group"
+          className="w-full flex items-center justify-between p-4 hover:bg-[#160E53]/5 transition-colors group"
         >
           <div className="flex items-center space-x-3">
-            <div className={`p-1.5 rounded-lg transition-colors ${isExpanded ? 'bg-[#001A6E]' : 'bg-gray-100 group-hover:bg-[#001A6E]/20'}`}>
-              <Icon className={`w-4 h-4 transition-colors ${isExpanded ? 'text-white' : 'text-gray-600 group-hover:text-[#001A6E]'}`} />
+            <div className={`p-1.5 rounded-lg transition-colors ${isExpanded ? 'bg-[#160E53]' : 'bg-gray-100 group-hover:bg-[#160E53]/20'}`}>
+              <Icon className={`w-4 h-4 transition-colors ${isExpanded ? 'text-white' : 'text-gray-600 group-hover:text-[#160E53]'}`} />
             </div>
-            <span className="font-medium text-gray-900 group-hover:text-[#001A6E] transition-colors">{title}</span>
+            <span className="font-medium text-gray-900 group-hover:text-[#160E53] transition-colors">{title}</span>
           </div>
           {isExpanded ? (
-            <ChevronUp className="w-4 h-4 text-[#001A6E]" />
+            <ChevronUp className="w-4 h-4 text-[#160E53]" />
           ) : (
-            <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-[#001A6E] transition-colors" />
+            <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-[#160E53] transition-colors" />
           )}
         </button>
 
@@ -160,18 +160,18 @@ export default function JourneyFilters({
   return (
     <div className="bg-white border-b border-gray-200">
       {/* Filter Header */}
-      <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-[#001A6E]/5 to-transparent">
+      <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-[#160E53]/5 to-transparent">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="p-1.5 bg-[#001A6E] rounded-lg">
+            <div className="p-1.5 bg-[#160E53] rounded-lg">
               <Filter className="w-4 h-4 text-white" />
             </div>
-            <h3 className="font-semibold text-[#001A6E]">Filters</h3>
+            <h3 className="font-semibold text-[#160E53]">Filters</h3>
           </div>
           <div className="flex items-center space-x-2">
             <button
               onClick={onReset}
-              className="text-sm text-[#001A6E] hover:text-[#001456] font-medium transition-colors px-3 py-1.5 rounded-md hover:bg-[#001A6E]/10"
+              className="text-sm text-[#160E53] hover:text-[#001456] font-medium transition-colors px-3 py-1.5 rounded-md hover:bg-[#160E53]/10"
             >
               Reset
             </button>
@@ -191,8 +191,8 @@ export default function JourneyFilters({
         <FilterSection title="Location" icon={MapPin} sectionKey="location">
           <div className="space-y-3">
             <div>
-              <label className="block text-sm font-semibold text-[#001A6E] mb-3">
-                Search Radius: <span className="text-white bg-[#001A6E] px-2 py-0.5 rounded-md">{localRadius}km</span>
+              <label className="block text-sm font-semibold text-[#160E53] mb-3">
+                Search Radius: <span className="text-white bg-[#160E53] px-2 py-0.5 rounded-md">{localRadius}km</span>
               </label>
               <input
                 type="range"
@@ -201,9 +201,9 @@ export default function JourneyFilters({
                 step="50"
                 value={localRadius}
                 onChange={e => handleRadiusChange(parseInt(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#001A6E]"
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#160E53]"
                 style={{
-                  background: `linear-gradient(to right, #001A6E 0%, #001A6E ${(localRadius / 10000) * 100}%, #e5e7eb ${(localRadius / 10000) * 100}%, #e5e7eb 100%)`
+                  background: `linear-gradient(to right, #160E53 0%, #160E53 ${(localRadius / 10000) * 100}%, #e5e7eb ${(localRadius / 10000) * 100}%, #e5e7eb 100%)`
                 }}
               />
               <div className="flex justify-between text-xs text-black mt-2">
@@ -218,13 +218,13 @@ export default function JourneyFilters({
         <FilterSection title="Time" icon={Calendar} sectionKey="time">
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-[#001A6E] mb-2">
+              <label className="block text-sm font-semibold text-[#160E53] mb-2">
                 Created Within
               </label>
               <select
                 value={filters.createdWithin}
                 onChange={e => updateFilter('createdWithin', e.target.value)}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-black font-medium focus:outline-none focus:ring-2 focus:ring-[#001A6E] focus:border-[#001A6E] bg-white hover:border-[#001A6E]/50 transition-colors cursor-pointer"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-black font-medium focus:outline-none focus:ring-2 focus:ring-[#160E53] focus:border-[#160E53] bg-white hover:border-[#160E53]/50 transition-colors cursor-pointer"
               >
                 <option value="all">All Time</option>
                 <option value="week">Past Week</option>
@@ -234,7 +234,7 @@ export default function JourneyFilters({
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-[#001A6E] mb-2">
+              <label className="block text-sm font-semibold text-[#160E53] mb-2">
                 Journey Date Range
               </label>
               <div className="space-y-2">
@@ -246,7 +246,7 @@ export default function JourneyFilters({
                       updateNestedFilter('dateRange', 'from', e.target.value)
                     }
                     placeholder="From date"
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-black font-medium focus:outline-none focus:ring-2 focus:ring-[#001A6E] focus:border-[#001A6E] hover:border-[#001A6E]/50 transition-colors"
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-black font-medium focus:outline-none focus:ring-2 focus:ring-[#160E53] focus:border-[#160E53] hover:border-[#160E53]/50 transition-colors"
                   />
                 </div>
                 <div className="relative">
@@ -257,7 +257,7 @@ export default function JourneyFilters({
                       updateNestedFilter('dateRange', 'to', e.target.value)
                     }
                     placeholder="To date"
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-black font-medium focus:outline-none focus:ring-2 focus:ring-[#001A6E] focus:border-[#001A6E] hover:border-[#001A6E]/50 transition-colors"
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-black font-medium focus:outline-none focus:ring-2 focus:ring-[#160E53] focus:border-[#160E53] hover:border-[#160E53]/50 transition-colors"
                   />
                 </div>
               </div>
