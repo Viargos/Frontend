@@ -2,7 +2,6 @@
 
 import { motion } from 'framer-motion';
 import { UserStats } from '@/types/profile.types';
-import { LoadingSpinner } from '@/components/ui';
 
 interface ProfileStatsProps {
   stats: UserStats | null;
@@ -41,7 +40,7 @@ export default function ProfileStats({ stats, isLoading }: ProfileStatsProps) {
   }
 
   return (
-    <motion.div 
+    <motion.div
       className="flex items-center gap-8"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}

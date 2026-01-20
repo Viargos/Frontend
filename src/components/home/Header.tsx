@@ -13,7 +13,12 @@ import { useClickOutside } from '@/hooks/useClickOutside';
 import { useUserSearch } from '@/hooks/useUserSearch';
 import ModalContainer from '@/components/auth/ModalContainer';
 import { CreatePostModal } from '@/components/post';
-import { SearchIcon, BellIcon, UserProfileIcon, LogoutIcon } from '@/components/icons';
+import {
+  SearchIcon,
+  BellIcon,
+  UserProfileIcon,
+  LogoutIcon,
+} from '@/components/icons';
 
 interface HeaderProps {
   user?: User | null;
@@ -487,29 +492,6 @@ export default function Header({ user }: HeaderProps) {
                         <UserProfileIcon className="w-4 h-4 mr-3" />
                         View Profile
                       </button>
-
-                      {/* <button
-                        onClick={() => {
-                          setShowDropdown(false);
-                          router.push('/journeys');
-                        }}
-                        className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
-                      >
-                        <svg
-                          className="w-4 h-4 mr-3 text-gray-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m0 0L9 7"
-                          />
-                        </svg>
-                        My Journeys
-                      </button> */}
 
                       <div className="border-t border-gray-100 mt-2 pt-2">
                         <button

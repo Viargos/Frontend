@@ -1,15 +1,15 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import {
   AuthState,
   User,
   LoginCredentials,
   SignUpCredentials,
-} from "@/types/auth.types";
-import { serviceFactory } from "@/lib/services/service-factory";
-import { ApiError } from "@/lib/interfaces/http-client.interface";
+} from '@/types/auth.types';
+import { serviceFactory } from '@/lib/services/service-factory';
+import { ApiError } from '@/lib/interfaces/http-client.interface';
 
-export type AuthModalType = "login" | "signup" | "otp" | "none";
+export type AuthModalType = 'login' | 'signup' | 'otp' | 'none';
 
 export interface AuthResult {
   success: boolean;
@@ -24,7 +24,11 @@ interface AuthStore extends AuthState {
   // Auth actions
   login: (credentials: LoginCredentials) => Promise<AuthResult>;
   signup: (credentials: SignUpCredentials) => Promise<AuthResult>;
-  verifyOtp: (email: string, otp: string, isPasswordReset?: boolean) => Promise<AuthResult>;
+  verifyOtp: (
+    email: string,
+    otp: string,
+    isPasswordReset?: boolean
+  ) => Promise<AuthResult>;
   resendOtp: (email: string) => Promise<AuthResult>;
   forgotPassword: (email: string) => Promise<AuthResult>;
   resetPassword: (password: string) => Promise<AuthResult>;
@@ -60,8 +64,8 @@ export const useAuthStore = create<AuthStore>()(
       error: null,
 
       // Modal state
-      activeModal: "none",
-      signupEmail: "",
+      activeModal: 'none',
+      signupEmail: '',
       passwordResetToken: null as string | null,
 
       // Actions
@@ -81,7 +85,7 @@ export const useAuthStore = create<AuthStore>()(
             return { success: true };
           }
 
-          return { success: false, error: "No access token received" };
+          return { success: false, error: 'No access token received' };
         } catch (error) {
           const errorMessage = get().extractErrorMessage(error);
           set({ error: errorMessage, isAuthenticated: false });
@@ -100,7 +104,7 @@ export const useAuthStore = create<AuthStore>()(
           set({ error: null });
           return { success: true };
         } catch (error: unknown) {
-          let errorMessage = "An unexpected error occurred";
+          let errorMessage = 'An unexpected error occurred';
           let fullError = error;
 
           // Handle ApiError with field-specific validation
@@ -109,7 +113,7 @@ export const useAuthStore = create<AuthStore>()(
             // If the error has field-specific details, pass the full error object
             if (
               (error as any).details &&
-              typeof (error as any).details === "object" &&
+              typeof (error as any).details === 'object' &&
               (error as any).details.errors
             ) {
               fullError = (error as any).details;
@@ -117,11 +121,11 @@ export const useAuthStore = create<AuthStore>()(
           } else if ((error as any)?.response?.data) {
             // Handle axios-style errors
             const responseData = (error as any).response.data;
-            errorMessage = responseData.message || "Signup failed";
+            errorMessage = responseData.message || 'Signup failed';
             // If we have field-specific errors, return them
             if (
               responseData.errors &&
-              typeof responseData.errors === "object"
+              typeof responseData.errors === 'object'
             ) {
               fullError = responseData;
             }
@@ -136,7 +140,11 @@ export const useAuthStore = create<AuthStore>()(
         }
       },
 
-      verifyOtp: async (email: string, otp: string, isPasswordReset: boolean = false): Promise<AuthResult> => {
+      verifyOtp: async (
+        email: string,
+        otp: string,
+        isPasswordReset: boolean = false
+      ): Promise<AuthResult> => {
         try {
           set({ isLoading: true, error: null });
 
@@ -160,7 +168,7 @@ export const useAuthStore = create<AuthStore>()(
             }
             return { success: true };
           }
-          return { success: false, error: "No access token received" };
+          return { success: false, error: 'No access token received' };
         } catch (error) {
           const errorMessage = get().extractErrorMessage(error);
           set({ error: errorMessage });
@@ -208,7 +216,9 @@ export const useAuthStore = create<AuthStore>()(
 
           const resetToken = get().passwordResetToken;
           if (!resetToken) {
-            throw new Error("Password reset token not found. Please request a new password reset.");
+            throw new Error(
+              'Password reset token not found. Please request a new password reset.'
+            );
           }
 
           // Temporarily set the reset token for the API call
@@ -218,10 +228,10 @@ export const useAuthStore = create<AuthStore>()(
 
           try {
             await serviceFactory.authService.resetPassword(password);
-            
+
             // Clear the reset token
             set({ passwordResetToken: null });
-            
+
             // Restore original token or clear if none
             if (originalToken) {
               serviceFactory.tokenService.setToken(originalToken);
@@ -251,8 +261,8 @@ export const useAuthStore = create<AuthStore>()(
 
       logout: () => {
         serviceFactory.tokenService.removeToken();
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("user");
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('user');
         }
         set({
           user: null,
@@ -268,15 +278,15 @@ export const useAuthStore = create<AuthStore>()(
           const user: User | undefined = response.data;
 
           if (!user) {
-            throw new Error("No user data received");
+            throw new Error('No user data received');
           }
 
           set({ user, isAuthenticated: true });
-          if (typeof window !== "undefined") {
-            localStorage.setItem("user", JSON.stringify(user));
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('user', JSON.stringify(user));
           }
         } catch (error) {
-          console.error("Failed to get profile:", error);
+          console.error('Failed to get profile:', error);
           // If we can't get the profile, the token might be invalid
           get().logout();
         }
@@ -303,68 +313,77 @@ export const useAuthStore = create<AuthStore>()(
         try {
           await get().getProfile();
         } catch (error) {
-          console.error("Failed to initialize auth state:", error);
+          console.error('Failed to initialize auth state:', error);
           get().logout();
         }
       },
 
       // Modal actions
       openLogin: () => {
-        set({ activeModal: "login", signupEmail: "", error: null });
+        set({ activeModal: 'login', signupEmail: '', error: null });
       },
 
       openSignup: () => {
-        set({ activeModal: "signup", signupEmail: "", error: null });
+        set({ activeModal: 'signup', signupEmail: '', error: null });
       },
 
       openOtp: (email: string) => {
-        set({ activeModal: "otp", signupEmail: email, error: null });
+        set({ activeModal: 'otp', signupEmail: email, error: null });
       },
 
       closeAllModals: () => {
-        set({ activeModal: "none", signupEmail: "", error: null });
-        
+        set({ activeModal: 'none', signupEmail: '', error: null });
+
         // Aggressive scroll restoration
         setTimeout(() => {
-          if (typeof window !== "undefined") {
+          if (typeof window !== 'undefined') {
             const body = document.body;
             const html = document.documentElement;
-            
+
             // Reset all scroll-related styles aggressively
-            body.style.overflow = "";
-            body.style.position = "";
-            body.style.top = "";
-            body.style.width = "";
-            body.style.height = "";
-            html.style.overflow = "";
-            html.style.position = "";
-            html.style.top = "";
-            html.style.width = "";
-            html.style.height = "";
-            
+            body.style.overflow = '';
+            body.style.position = '';
+            body.style.top = '';
+            body.style.width = '';
+            body.style.height = '';
+            html.style.overflow = '';
+            html.style.position = '';
+            html.style.top = '';
+            html.style.width = '';
+            html.style.height = '';
+
             // Force reflow
-            body.offsetHeight;
-            
+            void body.offsetHeight;
+
             // Remove any potential CSS classes that might lock scroll
-            body.classList.remove('modal-open', 'scroll-locked', 'overflow-hidden');
-            html.classList.remove('modal-open', 'scroll-locked', 'overflow-hidden');
-            
+            body.classList.remove(
+              'modal-open',
+              'scroll-locked',
+              'overflow-hidden'
+            );
+            html.classList.remove(
+              'modal-open',
+              'scroll-locked',
+              'overflow-hidden'
+            );
+
             // Force another reflow
-            document.documentElement.scrollTop = document.documentElement.scrollTop;
+            document.documentElement.scrollTop =
+              document.documentElement.scrollTop;
           }
         }, 10);
       },
 
       switchToLogin: () => {
-        set({ activeModal: "login", error: null });
+        set({ activeModal: 'login', error: null });
       },
 
       switchToSignup: () => {
-        set({ activeModal: "signup", error: null });
+        set({ activeModal: 'signup', error: null });
       },
 
       switchToOtp: (email: string) => {
-        set({ activeModal: "otp", signupEmail: email, error: null });
+        set({ activeModal: 'otp', signupEmail: email, error: null });
       },
 
       // Helper method to extract error messages consistently
@@ -377,16 +396,16 @@ export const useAuthStore = create<AuthStore>()(
           return error.message;
         }
 
-        if (typeof error === "string") {
+        if (typeof error === 'string') {
           return error;
         }
 
-        return "An unexpected error occurred";
+        return 'An unexpected error occurred';
       },
     }),
     {
-      name: "viargos-auth-storage",
-      partialize: (state) => ({
+      name: 'viargos-auth-storage',
+      partialize: state => ({
         user: state.user,
         token: state.token,
         isAuthenticated: state.isAuthenticated,

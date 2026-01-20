@@ -21,7 +21,6 @@ import { IHttpClient, ApiResponse } from '@/lib/interfaces/http-client.interface
 import { LoginCredentials, SignUpCredentials, User, AuthResponse } from '@/types/auth.types';
 import { ERROR_MESSAGES } from '@/constants/error-messages';
 import { logger } from '@/utils/logger';
-import { ErrorHandler } from '@/utils/error-handler';
 
 export class AuthService implements IAuthService {
   constructor(

@@ -3,7 +3,6 @@
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { Map, Calendar, MapPin, Star } from 'lucide-react';
-import { JourneyStats } from '@/types/journey.types';
 import { useJourneyStore } from '@/store/journey.store';
 import { LoadingSpinner } from '@/components/ui';
 
@@ -13,7 +12,7 @@ interface JourneysStatsProps {
 
 export default function JourneysStats({ className = '' }: JourneysStatsProps) {
   const { stats, isLoadingStats, loadStats } = useJourneyStore();
-  
+
   useEffect(() => {
     loadStats();
   }, [loadStats]);
@@ -27,12 +26,12 @@ export default function JourneysStats({ className = '' }: JourneysStatsProps) {
     return num.toString();
   };
 
-  const AnimatedNumber = ({ 
-    value, 
-    duration = 1000 
-  }: { 
-    value: number; 
-    duration?: number; 
+  const AnimatedNumber = ({
+    value,
+    duration = 1000
+  }: {
+    value: number;
+    duration?: number;
   }) => {
     const [displayValue, setDisplayValue] = useState(0);
 
@@ -119,9 +118,9 @@ export default function JourneysStats({ className = '' }: JourneysStatsProps) {
       </motion.h2>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {statsItems.map((item, index) => {
+        {statsItems.map((item) => {
           const Icon = item.icon;
-          
+
           return (
             <motion.div
               key={item.label}
@@ -200,17 +199,17 @@ export default function JourneysStats({ className = '' }: JourneysStatsProps) {
         <div className="flex items-center justify-between text-sm text-gray-600">
           <span>Average places per journey:</span>
           <span className="font-medium">
-            {stats.totalJourneys > 0 
-              ? Math.round(stats.totalPlaces / stats.totalJourneys) 
+            {stats.totalJourneys > 0
+              ? Math.round(stats.totalPlaces / stats.totalJourneys)
               : 0}
           </span>
         </div>
-        
+
         <div className="flex items-center justify-between text-sm text-gray-600 mt-2">
           <span>Average days per journey:</span>
           <span className="font-medium">
-            {stats.totalJourneys > 0 
-              ? Math.round(stats.totalDays / stats.totalJourneys) 
+            {stats.totalJourneys > 0
+              ? Math.round(stats.totalDays / stats.totalJourneys)
               : 0}
           </span>
         </div>

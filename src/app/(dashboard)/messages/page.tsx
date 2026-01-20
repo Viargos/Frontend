@@ -6,6 +6,7 @@ import { ChatList, ChatWindow } from '@/components/chat';
 import { useChatStore } from '@/store/chat.store';
 import { useAuthStore } from '@/store/auth.store';
 import { ChatUser } from '@/types/chat.types';
+import { MailIcon, ChatBubbleIcon, UsersIcon, LightningIcon } from '@/components/icons';
 
 /**
  * Messages Page - Main chat interface for authenticated users
@@ -240,10 +241,7 @@ export default function MessagesPage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Messages</h1>
             <p className="text-gray-600 flex items-center gap-2">
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-              </svg>
+<MailIcon className="w-4 h-4" />
               Connect with fellow travelers
             </p>
           </div>
@@ -317,19 +315,7 @@ export default function MessagesPage() {
                   >
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-yellow-500/20 rounded-3xl rotate-6"></div>
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-blue-700 rounded-3xl flex items-center justify-center shadow-xl">
-                      <svg
-                        className="w-16 h-16 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                        />
-                      </svg>
+<ChatBubbleIcon className="w-16 h-16 text-white" />
                     </div>
                     {/* Floating elements */}
                     <motion.div
@@ -371,19 +357,7 @@ export default function MessagesPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                     <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 text-left">
                       <div className="w-10 h-10 bg-[#001A6E] rounded-lg flex items-center justify-center mb-3">
-                        <svg
-                          className="w-5 h-5 text-white"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                          />
-                        </svg>
+<UsersIcon className="w-5 h-5 text-white" />
                       </div>
                       <h4 className="font-semibold text-gray-900 mb-1">
                         Start Conversations
@@ -395,19 +369,7 @@ export default function MessagesPage() {
 
                     <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-100 text-left">
                       <div className="w-10 h-10 bg-yellow-500 rounded-lg flex items-center justify-center mb-3">
-                        <svg
-                          className="w-5 h-5 text-white"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M13 10V3L4 14h7v7l9-11h-7z"
-                          />
-                        </svg>
+<LightningIcon className="w-5 h-5 text-white" />
                       </div>
                       <h4 className="font-semibold text-gray-900 mb-1">
                         Instant Messaging

@@ -20,7 +20,7 @@ import {
     IHttpClient,
     ApiResponse,
 } from "@/lib/interfaces/http-client.interface";
-import { DashboardFilters, DashboardResponse } from "@/types/dashboard.types";
+import { DashboardFilters } from "@/types/dashboard.types";
 import { Post } from "@/types/post.types";
 import { ERROR_MESSAGES } from "@/constants";
 import { logger } from "@/utils/logger";

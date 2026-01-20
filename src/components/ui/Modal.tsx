@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { ReactNode, useEffect, useRef } from "react";
-import { useEscapeKey } from "@/hooks/useKeyboardShortcut";
+import { ReactNode, useEffect, useRef } from 'react';
+import { useEscapeKey } from '@/hooks/useKeyboardShortcut';
 
 interface ModalProps {
   isOpen: boolean;
@@ -13,11 +13,11 @@ interface ModalProps {
 
 // Aggressive scroll management functions
 const lockScroll = () => {
-  if (typeof window === "undefined") return;
-  
+  if (typeof window === 'undefined') return;
+
   const body = document.body;
   const scrollY = window.scrollY;
-  
+
   // Store the current scroll position
   body.style.position = 'fixed';
   body.style.top = `-${scrollY}px`;
@@ -26,22 +26,22 @@ const lockScroll = () => {
 };
 
 const unlockScroll = () => {
-  if (typeof window === "undefined") return;
-  
+  if (typeof window === 'undefined') return;
+
   const body = document.body;
   const scrollY = body.style.top;
-  
+
   // Restore scroll position
   body.style.position = '';
   body.style.top = '';
   body.style.width = '';
   body.style.overflow = '';
-  
+
   // Restore the scroll position
   if (scrollY) {
     window.scrollTo(0, parseInt(scrollY || '0', 10) * -1);
   }
-  
+
   // Force additional cleanup
   setTimeout(() => {
     const html = document.documentElement;
@@ -55,13 +55,13 @@ const unlockScroll = () => {
     html.style.top = '';
     html.style.width = '';
     html.style.height = '';
-    
+
     // Remove potential classes
     body.classList.remove('modal-open', 'scroll-locked', 'overflow-hidden');
     html.classList.remove('modal-open', 'scroll-locked', 'overflow-hidden');
-    
+
     // Force reflow
-    body.offsetHeight;
+    void body.offsetHeight;
   }, 10);
 };
 
@@ -69,21 +69,21 @@ export function Modal({
   isOpen,
   onClose,
   children,
-  className = "",
+  className = '',
   showBackdrop = true,
 }: ModalProps) {
   const isOpenRef = useRef(isOpen);
-  
+
   // Track modal state and manage scroll
   useEffect(() => {
     isOpenRef.current = isOpen;
-    
+
     if (isOpen) {
       lockScroll();
     } else {
       unlockScroll();
     }
-    
+
     // Cleanup on unmount or when modal closes
     return () => {
       if (isOpenRef.current) {
@@ -91,7 +91,7 @@ export function Modal({
       }
     };
   }, [isOpen]);
-  
+
   // Additional cleanup on component unmount
   useEffect(() => {
     return () => {
@@ -126,7 +126,7 @@ export function Modal({
         className={`relative bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto ${className}`}
         role="dialog"
         aria-modal="true"
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       >
         {children}
       </div>

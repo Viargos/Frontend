@@ -17,7 +17,7 @@ export function useBodyScrollLock(isLocked: boolean) {
 
   useEffect(() => {
     const body = document.body;
-    
+
     if (isLocked) {
       // Store original values only when locking
       scrollPositionRef.current = window.scrollY;
@@ -28,7 +28,7 @@ export function useBodyScrollLock(isLocked: boolean) {
         top: body.style.top || computedStyle.top,
         width: body.style.width || computedStyle.width,
       };
-      
+
       // Apply scroll lock
       body.style.overflow = 'hidden';
       body.style.position = 'fixed';
@@ -41,10 +41,10 @@ export function useBodyScrollLock(isLocked: boolean) {
       body.style.position = original.position === 'static' ? '' : original.position;
       body.style.top = original.top === 'auto' ? '' : original.top;
       body.style.width = original.width === 'auto' ? '' : original.width;
-      
+
       // Restore scroll position
       window.scrollTo(0, scrollPositionRef.current);
-      
+
       // Clear refs
       originalStyleRef.current = null;
       scrollPositionRef.current = 0;
@@ -58,7 +58,7 @@ export function useBodyScrollLock(isLocked: boolean) {
         body.style.position = original.position === 'static' ? '' : original.position;
         body.style.top = original.top === 'auto' ? '' : original.top;
         body.style.width = original.width === 'auto' ? '' : original.width;
-        
+
         // Restore scroll position
         window.scrollTo(0, scrollPositionRef.current);
       }
@@ -74,7 +74,7 @@ export function useSimpleBodyScrollLock(isLocked: boolean) {
 
   useEffect(() => {
     const body = document.body;
-    
+
     if (isLocked) {
       // Store original overflow value
       originalOverflowRef.current = body.style.overflow || window.getComputedStyle(body).overflow;
@@ -110,7 +110,7 @@ export function useAdvancedBodyScrollLock(
     const scrollY = window.scrollY;
     const body = document.body;
     const html = document.documentElement;
-    
+
     // Store original styles
     const originalBodyStyle = {
       overflow: body.style.overflow,
@@ -118,7 +118,7 @@ export function useAdvancedBodyScrollLock(
       top: body.style.top,
       width: body.style.width,
     };
-    
+
     const originalHtmlStyle = {
       overflow: html.style.overflow,
     };
@@ -137,7 +137,7 @@ export function useAdvancedBodyScrollLock(
       body.style.top = originalBodyStyle.top;
       body.style.width = originalBodyStyle.width;
       html.style.overflow = originalHtmlStyle.overflow;
-      
+
       // Restore scroll position if requested
       if (restoreScrollPosition) {
         window.scrollTo(0, scrollY);
@@ -153,16 +153,16 @@ export function useAdvancedBodyScrollLock(
 export function resetBodyScroll() {
   const body = document.body;
   const html = document.documentElement;
-  
+
   // Reset all scroll-related styles
   body.style.overflow = '';
   body.style.position = '';
   body.style.top = '';
   body.style.width = '';
   html.style.overflow = '';
-  
+
   // Force a reflow
-  body.offsetHeight;
+  void body.offsetHeight;
 }
 
 /**

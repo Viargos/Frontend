@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { UserProfile, UserStats } from '@/types/profile.types';
 import { LoadingSpinner } from '@/components/ui';
 import FollowersFollowingModal, { ModalType } from './FollowersFollowingModal';
+import { PlusIcon, MapPinIcon } from '@/components/icons';
 
 interface ProfileHeaderProps {
   profile: UserProfile;
@@ -197,19 +198,7 @@ export default function ProfileHeader({
               {isImageUploading ? (
                 <LoadingSpinner size="xs" />
               ) : (
-                <svg
-                  className="w-3 h-3 sm:w-4 sm:h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                  />
-                </svg>
+                <PlusIcon className="w-3 h-3 sm:w-4 sm:h-4" />
               )}
             </motion.button>
 
@@ -253,25 +242,7 @@ export default function ProfileHeader({
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
             >
-              <svg
-                className="w-4 h-4 sm:w-5 sm:h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
+              <MapPinIcon className="w-4 h-4 sm:w-5 sm:h-5" />
               {profile.location}
             </motion.div>
           )}

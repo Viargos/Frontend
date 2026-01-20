@@ -5,7 +5,6 @@ interface IconProps {
 
 export default function PlaceToStayIcon({
   className = "w-8 h-8",
-  size = 26,
 }: IconProps) {
   return (
     <svg

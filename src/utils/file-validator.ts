@@ -19,8 +19,8 @@
  */
 
 import { ERROR_MESSAGES } from '@/constants/error-messages';
-import { VALIDATION_RULES, bytesToMB } from '@/constants/validation-rules';
-import { FILE_TYPES, isImageFile, isVideoFile } from '@/constants/file-types';
+import { VALIDATION_RULES } from '@/constants/validation-rules';
+import { isImageFile, isVideoFile } from '@/constants/file-types';
 
 export class FileValidator {
   /**

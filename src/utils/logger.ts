@@ -87,11 +87,25 @@ class Logger {
   /**
    * Log error messages
    */
-  error(message: string, error?: Error | unknown, metadata?: LogMetadata): void {
-    const entry = this.createLogEntry('error', message, metadata, error as Error);
+  error(
+    message: string,
+    error?: Error | unknown,
+    metadata?: LogMetadata
+  ): void {
+    const entry = this.createLogEntry(
+      'error',
+      message,
+      metadata,
+      error as Error
+    );
 
     if (this.isDevelopment) {
-      console.error(`❌ [ERROR] ${entry.timestamp}`, message, error, metadata || '');
+      console.error(
+        `❌ [ERROR] ${entry.timestamp}`,
+        message,
+        error,
+        metadata || ''
+      );
     }
 
     if (this.isProduction) {
@@ -104,7 +118,11 @@ class Logger {
    * Track user events for analytics
    */
   trackEvent(eventName: string, properties?: LogMetadata): void {
-    const entry = this.createLogEntry('info', `Event: ${eventName}`, properties);
+    const entry = this.createLogEntry(
+      'info',
+      `Event: ${eventName}`,
+      properties
+    );
 
     if (this.isDevelopment) {
       console.log(`📊 [EVENT] ${entry.timestamp}`, eventName, properties || '');
@@ -133,21 +151,34 @@ class Logger {
   /**
    * Track API calls
    */
-  trackApiCall(endpoint: string, method: string, properties?: LogMetadata): void {
+  trackApiCall(
+    endpoint: string,
+    method: string,
+    properties?: LogMetadata
+  ): void {
     this.trackEvent('api_call', { endpoint, method, ...properties });
   }
 
   /**
    * Track API errors
    */
-  trackApiError(endpoint: string, method: string, error: Error, properties?: LogMetadata): void {
+  trackApiError(
+    endpoint: string,
+    method: string,
+    error: Error,
+    properties?: LogMetadata
+  ): void {
     this.error('API call failed', error, { endpoint, method, ...properties });
   }
 
   /**
    * Track performance metrics
    */
-  trackPerformance(metricName: string, durationMs: number, properties?: LogMetadata): void {
+  trackPerformance(
+    metricName: string,
+    durationMs: number,
+    properties?: LogMetadata
+  ): void {
     this.trackEvent('performance', { metricName, durationMs, ...properties });
   }
 
@@ -173,7 +204,10 @@ class Logger {
    * Send logs to analytics service (placeholder)
    * TODO: Implement integration with Mixpanel, Amplitude, or similar
    */
-  private sendToAnalytics(type: string, entry: LogEntry | Record<string, unknown>): void {
+  private sendToAnalytics(
+    _type: string,
+    _entry: LogEntry | Record<string, unknown>
+  ): void {
     // Placeholder for analytics integration
     // Example: mixpanel.track(entry.message, entry.metadata);
     // Example: amplitude.logEvent(entry.message, entry.metadata);
@@ -183,7 +217,7 @@ class Logger {
    * Send errors to error tracking service (placeholder)
    * TODO: Implement integration with Sentry, LogRocket, or similar
    */
-  private sendToErrorTracking(level: string, entry: LogEntry): void {
+  private sendToErrorTracking(_level: string, _entry: LogEntry): void {
     // Placeholder for error tracking integration
     // Example: Sentry.captureException(entry.error, { level, extra: entry.metadata });
     // Example: LogRocket.captureException(entry.error, { tags: { level }, extra: entry.metadata });

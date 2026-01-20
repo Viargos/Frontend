@@ -313,7 +313,7 @@ export function AnimatedCurvedRoute({
           className="animate-dotted-path"
           style={{
             // Set CSS variable for animation
-            // @ts-ignore
+            // @ts-expect-error - CSS custom properties are valid but TypeScript doesn't recognize them
             "--path-length": length || 1000,
             "--animation-speed": `${animationSpeed}s`,
           }}

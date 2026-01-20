@@ -34,7 +34,7 @@ import {
   JourneyDayActivities,
 } from "@/types/journey.types";
 import apiClient from "@/lib/api.legacy";
-import { ERROR_MESSAGES, SUCCESS_MESSAGES, VALIDATION_RULES } from "@/constants";
+import { ERROR_MESSAGES, VALIDATION_RULES } from "@/constants";
 import { logger } from "@/utils/logger";
 import { ErrorHandler } from "@/utils/error-handler";
 
@@ -55,8 +55,8 @@ export class JourneyService implements IJourneyService {
       // Log full API response for debugging
       console.log("[JOURNEY_API_RESPONSE]", {
         statusCode: response.statusCode,
-        dataLength: Array.isArray(response.data) ? response.data.length : 
-                     (response.data && typeof response.data === 'object' && 'data' in response.data && Array.isArray((response.data as any).data)) 
+        dataLength: Array.isArray(response.data) ? response.data.length :
+                     (response.data && typeof response.data === 'object' && 'data' in response.data && Array.isArray((response.data as any).data))
                        ? (response.data as any).data.length : 0,
         response: response
       });
@@ -135,7 +135,7 @@ export class JourneyService implements IJourneyService {
         if (response.statusCode !== 10000 && response.statusCode !== 200 && response.statusCode !== undefined) {
           throw new Error(response.message || ERROR_MESSAGES.JOURNEY.FETCH_LIST_FAILED);
         }
-        
+
         // Use the same extraction logic as getMyJourneys to handle different response formats
         journeys = this.extractJourneysFromResponse(response.data);
       } else {
@@ -353,9 +353,9 @@ export class JourneyService implements IJourneyService {
 
       // Backend returns { success: true } for successful deletion
       // Also check for statusCode in case response format changes
-      const isSuccess = response?.success === true || 
+      const isSuccess = response?.success === true ||
                        (response?.statusCode && [200, 204, 10000].includes(response.statusCode));
-      
+
       if (!isSuccess) {
         throw new Error(response?.message || ERROR_MESSAGES.JOURNEY.DELETE_FAILED);
       }
@@ -365,12 +365,12 @@ export class JourneyService implements IJourneyService {
       logger.trackEvent('journey_deleted', { journeyId: id });
     } catch (error) {
       const errorMessage = ErrorHandler.extractMessage(error);
-      
+
       // Don't log error if journey is already deleted (idempotent operation)
       if (!errorMessage.toLowerCase().includes('journey not found')) {
         logger.error('Failed to delete journey', error as Error, { journeyId: id });
       }
-      
+
       throw new Error(errorMessage || ERROR_MESSAGES.JOURNEY.DELETE_FAILED);
     }
   }

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { User } from '@/types/user.types';
+import { SearchIcon, ChevronRightIcon } from '@/components/icons';
 
 interface UserSearchResultsProps {
   results: User[];
@@ -19,7 +20,7 @@ export default function UserSearchResults({
   isVisible,
   isLoading,
   onUserClick,
-  onClose
+  onClose: _onClose
 }: UserSearchResultsProps) {
   const router = useRouter();
 
@@ -52,19 +53,7 @@ export default function UserSearchResults({
           </div>
         ) : results.length === 0 ? (
           <div className="p-4 text-center">
-            <svg
-              className="w-8 h-8 text-gray-300 mx-auto mb-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
+            <SearchIcon className="w-8 h-8 text-gray-300 mx-auto mb-2" />
             <p className="text-sm text-gray-500">No users found</p>
           </div>
         ) : (
@@ -95,7 +84,7 @@ export default function UserSearchResults({
                       </div>
                     )}
                   </div>
-                  
+
                   {/* User Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
@@ -107,29 +96,17 @@ export default function UserSearchResults({
                       {user.email}
                     </p>
                   </div>
-                  
+
                   {/* Arrow Icon */}
                   <div className="flex-shrink-0">
-                    <svg
-                      className="w-4 h-4 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
+                    <ChevronRightIcon className="w-4 h-4 text-gray-400" />
                   </div>
                 </div>
               </motion.div>
             ))}
           </div>
         )}
-        
+
         {/* Footer */}
         {results.length > 0 && (
           <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">

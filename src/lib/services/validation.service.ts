@@ -1,4 +1,4 @@
-import { IValidationService, ValidationResult } from '@/lib/interfaces/auth.interface';
+import { IValidationService } from '@/lib/interfaces/auth.interface';
 
 export class ValidationService implements IValidationService {
   private readonly EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -79,7 +79,7 @@ export class ValidationService implements IValidationService {
     if (!otp || typeof otp !== 'string') {
       return false;
     }
-    
+
     return this.OTP_REGEX.test(otp.trim());
   }
 

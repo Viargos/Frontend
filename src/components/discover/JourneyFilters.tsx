@@ -38,7 +38,7 @@ export default function JourneyFilters({
   filters,
   onFiltersChange,
   onReset,
-  isVisible,
+  isVisible: _isVisible,
   onToggleVisibility,
 }: JourneyFiltersProps) {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(

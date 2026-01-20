@@ -45,7 +45,7 @@ export default function JourneyDetailsPage() {
 
   // Helper function to get image URL from S3 key
   const getImageUrl = (photoKey: string): string => {
-    if (photoKey.startsWith("http")) {
+    if (photoKey.startsWith('http')) {
       return photoKey;
     }
     return `https://viargos.s3.us-east-2.amazonaws.com/${photoKey}`;
@@ -66,7 +66,7 @@ export default function JourneyDetailsPage() {
         }
         const journeyService = serviceFactory.journeyService;
         const fetchedJourney = await journeyService.getJourneyById(journeyId);
-        console.log("Journey data received:", fetchedJourney);
+        console.log('Journey data received:', fetchedJourney);
         if (fetchedJourney?.days) {
           const imageSummary = fetchedJourney.days.flatMap((day: any) =>
             (day.places || []).map((place: any) => ({
@@ -76,7 +76,7 @@ export default function JourneyDetailsPage() {
               images: (place as any).images,
             }))
           );
-          console.log("Journey images (legacy photos/images):", imageSummary);
+          console.log('Journey images (legacy photos/images):', imageSummary);
 
           const mediaSummary = fetchedJourney.days.flatMap((day: any) =>
             (day.places || []).map((place: any) => ({
@@ -86,7 +86,10 @@ export default function JourneyDetailsPage() {
               media: place.media,
             }))
           );
-          console.log("[JOURNEY_FETCH] Journey place media summary:", mediaSummary);
+          console.log(
+            '[JOURNEY_FETCH] Journey place media summary:',
+            mediaSummary
+          );
         }
         setJourney(fetchedJourney);
 
@@ -165,28 +168,33 @@ export default function JourneyDetailsPage() {
                 m &&
                 typeof m.url === 'string' &&
                 m.url.length > 0 &&
-                (m.type === 'IMAGE' || m.type === 'image'),
+                (m.type === 'IMAGE' || m.type === 'image')
             )
-            .sort(
-              (a: any, b: any) =>
-                (a.order ?? 0) - (b.order ?? 0),
-            )
+            .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
             .map((m: any) => m.url)
         : [];
 
-      const combinedPhotos = (legacyPhotos.length > 0 ? legacyPhotos : mediaImages) as string[];
+      const combinedPhotos = (
+        legacyPhotos.length > 0 ? legacyPhotos : mediaImages
+      ) as string[];
 
       if (!combinedPhotos.length) {
-        console.log('[JOURNEY_MEDIA_MISSING] No photos/media for place on journey detail page', {
-          placeId: place.id,
-          placeName: place.name,
-        });
+        console.log(
+          '[JOURNEY_MEDIA_MISSING] No photos/media for place on journey detail page',
+          {
+            placeId: place.id,
+            placeName: place.name,
+          }
+        );
       } else {
-        console.log('[JOURNEY_MEDIA_RESOLVED] Photos for place on journey detail page', {
-          placeId: place.id,
-          placeName: place.name,
-          photoCount: combinedPhotos.length,
-        });
+        console.log(
+          '[JOURNEY_MEDIA_RESOLVED] Photos for place on journey detail page',
+          {
+            placeId: place.id,
+            placeName: place.name,
+            photoCount: combinedPhotos.length,
+          }
+        );
       }
 
       const location: Location = {
@@ -256,10 +264,10 @@ export default function JourneyDetailsPage() {
     if (!journey) {
       return [];
     }
-    
+
     // Use utility to extract all locations (already sorted by day and time)
     const journeyLocations = extractJourneyLocations(journey);
-    
+
     // Convert to Location format expected by map
     return journeyLocations.map(loc => ({
       id: loc.id,
@@ -277,7 +285,7 @@ export default function JourneyDetailsPage() {
   // Get journey center location for map
   const getJourneyCenter = () => {
     const allLocations = getAllJourneyLocations();
-    
+
     if (allLocations.length > 0) {
       return calculateLocationsCenter(allLocations);
     }
@@ -313,19 +321,7 @@ export default function JourneyDetailsPage() {
         <div className="text-center py-8">
           <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
             <div className="text-red-600 mb-2">
-              <svg
-                className="w-8 h-8 mx-auto"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
+              <AlertCircleIcon className="w-8 h-8 mx-auto" />
             </div>
             <h3 className="text-lg font-medium text-red-800 mb-2">
               Failed to load journey
@@ -371,10 +367,7 @@ export default function JourneyDetailsPage() {
           style={{ zIndex: 1 }}
           priority={true}
           onLoad={() => {
-            console.log(
-              'Cover image loaded successfully:',
-              coverImageSrc
-            );
+            console.log('Cover image loaded successfully:', coverImageSrc);
           }}
           onError={() => {
             console.error('Cover image failed to load:', coverImageSrc);
@@ -392,19 +385,7 @@ export default function JourneyDetailsPage() {
           onClick={() => setIsBannerEditModalOpen(true)}
           className="absolute top-2 right-2 sm:top-4 sm:right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white/20 backdrop-blur-sm text-white px-2 py-1 sm:px-3 sm:py-2 rounded-md text-xs sm:text-sm hover:bg-white/30 flex items-center gap-1 sm:gap-2"
         >
-          <svg
-            className="w-3 h-3 sm:w-4 sm:h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-            />
-          </svg>
+          <EditIcon className="w-3 h-3 sm:w-4 sm:h-4" />
           <span className="hidden sm:inline">Edit</span>
         </button>
       </div>
@@ -423,46 +404,46 @@ export default function JourneyDetailsPage() {
               </div>
             </div>
 
-          {/* Day Tabs */}
-          {journey.days && journey.days.length > 0 ? (
-            <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
-              {journey.days.map(day => (
-                <button
-                  key={day.id}
-                  onClick={() => setActiveDay(day.dayNumber)}
-                  className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
-                    activeDay === day.dayNumber
-                      ? 'bg-[#001A6E] text-white shadow-md'
-                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 shadow-sm'
-                  }`}
-                >
-                  Day {day.dayNumber + 1}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 sm:mb-6">
-              <p className="text-yellow-800">
-                This journey doesn&apos;t have any days planned yet.
-              </p>
-            </div>
-          )}
+            {/* Day Tabs */}
+            {journey.days && journey.days.length > 0 ? (
+              <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
+                {journey.days.map(day => (
+                  <button
+                    key={day.id}
+                    onClick={() => setActiveDay(day.dayNumber)}
+                    className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
+                      activeDay === day.dayNumber
+                        ? 'bg-[#001A6E] text-white shadow-md'
+                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 shadow-sm'
+                    }`}
+                  >
+                    Day {day.dayNumber + 1}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 sm:mb-6">
+                <p className="text-yellow-800">
+                  This journey doesn&apos;t have any days planned yet.
+                </p>
+              </div>
+            )}
 
-          {/* Day Content */}
-          {currentDay && (
-            <div>
-              <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900">
-                Day {currentDay.dayNumber + 1} -{' '}
-                {formatDayDate(currentDay.date)}
-              </h2>
+            {/* Day Content */}
+            {currentDay && (
+              <div>
+                <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900">
+                  Day {currentDay.dayNumber + 1} -{' '}
+                  {formatDayDate(currentDay.date)}
+                </h2>
 
-              {/* Timeline Display */}
-              {currentDay &&
-              currentDay.places &&
-              currentDay.places.length > 0 ? (
-                <div className="relative">
-                  {/* Timeline Line */}
-                  <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+                {/* Timeline Display */}
+                {currentDay &&
+                currentDay.places &&
+                currentDay.places.length > 0 ? (
+                  <div className="relative">
+                    {/* Timeline Line */}
+                    <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200"></div>
 
                   <div className="space-y-6">
                     {/* All places combined in timeline format */}
@@ -539,78 +520,48 @@ export default function JourneyDetailsPage() {
                                 )}
                               </div>
 
-                              {/* Content */}
-                              <div className="flex-1 p-4 min-w-0">
-                                <div className="flex items-start justify-between gap-2">
-                                  <div className="flex-1 min-w-0">
-                                    <h3 className="font-semibold text-gray-900 text-base mb-1 truncate">
-                                      {place.name}
-                                    </h3>
-                                    <div className="flex items-center text-sm text-gray-600 mb-2">
-                                      <svg
-                                        className="w-4 h-4 mr-1 text-gray-400 flex-shrink-0"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth={2}
-                                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                                        />
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth={2}
-                                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                                        />
-                                      </svg>
-                                      <span className="truncate">
-                                        {place.type === 'stay' &&
-                                          'Accommodation & Theme Parks'}
-                                        {place.type === 'activity' &&
-                                          'Attractions & Activities'}
-                                        {place.type === 'food' &&
-                                          'Restaurants & Dining'}
-                                        {place.type === 'transport' &&
-                                          'Transportation'}
-                                      </span>
+                                {/* Content */}
+                                <div className="flex-1 p-4 min-w-0">
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div className="flex-1 min-w-0">
+                                      <h3 className="font-semibold text-gray-900 text-base mb-1 truncate">
+                                        {place.name}
+                                      </h3>
+                                      <div className="flex items-center text-sm text-gray-600 mb-2">
+                                        <MapPinIcon className="w-4 h-4 mr-1 text-gray-400 flex-shrink-0" />
+                                        <span className="truncate">
+                                          {place.type === 'stay' &&
+                                            'Accommodation & Theme Parks'}
+                                          {place.type === 'activity' &&
+                                            'Attractions & Activities'}
+                                          {place.type === 'food' &&
+                                            'Restaurants & Dining'}
+                                          {place.type === 'transport' &&
+                                            'Transportation'}
+                                        </span>
+                                      </div>
+                                      {place.address && (
+                                        <p className="text-sm text-gray-500 break-words whitespace-normal">
+                                          {place.address}
+                                        </p>
+                                      )}
                                     </div>
-                                    {place.address && (
-                                      <p className="text-sm text-gray-500 break-words whitespace-normal">
-                                        {place.address}
-                                      </p>
-                                    )}
-                                  </div>
 
-                                  {/* View Images button */}
-                                  <button
-                                    onClick={() => handleLocationClick(place)}
-                                    className="ml-4 flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors flex-shrink-0"
-                                  >
-                                    <svg
-                                      className="w-4 h-4 mr-1"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      viewBox="0 0 24 24"
+                                    {/* View Images button */}
+                                    <button
+                                      onClick={() => handleLocationClick(place)}
+                                      className="ml-4 flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors flex-shrink-0"
                                     >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                      />
-                                    </svg>
-                                    View Images
-                                  </button>
+                                      <ImageIcon className="w-4 h-4 mr-1" />
+                                      View Images
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
 
                     {/* Notes in timeline */}
                     {currentDay.notes && (
@@ -667,8 +618,8 @@ export default function JourneyDetailsPage() {
 
           {/* Journey Posts Section */}
           <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
-            <JourneyPosts 
-              journeyId={journeyId} 
+            <JourneyPosts
+              journeyId={journeyId}
               journeyTitle={journey?.title || 'this journey'}
             />
           </div>
@@ -702,14 +653,7 @@ export default function JourneyDetailsPage() {
               onClick={() => setSelectedLocation(null)}
               className="text-gray-400 hover:text-gray-600 transition-colors"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
+              <CloseIcon className="w-5 h-5" />
             </button>
           </div>
 
@@ -717,8 +661,8 @@ export default function JourneyDetailsPage() {
             <PhotoGallery
               // Use final public file URLs; if backend stored keys, convert via getImageUrl
               photos={selectedLocation.photos
-                .filter((p) => !!p)
-                .map((p) => getImageUrl(p))}
+                .filter(p => !!p)
+                .map(p => getImageUrl(p))}
               showRemoveButton={false}
             />
           ) : (

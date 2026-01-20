@@ -5,7 +5,6 @@ import apiClient from '@/lib/api.legacy';
 import {
   LocationCoordinates,
   NearbyJourneysParams,
-  NearbyJourneysResponse,
 } from '@/types/user.types';
 
 export interface UseNearbyJourneysOptions {

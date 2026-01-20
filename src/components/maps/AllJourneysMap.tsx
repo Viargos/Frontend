@@ -12,6 +12,7 @@ import {
 import { Journey, JourneyPlace } from '@/types/journey.types';
 import { viargoMapOptions } from '@/constants/map-styles';
 import { detectAccommodationType, getAccommodationColor } from '@/utils/accommodation-detector';
+import { generateViargosMarker, generatePlaceMarker } from '@/utils/map-markers';
 
 interface MapLocation {
   id: string;
@@ -373,71 +374,21 @@ export default function AllJourneysMap({
     };
 
     const markerColor = colors[type as keyof typeof colors] || '#001A6E';
-    // Marker sizes - smaller for cleaner look
     const baseSize = type === 'journeyStart' ? 36 : 30;
-    const markerSize = isHovered ? baseSize + 4 : baseSize;
-
-    // White marker with Viargos logo and pointed bottom
-    const viargosMarker = `
-      <svg width="${markerSize}" height="${markerSize * 1.3}" viewBox="0 0 50 70" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <filter id="shadow" x="-20%" y="-10%" width="140%" height="130%">
-            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.35"/>
-          </filter>
-        </defs>
-        
-        <g filter="url(%23shadow)">
-          <!-- White pin body with navy border -->
-          <path d="M25 2C12.85 2 3 11.85 3 24c0 16.5 22 42 22 42s22-25.5 22-42C47 11.85 37.15 2 25 2z" fill="${markerColor}" stroke="#001A6E" stroke-width="2"/>
-          
-          <!-- Viargos logo circle area -->
-          <circle cx="25" cy="22" r="16" fill="white" stroke="${markerColor}" stroke-width="1.5"/>
-          
-          <!-- Viargos logo -->
-          <image href="viargos.svg" width="${markerSize}" height="${markerSize * 1.4}" />
-          
-        </g>
-      </svg>
-    `;
 
     if (type === 'journeyStart') {
-      return {
-        url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(viargosMarker)}`,
-        scaledSize: window.google?.maps?.Size
-          ? new window.google.maps.Size(markerSize, markerSize * 1.4)
-          : undefined,
-        anchor: window.google?.maps?.Point
-          ? new window.google.maps.Point(markerSize / 2, markerSize * 1.4)
-          : undefined,
-      };
+      return generateViargosMarker({
+        size: baseSize,
+        color: markerColor,
+        isHovered,
+      });
     }
 
-    // Regular place markers - white pin with simpler design
-    return {
-      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-        <svg width="${markerSize}" height="${markerSize * 1.3}" viewBox="0 0 40 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <filter id="shadow2" x="-20%" y="-10%" width="140%" height="130%">
-              <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.3"/>
-            </filter>
-          </defs>
-          <g filter="url(%23shadow2)">
-            <!-- White pin with navy border -->
-            <path d="M20 2C10.06 2 2 10.06 2 20c0 13 18 30 18 30s18-17 18-30C38 10.06 29.94 2 20 2z" fill="white" stroke="#001A6E" stroke-width="2"/>
-            <!-- Navy inner circle -->
-            <circle cx="20" cy="18" r="10" fill="#001A6E"/>
-            <!-- White V icon -->
-            <path d="M16 14L20 20L24 14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-          </g>
-        </svg>
-      `)}`,
-      scaledSize: window.google?.maps?.Size
-        ? new window.google.maps.Size(markerSize, markerSize * 1.3)
-        : undefined,
-      anchor: window.google?.maps?.Point
-        ? new window.google.maps.Point(markerSize / 2, markerSize * 1.3)
-        : undefined,
-    };
+    // Regular place markers
+    return generatePlaceMarker({
+      size: baseSize,
+      isHovered,
+    });
   };
 
   if (!isLoaded) {

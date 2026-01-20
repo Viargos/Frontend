@@ -1,21 +1,32 @@
+import React from 'react';
+
 interface CalendarIconProps {
   className?: string;
+  size?: number;
 }
 
-export function CalendarIcon({ className = "w-4 h-4" }: CalendarIconProps) {
+export const CalendarIcon: React.FC<CalendarIconProps> = ({
+  className = '',
+  size = 24,
+}) => {
   return (
     <svg
-      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      viewBox="0 0 24 24"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
     >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-      />
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
     </svg>
   );
-}
+};
+
+export default CalendarIcon;

@@ -2,11 +2,11 @@
 
 import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  PlaceType, 
-  CreateComprehensiveJourneyDto, 
-  CreateJourneyDay, 
-  CreateJourneyPlace 
+import {
+  PlaceType,
+  CreateComprehensiveJourneyDto,
+  CreateJourneyDay,
+  CreateJourneyPlace
 } from '@/types/journey.types';
 import { JourneyService } from '@/lib/services/journey.service';
 import { Button, InputField } from '@/components/ui';
@@ -62,7 +62,7 @@ export default function JourneyCreationForm({ onSuccess, onCancel }: JourneyCrea
   const addDay = useCallback(() => {
     const newDayNumber = formData.days.length + 1;
     const lastDate = formData.days[formData.days.length - 1]?.date;
-    const nextDate = lastDate 
+    const nextDate = lastDate
       ? new Date(new Date(lastDate).getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]
       : new Date().toISOString().split('T')[0];
 
@@ -82,7 +82,7 @@ export default function JourneyCreationForm({ onSuccess, onCancel }: JourneyCrea
 
   const removeDay = useCallback((dayIndex: number) => {
     if (formData.days.length === 1) return; // Don't remove the last day
-    
+
     setFormData(prev => ({
       ...prev,
       days: prev.days.filter((_, index) => index !== dayIndex).map((day, index) => ({
@@ -95,7 +95,7 @@ export default function JourneyCreationForm({ onSuccess, onCancel }: JourneyCrea
   const updateDay = useCallback((dayIndex: number, field: keyof CreateJourneyDay, value: any) => {
     setFormData(prev => ({
       ...prev,
-      days: prev.days.map((day, index) => 
+      days: prev.days.map((day, index) =>
         index === dayIndex ? { ...day, [field]: value } : day
       )
     }));
@@ -122,7 +122,7 @@ export default function JourneyCreationForm({ onSuccess, onCancel }: JourneyCrea
     setFormData(prev => ({
       ...prev,
       days: prev.days.map((day, index) =>
-        index === dayIndex 
+        index === dayIndex
           ? { ...day, places: day.places.filter((_, pIndex) => pIndex !== placeIndex) }
           : day
       )
@@ -167,7 +167,7 @@ export default function JourneyCreationForm({ onSuccess, onCancel }: JourneyCrea
         setError(`Day ${i + 1} must have a date`);
         return;
       }
-      
+
       // Validate places
       for (let j = 0; j < day.places.length; j++) {
         const place = day.places[j];
@@ -221,7 +221,7 @@ export default function JourneyCreationForm({ onSuccess, onCancel }: JourneyCrea
         {/* Basic Information */}
         <div className="bg-white p-6 rounded-lg border border-gray-200 space-y-6">
           <h2 className="text-xl font-semibold text-gray-900">Basic Information</h2>
-          
+
           <InputField
             label="Journey Title"
             value={formData.title}
@@ -317,7 +317,7 @@ export default function JourneyCreationForm({ onSuccess, onCancel }: JourneyCrea
 
                 {day.places.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
-                    <p>No places added yet. Click "Add Place" to get started.</p>
+                    <p>No places added yet. Click &quot;Add Place&quot; to get started.</p>
                   </div>
                 ) : (
                   <div className="space-y-3">

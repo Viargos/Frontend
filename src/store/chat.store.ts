@@ -455,7 +455,6 @@ export const useChatStore = create<ChatStore>()(
           // 🔄 FIX: Set up event listeners with proper state updates
           wsService.onMessage(message => {
             const msg = message as ChatMessage;
-            const state = get();
             const currentUserId = useAuthStore.getState().user?.id;
 
             if (!currentUserId) return;

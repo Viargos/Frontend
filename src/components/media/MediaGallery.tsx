@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatFileSize } from '@/lib/aws/media-upload';
+import { UploadIcon, FileTextIcon, TrashIcon, PlayCircleIcon, XIcon, ChevronLeftIcon, ChevronRightIcon } from '@/components/icons';
 
 interface MediaItem {
   id: string;
@@ -137,12 +138,12 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
       if (item.type.startsWith('image/')) return 'image';
       if (item.type.startsWith('video/')) return 'video';
     }
-    
+
     // Fallback: check URL extension
     const url = item.url.toLowerCase();
     if (/\.(jpg|jpeg|png|gif|webp|svg)($|\?)/.test(url)) return 'image';
     if (/\.(mp4|mov|avi|mkv|webm)($|\?)/.test(url)) return 'video';
-    
+
     return 'other';
   }, []);
 
@@ -162,9 +163,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   if (items.length === 0) {
     return (
       <div className={`text-center py-12 ${className}`}>
-        <svg className="mx-auto w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 48 48">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" />
-        </svg>
+        <UploadIcon className="mx-auto w-12 h-12 text-gray-400 mb-4" />
         <p className="text-gray-500 font-medium">No media files</p>
         <p className="text-gray-400 text-sm">Upload some files to see them here</p>
       </div>
@@ -220,9 +219,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
                 />
               ) : (
                 <div className="flex items-center justify-center h-full bg-gray-200">
-                  <svg className="w-12 h-12 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6z" clipRule="evenodd" />
-                  </svg>
+                  <FileTextIcon className="w-12 h-12 text-gray-400" />
                 </div>
               )}
 
@@ -256,9 +253,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                       >
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
+                        <TrashIcon className="w-3 h-3" />
                       </motion.button>
                     )}
                   </div>
@@ -269,9 +264,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
               {fileType === 'video' && (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="bg-black/50 rounded-full p-3">
-                    <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                    </svg>
+                    <PlayCircleIcon className="w-8 h-8 text-white" />
                   </div>
                 </div>
               )}
@@ -296,9 +289,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
                 onClick={closeLightbox}
                 className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-10"
               >
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <XIcon className="w-8 h-8" />
               </button>
 
               {/* Navigation */}
@@ -312,9 +303,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
                     disabled={lightboxIndex === 0}
                     className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors z-10"
                   >
-                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
+                    <ChevronLeftIcon className="w-8 h-8" />
                   </button>
                   <button
                     onClick={(e) => {
@@ -324,9 +313,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
                     disabled={lightboxIndex === items.length - 1}
                     className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors z-10"
                   >
-                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
+                    <ChevronRightIcon className="w-8 h-8" />
                   </button>
                 </>
               )}
@@ -362,12 +349,10 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
                       />
                     );
                   }
-                  
+
                   return (
                     <div className="bg-white rounded-lg p-8 text-center">
-                      <svg className="mx-auto w-16 h-16 text-gray-400 mb-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6z" clipRule="evenodd" />
-                      </svg>
+                      <FileTextIcon className="mx-auto w-16 h-16 text-gray-400 mb-4" />
                       <p className="text-gray-900 font-medium">{item.name || 'Unknown file'}</p>
                       <a
                         href={item.url}

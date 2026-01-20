@@ -130,7 +130,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 {/* Footer */}
                 <div className="flex justify-center items-center gap-1 w-full">
                     <span className="text-gray-600 font-manrope text-sm leading-5">
-                        Don't have an account?
+                        Don&apos;t have an account?
                     </span>
                     <button
                         onClick={handleSignUp}

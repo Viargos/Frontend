@@ -8,6 +8,7 @@ import { PostType } from "@/types/post.types";
 import JourneyIcon from "@/components/icons/JourneyIcon";
 import MapIcon from "@/components/icons/MapIcon";
 import ArrowLeftIcon from "@/components/icons/ArrowLeftIcon";
+import { ChevronRightIcon } from "@/components/icons";
 import JourneyLinkedPostForm from "./JourneyLinkedPostForm";
 import StandalonePostForm from "./StandalonePostForm";
 
@@ -67,7 +68,7 @@ export default function CreatePostModal({
                 Create New Post
               </h2>
               <p className="text-gray-600">
-                Choose how you'd like to create your post
+                Choose how you&apos;d like to create your post
               </p>
             </div>
 
@@ -96,19 +97,7 @@ export default function CreatePostModal({
                     </p>
                     <div className="mt-3 flex items-center text-blue-600 text-sm font-medium">
                       <span>Select from your journeys</span>
-                      <svg
-                        className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 5l7 7-7 7"
-                        />
-                      </svg>
+<ChevronRightIcon className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </div>
                 </div>
@@ -137,19 +126,7 @@ export default function CreatePostModal({
                     </p>
                     <div className="mt-3 flex items-center text-green-600 text-sm font-medium">
                       <span>Add location and media</span>
-                      <svg
-                        className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 5l7 7-7 7"
-                        />
-                      </svg>
+<ChevronRightIcon className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </div>
                 </div>

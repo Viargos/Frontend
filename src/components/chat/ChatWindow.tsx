@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { ChatUser, ChatMessage } from '@/types/chat.types';
 import { useAuthStore } from '@/store/auth.store';
 import ChatHeader from './ChatHeader';

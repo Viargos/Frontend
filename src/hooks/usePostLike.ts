@@ -84,7 +84,7 @@ export const usePostLike = ({
         // Update parent with actual backend values
         onLikeChange?.(postId, response.data.isLiked, response.data.likeCount);
       }
-    } catch (error) {
+    } catch {
       // ❌ ROLLBACK - Revert to previous state on error
       setIsLiked(previousIsLiked);
       setLocalLikeCount(previousLikeCount);
