@@ -31,9 +31,10 @@ import {
   PostFilters,
   LikeResponse,
 } from "@/types/post.types";
-import { ERROR_MESSAGES } from "@/constants";
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants";
 import { logger } from "@/utils/logger";
 import { FileValidator } from "@/utils/file-validator";
+import { ErrorHandler } from "@/utils/error-handler";
 
 export interface IPostService {
   createPost(postData: CreatePostDto): Promise<ApiResponse<Post>>;

@@ -45,7 +45,7 @@ export default function CreateJourneyPage() {
 
   // Handle form submission
   const handleSubmit = async () => {
-    console.log('handleSubmit called');
+    
 
     // Update form data with journey name and subtitle before submission
     const updatedFormData = {
@@ -53,21 +53,15 @@ export default function CreateJourneyPage() {
       description: subtitle || formData.description,
     };
 
-    console.log('Submitting with updated data:', updatedFormData);
-
     // Update form data and wait for the update
     updateFormData(updatedFormData);
 
     // Use a small delay to ensure state is updated, or pass the data directly
     const journeyId = await submitJourneyWithData(updatedFormData);
-    console.log('submitJourney returned:', journeyId);
-    console.log('Type of journeyId:', typeof journeyId);
 
     if (journeyId) {
-      console.log('Redirecting to:', `/journey/${journeyId}`);
       router.push(`/journey/${journeyId}`);
     } else {
-      console.log('No journey ID received, not redirecting');
     }
   };
 
@@ -84,7 +78,6 @@ export default function CreateJourneyPage() {
     }> = [];
 
     const activeDayPlaces = getActiveDayPlaces();
-    console.log('🗺️ Creating map locations from places:', activeDayPlaces);
     
     activeDayPlaces.forEach((place, index) => {
       // Show marker if place has valid coordinates
@@ -94,13 +87,6 @@ export default function CreateJourneyPage() {
         place.longitude &&
         place.latitude !== 0 &&
         place.longitude !== 0;
-
-      console.log(`📍 Place ${index}:`, {
-        name: place.name,
-        latitude: place.latitude,
-        longitude: place.longitude,
-        hasValidCoordinates,
-      });
 
       // Only add marker if we have valid coordinates
       if (hasValidCoordinates && place.latitude !== undefined && place.longitude !== undefined) {
@@ -113,14 +99,11 @@ export default function CreateJourneyPage() {
           address: place.address || undefined,
           day: activeDay,
         };
-        console.log('✅ Adding location to map:', location);
         locations.push(location);
       } else {
-        console.log('❌ Skipping place (invalid coordinates)');
       }
     });
 
-    console.log('🗺️ Final map locations:', locations);
     return locations;
   }, [getActiveDayPlaces, activeDay]);
 
@@ -192,15 +175,10 @@ export default function CreateJourneyPage() {
   // Handle cover image upload with key storage
   const handleCoverImageUpload = useCallback(
     (url: string, key?: string) => {
-      console.log("Cover image uploaded, updating form data with:", {
-        url,
-        key: key || null,
-      });
       updateFormData({
         coverImageUrl: url,
         coverImageKey: key || null,
       });
-      console.log("Cover image state after upload (formData.coverImageUrl/key will reflect after state update).");
     },
     [updateFormData]
   );

@@ -76,7 +76,7 @@ export default function CommentSection({
 
       // Optimistically add the comment to the list
       if (newComment.data) {
-        setComments((prev) => [newComment.data, ...prev]);
+        setComments((prev) => [newComment.data!, ...prev]);
         const newCount = localCommentCount + 1;
         setLocalCommentCount(newCount);
         onCommentCountChange?.(post.id, newCount);
