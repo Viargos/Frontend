@@ -10,3 +10,4 @@
 export * from './logger';
 export * from './file-validator';
 export * from './error-handler';
+export * from './map-markers';

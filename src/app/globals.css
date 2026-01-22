@@ -56,7 +56,7 @@
 body {
   background: var(--foreground);
   color: var(--foreground);
-  font-family: var(--font-century-gothic), Arial, Helvetica, sans-serif;
+  font-family: var(--font-manrope), Arial, Helvetica, sans-serif;
 }
 
 /* Placeholder styling */

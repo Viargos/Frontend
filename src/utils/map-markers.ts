@@ -174,6 +174,61 @@ export const getPlaceTypeEmoji = (type: string): string => {
 };
 
 /**
+ * Generates a Viargos branded pin marker with white circle inside
+ * Used for discover page journey locations
+ *
+ * @example
+ * ```typescript
+ * import { generateViargosPinMarker } from '@/utils/map-markers';
+ *
+ * const markerIcon = generateViargosPinMarker({
+ *   size: 44,
+ *   color: '#160e53'
+ * });
+ * ```
+ */
+export const generateViargosPinMarker = (options: MarkerOptions = {}): google.maps.Icon => {
+  const { size = 44, color = '#160e53' } = options;
+  const markerSize = size;
+
+  const svgContent = `
+    <svg width="${markerSize}" height="${markerSize * 1.4}" viewBox="0 0 44 62" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <!-- Drop shadow -->
+        <filter id="shadow-pin" x="-50%" y="-30%" width="200%" height="160%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="2.5"/>
+          <feOffset dx="0" dy="4" result="offsetblur"/>
+          <feComponentTransfer>
+            <feFuncA type="linear" slope="0.35"/>
+          </feComponentTransfer>
+          <feMerge>
+            <feMergeNode/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
+
+      <g filter="url(#shadow-pin)">
+        <!-- Main pin shape with Viargos color -->
+        <path d="M 22,4 C 13,4 6,11 6,20 C 6,30 22,50 22,50 C 22,50 38,30 38,20 C 38,11 31,4 22,4 Z"
+              fill="${color}"
+              stroke="#ffffff"
+              stroke-width="2"/>
+
+        <!-- White filled circle inside -->
+        <circle cx="22" cy="20" r="8" fill="#ffffff"/>
+      </g>
+    </svg>
+  `;
+
+  return {
+    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgContent)}`,
+    scaledSize: new window.google.maps.Size(markerSize, markerSize * 1.4),
+    anchor: new window.google.maps.Point(markerSize / 2, markerSize * 1.4),
+  };
+};
+
+/**
  * Helper to get color for place type
  */
 export const getPlaceTypeColor = (type: string): string => {
