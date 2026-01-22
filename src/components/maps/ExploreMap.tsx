@@ -521,8 +521,11 @@ export default function ExploreMap({
 
   // Generate marker icon using reusable utility
   const getMarkerIcon = useCallback((_location: MapLocation) => {
-    return generateViargosPinMarker({ size: 44, color: '#160e53' });
-  }, []);
+    if (!isLoaded) {
+      return undefined;
+    }
+    return generateViargosPinMarker({ size: 44, color: '#160e53' }) || undefined;
+  }, [isLoaded]);
 
   const getTypeLabel = (type: string) => {
     const labels = {

@@ -15,7 +15,13 @@ interface MarkerOptions {
  * Generates a Viargos branded journey start marker
  * White pin with navy border and Viargos logo
  */
-export const generateViargosMarker = (options: MarkerOptions = {}): google.maps.Icon => {
+export const generateViargosMarker = (options: MarkerOptions = {}): google.maps.Icon | null => {
+  // Check if Google Maps is loaded
+  if (typeof window === 'undefined' || !window.google || !window.google.maps) {
+    console.warn('Google Maps not loaded yet');
+    return null;
+  }
+
   const { size = 32, color = '#160E53', isHovered = false } = options;
   const baseSize = size;
   const markerSize = isHovered ? baseSize + 4 : baseSize;
@@ -52,7 +58,13 @@ export const generateViargosMarker = (options: MarkerOptions = {}): google.maps.
  * Generates a regular place marker
  * White pin with navy border and V icon
  */
-export const generatePlaceMarker = (options: MarkerOptions = {}): google.maps.Icon => {
+export const generatePlaceMarker = (options: MarkerOptions = {}): google.maps.Icon | null => {
+  // Check if Google Maps is loaded
+  if (typeof window === 'undefined' || !window.google || !window.google.maps) {
+    console.warn('Google Maps not loaded yet');
+    return null;
+  }
+
   const { size = 32, isHovered = false } = options;
   const baseSize = size;
   const markerSize = isHovered ? baseSize + 4 : baseSize;
@@ -86,7 +98,13 @@ export const generatePlaceMarker = (options: MarkerOptions = {}): google.maps.Ic
  * Generates a colored marker with emoji icon
  * Used for different place types (food, transport, etc.)
  */
-export const generateEmojiMarker = (options: MarkerOptions): google.maps.Icon => {
+export const generateEmojiMarker = (options: MarkerOptions): google.maps.Icon | null => {
+  // Check if Google Maps is loaded
+  if (typeof window === 'undefined' || !window.google || !window.google.maps) {
+    console.warn('Google Maps not loaded yet');
+    return null;
+  }
+
   const { size = 32, color = '#160E53', emoji = '📍' } = options;
   const circleSize = size;
   const pinHeight = 8;
@@ -118,7 +136,13 @@ export const generateEmojiMarker = (options: MarkerOptions): google.maps.Icon =>
  * Generates a journey location marker with optional animation
  * Used for marking specific journey locations
  */
-export const generateJourneyLocationMarker = (options: MarkerOptions = {}): google.maps.Icon => {
+export const generateJourneyLocationMarker = (options: MarkerOptions = {}): google.maps.Icon | null => {
+  // Check if Google Maps is loaded
+  if (typeof window === 'undefined' || !window.google || !window.google.maps) {
+    console.warn('Google Maps not loaded yet');
+    return null;
+  }
+
   const { size = 40, color = '#160E53', isNew = false } = options;
   const newMarkerColor = '#10b981'; // green color for new markers
 
@@ -141,7 +165,13 @@ export const generateJourneyLocationMarker = (options: MarkerOptions = {}): goog
  * Generates a simple circular marker with optional animation
  * Used for journey waypoints
  */
-export const generateSimpleMarker = (options: MarkerOptions = {}): google.maps.Icon => {
+export const generateSimpleMarker = (options: MarkerOptions = {}): google.maps.Icon | null => {
+  // Check if Google Maps is loaded
+  if (typeof window === 'undefined' || !window.google || !window.google.maps) {
+    console.warn('Google Maps not loaded yet');
+    return null;
+  }
+
   const { size = 30, color = '#160E53', isNew = false } = options;
   const newMarkerColor = '#10b981';
 
@@ -187,7 +217,13 @@ export const getPlaceTypeEmoji = (type: string): string => {
  * });
  * ```
  */
-export const generateViargosPinMarker = (options: MarkerOptions = {}): google.maps.Icon => {
+export const generateViargosPinMarker = (options: MarkerOptions = {}): google.maps.Icon | null => {
+  // Check if Google Maps is loaded
+  if (typeof window === 'undefined' || !window.google || !window.google.maps) {
+    console.warn('Google Maps not loaded yet');
+    return null;
+  }
+
   const { size = 44, color = '#160e53' } = options;
   const markerSize = size;
 

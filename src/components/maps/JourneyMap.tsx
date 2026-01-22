@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, useEffect, useRef } from 'react';
+import { useCallback, useState, useEffect, useRef, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   GoogleMap,
@@ -76,9 +76,9 @@ export default function JourneyMap({
     console.error('Google Maps load error:', loadError);
   }
 
-  // Group locations by day for drawing polylines - moved to top level
-  const getPathsByDay = useCallback(() => {
-    const pathsByDay: { [key: string]: { lat: number; lng: number }[] } = {};
+  // Group locations by day for drawing polylines - use useMemo to prevent infinite loops
+  const pathsByDay = useMemo(() => {
+    const paths: { [key: string]: { lat: number; lng: number }[] } = {};
 
     // First group locations by day
     const locationsByDay: { [key: string]: Location[] } = {};
@@ -116,16 +116,14 @@ export default function JourneyMap({
         lng: l.lng
       })));
 
-      pathsByDay[day] = sortedLocations.map(loc => ({
+      paths[day] = sortedLocations.map(loc => ({
         lat: loc.lat,
         lng: loc.lng,
       }));
     });
 
-    return pathsByDay;
+    return paths;
   }, [locations]);
-
-  const pathsByDay = getPathsByDay();
 
   // Helper function to get paths by day from location array - moved to top level
   const getPathsByDayFromLocations = useCallback((locs: Location[]) => {

@@ -21,6 +21,7 @@ export default function JourneyPosts({
   const [error, setError] = useState<string | null>(null);
   const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchJourneyPosts = async () => {
@@ -190,7 +191,12 @@ export default function JourneyPosts({
                   transform: `rotate(${rotation}deg)`,
                   transition: 'all 0.3s ease',
                 }}
-                onClick={() => setSelectedPost(post)}
+                onClick={() => {
+                  // Only open modal if post has valid media
+                  if (post.media && post.media.length > 0 && post.media.some(m => m?.url)) {
+                    setSelectedPost(post);
+                  }
+                }}
                 onMouseEnter={e => {
                   e.currentTarget.style.transform = `rotate(0deg) scale(1.05) translateY(-10px)`;
                 }}
@@ -208,13 +214,17 @@ export default function JourneyPosts({
 
                 {/* Post Image */}
                 <div className="relative aspect-square bg-gray-100 mb-3 overflow-hidden">
-                  {post.media && post.media.length > 0 ? (
+                  {post.media && post.media.length > 0 && post.media[0]?.url && !failedImages.has(post.id) ? (
                     <Image
                       src={post.media[0].url}
-                      alt={post.description}
+                      alt={post.description || 'Post image'}
                       fill
                       className="object-cover"
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      onError={() => {
+                        // Mark this image as failed to prevent retry
+                        setFailedImages(prev => new Set(prev).add(post.id));
+                      }}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
@@ -238,23 +248,28 @@ export default function JourneyPosts({
 
                   {/* User Info */}
                   <div className="flex items-center space-x-2 pt-2">
-                    {post.user.profileImage ? (
+                    {post.user?.profileImage ? (
                       <Image
                         src={post.user.profileImage}
-                        alt={post.user.username}
+                        alt={post.user.username || 'User'}
                         className="w-6 h-6 rounded-full"
                         width={24}
                         height={24}
+                        onError={(e) => {
+                          // Replace with fallback on error
+                          e.currentTarget.style.display = 'none';
+                          const fallback = e.currentTarget.nextElementSibling;
+                          if (fallback) fallback.classList.remove('hidden');
+                        }}
                       />
-                    ) : (
-                      <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
-                        <span className="text-xs text-gray-600">
-                          {post.user.username.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                    )}
+                    ) : null}
+                    <div className={`w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center ${post.user?.profileImage ? 'hidden' : ''}`}>
+                      <span className="text-xs text-gray-600">
+                        {post.user?.username?.charAt(0).toUpperCase() || 'U'}
+                      </span>
+                    </div>
                     <span className="text-xs text-gray-500 italic">
-                      by {post.user.username}
+                      by {post.user?.username || 'Unknown'}
                     </span>
                   </div>
 
@@ -304,16 +319,16 @@ export default function JourneyPosts({
       `}</style>
 
       {/* Media Slideshow Modal */}
-      {selectedPost && (
+      {selectedPost && selectedPost.media && selectedPost.media.length > 0 && (
         <PostMediaSlideshow
           isOpen={!!selectedPost}
           onClose={() => setSelectedPost(null)}
-          media={selectedPost.media || []}
-          postDescription={selectedPost.description}
-          username={selectedPost.user.username}
-          userProfileImage={selectedPost.user.profileImage || undefined}
-          likeCount={selectedPost.likeCount}
-          commentCount={selectedPost.commentCount}
+          media={selectedPost.media.filter(m => m && m.url)}
+          postDescription={selectedPost.description || ''}
+          username={selectedPost.user?.username || 'Unknown'}
+          userProfileImage={selectedPost.user?.profileImage || undefined}
+          likeCount={selectedPost.likeCount || 0}
+          commentCount={selectedPost.commentCount || 0}
           isLikedByCurrentUser={selectedPost.isLikedByCurrentUser || false}
         />
       )}
