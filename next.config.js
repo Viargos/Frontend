@@ -15,6 +15,11 @@ const nextConfig = {
         pathname: '/**',
       },
     ],
+    localPatterns: [
+      {
+        pathname: '/**',
+      },
+    ],
   },
   eslint: {
     // Warning: This allows production builds to successfully complete even if
