@@ -10,11 +10,13 @@ import { AlertCircleIcon, ImageIcon, PlusIcon, HeartIcon, ChatBubbleIcon } from 
 interface JourneyPostsProps {
   journeyId: string;
   journeyTitle?: string;
+  isOwner?: boolean;
 }
 
 export default function JourneyPosts({
   journeyId,
   journeyTitle,
+  isOwner = false,
 }: JourneyPostsProps) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -110,30 +112,34 @@ export default function JourneyPosts({
       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-8 shadow-sm border border-blue-100">
         <div className="text-center">
           <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
-<ImageIcon className="w-8 h-8 text-blue-600" />
+            <ImageIcon className="w-8 h-8 text-blue-600" />
           </div>
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
             No Posts Yet
           </h3>
           <p className="text-gray-600 mb-4 max-w-md mx-auto">
-            Share your journey experiences! Create posts about your adventures,
-            favorite spots, and memorable moments from{' '}
-            {journeyTitle || 'this journey'}.
+            {isOwner 
+              ? `Share your journey experiences! Create posts about your adventures, favorite spots, and memorable moments from ${journeyTitle || 'this journey'}.`
+              : `No posts have been shared for ${journeyTitle || 'this journey'} yet.`}
           </p>
-          <button
-            onClick={() => setIsCreatePostModalOpen(true)}
-            className="inline-flex items-center px-4 py-2 bg-[#160E53] text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
-          >
-<PlusIcon className="w-5 h-5 mr-2" />
-            Create Your First Post
-          </button>
+          {isOwner && (
+            <>
+              <button
+                onClick={() => setIsCreatePostModalOpen(true)}
+                className="inline-flex items-center px-4 py-2 bg-[#160E53] text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+              >
+                <PlusIcon className="w-5 h-5 mr-2" />
+                Create Your First Post
+              </button>
 
-          {/* Create Post Modal */}
-          <CreatePostModal
-            isOpen={isCreatePostModalOpen}
-            onClose={() => setIsCreatePostModalOpen(false)}
-            onSuccess={handlePostCreated}
-          />
+              {/* Create Post Modal */}
+              <CreatePostModal
+                isOpen={isCreatePostModalOpen}
+                onClose={() => setIsCreatePostModalOpen(false)}
+                onSuccess={handlePostCreated}
+              />
+            </>
+          )}
         </div>
       </div>
     );

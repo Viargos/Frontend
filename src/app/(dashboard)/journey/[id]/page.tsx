@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { JourneyMap } from '@/components/maps';
 import { serviceFactory } from '@/lib/services/service-factory';
+import { useAuthStore } from '@/store/auth.store';
 import { Journey } from '@/types/journey.types';
 import { format } from 'date-fns';
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';
@@ -42,7 +43,11 @@ export default function JourneyDetailsPage() {
   );
   const { location: currentLocation } = useCurrentLocation();
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
+  const { user: currentUser } = useAuthStore();
   console.log(selectedLocation);
+
+  // Check if the current user is the owner of this journey
+  const isOwner = currentUser?.id === journey?.user?.id;
 
   // Helper function to get image URL from S3 key
   const getImageUrl = (photoKey: string): string => {
@@ -655,12 +660,15 @@ export default function JourneyDetailsPage() {
                     No places added yet
                   </h3>
                   <p className="text-gray-500 text-sm mb-4">
-                    Start planning your day by adding places to visit,
-                    restaurants, or accommodations.
+                    {isOwner 
+                      ? 'Start planning your day by adding places to visit, restaurants, or accommodations.'
+                      : 'This day has no places added yet.'}
                   </p>
-                  <button className="bg-[#160E53] text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors">
-                    Add Your First Place
-                  </button>
+                  {isOwner && (
+                    <button className="bg-[#160E53] text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors">
+                      Add Your First Place
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -672,6 +680,7 @@ export default function JourneyDetailsPage() {
             <JourneyPosts
               journeyId={journeyId}
               journeyTitle={journey?.title || 'this journey'}
+              isOwner={isOwner}
             />
           </div>
         </div>
