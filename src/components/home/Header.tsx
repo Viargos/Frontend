@@ -184,7 +184,7 @@ export default function Header({ user }: HeaderProps) {
               {!isSearchExpanded && (
                 <button
                   onClick={handleSearchToggle}
-                  className="w-10 h-10 p-2 text-blue-900 hover:text-blue-900 hover:bg-gray-100 rounded-lg border border-blue-900 hover:border-blue-900 transition-all duration-200 shadow-button flex items-center justify-center cursor-pointer"
+                  className="w-10 h-10 p-2 text-primary-blue hover:text-primary-blue hover:bg-gray-100 rounded-lg border border-primary-blue hover:border-primary-blue transition-all duration-200 shadow-button flex items-center justify-center cursor-pointer"
                   aria-label="Search"
                 >
                   <SearchIcon className="h-5 w-5 transition-transform duration-200 hover:scale-110" />
@@ -206,7 +206,7 @@ export default function Header({ user }: HeaderProps) {
                     value={searchQuery}
                     onChange={e => handleSearchChange(e.target.value)}
                     onFocus={handleSearchFocus}
-                    className="w-full h-10 px-4 py-2 pl-10 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700 focus:border-blue-700 text-black placeholder-gray-500 text-sm leading-5 shadow-button bg-white transition-all duration-200"
+                    className="w-full h-10 px-4 py-2 pl-10 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-primary-blue text-black placeholder-gray-500 text-sm leading-5 shadow-button bg-white transition-all duration-200"
                   />
 
                   {/* Search Icon */}
@@ -249,7 +249,7 @@ export default function Header({ user }: HeaderProps) {
                       </p>
                     ) : isLoading ? (
                       <div className="flex items-center justify-center py-4">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-900"></div>
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-blue"></div>
                       </div>
                     ) : results.length > 0 ? (
                       <div className="max-h-60 overflow-y-auto">
@@ -273,7 +273,7 @@ export default function Header({ user }: HeaderProps) {
                               </div>
                             )}
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-blue-900 truncate">
+                              <p className="text-sm font-medium text-primary-blue truncate">
                                 {user.username}
                               </p>
                               {user.email && (
@@ -290,7 +290,7 @@ export default function Header({ user }: HeaderProps) {
                         {error}
                       </p>
                     ) : searchQuery.trim().length > 0 ? (
-                      <p className="text-blue-600 text-sm text-center">
+                      <p className="text-primary-blue text-sm text-center">
                         No users found for &quot;{searchQuery}&quot;
                       </p>
                     ) : null}
@@ -310,23 +310,23 @@ export default function Header({ user }: HeaderProps) {
               <Button
                 variant="secondary"
                 size="sm"
-                icon={<ImagePlusIcon className="text-blue-900" />}
+                icon={<ImagePlusIcon className="text-primary-blue" />}
                 iconPosition="leading"
                 onClick={handleCreatePost}
               >
-                <span className="hidden lg:inline text-blue-900">Add Post</span>
+                <span className="hidden lg:inline text-primary-blue">Add Post</span>
               </Button>
 
               <Button
                 variant="secondary"
                 size="sm"
                 icon={
-                  <JourneyIcon className="text-blue-900 outline-blue-900" />
+                  <JourneyIcon className="text-primary-blue outline-primary-blue" />
                 }
                 iconPosition="leading"
                 onClick={() => router.push('/create-journey')}
               >
-                <span className="hidden lg:inline text-blue-900">
+                <span className="hidden lg:inline text-primary-blue">
                   Create Journey
                 </span>
               </Button>
@@ -335,7 +335,7 @@ export default function Header({ user }: HeaderProps) {
               <div className="relative" ref={notificationsRef}>
                 <button
                   onClick={() => setShowNotifications(!showNotifications)}
-                  className="p-2 text-blue-900 hover:text-blue-900 transition-colors cursor-pointer"
+                  className="p-2 text-primary-blue hover:text-primary-blue transition-colors cursor-pointer"
                 >
                   <BellIcon className="w-6 h-6" />
 
@@ -421,7 +421,7 @@ export default function Header({ user }: HeaderProps) {
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setShowDropdown(!showDropdown)}
-                  className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-300 hover:border-gray-400 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-blue-900"
+                  className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-300 hover:border-gray-400 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-primary-blue"
                 >
                   {user?.profileImage ? (
                     <Image
