@@ -320,6 +320,16 @@ export default function JourneyMap({
     [onLocationClick]
   );
 
+  const handleMapClick = useCallback(
+    (event: google.maps.MapMouseEvent) => {
+      // Close the info window when clicking on the map
+      setSelectedLocation(null);
+      // Call the parent's onMapClick handler if provided
+      onMapClick?.(event);
+    },
+    [onMapClick]
+  );
+
   const getMarkerIcon = (
     type: string,
     isNew: boolean = false,
@@ -530,7 +540,7 @@ export default function JourneyMap({
       zoom={12}
       onLoad={onLoad}
       onUnmount={onUnmount}
-      onClick={onMapClick}
+      onClick={handleMapClick}
       options={viargoMapOptions}
     >
       {/* Draw polylines connecting points for each day */}

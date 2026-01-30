@@ -519,6 +519,16 @@ export default function ExploreMap({
     setSelectedLocation(location);
   }, []);
 
+  const handleMapClick = useCallback(
+    (event: google.maps.MapMouseEvent) => {
+      // Close the info window when clicking on the map
+      setSelectedLocation(null);
+      // Call the parent's onMapClick handler if provided
+      onMapClick?.(event);
+    },
+    [onMapClick]
+  );
+
   // Generate marker icon using reusable utility
   const getMarkerIcon = useCallback((_location: MapLocation) => {
     if (!isLoaded) {
@@ -587,7 +597,7 @@ export default function ExploreMap({
       zoom={center ? 10 : 2}
       onLoad={onLoad}
       onUnmount={onUnmount}
-      onClick={onMapClick}
+      onClick={handleMapClick}
       onBoundsChanged={handleBoundsChanged}
       options={viargoMapOptions}
     >

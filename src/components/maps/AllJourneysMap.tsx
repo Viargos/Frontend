@@ -346,6 +346,11 @@ export default function AllJourneysMap({
     [onJourneyClick]
   );
 
+  const handleMapClick = useCallback(() => {
+    // Close the info window when clicking on the map
+    setSelectedLocation(null);
+  }, []);
+
   const getMarkerIcon = (
     type: string,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -439,6 +444,7 @@ export default function AllJourneysMap({
       zoom={1}
       onLoad={onLoad}
       onUnmount={onUnmount}
+      onClick={handleMapClick}
       options={{
         ...viargoMapOptions,
         fullscreenControl: true, // Override for this specific map
