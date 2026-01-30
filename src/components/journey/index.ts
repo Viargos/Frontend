@@ -3,6 +3,7 @@ export { default as BannerEditModal } from './BannerEditModal';
 export { default as DayFilter } from './DayFilter';
 export { default as JourneyCreationForm } from './JourneyCreationForm';
 export { default as JourneyPosts } from './JourneyPosts';
+export { default as JourneyReviewModal } from './JourneyReviewModal';
 export { default as LocationSearch } from './LocationSearch';
 export { default as MapLocationMarker } from './MapLocationMarker';
 export { default as NewJourneyModal } from './NewJourneyModal';

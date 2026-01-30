@@ -10,11 +10,7 @@ import {
   Polyline,
 } from '@react-google-maps/api';
 import { viargoMapOptions } from '@/constants/map-styles';
-import {
-  detectAccommodationType,
-  getAccommodationColor,
-} from '@/utils/accommodation-detector';
-import { generateJourneyLocationMarker, generateSimpleMarker } from '@/utils/map-markers';
+import { generateViargosPinMarker } from '@/utils/map-markers';
 import { WarningIcon } from '@/components/icons';
 
 interface Location {
@@ -61,9 +57,6 @@ export default function JourneyMap({
   const [animatedPaths, setAnimatedPaths] = useState<{
     [key: string]: { path: { lat: number; lng: number }[]; progress: number };
   }>({});
-  const [newlyAddedMarkers, setNewlyAddedMarkers] = useState<Set<string>>(
-    new Set()
-  );
   const prevLocationsRef = useRef<Location[]>([]);
 
   const { isLoaded, loadError } = useJsApiLoader({
@@ -159,7 +152,6 @@ export default function JourneyMap({
   // Detect new points and trigger line drawing animation - always called
   useEffect(() => {
     if (!locations.length) {
-      setNewlyAddedMarkers(new Set());
       setAnimatedPaths({}); // Clear all animated paths
       prevLocationsRef.current = [];
       return;
@@ -199,18 +191,6 @@ export default function JourneyMap({
     }
 
     if (newLocationIds.length > 0) {
-      // Mark these as newly added markers for animation
-      setNewlyAddedMarkers(new Set(newLocationIds));
-
-      // Remove the highlight after 2 seconds
-      setTimeout(() => {
-        setNewlyAddedMarkers(prev => {
-          const updated = new Set(prev);
-          newLocationIds.forEach(id => updated.delete(id));
-          return updated;
-        });
-      }, 2000);
-
       // Only trigger path animation for new points
       const prevLocationsByDay = getPathsByDayFromLocations(
         prevLocationsRef.current
@@ -330,134 +310,12 @@ export default function JourneyMap({
     [onMapClick]
   );
 
-  const getMarkerIcon = (
-    type: string,
-    isNew: boolean = false,
-    location?: Location
-  ) => {
-    const markerSize = 44;
-
-    // Color for place types
-    const colorMap: Record<string, string> = {
-      stay: '#3b82f6',      // blue
-      activity: '#10b981',  // green
-      food: '#ef4444',      // red
-      transport: '#8b5cf6', // purple
-      note: '#f59e0b',      // amber
-    };
-
-    // Lucide-style icon SVGs
-    const icons: { [key: string]: string } = {
-      stay: `
-        <!-- Hotel icon -->
-        <rect x="18" y="16" width="8" height="8" stroke="currentColor" stroke-width="2" fill="none" rx="1"/>
-        <line x1="20" y1="18" x2="20" y2="19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="22" y1="18" x2="22" y2="19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="24" y1="18" x2="24" y2="19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="20" y1="21" x2="20" y2="22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="22" y1="21" x2="22" y2="22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="24" y1="21" x2="24" y2="22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-      `,
-      activity: `
-        <!-- Trees icon -->
-        <path d="M 22 14 L 19 18 L 20 18 L 17 21 L 19 21 L 16 24 L 28 24 L 25 21 L 27 21 L 24 18 L 25 18 Z" fill="currentColor"/>
-        <line x1="22" y1="24" x2="22" y2="27" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      `,
-      food: `
-        <!-- Utensils icon -->
-        <path d="M 19 16 L 19 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        <path d="M 19 16 L 17.5 17.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        <path d="M 19 16 L 20.5 17.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        <path d="M 19 20 L 19 26" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        <path d="M 25 16 L 25 19 C 25 20 24 21 22.5 21 L 22.5 26" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      `,
-      transport: `
-        <!-- Car icon -->
-        <path d="M 16 22 L 17 18 L 27 18 L 28 22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <rect x="14" y="22" width="16" height="4" stroke="currentColor" stroke-width="2" fill="none" rx="1"/>
-        <circle cx="18" cy="24" r="1.5" fill="currentColor"/>
-        <circle cx="26" cy="24" r="1.5" fill="currentColor"/>
-      `,
-      note: `
-        <!-- Note icon -->
-        <path d="M 18 16 L 23 16 L 26 19 L 26 27 L 18 27 Z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M 23 16 L 23 19 L 26 19" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-        <line x1="20" y1="21" x2="24" y2="21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="20" y1="23" x2="24" y2="23" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-      `,
-    };
-
-    const iconPath = icons[type] || icons['note'];
-    const accentColor = colorMap[type] || '#160E53';
-    const locationId = location?.id || Math.random().toString();
-
-    const svgContent = `
-      <svg width="${markerSize}" height="${markerSize * 1.4}" viewBox="0 0 44 62" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <!-- Drop shadow -->
-          <filter id="shadow-${locationId}" x="-50%" y="-30%" width="200%" height="160%">
-            <feGaussianBlur in="SourceAlpha" stdDeviation="2.5"/>
-            <feOffset dx="0" dy="4" result="offsetblur"/>
-            <feComponentTransfer>
-              <feFuncA type="linear" slope="0.35"/>
-            </feComponentTransfer>
-            <feMerge>
-              <feMergeNode/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>
-          <!-- Gradient for 3D effect -->
-          <linearGradient id="grad-${locationId}" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#f8f9fa;stop-opacity:1" />
-          </linearGradient>
-          <!-- Shine gradient -->
-          <linearGradient id="shine-${locationId}" x1="30%" y1="0%" x2="70%" y2="100%">
-            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.7" />
-            <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0" />
-          </linearGradient>
-        </defs>
-        
-        <g filter="url(#shadow-${locationId})">
-          <!-- Main white pin shape with gradient -->
-          <path d="M 22,4 C 13,4 6,11 6,20 C 6,30 22,50 22,50 C 22,50 38,30 38,20 C 38,11 31,4 22,4 Z" 
-                fill="url(#grad-${locationId})" 
-                stroke="#d1d5db" 
-                stroke-width="1.5"/>
-          
-          <!-- Inner colored circle with subtle gradient -->
-          <circle cx="22" cy="19" r="11" fill="${accentColor}" opacity="0.12"/>
-          <circle cx="22" cy="19" r="9" fill="${accentColor}" opacity="0.15"/>
-          
-          <!-- Shine/highlight for 3D effect -->
-          <ellipse cx="18" cy="12" rx="8" ry="6" fill="url(#shine-${locationId})" opacity="0.6"/>
-          
-          <!-- Icon with color -->
-          <g style="color: ${accentColor}">
-            ${iconPath}
-          </g>
-          
-          <!-- Subtle inner stroke for depth -->
-          <path d="M 22,4 C 13,4 6,11 6,20 C 6,30 22,50 22,50 C 22,50 38,30 38,20 C 38,11 31,4 22,4 Z" 
-                fill="none" 
-                stroke="white" 
-                stroke-width="2" 
-                opacity="0.5"/>
-        </g>
-        ${isNew ? `<circle cx="22" cy="19" r="16" fill="${accentColor}" opacity="0.2"><animate attributeName="r" values="16;20;16" dur="1.5s" repeatCount="indefinite"/></circle>` : ''}
-      </svg>
-    `;
-
-    return {
-      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgContent)}`,
-      scaledSize: window.google?.maps?.Size
-        ? new window.google.maps.Size(markerSize, markerSize * 1.4)
-        : undefined,
-      anchor: window.google?.maps?.Point
-        ? new window.google.maps.Point(markerSize / 2, markerSize * 1.4)
-        : undefined,
-    };
-  };
+  const getMarkerIcon = useCallback(() => {
+    if (!isLoaded) {
+      return undefined;
+    }
+    return generateViargosPinMarker({ size: 44, color: '#160e53' }) || undefined;
+  }, [isLoaded]);
 
   if (loadError) {
     return (
@@ -618,17 +476,14 @@ export default function JourneyMap({
       })}
 
       {/* Render map markers */}
-      {locations.map(location => {
-        const isNewMarker = newlyAddedMarkers.has(location.id);
-        return (
-          <Marker
-            key={location.id}
-            position={{ lat: location.lat, lng: location.lng }}
-            icon={getMarkerIcon(location.type, isNewMarker, location)}
-            onClick={() => handleMarkerClick(location)}
-          />
-        );
-      })}
+      {locations.map(location => (
+        <Marker
+          key={location.id}
+          position={{ lat: location.lat, lng: location.lng }}
+          icon={getMarkerIcon()}
+          onClick={() => handleMarkerClick(location)}
+        />
+      ))}
 
       {selectedLocation && (
         <InfoWindow

@@ -126,7 +126,7 @@ export const PlacePhotoSection: React.FC<PlacePhotoSectionProps> = ({
                 />
 
                 {/* Remove Button Overlay */}
-                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center">
+                <div className="absolute inset-0  bg-opacity-0 group-hover:bg-opacity-60 transition-all duration-200 flex items-center justify-center">           
                   <motion.button
                     onClick={() => handleRemovePhoto(index, photoKey)}
                     className="p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"

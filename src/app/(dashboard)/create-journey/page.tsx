@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { DayFilter, PlanningCategory, JourneyHeader, CoverImage, PlaceCard } from '@/components/journey';
+import { DayFilter, PlanningCategory, JourneyHeader, CoverImage, PlaceCard, JourneyReviewModal } from '@/components/journey';
 import { Hotel, Trees, UtensilsCrossed, Car, FileText } from 'lucide-react';
 import { PlaceType, CreateJourneyPlace } from '@/types/journey.types';
 import { useJourneyForm } from '@/hooks/useJourneyForm';
@@ -18,6 +18,7 @@ export default function CreateJourneyPage() {
   );
   const [journeyName, setJourneyName] = useState('');
   const [subtitle, setSubtitle] = useState('');
+  const [showReviewModal, setShowReviewModal] = useState(false);
   const { location: currentLocation } = useCurrentLocation();
 
   const {
@@ -29,6 +30,7 @@ export default function CreateJourneyPage() {
     addDay,
     deleteDay,
     getDateForDay,
+    journeyPlaces,
     getActiveDayPlaces,
     addPlaceToActiveDay,
     removePlaceFromActiveDay,
@@ -43,25 +45,31 @@ export default function CreateJourneyPage() {
     submitJourneyWithData,
   } = useJourneyForm();
 
-  // Handle form submission
-  const handleSubmit = async () => {
-    
+  // Handle opening review modal
+  const handleOpenReview = useCallback(() => {
+    // Update form data with journey name and subtitle before showing review
+    const updatedFormData = {
+      title: journeyName || formData.title,
+      description: subtitle || formData.description,
+    };
+    updateFormData(updatedFormData);
+    setShowReviewModal(true);
+  }, [journeyName, subtitle, formData.title, formData.description, updateFormData]);
 
+  // Handle actual form submission (called from modal)
+  const handleSubmit = async () => {
     // Update form data with journey name and subtitle before submission
     const updatedFormData = {
       title: journeyName || formData.title,
       description: subtitle || formData.description,
     };
 
-    // Update form data and wait for the update
-    updateFormData(updatedFormData);
-
     // Use a small delay to ensure state is updated, or pass the data directly
     const journeyId = await submitJourneyWithData(updatedFormData);
 
     if (journeyId) {
+      setShowReviewModal(false);
       router.push(`/journey/${journeyId}`);
-    } else {
     }
   };
 
@@ -215,7 +223,7 @@ export default function CreateJourneyPage() {
               startDate={formData.startDate}
               onTitleChange={title => updateFormData({ title })}
               onDateChange={date => updateFormData({ startDate: date })}
-              onSubmit={handleSubmit}
+              onSubmit={handleOpenReview}
               isSubmitting={isSubmitting}
             />
 
@@ -363,6 +371,22 @@ export default function CreateJourneyPage() {
             </div>
           </div>
         </div>
+
+        {/* Review Modal */}
+        <JourneyReviewModal
+          isOpen={showReviewModal}
+          onClose={() => setShowReviewModal(false)}
+          onConfirm={handleSubmit}
+          formData={{
+            ...formData,
+            title: journeyName || formData.title,
+            description: subtitle || formData.description,
+          }}
+          journeyPlaces={journeyPlaces}
+          days={days}
+          getDateForDay={getDateForDay}
+          isSubmitting={isSubmitting}
+        />
       </div>
     </div>
   );
