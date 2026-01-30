@@ -277,3 +277,76 @@ export const getPlaceTypeColor = (type: string): string => {
   };
   return colorMap[type] || '#160E53';
 };
+
+interface YearLabelMarkerOptions {
+  year: number;
+  isSelected?: boolean;
+  isHovered?: boolean;
+}
+
+/**
+ * Generates a year label marker similar to Google Hotels price labels
+ * Shows the year in a rounded pill/badge format
+ */
+export const generateYearLabelMarker = (options: YearLabelMarkerOptions): google.maps.Icon | null => {
+  // Check if Google Maps is loaded
+  if (typeof window === 'undefined' || !window.google || !window.google.maps) {
+    console.warn('Google Maps not loaded yet');
+    return null;
+  }
+
+  const { year, isSelected = false, isHovered = false } = options;
+  
+  // Theme colors based on state (always brand + white text)
+  const bgColor = isSelected ? '#1b1163' : isHovered ? '#221a72' : '#160E53';
+  const textColor = '#ffffff';
+  const borderColor = '#0f0a3a';
+  
+  // Size adjustments for hover/selected states
+  const baseWidth = 52;
+  const baseHeight = 28;
+  const scale = isHovered ? 1.1 : 1;
+  const width = baseWidth * scale;
+  const height = baseHeight * scale;
+  
+  const svgContent = `
+    <svg width="${width}" height="${height + 8}" viewBox="0 0 ${baseWidth} ${baseHeight + 8}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="year-gradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#241a7a"/>
+          <stop offset="100%" stop-color="${bgColor}"/>
+        </linearGradient>
+        <filter id="year-shadow" x="-20%" y="-20%" width="140%" height="160%">
+          <feDropShadow dx="0" dy="2" stdDeviation="2.2" flood-opacity="0.28"/>
+        </filter>
+      </defs>
+      
+      <g filter="url(#year-shadow)">
+        <!-- Rounded pill background -->
+        <rect x="2" y="2" width="${baseWidth - 4}" height="${baseHeight - 4}" rx="12" ry="12" 
+              fill="url(#year-gradient)" stroke="${borderColor}" stroke-width="2"/>
+        <!-- Subtle top highlight -->
+        <rect x="4" y="4" width="${baseWidth - 8}" height="6" rx="6" ry="6" 
+              fill="rgba(255,255,255,0.18)"/>
+        
+        <!-- Year text -->
+        <text x="${baseWidth / 2}" y="${baseHeight / 2 + 1}" 
+              text-anchor="middle" dominant-baseline="middle"
+              fill="${textColor}" font-family="Arial, sans-serif" 
+              font-size="13" font-weight="600">${year}</text>
+        
+        <!-- Small pointer/triangle at bottom -->
+        <path d="M ${baseWidth / 2 - 6} ${baseHeight - 2} L ${baseWidth / 2} ${baseHeight + 6} L ${baseWidth / 2 + 6} ${baseHeight - 2} Z" 
+              fill="${bgColor}" stroke="${borderColor}" stroke-width="2" stroke-linejoin="round"/>
+        <!-- Cover the border between pill and triangle -->
+        <rect x="${baseWidth / 2 - 7}" y="${baseHeight - 4}" width="14" height="4" fill="${bgColor}"/>
+      </g>
+    </svg>
+  `;
+
+  return {
+    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgContent)}`,
+    scaledSize: new window.google.maps.Size(width, height + 8),
+    anchor: new window.google.maps.Point(width / 2, height + 8),
+  };
+};

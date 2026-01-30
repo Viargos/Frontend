@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, useEffect, useMemo } from 'react';
+import { useCallback, useState, useEffect, useMemo, type ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import {
   GoogleMap,
@@ -12,7 +12,7 @@ import {
 import { Journey, JourneyPlace } from '@/types/journey.types';
 import { viargoMapOptions } from '@/constants/map-styles';
 import { detectAccommodationType, getAccommodationColor } from '@/utils/accommodation-detector';
-import { generateViargosMarker, generatePlaceMarker } from '@/utils/map-markers';
+import { generateViargosMarker, generatePlaceMarker, generateYearLabelMarker } from '@/utils/map-markers';
 
 interface MapLocation {
   id: string;
@@ -24,6 +24,7 @@ interface MapLocation {
   journey: Journey;
   place?: JourneyPlace;
   isJourneyStart?: boolean;
+  year?: number;
 }
 
 interface AllJourneysMapProps {
@@ -32,11 +33,13 @@ interface AllJourneysMapProps {
   onJourneyHover?: (journey: Journey) => void;
   onJourneyHoverEnd?: () => void;
   selectedJourney?: Journey | null;
+  overlay?: ReactNode;
 }
 
 const containerStyle = {
   width: '100%',
   height: '100%',
+  position: 'relative' as const,
 };
 
 const defaultCenter = {
@@ -132,6 +135,7 @@ export default function AllJourneysMap({
   onJourneyHover,
   onJourneyHoverEnd,
   selectedJourney,
+  overlay,
 }: AllJourneysMapProps) {
   const [selectedLocation, setSelectedLocation] = useState<MapLocation | null>(
     null
@@ -203,6 +207,11 @@ export default function AllJourneysMap({
 
       // Only add journey marker if we have valid coordinates
       if (isValidCoordinate(journeyCoords.lat, journeyCoords.lng)) {
+        // Extract year from journey's createdAt
+        const journeyYear = journey.createdAt 
+          ? new Date(journey.createdAt).getFullYear() 
+          : new Date().getFullYear();
+        
         locations.push({
           id: `journey-${journey.id}`,
           name: journey.title,
@@ -211,6 +220,7 @@ export default function AllJourneysMap({
           type: 'journeyStart',
           journey: journey,
           isJourneyStart: true,
+          year: journeyYear,
         });
       }
 
@@ -353,11 +363,19 @@ export default function AllJourneysMap({
 
   const getMarkerIcon = (
     type: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     isSelected: boolean = false,
     location?: MapLocation,
     isHovered: boolean = false
   ) => {
+    // For journey start markers, use year label marker (like Google Hotels price labels)
+    if (type === 'journeyStart' && location?.year) {
+      return generateYearLabelMarker({
+        year: location.year,
+        isSelected,
+        isHovered,
+      });
+    }
+
     // For stay types, detect if it's hotel or rental
     let stayColor = '#1e40af'; // Default deep blue for stays
     if (type === 'stay' && location?.place) {
@@ -451,6 +469,8 @@ export default function AllJourneysMap({
         disableDefaultUI: true,  // Override for this specific map
       }}
     >
+      {overlay && <div className="absolute inset-0 z-50">{overlay}</div>}
+
       {/* Draw polylines for selected journey */}
       {Object.entries(pathsByJourney).map(([journeyId, path], index) => {
         if (path.length < 2) return null;
@@ -496,7 +516,7 @@ export default function AllJourneysMap({
           <Marker
             key={location.id}
             position={{ lat: location.lat, lng: location.lng }}
-            icon={getMarkerIcon(location.type, isSelected, location, isHovered)}
+            icon={getMarkerIcon(location.type, isSelected, location, isHovered) || undefined}
             onClick={() => handleMarkerClick(location)}
             onMouseOver={() => {
               setHoveredLocation(location.id);

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/auth.store';
 import { useProfileStore } from '@/store/profile.store';
 import { useJourneyStore } from '@/store/journey.store';
@@ -9,7 +9,6 @@ import { motion } from 'framer-motion';
 import { ProfileHeader, ProfileTabs, ProfileJourneyCard, ProfilePostsGrid } from '@/components/profile';
 import { Button, LoadingSpinner, UserProfileSkeleton } from '@/components/ui';
 import AllJourneysMap from '@/components/maps/AllJourneysMap';
-import YearFilter from '@/components/maps/YearFilter';
 import JourneyCard from '@/components/maps/JourneyCard';
 import { Journey } from '@/types/journey.types';
 import { UserProfile } from '@/types/profile.types';
@@ -43,7 +42,6 @@ export default function ProfilePage() {
   const router = useRouter();
 
   // Map-related state
-  const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [selectedJourney, setSelectedJourney] = useState<Journey | null>(null);
   const [showJourneyCard, setShowJourneyCard] = useState(false);
 
@@ -63,28 +61,6 @@ export default function ProfilePage() {
     }
   }, [isAuthenticated, user, activeTab, loadMyJourneys]);
 
-  // Map-related computed values
-  const availableYears = useMemo(() => {
-    const years = new Set<number>();
-    journeys.forEach(journey => {
-      if (journey.createdAt) {
-        const year = new Date(journey.createdAt).getFullYear();
-        years.add(year);
-      }
-    });
-    return Array.from(years).sort((a, b) => b - a); // Most recent first
-  }, [journeys]);
-
-  // Filter journeys by selected year
-  const filteredJourneys = useMemo(() => {
-    if (!selectedYear) return journeys;
-
-    return journeys.filter(journey => {
-      if (!journey.createdAt) return false;
-      const journeyYear = new Date(journey.createdAt).getFullYear();
-      return journeyYear === selectedYear;
-    });
-  }, [journeys, selectedYear]);
 
   // Log rendered journeys count when journeys change
   useEffect(() => {
@@ -334,124 +310,100 @@ export default function ProfilePage() {
 
       {activeTab === 'map' && (
         <div className="flex flex-col gap-4 w-full">
-          {/* Map Header with Filter */}
+          {/* Map Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h2 className="text-black font-outfit text-2xl font-medium leading-[120%]">
                 My Travel Map
               </h2>
               <p className="text-gray-600 mt-1">
-                Explore all your journeys on the map
-                {filteredJourneys.length > 0 && (
+                Explore all your journeys on the map - each marker shows the year
+                {journeys.length > 0 && (
                   <span className="ml-2 text-sm">
-                    ({filteredJourneys.length} journey
-                    {filteredJourneys.length !== 1 ? 's' : ''})
+                    ({journeys.length} journey
+                    {journeys.length !== 1 ? 's' : ''})
                   </span>
                 )}
               </p>
             </div>
-
-            {/* Year Filter */}
-            <YearFilter
-              availableYears={availableYears}
-              selectedYear={selectedYear}
-              onYearChange={setSelectedYear}
-            />
           </div>
 
           {/* Map Container */}
           <div className="relative w-full h-[600px] bg-gray-50 rounded-lg overflow-hidden shadow-sm">
-            {/* Debug info - remove this after testing */}
-            {(() => {
-              console.log('Map Tab Debug:', {
-                isJourneysLoading,
-                journeysCount: journeys.length,
-                filteredJourneysCount: filteredJourneys.length,
-                selectedYear,
-              });
-              return null;
-            })()}
-
             {isJourneysLoading ? (
               <div className="flex items-center justify-center h-full">
                 <LoadingSpinner size="lg" />
               </div>
-            ) : filteredJourneys.length === 0 ? (
+            ) : journeys.length === 0 ? (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center p-8">
                   <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
                     <JourneyIcon className="w-8 h-8 text-gray-400" />
                   </div>
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    {selectedYear
-                      ? `No journeys in ${selectedYear}`
-                      : 'No journeys yet'}
+                    No journeys yet
                   </h3>
                   <p className="text-gray-600 mb-4">
-                    {selectedYear
-                      ? 'Try selecting a different year or create a new journey.'
-                      : 'Start creating your first journey to see it on the map.'}
+                    Start creating your first journey to see it on the map.
                   </p>
-                  {!selectedYear && (
-                    <Button
-                      variant="primary"
-                      size="lg"
-                      onClick={() => router.push('/create-journey')}
-                    >
-                      Create Journey
-                    </Button>
-                  )}
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    onClick={() => router.push('/create-journey')}
+                  >
+                    Create Journey
+                  </Button>
                 </div>
               </div>
             ) : (
               <>
                 {console.log(
                   'Rendering AllJourneysMap with',
-                  filteredJourneys.length,
+                  journeys.length,
                   'journeys'
                 )}
                 <AllJourneysMap
-                  journeys={filteredJourneys}
+                  journeys={journeys}
                   onJourneyClick={handleJourneyClick}
                   onJourneyHover={handleJourneyHover}
                   onJourneyHoverEnd={handleJourneyHoverEnd}
                   selectedJourney={selectedJourney}
+                  overlay={
+                    showJourneyCard && selectedJourney ? (
+                      <motion.div
+                        className={`absolute inset-0 flex items-center justify-center p-4 z-50 ${
+                          isHoverMode
+                            ? 'pointer-events-none' // Don't block map interactions in hover mode
+                            : 'bg-white/30 backdrop-blur-md' // Full overlay in click mode
+                        }`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        onClick={isHoverMode ? undefined : handleCloseJourneyCard}
+                      >
+                        <motion.div
+                          className="max-w-md w-full pointer-events-auto"
+                          initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                          animate={{ scale: 1, opacity: 1, y: 0 }}
+                          exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                          transition={{ duration: 0.2 }}
+                          onClick={e => e.stopPropagation()}
+                          onMouseEnter={handleCardMouseEnter}
+                          onMouseLeave={handleCardMouseLeave}
+                        >
+                          <div className={isHoverMode ? 'shadow-2xl rounded-xl' : ''}>
+                            <JourneyCard
+                              journey={selectedJourney}
+                              onClose={handleCloseJourneyCard}
+                            />
+                          </div>
+                        </motion.div>
+                      </motion.div>
+                    ) : null
+                  }
                 />
               </>
-            )}
-
-            {/* Journey Card Overlay - Shows on hover */}
-            {showJourneyCard && selectedJourney && (
-              <motion.div
-                className={`absolute inset-0 flex items-center justify-center p-4 z-50 ${
-                  isHoverMode
-                    ? 'pointer-events-none' // Don't block map interactions in hover mode
-                    : 'bg-white/30 backdrop-blur-md' // Full overlay in click mode
-                }`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                onClick={isHoverMode ? undefined : handleCloseJourneyCard}
-              >
-                <motion.div
-                  className="max-w-md w-full pointer-events-auto"
-                  initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                  animate={{ scale: 1, opacity: 1, y: 0 }}
-                  exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                  transition={{ duration: 0.2 }}
-                  onClick={e => e.stopPropagation()}
-                  onMouseEnter={handleCardMouseEnter}
-                  onMouseLeave={handleCardMouseLeave}
-                >
-                  <div className={isHoverMode ? 'shadow-2xl rounded-xl' : ''}>
-                    <JourneyCard
-                      journey={selectedJourney}
-                      onClose={handleCloseJourneyCard}
-                    />
-                  </div>
-                </motion.div>
-              </motion.div>
             )}
           </div>
         </div>
