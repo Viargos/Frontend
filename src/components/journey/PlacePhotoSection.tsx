@@ -66,7 +66,7 @@ export const PlacePhotoSection: React.FC<PlacePhotoSectionProps> = ({
   const getImageUrl = (photoKey: string) => {
     const url = photoKey.startsWith("http")
       ? photoKey
-      : `https://viargos.s3.us-east-2.amazonaws.com/${photoKey}`;
+      : `https://viargos-sandbox.s3.us-east-2.amazonaws.com/${photoKey}`;
     console.log('🖼️ Loading image:', { photoKey, url });
     return url;
   };

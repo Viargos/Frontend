@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { JourneyMap } from '@/components/maps';
 import { serviceFactory } from '@/lib/services/service-factory';
@@ -9,11 +9,11 @@ import { Journey } from '@/types/journey.types';
 import { format } from 'date-fns';
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';
 import { extractJourneyLocations, calculateLocationsCenter } from '@/utils/journey-locations.utils';
-import { Hotel, Trees, UtensilsCrossed, Car, FileText } from 'lucide-react';
+import { Hotel, Trees, UtensilsCrossed, Car, FileText, ArrowLeft } from 'lucide-react';
 import PhotoGallery from '@/components/media/PhotoGallery';
 import { Modal } from '@/components/ui';
 import { JourneyPosts } from '@/components/journey';
-import { EditIcon, AlertCircleIcon, MapPinIcon, ImageIcon, CloseIcon } from '@/components/icons';
+import { AlertCircleIcon, MapPinIcon, ImageIcon, CloseIcon } from '@/components/icons';
 
 interface Location {
   id: string;
@@ -30,6 +30,7 @@ interface Location {
 
 export default function JourneyDetailsPage() {
   const params = useParams();
+  const router = useRouter();
   const journeyId = params.id as string;
 
   const [journey, setJourney] = useState<Journey | null>(null);
@@ -40,16 +41,15 @@ export default function JourneyDetailsPage() {
     null
   );
   const { location: currentLocation } = useCurrentLocation();
-  const [isBannerEditModalOpen, setIsBannerEditModalOpen] = useState(false);
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
-  console.log(isBannerEditModalOpen, selectedLocation);
+  console.log(selectedLocation);
 
   // Helper function to get image URL from S3 key
   const getImageUrl = (photoKey: string): string => {
     if (photoKey.startsWith('http')) {
       return photoKey;
     }
-    return `https://viargos.s3.us-east-2.amazonaws.com/${photoKey}`;
+    return `https://viargos-sandbox.s3.us-east-2.amazonaws.com/${photoKey}`;
   };
 
   // Helper function to handle image load error
@@ -281,7 +281,7 @@ export default function JourneyDetailsPage() {
               .filter(m => m.type === 'image')
               .map(m => m.url.startsWith('http') 
                 ? m.url 
-                : `https://viargos.s3.us-east-2.amazonaws.com/${m.url}`
+                : `https://viargos-sandbox.s3.us-east-2.amazonaws.com/${m.url}`
               );
             break;
           }
@@ -372,8 +372,25 @@ export default function JourneyDetailsPage() {
 
   const currentDay = journey.days?.find(day => day.dayNumber === activeDay);
 
+  // Helper to convert S3 key to full URL
+  const getCoverImageUrl = (coverImage: string | null | undefined): string => {
+    if (!coverImage) {
+      return '/london.png';
+    }
+    if (coverImage.startsWith('http')) {
+      return coverImage;
+    }
+    return `https://viargos-sandbox.s3.us-east-2.amazonaws.com/${coverImage}`;
+  };
+
   // Always derive the actual cover image src we render, so logging and UI stay in sync
-  const coverImageSrc = journey?.coverImage || '/london.png';
+  const coverImageSrc = getCoverImageUrl(journey?.coverImage);
+  
+  // Debug logging
+  console.log('[JOURNEY_DETAIL] Cover image debug:', {
+    rawCoverImage: journey?.coverImage,
+    convertedUrl: coverImageSrc,
+  });
 
   return (
     <div className="flex-1 bg-gray-50 p-4 sm:p-6 max-w-none">
@@ -413,14 +430,14 @@ export default function JourneyDetailsPage() {
           )}
         </div>
 
-        {/* Edit Button */}
+        {/* Back Button */}
         <button
-          onClick={() => setIsBannerEditModalOpen(true)}
-          className="absolute top-2 right-2 sm:top-4 sm:right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white/20 backdrop-blur-sm text-white px-2 py-1 sm:px-3 sm:py-2 rounded-md text-xs sm:text-sm hover:bg-white/30 flex items-center gap-1 sm:gap-2"
+          onClick={() => router.back()}
+          className="absolute top-2 left-2 sm:top-4 sm:left-4 transition-all duration-200 bg-white/20 backdrop-blur-sm text-white px-2 py-1 sm:px-3 sm:py-2 rounded-md text-xs sm:text-sm hover:bg-white/30 flex items-center gap-1 sm:gap-2"
           style={{ zIndex: 4 }}
         >
-          <EditIcon className="w-3 h-3 sm:w-4 sm:h-4" />
-          <span className="hidden sm:inline">Edit</span>
+          <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
+          <span className="hidden sm:inline">Back</span>
         </button>
       </div>
 

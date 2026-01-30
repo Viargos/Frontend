@@ -13,6 +13,13 @@ import { CalendarIcon } from "@/components/icons/CalendarIcon";
 import MapIcon from "@/components/icons/MapIcon";
 import Image from "next/image";
 
+// Helper to convert S3 key to full URL
+const getCoverImageUrl = (coverImage: string | null | undefined): string | null => {
+  if (!coverImage) return null;
+  if (coverImage.startsWith('http')) return coverImage;
+  return `https://viargos-sandbox.s3.us-east-2.amazonaws.com/${coverImage}`;
+};
+
 interface JourneyLinkedPostFormProps {
   onSuccess: (postId: string) => void;
   onCancel: () => void;
@@ -178,9 +185,9 @@ export default function JourneyLinkedPostForm({
                     className="w-full p-4 bg-white border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 text-left"
                   >
                     <div className="flex items-start space-x-3">
-                      {journey.coverImage ? (
+                      {getCoverImageUrl(journey.coverImage) ? (
                         <img
-                          src={journey.coverImage}
+                          src={getCoverImageUrl(journey.coverImage)!}
                           alt={journey.title}
                           className="w-12 h-12 object-cover rounded-lg flex-shrink-0"
                         />
@@ -224,9 +231,9 @@ export default function JourneyLinkedPostForm({
             {selectedJourney && (
               <div className="bg-blue-50 p-4 rounded-lg">
                 <div className="flex items-center space-x-3">
-                  {selectedJourney.coverImage ? (
+                  {getCoverImageUrl(selectedJourney.coverImage) ? (
                     <Image
-                      src={selectedJourney.coverImage}
+                      src={getCoverImageUrl(selectedJourney.coverImage)!}
                       alt={selectedJourney.title}
                       width={40}
                       height={40}

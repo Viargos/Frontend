@@ -7,6 +7,7 @@ import {
   ArrowUpRight,
   Sparkles,
   Trash2,
+  Edit3,
 } from "lucide-react";
 import { Journey } from "@/types/journey.types";
 import { useRouter } from "next/navigation";
@@ -15,13 +16,19 @@ interface ProfileJourneyCardProps {
   journey: Journey;
   index: number;
   onDelete?: (journeyId: string) => void;
+  onEdit?: (journey: Journey) => void;
 }
 
 export default function ProfileJourneyCard({
   journey,
   index,
   onDelete,
+  onEdit,
 }: ProfileJourneyCardProps) {
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onEdit?.(journey);
+  };
   const [imageError, setImageError] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -94,7 +101,11 @@ export default function ProfileJourneyCard({
   const getJourneyImage = () => {
     // Use journey cover image if available
     if (journey.coverImage) {
-      return journey.coverImage;
+      // Convert S3 key to full URL if needed
+      if (journey.coverImage.startsWith('http')) {
+        return journey.coverImage;
+      }
+      return `https://viargos-sandbox.s3.us-east-2.amazonaws.com/${journey.coverImage}`;
     }
     // Fallback to null (will show placeholder)
     return null;
@@ -176,11 +187,21 @@ export default function ProfileJourneyCard({
           {/* Overlay gradient */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-          {/* Delete Button - positioned on image */}
+          {/* Edit / Delete Buttons - show on hover */}
+          {onEdit && (
+            <button
+              onClick={handleEditClick}
+              className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-2 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white text-[#160E53] shadow-md z-10"
+              title="Edit journey"
+            >
+              <Edit3 className="w-4 h-4" />
+            </button>
+          )}
+
           {onDelete && (
             <button
               onClick={handleDeleteClick}
-              className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-2 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white text-red-500 hover:text-red-600 shadow-md z-10"
+              className="absolute top-3 right-12 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-2 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white text-red-500 hover:text-red-600 shadow-md z-10"
               title="Delete journey"
             >
               <Trash2 className="w-4 h-4" />

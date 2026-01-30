@@ -5,9 +5,10 @@ import { AlertTriangleIcon, CloseIcon } from '@/components/icons';
 interface ErrorAlertProps {
   message: string | null;
   onDismiss: () => void;
+  title?: string; // Optional custom title
 }
 
-export const ErrorAlert: React.FC<ErrorAlertProps> = ({ message, onDismiss }) => {
+export const ErrorAlert: React.FC<ErrorAlertProps> = ({ message, onDismiss, title = 'Something went wrong' }) => {
   return (
     <AnimatePresence>
       {message && (
@@ -24,7 +25,7 @@ export const ErrorAlert: React.FC<ErrorAlertProps> = ({ message, onDismiss }) =>
             </div>
             <div className="flex-1">
               <h4 className="text-red-800 font-medium text-sm mb-1">
-                Unable to create journey
+                {title}
               </h4>
               <p className="text-red-700 text-sm">
                 {message}

@@ -74,6 +74,8 @@ export interface CreateJourneyDto {
 export interface UpdateJourneyDto {
   title?: string;
   description?: string;
+  coverImage?: string | null;
+  days?: CreateJourneyDay[];
 }
 
 export interface JourneyFilters {

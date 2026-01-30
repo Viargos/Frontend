@@ -40,6 +40,8 @@ export default function JourneyCard({
     e.stopPropagation();
     if (onEdit) {
       onEdit(journey);
+    } else {
+      router.push(`/edit-journey/${journey.id}`);
     }
     setShowDropdown(false);
   };
@@ -133,7 +135,18 @@ export default function JourneyCard({
             {journey.title}
           </h3>
           
-          <div className="relative">
+          <div className="flex items-center gap-1">
+            <motion.button
+              whileHover={{ scale: 1.06 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleEdit}
+              className="p-1.5 rounded-full border border-gray-200 bg-white text-gray-600 hover:text-[#160E53] hover:border-[#160E53]/30 transition-colors opacity-0 group-hover:opacity-100"
+              title="Edit journey"
+            >
+              <Edit3 className="w-4 h-4" />
+            </motion.button>
+
+            <div className="relative">
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
@@ -189,6 +202,7 @@ export default function JourneyCard({
                 </div>
               </motion.div>
             )}
+            </div>
           </div>
         </div>
 

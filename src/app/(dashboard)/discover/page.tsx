@@ -748,7 +748,7 @@ export default function DiscoverPage() {
                                       if (media.type === 'image') {
                                         const imageUrl = media.url.startsWith('http')
                                           ? media.url
-                                          : `https://viargos.s3.us-east-2.amazonaws.com/${media.url}`;
+                                          : `https://viargos-sandbox.s3.us-east-2.amazonaws.com/${media.url}`;
                                         allImages.push(media.thumbnailUrl || imageUrl);
                                       }
                                     });

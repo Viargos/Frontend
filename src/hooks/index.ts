@@ -72,6 +72,10 @@ export { useAuthModals } from './useAuthModals';
 // Post interactions
 export { usePostLike } from './usePostLike';
 
+// Journey forms
+export { useJourneyForm } from './useJourneyForm';
+export { useEditJourneyForm } from './useEditJourneyForm';
+
 // Re-export all hook types for convenience
 export type { 
   UseFileUploadReturn, 

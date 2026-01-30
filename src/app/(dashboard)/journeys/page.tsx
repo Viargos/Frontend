@@ -6,8 +6,10 @@ import { useJourneyStore } from '@/store/journey.store';
 import { useAuthStore } from '@/store/auth.store';
 import { JourneysHeader, JourneysGrid } from '@/components/journeys';
 import { LoadingSpinner } from '@/components/ui';
+import { useRouter } from 'next/navigation';
 
 export default function JourneysPage() {
+  const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useAuthStore();
   const { 
     journeys, 
@@ -32,9 +34,7 @@ export default function JourneysPage() {
   };
 
   const handleEditJourney = async (journey: any) => {
-    // For now, we'll just show an alert
-    // In the future, this could open an edit modal
-    alert(`Edit journey: ${journey.title}`);
+    router.push(`/edit-journey/${journey.id}`);
   };
 
   const handleDeleteJourney = async (journeyId: string) => {

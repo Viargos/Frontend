@@ -100,6 +100,13 @@ export default function JourneyDetailsModal({
     onClose();
   };
 
+  // Helper to convert S3 key to full URL
+  const getCoverImageUrl = (coverImage: string | null | undefined): string | null => {
+    if (!coverImage) return null;
+    if (coverImage.startsWith('http')) return coverImage;
+    return `https://viargos-sandbox.s3.us-east-2.amazonaws.com/${coverImage}`;
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-4xl">
       <div className="bg-white rounded-xl shadow-xl w-full max-h-[90vh] overflow-hidden">
@@ -107,9 +114,9 @@ export default function JourneyDetailsModal({
         <div className="relative">
           {/* Cover Image or Gradient */}
           <div className="h-48 bg-gradient-to-br from-[#160E53] via-[#001456] to-[#0891b2] relative">
-            {journey.coverImage && (
+            {getCoverImageUrl(journey.coverImage) && (
               <img
-                src={journey.coverImage}
+                src={getCoverImageUrl(journey.coverImage)!}
                 alt={journey.title}
                 className="w-full h-full object-cover"
               />

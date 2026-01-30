@@ -16,6 +16,7 @@ interface JourneyReviewModalProps {
   days: string[];
   getDateForDay: (dayLabel: string) => string;
   isSubmitting: boolean;
+  isEditMode?: boolean; // New prop to distinguish between create and edit
 }
 
 const PlaceTypeIcons: Record<PlaceType, React.ReactNode> = {
@@ -43,13 +44,14 @@ export default function JourneyReviewModal({
   days,
   getDateForDay,
   isSubmitting,
+  isEditMode = false,
 }: JourneyReviewModalProps) {
   if (!isOpen) return null;
 
   const getImageUrl = (photoKey: string) => {
     return photoKey.startsWith('http')
       ? photoKey
-      : `https://viargos.s3.us-east-2.amazonaws.com/${photoKey}`;
+      : `https://viargos-sandbox.s3.us-east-2.amazonaws.com/${photoKey}`;
   };
 
   const isValidCoordinate = (lat?: number | null, lng?: number | null) => {
@@ -309,8 +311,12 @@ export default function JourneyReviewModal({
             <div className="border-t border-slate-200 p-6 bg-white">
               <div className="flex items-center justify-between gap-4">
                 <div className="text-sm text-slate-600">
-                  <p className="font-semibold text-slate-900">Ready to share your journey?</p>
-                  <p className="text-xs text-slate-500">This will be visible to other travelers</p>
+                  <p className="font-semibold text-slate-900">
+                    {isEditMode ? 'Ready to save your changes?' : 'Ready to share your journey?'}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {isEditMode ? 'Your journey will be updated' : 'This will be visible to other travelers'}
+                  </p>
                 </div>
                 <div className="flex gap-3">
                   <button
@@ -318,7 +324,7 @@ export default function JourneyReviewModal({
                     disabled={isSubmitting}
                     className="px-6 py-2.5 border border-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
                   >
-                    Edit Journey
+                    {isEditMode ? 'Continue Editing' : 'Edit Journey'}
                   </button>
                   <button
                     onClick={onConfirm}
@@ -328,10 +334,10 @@ export default function JourneyReviewModal({
                     {isSubmitting ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Posting...
+                        {isEditMode ? 'Updating...' : 'Posting...'}
                       </>
                     ) : (
-                      'Post Journey'
+                      isEditMode ? 'Update Journey' : 'Post Journey'
                     )}
                   </button>
                 </div>

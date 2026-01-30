@@ -193,6 +193,10 @@ export default function ProfilePage() {
     }
   };
 
+  const handleEditJourney = (journey: any) => {
+    router.push(`/edit-journey/${journey.id}`);
+  };
+
   // Show loading state while profile loading
   if (isLoading) {
     return <UserProfileSkeleton />;
@@ -287,6 +291,7 @@ export default function ProfilePage() {
                     journey={journey}
                     index={index}
                     onDelete={handleDeleteJourney}
+                    onEdit={handleEditJourney}
                   />
                 ))}
               </div>

@@ -1,27 +1,32 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { DayFilter, PlanningCategory, JourneyHeader, CoverImage, PlaceCard, JourneyReviewModal } from '@/components/journey';
-import { Hotel, Trees, UtensilsCrossed, Car, FileText } from 'lucide-react';
+import { useRouter, useParams } from 'next/navigation';
+import { DayFilter, PlanningCategory, CoverImage, PlaceCard, JourneyReviewModal } from '@/components/journey';
+import { Hotel, Trees, UtensilsCrossed, Car, FileText, ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { PlaceType, CreateJourneyPlace } from '@/types/journey.types';
-import { useJourneyForm } from '@/hooks/useJourneyForm';
+import { useEditJourneyForm } from '@/hooks/useEditJourneyForm';
 import { ErrorAlert } from '@/components/ui';
 import PhotoGallery from '@/components/media/PhotoGallery';
 import JourneyMap from '@/components/maps/JourneyMap';
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';
 
-export default function CreateJourneyPage() {
+export default function EditJourneyPage() {
   const router = useRouter();
-  const [activePlaceType] = useState<PlaceType | null>(
-    null
-  );
+  const params = useParams();
+  const journeyId = params.id as string;
+
+  const [activePlaceType] = useState<PlaceType | null>(null);
   const [journeyName, setJourneyName] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [nameInitialized, setNameInitialized] = useState(false);
   const { location: currentLocation } = useCurrentLocation();
 
   const {
+    isLoadingJourney,
+    loadError,
+    journeyLoaded,
     formData,
     updateFormData,
     days,
@@ -42,12 +47,18 @@ export default function CreateJourneyPage() {
     isSubmitting,
     errorMessage,
     setErrorMessage,
-    submitJourneyWithData,
-  } = useJourneyForm();
+    submitUpdateWithData,
+  } = useEditJourneyForm(journeyId);
+
+  // Initialize journey name and subtitle from loaded data
+  if (journeyLoaded && !nameInitialized && formData.title) {
+    setJourneyName(formData.title);
+    setSubtitle(formData.description);
+    setNameInitialized(true);
+  }
 
   // Handle opening review modal
   const handleOpenReview = useCallback(() => {
-    // Update form data with journey name and subtitle before showing review
     const updatedFormData = {
       title: journeyName || formData.title,
       description: subtitle || formData.description,
@@ -58,17 +69,29 @@ export default function CreateJourneyPage() {
 
   // Handle actual form submission (called from modal)
   const handleSubmit = async () => {
-    // Update form data with journey name and subtitle before submission
     const updatedFormData = {
       title: journeyName || formData.title,
       description: subtitle || formData.description,
     };
 
-    // Use a small delay to ensure state is updated, or pass the data directly
-    const journeyId = await submitJourneyWithData(updatedFormData);
+    const success = await submitUpdateWithData(updatedFormData);
 
-    if (journeyId) {
+    if (success) {
       setShowReviewModal(false);
+      router.push(`/journey/${journeyId}`);
+    }
+  };
+
+  // Handle direct save without review
+  const handleDirectSave = async () => {
+    const updatedFormData = {
+      title: journeyName || formData.title,
+      description: subtitle || formData.description,
+    };
+
+    const success = await submitUpdateWithData(updatedFormData);
+
+    if (success) {
       router.push(`/journey/${journeyId}`);
     }
   };
@@ -88,15 +111,12 @@ export default function CreateJourneyPage() {
     const activeDayPlaces = getActiveDayPlaces();
     
     activeDayPlaces.forEach((place, index) => {
-      // Show marker if place has valid coordinates
-      // (address without coordinates will be geocoded automatically by PlaceForm)
       const hasValidCoordinates =
         place.latitude &&
         place.longitude &&
         place.latitude !== 0 &&
         place.longitude !== 0;
 
-      // Only add marker if we have valid coordinates
       if (hasValidCoordinates && place.latitude !== undefined && place.longitude !== undefined) {
         const location = {
           id: `${activeDay}-${index}`,
@@ -108,14 +128,13 @@ export default function CreateJourneyPage() {
           day: activeDay,
         };
         locations.push(location);
-      } else {
       }
     });
 
     return locations;
   }, [getActiveDayPlaces, activeDay]);
 
-  // Get map center based on current places or current location
+  // Get map center
   const getMapCenter = useCallback(() => {
     const activePlaces = getActiveDayPlaces();
 
@@ -134,7 +153,6 @@ export default function CreateJourneyPage() {
       };
     }
 
-    // Use current location if available
     if (currentLocation) {
       return {
         lat: currentLocation.latitude,
@@ -142,7 +160,6 @@ export default function CreateJourneyPage() {
       };
     }
 
-    // Fallback to world center if no location available
     return { lat: 20.0, lng: 0.0 };
   }, [getActiveDayPlaces, currentLocation]);
 
@@ -166,7 +183,6 @@ export default function CreateJourneyPage() {
 
         addPlaceToActiveDay(newPlace.type);
 
-        // Auto-expand the newly added place
         const newIndex = getActiveDayPlaces().length;
         togglePlaceExpansion(activeDay, newIndex);
       }
@@ -180,7 +196,7 @@ export default function CreateJourneyPage() {
     ]
   );
 
-  // Handle cover image upload with key storage
+  // Handle cover image upload
   const handleCoverImageUpload = useCallback(
     (url: string, key?: string) => {
       updateFormData({
@@ -200,9 +216,79 @@ export default function CreateJourneyPage() {
     [formData.photos, updateFormData]
   );
 
+  // Loading state
+  if (isLoadingJourney) {
+    return (
+      <div className="flex-1 bg-gray-50 p-4 sm:p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-[#160E53] mx-auto mb-4" />
+            <p className="text-gray-600">Loading journey...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (loadError) {
+    return (
+      <div className="flex-1 bg-gray-50 p-4 sm:p-6">
+        <div className="text-center py-8">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
+            <h3 className="text-lg font-medium text-red-800 mb-2">
+              Failed to load journey
+            </h3>
+            <p className="text-red-600 mb-4">{loadError}</p>
+            <button
+              onClick={() => router.back()}
+              className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors"
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 p-4 sm:p-6 max-w-none">
       <div className="flex flex-col gap-6 w-full">
+        {/* Header with Back and Save buttons */}
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span className="text-sm font-medium">Back</span>
+          </button>
+          
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleDirectSave}
+              disabled={isSubmitting}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+            >
+              {isSubmitting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4" />
+              )}
+              <span className="text-sm font-medium">Save</span>
+            </button>
+            
+            <button
+              onClick={handleOpenReview}
+              disabled={isSubmitting}
+              className="flex items-center gap-2 px-4 py-2 bg-[#160E53] text-white rounded-lg hover:bg-[#160E53]/90 transition-colors disabled:opacity-50"
+            >
+              <span className="text-sm font-medium">Review & Update</span>
+            </button>
+          </div>
+        </div>
+
         {/* Hero Cover Image */}
         <CoverImage
           imageUrl={formData.coverImageUrl}
@@ -217,22 +303,12 @@ export default function CreateJourneyPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 w-full">
           {/* Left Content */}
           <div className="flex flex-col items-start gap-8 w-full lg:col-span-2">
-            {/* Journey Header */}
-            <JourneyHeader
-              title={formData.title}
-              startDate={formData.startDate}
-              onTitleChange={title => updateFormData({ title })}
-              onDateChange={date => updateFormData({ startDate: date })}
-              onSubmit={handleOpenReview}
-              isSubmitting={isSubmitting}
-            />
-
             {/* Error Alert */}
             {errorMessage && (
               <ErrorAlert
                 message={errorMessage}
                 onDismiss={() => setErrorMessage(null)}
-                title="Unable to create journey"
+                title="Unable to update journey"
               />
             )}
 
@@ -305,7 +381,6 @@ export default function CreateJourneyPage() {
 
               {/* Places Display Section */}
               <div className="flex flex-col items-start gap-6 w-full">
-                {/* Show all places for active day using PlaceCard components */}
                 {getActiveDayPlaces().length > 0 && (
                   <div className="w-full space-y-4">
                     {getActiveDayPlaces().map((place, index) => {
@@ -335,10 +410,9 @@ export default function CreateJourneyPage() {
                   </div>
                 )}
 
-                {/* Default view when no places are added */}
                 {getActiveDayPlaces().length === 0 && (
-                  <div className="w-full">
-                    {/* Empty state - users can add places using the category buttons above */}
+                  <div className="w-full p-8 text-center text-gray-500 border border-dashed border-gray-300 rounded-lg">
+                    <p>No places added for this day. Use the categories above to add places.</p>
                   </div>
                 )}
 
@@ -365,7 +439,6 @@ export default function CreateJourneyPage() {
                 center={getMapCenter()}
                 onLocationClick={location => {
                   console.log('Location clicked:', location);
-                  // You can add additional functionality here, like highlighting the corresponding place card
                 }}
                 onMapClick={handleMapClick}
               />
@@ -387,6 +460,7 @@ export default function CreateJourneyPage() {
           days={days}
           getDateForDay={getDateForDay}
           isSubmitting={isSubmitting}
+          isEditMode={true}
         />
       </div>
     </div>

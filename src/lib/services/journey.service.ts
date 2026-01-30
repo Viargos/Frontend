@@ -305,16 +305,30 @@ export class JourneyService implements IJourneyService {
       journeyId: id,
       hasTitle: !!data.title,
       hasDescription: data.description !== undefined,
+      hasCoverImage: data.coverImage !== undefined,
+      hasDays: !!data.days,
+      daysCount: data.days?.length || 0,
     });
 
     try {
       this.validateJourneyId(id);
       this.validateJourneyUpdateData(data);
 
-      const updateData = {
+      const updateData: UpdateJourneyDto = {
         ...(data.title !== undefined && { title: data.title.trim() }),
         ...(data.description !== undefined && {
           description: data.description.trim() || null,
+        }),
+        ...(data.coverImage !== undefined && { coverImage: data.coverImage }),
+        ...(data.days !== undefined && {
+          days: data.days.map((day) => ({
+            ...day,
+            places: day.places.map((place) => ({
+              ...place,
+              name: place.name.trim(),
+              description: place.description?.trim() || undefined,
+            })),
+          })),
         }),
       };
 
@@ -915,6 +929,37 @@ export class JourneyService implements IJourneyService {
       throw new Error(
         ERROR_MESSAGES.VALIDATION.MAX_LENGTH('Journey description', VALIDATION_RULES.JOURNEY.DESCRIPTION_MAX_LENGTH)
       );
+    }
+
+    // Validate days if provided
+    if (data.days !== undefined) {
+      if (!Array.isArray(data.days)) {
+        throw new Error('Days must be an array');
+      }
+
+      data.days.forEach((day, index) => {
+        if (!day.date || typeof day.date !== 'string') {
+          throw new Error(`Day ${index + 1} must have a valid date`);
+        }
+
+        if (day.dayNumber <= 0) {
+          throw new Error(`Day ${index + 1} must have a valid day number`);
+        }
+
+        if (!day.places || !Array.isArray(day.places)) {
+          throw new Error(`Day ${index + 1} must have a places array`);
+        }
+
+        day.places.forEach((place, placeIndex) => {
+          if (!place.name || typeof place.name !== 'string' || place.name.trim().length === 0) {
+            throw new Error(`Day ${index + 1}, Place ${placeIndex + 1} must have a valid name`);
+          }
+
+          if (!['STAY', 'ACTIVITY', 'FOOD', 'TRANSPORT', 'NOTE'].includes(place.type)) {
+            throw new Error(`Day ${index + 1}, Place ${placeIndex + 1} must have a valid type`);
+          }
+        });
+      });
     }
   }
 

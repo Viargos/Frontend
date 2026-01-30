@@ -39,6 +39,13 @@ export default function JourneyCard({ journey, onClose }: JourneyCardProps) {
     return `${journey.days.length} days`;
   };
 
+  // Helper to convert S3 key to full URL
+  const getCoverImageUrl = (coverImage: string | null | undefined): string | null => {
+    if (!coverImage) return null;
+    if (coverImage.startsWith('http')) return coverImage;
+    return `https://viargos-sandbox.s3.us-east-2.amazonaws.com/${coverImage}`;
+  };
+
   return (
     <motion.div
       className="bg-white rounded-xl shadow-xl overflow-hidden max-w-md w-full"
@@ -49,9 +56,9 @@ export default function JourneyCard({ journey, onClose }: JourneyCardProps) {
     >
       {/* Header */}
       <div className="relative">
-        {journey.coverImage ? (
+        {getCoverImageUrl(journey.coverImage) ? (
           <img
-            src={journey.coverImage}
+            src={getCoverImageUrl(journey.coverImage)!}
             alt={journey.title}
             className="w-full h-48 object-cover"
           />

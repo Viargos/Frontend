@@ -652,7 +652,7 @@ export default function ExploreMap({
                     .map((media, index) => {
                       const imageUrl = media.url.startsWith('http')
                         ? media.url
-                        : `https://viargos.s3.us-east-2.amazonaws.com/${media.url}`;
+                        : `https://viargos-sandbox.s3.us-east-2.amazonaws.com/${media.url}`;
                       return (
                         <div
                           key={index}
