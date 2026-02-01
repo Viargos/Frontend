@@ -135,15 +135,16 @@ export default function JourneyCard({
             {journey.title}
           </h3>
           
-          <div className="flex items-center gap-1">
+          {/* Action buttons - always visible on mobile, hover on desktop */}
+          <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">
             <motion.button
               whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleEdit}
-              className="p-1.5 rounded-full border border-gray-200 bg-white text-gray-600 hover:text-[#160E53] hover:border-[#160E53]/30 transition-colors opacity-0 group-hover:opacity-100"
+              className="p-1.5 rounded-full border border-gray-200 bg-white text-gray-600 hover:text-[#160E53] hover:border-[#160E53]/30 transition-colors"
               title="Edit journey"
             >
-              <Edit3 className="w-4 h-4" />
+              <Edit3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </motion.button>
 
             <div className="relative">
@@ -154,9 +155,9 @@ export default function JourneyCard({
                 e.stopPropagation();
                 setShowDropdown(!showDropdown);
               }}
-              className="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors opacity-0 group-hover:opacity-100"
+              className="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
             >
-              <MoreHorizontal className="w-5 h-5" />
+              <MoreHorizontal className="w-4 h-4 sm:w-5 sm:h-5" />
             </motion.button>
 
             {showDropdown && (

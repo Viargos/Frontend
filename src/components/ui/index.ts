@@ -7,6 +7,7 @@ export { default as Button } from './Button';
 export { default as Checkbox } from './Checkbox';
 export { default as ConfirmDialog } from './ConfirmDialog';
 export { default as Dropzone } from './Dropzone';
+export { default as ImageViewerModal } from './ImageViewerModal';
 export { default as InputField } from './InputField';
 export { default as LoadingSpinner } from './LoadingSpinner';
 export { default as LoginModal } from './LoginModal';

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
@@ -19,6 +19,9 @@ import ProfileJourneyCard from '@/components/profile/ProfileJourneyCard';
 import UserProfileSkeleton from '@/components/ui/UserProfileSkeleton';
 import UserPostsGrid from '@/components/user/UserPostsGrid';
 import Button from '@/components/ui/Button';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import AllJourneysMap from '@/components/maps/AllJourneysMap';
+import JourneyCard from '@/components/maps/JourneyCard';
 import { UserCircleIcon, JourneyIcon } from '@/components/icons';
 
 export default function UserDetailsPage() {
@@ -39,6 +42,65 @@ export default function UserDetailsPage() {
   const [activeTab, setActiveTab] = useState<'journey' | 'post' | 'map'>(
     'journey'
   );
+
+  // Map-related state
+  const [selectedJourney, setSelectedJourney] = useState<Journey | null>(null);
+  const [showJourneyCard, setShowJourneyCard] = useState(false);
+  const [isHoverMode, setIsHoverMode] = useState(false);
+  const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Map event handlers
+  const handleJourneyClick = (journey: Journey) => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    setIsHoverMode(false);
+    setSelectedJourney(journey);
+    setShowJourneyCard(true);
+  };
+
+  const handleJourneyHover = (journey: Journey) => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    setIsHoverMode(true);
+    setSelectedJourney(journey);
+    setShowJourneyCard(true);
+  };
+
+  const handleJourneyHoverEnd = () => {
+    if (!isHoverMode) return;
+    hoverTimeoutRef.current = setTimeout(() => {
+      setShowJourneyCard(false);
+      setSelectedJourney(null);
+      setIsHoverMode(false);
+    }, 500);
+  };
+
+  const handleCloseJourneyCard = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    setShowJourneyCard(false);
+    setSelectedJourney(null);
+    setIsHoverMode(false);
+  };
+
+  const handleCardMouseEnter = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+  };
+
+  const handleCardMouseLeave = () => {
+    if (isHoverMode) {
+      handleJourneyHoverEnd();
+    }
+  };
 
   // Load user details
   useEffect(() => {
@@ -448,15 +510,88 @@ export default function UserDetailsPage() {
       )}
 
       {activeTab === 'map' && (
-        <div className="flex flex-col items-start gap-4 w-full px-4 sm:px-6">
-          <h2 className="text-black font-outfit text-2xl font-medium leading-[120%]">
-            {userDetails.user.username}&apos;s Travel Map
-          </h2>
-          <div className="text-center text-gray-500 py-8 w-full">
-            <JourneyIcon className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-            <p>
-              {userDetails.user.username}&apos;s travel map will appear here!
-            </p>
+        <div className="flex flex-col gap-4 w-full px-4 sm:px-6">
+          {/* Map Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h2 className="text-black font-outfit text-2xl font-medium leading-[120%]">
+                {userDetails.user.username}&apos;s Travel Map
+              </h2>
+              <p className="text-gray-600 mt-1">
+                Explore {userDetails.user.username}&apos;s journeys on the map
+                {allJourneys.length > 0 && (
+                  <span className="ml-2 text-sm">
+                    ({allJourneys.length} journey
+                    {allJourneys.length !== 1 ? 's' : ''})
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+
+          {/* Map Container */}
+          <div className="relative w-full h-[400px] sm:h-[500px] md:h-[600px] bg-gray-50 rounded-lg overflow-hidden shadow-sm">
+            {isLoadingJourneys ? (
+              <div className="flex items-center justify-center h-full">
+                <LoadingSpinner size="lg" />
+              </div>
+            ) : allJourneys.length === 0 ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center p-8">
+                  <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <JourneyIcon className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    No journeys yet
+                  </h3>
+                  <p className="text-gray-600">
+                    {userDetails.user.username} hasn&apos;t created any journeys to display on the map.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <AllJourneysMap
+                journeys={allJourneys}
+                onJourneyClick={handleJourneyClick}
+                onJourneyHover={handleJourneyHover}
+                onJourneyHoverEnd={handleJourneyHoverEnd}
+                selectedJourney={selectedJourney}
+                overlay={
+                  showJourneyCard && selectedJourney ? (
+                    <motion.div
+                      className={`absolute inset-0 flex items-center justify-center p-4 z-50 ${
+                        isHoverMode
+                          ? 'pointer-events-none'
+                          : 'bg-white/30 backdrop-blur-md'
+                      }`}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      onClick={isHoverMode ? undefined : handleCloseJourneyCard}
+                    >
+                      <motion.div
+                        className="max-w-md w-full pointer-events-auto"
+                        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                        transition={{ duration: 0.2 }}
+                        onClick={e => e.stopPropagation()}
+                        onMouseEnter={handleCardMouseEnter}
+                        onMouseLeave={handleCardMouseLeave}
+                      >
+                        <div className={isHoverMode ? 'shadow-2xl rounded-xl' : ''}>
+                          <JourneyCard
+                            journey={selectedJourney}
+                            onClose={handleCloseJourneyCard}
+                          />
+                        </div>
+                      </motion.div>
+                    </motion.div>
+                  ) : null
+                }
+              />
+            )}
           </div>
         </div>
       )}

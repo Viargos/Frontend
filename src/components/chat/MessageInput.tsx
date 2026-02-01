@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { SpinnerIcon, SendIcon } from '@/components/icons';
+import { Send } from 'lucide-react';
 
 interface MessageInputProps {
   onSendMessage: (content: string) => void;
@@ -10,13 +10,15 @@ interface MessageInputProps {
 export default function MessageInput({ onSendMessage }: MessageInputProps) {
   const [messageInput, setMessageInput] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-resize textarea
+  // Auto-resize textarea with max height
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+      const newHeight = Math.min(textareaRef.current.scrollHeight, 120); // Max 120px height
+      textareaRef.current.style.height = `${newHeight}px`;
     }
   }, [messageInput]);
 
@@ -50,36 +52,63 @@ export default function MessageInput({ onSendMessage }: MessageInputProps) {
     }
   };
 
+  const hasContent = messageInput.trim().length > 0;
+
   return (
-    <div className="p-4 border-t border-gray-200 bg-white flex-shrink-0 sticky bottom-0 z-10">
-      <form
-        onSubmit={handleSendMessage}
-        className="flex items-center space-x-3"
-      >
-        <div className="flex-1">
-          <textarea
-            ref={textareaRef}
-            value={messageInput}
-            onChange={e => setMessageInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Type a message..."
-            className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-primary-blue focus:border-primary-blue resize-none bg-gray-50 focus:bg-white transition-colors text-gray-900 placeholder-gray-500 overflow-hidden"
-            rows={1}
-            disabled={isSending}
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={!messageInput.trim() || isSending}
-          className="flex items-center justify-center w-12 h-12 bg-primary-blue text-white rounded-full hover:bg-blue-700 focus:ring-2 focus:ring-primary-blue focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
+    <div className="flex-shrink-0 sticky bottom-0 z-10 bg-white border-t border-gray-100">
+      {/* Safe area padding for mobile devices */}
+      <div className="px-3 py-2 sm:px-4 sm:py-3">
+        <form
+          onSubmit={handleSendMessage}
+          className={`flex items-end gap-2 sm:gap-3 p-1.5 sm:p-2 rounded-full border-2 transition-all duration-200 ${
+            isFocused 
+              ? 'border-primary-blue bg-white shadow-lg' 
+              : 'border-gray-200 bg-gray-50'
+          }`}
         >
-          {isSending ? (
-            <SpinnerIcon className="w-5 h-5" />
-          ) : (
-            <SendIcon className="w-5 h-5 rotate-90" />
-          )}
-        </button>
-      </form>
+          {/* Input Container */}
+          <div className="flex-1 min-w-0">
+            <textarea
+              ref={textareaRef}
+              value={messageInput}
+              onChange={e => setMessageInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              placeholder="Type a message..."
+              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base bg-transparent border-0 focus:ring-0 focus:outline-none resize-none text-gray-900 placeholder-gray-400 leading-tight"
+              rows={1}
+              disabled={isSending}
+              style={{ maxHeight: '120px' }}
+            />
+          </div>
+
+          {/* Send Button */}
+          <button
+            type="submit"
+            disabled={!hasContent || isSending}
+            className={`flex-shrink-0 flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-full transition-all duration-200 ${
+              hasContent && !isSending
+                ? 'bg-[#160E53] text-white shadow-md hover:bg-[#241A7A] hover:shadow-lg active:scale-95'
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            {isSending ? (
+              <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <Send className="w-4 h-4 sm:w-5 sm:h-5 rotate-45" />
+            )}
+          </button>
+        </form>
+
+        {/* Hint text - Desktop only */}
+        <p className="hidden sm:block text-[10px] text-gray-400 text-center mt-1.5">
+          Press Enter to send • Shift + Enter for new line
+        </p>
+      </div>
+
+      {/* Extra safe area for iOS devices */}
+      <div className="h-safe-area-inset-bottom bg-white" />
     </div>
   );
 }

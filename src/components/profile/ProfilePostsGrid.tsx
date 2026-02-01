@@ -205,8 +205,35 @@ export default function ProfilePostsGrid({
                     </div>
                   )}
 
-                  {/* Overlay with actions - appears on hover */}
-                  <div className="absolute inset-0 bg-white/0 group-hover:bg-white/30 backdrop-blur-0 group-hover:backdrop-blur-md transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                  {/* Mobile Action Buttons - Always visible on mobile, positioned at top-left to avoid media counter */}
+                  <div className="sm:hidden absolute top-2 left-2 flex items-center gap-2 z-20">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditPost(post.id);
+                      }}
+                      className="w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-lg text-[#160E53]"
+                    >
+                      <EditIcon className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeletePost(post.id);
+                      }}
+                      disabled={deletingPostId === post.id}
+                      className="w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-lg text-red-500 disabled:opacity-50"
+                    >
+                      {deletingPostId === post.id ? (
+                        <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <DeleteIcon className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Desktop Overlay with actions - appears on hover (hidden on mobile) */}
+                  <div className="hidden sm:flex absolute inset-0 bg-white/0 group-hover:bg-white/30 backdrop-blur-0 group-hover:backdrop-blur-md transition-all duration-300 items-center justify-center opacity-0 group-hover:opacity-100">
                     <div className="flex space-x-3">
                       <Button
                         variant="secondary"

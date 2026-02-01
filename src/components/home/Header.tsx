@@ -40,27 +40,33 @@ export default function Header({ user }: HeaderProps) {
     300 // 300ms debounce delay
   );
 
+  interface Notification {
+    id: string;
+    message: string;
+    time: string;
+    read: boolean;
+  }
   // Mock notification data - replace with real data from your notification store
-  const [notificationCount, setNotificationCount] = useState(3);
-  const notifications = [
-    {
-      id: 1,
-      message: 'New journey shared with you',
-      time: '2 min ago',
-      read: false,
-    },
-    {
-      id: 2,
-      message: 'Someone liked your post',
-      time: '1 hour ago',
-      read: false,
-    },
-    {
-      id: 3,
-      message: 'Journey update available',
-      time: '3 hours ago',
-      read: false,
-    },
+  const [notificationCount, setNotificationCount] = useState(0);
+  const notifications: Notification[] = [
+    // {
+    //   id: 1,
+    //   message: 'New journey shared with you',
+    //   time: '2 min ago',
+    //   read: false,
+    // },
+    // {
+    //   id: 2,
+    //   message: 'Someone liked your post',
+    //   time: '1 hour ago',
+    //   read: false,
+    // },
+    // {
+    //   id: 3,
+    //   message: 'Journey update available',
+    //   time: '3 hours ago',
+    //   read: false,
+    // },
   ];
 
   // Close dropdown when clicking outside using custom hook
@@ -361,7 +367,7 @@ export default function Header({ user }: HeaderProps) {
                             setNotificationCount(0);
                             // Add your mark all as read logic here
                           }}
-                          className="text-sm text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
+                          className="text-sm text-primary-blue hover:text-blue-700 transition-colors cursor-pointer"
                         >
                           Mark all as read
                         </button>

@@ -36,7 +36,7 @@ export default function Button({
   const variantClasses = {
     primary:
       "bg-primary-blue border border-primary-blue text-white hover:bg-opacity-90",
-    secondary: "bg-white border border-blue-900 text-blue-600 hover:bg-gray-50",
+    secondary: "bg-white border border-primary-blue text-primary-blue hover:bg-gray-50",
     "secondary-color":
       "bg-white border border-gray-200 text-primary-blue hover:bg-gray-50",
   };

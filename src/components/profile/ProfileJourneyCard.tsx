@@ -187,25 +187,28 @@ export default function ProfileJourneyCard({
           {/* Overlay gradient */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-          {/* Edit / Delete Buttons - show on hover */}
-          {onEdit && (
-            <button
-              onClick={handleEditClick}
-              className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-2 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white text-[#160E53] shadow-md z-10"
-              title="Edit journey"
-            >
-              <Edit3 className="w-4 h-4" />
-            </button>
-          )}
-
-          {onDelete && (
-            <button
-              onClick={handleDeleteClick}
-              className="absolute top-3 right-12 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-2 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white text-red-500 hover:text-red-600 shadow-md z-10"
-              title="Delete journey"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+          {/* Edit / Delete Buttons - always visible on mobile, hover on desktop */}
+          {(onEdit || onDelete) && (
+            <div className="absolute top-2 right-2 sm:top-3 sm:right-3 flex items-center gap-1.5 sm:gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 z-10">
+              {onEdit && (
+                <button
+                  onClick={handleEditClick}
+                  className="p-1.5 sm:p-2 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white text-[#160E53] shadow-md"
+                  title="Edit journey"
+                >
+                  <Edit3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </button>
+              )}
+              {onDelete && (
+                <button
+                  onClick={handleDeleteClick}
+                  className="p-1.5 sm:p-2 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white text-red-500 hover:text-red-600 shadow-md"
+                  title="Delete journey"
+                >
+                  <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </button>
+              )}
+            </div>
           )}
         </div>
 

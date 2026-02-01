@@ -52,21 +52,118 @@ const GOOGLE_MAPS_LIBRARIES: 'places'[] = ['places'];
 
 // Mock coordinates for different cities/countries
 const mockCoordinates: { [key: string]: { lat: number; lng: number } } = {
+  // Middle East
+  dubai: { lat: 25.2048, lng: 55.2708 },
+  'abu dhabi': { lat: 24.4539, lng: 54.3773 },
+  doha: { lat: 25.2854, lng: 51.5310 },
+  riyadh: { lat: 24.7136, lng: 46.6753 },
+  jeddah: { lat: 21.4858, lng: 39.1925 },
+  muscat: { lat: 23.5880, lng: 58.3829 },
+  manama: { lat: 26.2285, lng: 50.5860 },
+  kuwait: { lat: 29.3759, lng: 47.9774 },
+  
+  // Europe
   paris: { lat: 48.8566, lng: 2.3522 },
   london: { lat: 51.5074, lng: -0.1278 },
+  rome: { lat: 41.9028, lng: 12.4964 },
+  barcelona: { lat: 41.3851, lng: 2.1734 },
+  amsterdam: { lat: 52.3676, lng: 4.9041 },
+  berlin: { lat: 52.5200, lng: 13.4050 },
+  vienna: { lat: 48.2082, lng: 16.3738 },
+  prague: { lat: 50.0755, lng: 14.4378 },
+  zurich: { lat: 47.3769, lng: 8.5417 },
+  madrid: { lat: 40.4168, lng: -3.7038 },
+  lisbon: { lat: 38.7223, lng: -9.1393 },
+  athens: { lat: 37.9838, lng: 23.7275 },
+  istanbul: { lat: 41.0082, lng: 28.9784 },
+  
+  // North America
   'new york': { lat: 40.7128, lng: -74.006 },
+  'los angeles': { lat: 34.0522, lng: -118.2437 },
+  'san francisco': { lat: 37.7749, lng: -122.4194 },
+  chicago: { lat: 41.8781, lng: -87.6298 },
+  miami: { lat: 25.7617, lng: -80.1918 },
+  'las vegas': { lat: 36.1699, lng: -115.1398 },
   montreal: { lat: 45.5017, lng: -73.5673 },
   toronto: { lat: 43.6532, lng: -79.3832 },
   vancouver: { lat: 49.2827, lng: -123.1207 },
+  calgary: { lat: 51.0447, lng: -114.0719 },
+  mexico: { lat: 19.4326, lng: -99.1332 },
+  cancun: { lat: 21.1619, lng: -86.8515 },
+  
+  // Asia
   tokyo: { lat: 35.6762, lng: 139.6503 },
+  kyoto: { lat: 35.0116, lng: 135.7681 },
+  osaka: { lat: 34.6937, lng: 135.5023 },
+  seoul: { lat: 37.5665, lng: 126.9780 },
+  beijing: { lat: 39.9042, lng: 116.4074 },
+  shanghai: { lat: 31.2304, lng: 121.4737 },
+  'hong kong': { lat: 22.3193, lng: 114.1694 },
+  singapore: { lat: 1.3521, lng: 103.8198 },
+  bangkok: { lat: 13.7563, lng: 100.5018 },
+  'kuala lumpur': { lat: 3.1390, lng: 101.6869 },
+  bali: { lat: -8.3405, lng: 115.0920 },
+  jakarta: { lat: -6.2088, lng: 106.8456 },
+  hanoi: { lat: 21.0285, lng: 105.8542 },
+  'ho chi minh': { lat: 10.8231, lng: 106.6297 },
+  taipei: { lat: 25.0330, lng: 121.5654 },
+  manila: { lat: 14.5995, lng: 120.9842 },
+  
+  // India
   delhi: { lat: 28.6139, lng: 77.209 },
   mumbai: { lat: 19.076, lng: 72.8777 },
   bangalore: { lat: 12.9716, lng: 77.5946 },
+  bengaluru: { lat: 12.9716, lng: 77.5946 },
   hyderabad: { lat: 17.385, lng: 78.4867 },
   chennai: { lat: 13.0827, lng: 80.2707 },
   kolkata: { lat: 22.5726, lng: 88.3639 },
   pune: { lat: 18.5204, lng: 73.8567 },
-  // Add more cities as needed
+  jaipur: { lat: 26.9124, lng: 75.7873 },
+  goa: { lat: 15.2993, lng: 74.1240 },
+  agra: { lat: 27.1767, lng: 78.0081 },
+  varanasi: { lat: 25.3176, lng: 82.9739 },
+  ahmedabad: { lat: 23.0225, lng: 72.5714 },
+  kerala: { lat: 10.8505, lng: 76.2711 },
+  
+  // Australia & Oceania
+  sydney: { lat: -33.8688, lng: 151.2093 },
+  melbourne: { lat: -37.8136, lng: 144.9631 },
+  brisbane: { lat: -27.4698, lng: 153.0251 },
+  perth: { lat: -31.9505, lng: 115.8605 },
+  auckland: { lat: -36.8509, lng: 174.7645 },
+  queenstown: { lat: -45.0312, lng: 168.6626 },
+  fiji: { lat: -17.7134, lng: 178.0650 },
+  
+  // Africa
+  cairo: { lat: 30.0444, lng: 31.2357 },
+  cape: { lat: -33.9249, lng: 18.4241 },
+  'cape town': { lat: -33.9249, lng: 18.4241 },
+  johannesburg: { lat: -26.2041, lng: 28.0473 },
+  marrakech: { lat: 31.6295, lng: -7.9811 },
+  nairobi: { lat: -1.2921, lng: 36.8219 },
+  
+  // South America
+  'rio de janeiro': { lat: -22.9068, lng: -43.1729 },
+  rio: { lat: -22.9068, lng: -43.1729 },
+  'sao paulo': { lat: -23.5505, lng: -46.6333 },
+  'buenos aires': { lat: -34.6037, lng: -58.3816 },
+  lima: { lat: -12.0464, lng: -77.0428 },
+  bogota: { lat: 4.7110, lng: -74.0721 },
+  santiago: { lat: -33.4489, lng: -70.6693 },
+  
+  // Maldives & Islands
+  maldives: { lat: 3.2028, lng: 73.2207 },
+  male: { lat: 4.1755, lng: 73.5093 },
+  mauritius: { lat: -20.3484, lng: 57.5522 },
+  seychelles: { lat: -4.6796, lng: 55.4920 },
+  phuket: { lat: 7.9519, lng: 98.3381 },
+  hawaii: { lat: 19.8968, lng: -155.5828 },
+  
+  // Caribbean
+  jamaica: { lat: 18.1096, lng: -77.2975 },
+  bahamas: { lat: 25.0343, lng: -77.3963 },
+  barbados: { lat: 13.1939, lng: -59.5432 },
+  'dominican republic': { lat: 18.7357, lng: -70.1627 },
 };
 
 // Helper function to parse coordinate (handles string or number from DB)
@@ -99,33 +196,66 @@ const getCoordinatesForPlace = (
   placeName: string,
   journeyTitle: string
 ): { lat: number; lng: number } => {
-  const searchTerm = placeName.toLowerCase();
+  const searchTerm = placeName.toLowerCase().trim();
+  const journeyTitleLower = journeyTitle.toLowerCase().trim();
 
   // First, try to match exact place name
   if (mockCoordinates[searchTerm]) {
+    console.log(`  🎯 Exact match for place "${placeName}":`, mockCoordinates[searchTerm]);
     return mockCoordinates[searchTerm];
   }
 
-  // Try to find a match in journey title
-  const journeyTitleLower = journeyTitle.toLowerCase();
+  // Try to find a city name contained in the place name
   for (const [city, coords] of Object.entries(mockCoordinates)) {
-    if (journeyTitleLower.includes(city) || searchTerm.includes(city)) {
+    if (searchTerm.includes(city)) {
+      console.log(`  🎯 Place "${placeName}" contains city "${city}":`, coords);
       return coords;
     }
   }
 
-  // Default to a location with some randomness based on journey
-  const baseIndex =
-    Math.abs(placeName.length + journeyTitle.length) %
-    Object.keys(mockCoordinates).length;
-  const cities = Object.keys(mockCoordinates);
-  const selectedCity = cities[baseIndex];
+  // Try to find a match in journey title (this is the most reliable for RecentJourneys)
+  for (const [city, coords] of Object.entries(mockCoordinates)) {
+    if (journeyTitleLower.includes(city)) {
+      console.log(`  🎯 Journey title "${journeyTitle}" contains city "${city}":`, coords);
+      return coords;
+    }
+  }
+
+  // Try word-by-word matching for multi-word place names
+  const placeWords = searchTerm.split(/[\s,\-]+/).filter(w => w.length > 2);
+  const titleWords = journeyTitleLower.split(/[\s,\-]+/).filter(w => w.length > 2);
+  const allWords = [...placeWords, ...titleWords];
+
+  for (const word of allWords) {
+    if (mockCoordinates[word]) {
+      console.log(`  🎯 Word "${word}" matched city:`, mockCoordinates[word]);
+      return mockCoordinates[word];
+    }
+    // Also check if the word is contained in any city name
+    for (const [city, coords] of Object.entries(mockCoordinates)) {
+      if (city.includes(word) || word.includes(city)) {
+        console.log(`  🎯 Word "${word}" partially matched city "${city}":`, coords);
+        return coords;
+      }
+    }
+  }
+
+  // Last resort: Use a hash-based selection but prefer popular destinations
+  // This ensures consistent placement for the same journey
+  const popularDestinations = ['paris', 'london', 'tokyo', 'new york', 'dubai', 'singapore'];
+  const hashCode = (journeyTitle + placeName).split('').reduce((acc, char) => {
+    return char.charCodeAt(0) + ((acc << 5) - acc);
+  }, 0);
+  const selectedCity = popularDestinations[Math.abs(hashCode) % popularDestinations.length];
   const baseCoords = mockCoordinates[selectedCity];
 
-  // Add small random offset to avoid overlapping markers
+  console.log(`  ⚠️ No match found for "${placeName}" / "${journeyTitle}", using hash-based fallback:`, selectedCity, baseCoords);
+
+  // Add small offset to avoid overlapping markers (deterministic based on hash)
+  const offset = (Math.abs(hashCode) % 100) / 10000;
   return {
-    lat: baseCoords.lat + (Math.random() - 0.5) * 0.01,
-    lng: baseCoords.lng + (Math.random() - 0.5) * 0.01,
+    lat: baseCoords.lat + offset,
+    lng: baseCoords.lng + offset,
   };
 };
 

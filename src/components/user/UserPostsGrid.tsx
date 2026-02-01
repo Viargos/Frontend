@@ -7,6 +7,7 @@ import { formatDistanceToNow } from 'date-fns';
 import HeartIcon from '@/components/icons/HeartIcon';
 import ChatIcon from '@/components/icons/ChatIcon';
 import { PostsEmptyIcon, ImageIcon } from '@/components/icons';
+import Image from 'next/image';
 
 interface UserPostsGridProps {
   posts: RecentPost[];
@@ -50,12 +51,13 @@ export default function UserPostsGrid({
               <div className="relative aspect-square bg-gray-100">
                 {post.mediaUrls && post.mediaUrls.length > 0 ? (
                   <div className="relative w-full h-full">
-                    {console.log('Post media URL:', post.mediaUrls[0])}
                     {/* Fallback to regular img tag for now */}
-                    <img
+                    <Image
                       src={post.mediaUrls[0]}
                       alt={post.description}
                       className="w-full h-full object-cover"
+                      width={100}
+                      height={100}
                       onError={e => {
                         console.error(
                           'Image failed to load:',
@@ -89,7 +91,7 @@ export default function UserPostsGrid({
                 )}
 
                 {/* Hover overlay for interaction */}
-                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300" />
+                <div className="absolute inset-0 group-hover:bg-opacity-30 transition-all duration-300" />
               </div>
 
               {/* Post Info */}

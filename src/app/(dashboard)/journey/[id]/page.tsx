@@ -11,10 +11,9 @@ import { format } from 'date-fns';
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';
 import { extractJourneyLocations, calculateLocationsCenter } from '@/utils/journey-locations.utils';
 import { Hotel, Trees, UtensilsCrossed, Car, FileText, ArrowLeft } from 'lucide-react';
-import PhotoGallery from '@/components/media/PhotoGallery';
-import { Modal } from '@/components/ui';
+import { ImageViewerModal } from '@/components/ui';
 import { JourneyPosts } from '@/components/journey';
-import { AlertCircleIcon, MapPinIcon, ImageIcon, CloseIcon } from '@/components/icons';
+import { AlertCircleIcon, MapPinIcon, ImageIcon } from '@/components/icons';
 
 interface Location {
   id: string;
@@ -462,15 +461,15 @@ export default function JourneyDetailsPage() {
 
             {/* Day Tabs */}
             {journey.days && journey.days.length > 0 ? (
-              <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
+              <div className="flex gap-2 mb-4 sm:mb-6 overflow-x-auto pb-2 -mx-4 sm:mx-0 px-4 sm:px-0 scrollbar-hide">
                 {journey.days.map(day => (
                   <button
                     key={day.id}
                     onClick={() => setActiveDay(day.dayNumber)}
-                    className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
+                    className={`px-4 py-2 rounded-full font-medium transition-all text-sm whitespace-nowrap flex-shrink-0 ${
                       activeDay === day.dayNumber
-                        ? 'bg-[#160E53] text-white shadow-md'
-                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 shadow-sm'
+                        ? 'bg-[#160E53] text-white shadow-md scale-105'
+                        : 'bg-white text-gray-700 border border-gray-200 hover:border-[#160E53] hover:text-[#160E53] shadow-sm'
                     }`}
                   >
                     Day {day.dayNumber + 1}
@@ -478,8 +477,8 @@ export default function JourneyDetailsPage() {
                 ))}
               </div>
             ) : (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 sm:mb-6">
-                <p className="text-[#160E53]">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6">
+                <p className="text-[#160E53] text-sm sm:text-base">
                   This journey doesn&apos;t have any days planned yet.
                 </p>
               </div>
@@ -488,20 +487,25 @@ export default function JourneyDetailsPage() {
             {/* Day Content */}
             {currentDay && (
               <div>
-                <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900">
-                  Day {currentDay.dayNumber + 1} -{' '}
-                  {formatDayDate(currentDay.date)}
-                </h2>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-4">
+                  <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900">
+                    Day {currentDay.dayNumber + 1}
+                  </h2>
+                  <span className="hidden sm:inline text-gray-400">-</span>
+                  <p className="text-sm sm:text-base text-gray-600 sm:text-gray-900 sm:font-semibold">
+                    {formatDayDate(currentDay.date)}
+                  </p>
+                </div>
 
                 {/* Timeline Display */}
                 {currentDay &&
                 currentDay.places &&
                 currentDay.places.length > 0 ? (
                   <div className="relative">
-                    {/* Timeline Line */}
-                    <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+                    {/* Timeline Line - Hidden on mobile */}
+                    <div className="hidden sm:block absolute left-5 md:left-6 top-0 bottom-0 w-0.5 bg-gray-200"></div>
 
-                  <div className="space-y-6">
+                  <div className="space-y-4 sm:space-y-6">
                     {/* All places combined in timeline format */}
                     {[
                       ...getPlacesByType(currentDay).placeToStay,
@@ -513,134 +517,154 @@ export default function JourneyDetailsPage() {
                         key={`${place.id}-${index}`}
                         className="relative flex items-start"
                       >
-                        {/* Timeline Dot */}
+                        {/* Timeline Dot - Hidden on mobile for cleaner look */}
                         <div 
-                          className={`relative z-10 w-12 h-12 bg-white border-2 rounded-full flex-shrink-0 flex items-center justify-center p-0 m-0 transition-transform duration-300 hover:scale-110 ${
-                            place.type === 'stay' ? 'border-[#160E53]' :
-                            place.type === 'activity' ? 'border-[#160E53]' :
-                            place.type === 'food' ? 'border-[#160E53]' :
-                            place.type === 'transport' ? 'border-[#160E53]' :
-                            place.type === 'note' ? 'border-[#160E53]' :
-                            'border-[#160E53]'
-                          }`}
+                          className={`hidden sm:flex relative z-10 w-10 h-10 md:w-12 md:h-12 bg-white border-2 rounded-full flex-shrink-0 items-center justify-center p-0 m-0 transition-transform duration-300 hover:scale-110 border-[#160E53]`}
                         >
-                          <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center p-0 m-0">
+                          <div className="w-5 h-5 md:w-6 md:h-6 bg-white rounded-full flex items-center justify-center p-0 m-0">
                             {place.type === 'stay' && (
-                              <Hotel className="w-4 h-4 text-[#160E53]" strokeWidth={2} />
+                              <Hotel className="w-3 h-3 md:w-4 md:h-4 text-[#160E53]" strokeWidth={2} />
                             )}
                             {place.type === 'activity' && (
-                              <Trees className="w-4 h-4 text-[#160E53]" strokeWidth={2} />
+                              <Trees className="w-3 h-3 md:w-4 md:h-4 text-[#160E53]" strokeWidth={2} />
                             )}
                             {place.type === 'food' && (
-                              <UtensilsCrossed className="w-4 h-4 text-[#160E53]" strokeWidth={2} />
+                              <UtensilsCrossed className="w-3 h-3 md:w-4 md:h-4 text-[#160E53]" strokeWidth={2} />
                             )}
                             {place.type === 'transport' && (
-                              <Car className="w-4 h-4 text-[#160E53]" strokeWidth={2} />
+                              <Car className="w-3 h-3 md:w-4 md:h-4 text-[#160E53]" strokeWidth={2} />
                             )}
                             {place.type === 'note' && (
-                              <FileText className="w-4 h-4 text-[#160E53]" strokeWidth={2} />
+                              <FileText className="w-3 h-3 md:w-4 md:h-4 text-[#160E53]" strokeWidth={2} />
                             )}
                           </div>
                         </div>
 
                         {/* Timeline Content */}
-                        <div className="ml-6 flex-1 min-w-0">
-                          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                            <div className="flex overflow-hidden">
-                              {/* Activity Image Square/Circle */}
-                              <div className="w-24 h-20 sm:w-32 sm:h-32 bg-gray-100 flex items-center justify-center flex-shrink-0">
+                        <div className="sm:ml-4 md:ml-6 flex-1 min-w-0 w-full">
+                          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                            {/* Mobile Layout: Stack vertically */}
+                            <div className="flex flex-col sm:flex-row">
+                              {/* Activity Image */}
+                              <div className="relative w-full sm:w-28 md:w-32 lg:w-36 h-32 sm:h-28 md:h-32 lg:h-36 bg-gray-100 flex-shrink-0">
                                 {place.photos && place.photos.length > 0 && !failedImages.has(place.id) ? (
-                                  <div className="w-full h-full overflow-hidden rounded-lg">
-                                    <img
-                                      src={getImageUrl(place.photos[0])}
-                                      alt={place.name}
-                                      className="w-full h-full object-cover"
-                                      onError={() => handleImageError(place.id)}
-                                    />
-                                  </div>
+                                  <Image
+                                    src={getImageUrl(place.photos[0])}
+                                    alt={place.name}
+                                    className="w-full h-full object-cover"
+                                    onError={() => handleImageError(place.id)}
+                                  />
                                 ) : (
-                                  <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center p-0 m-0">
-                                    {place.type === 'stay' && (
-                                      <Hotel className="w-5 h-5 text-white" strokeWidth={2} />
-                                    )}
-                                    {place.type === 'activity' && (
-                                      <Trees className="w-5 h-5 text-white" strokeWidth={2} />
-                                    )}
-                                    {place.type === 'food' && (
-                                      <UtensilsCrossed className="w-5 h-5 text-white" strokeWidth={2} />
-                                    )}
-                                    {place.type === 'transport' && (
-                                      <Car className="w-5 h-5 text-white" strokeWidth={2} />
-                                    )}
+                                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                                    <div className="w-12 h-12 sm:w-10 sm:h-10 bg-[#160E53] rounded-full flex items-center justify-center">
+                                      {place.type === 'stay' && (
+                                        <Hotel className="w-6 h-6 sm:w-5 sm:h-5 text-white" strokeWidth={2} />
+                                      )}
+                                      {place.type === 'activity' && (
+                                        <Trees className="w-6 h-6 sm:w-5 sm:h-5 text-white" strokeWidth={2} />
+                                      )}
+                                      {place.type === 'food' && (
+                                        <UtensilsCrossed className="w-6 h-6 sm:w-5 sm:h-5 text-white" strokeWidth={2} />
+                                      )}
+                                      {place.type === 'transport' && (
+                                        <Car className="w-6 h-6 sm:w-5 sm:h-5 text-white" strokeWidth={2} />
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                                {/* Type badge on mobile */}
+                                <div className="absolute top-2 left-2 sm:hidden">
+                                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#160E53] text-white`}>
+                                    {place.type === 'stay' && 'Stay'}
+                                    {place.type === 'activity' && 'Activity'}
+                                    {place.type === 'food' && 'Food'}
+                                    {place.type === 'transport' && 'Transport'}
+                                  </span>
+                                </div>
+                                {/* Photo count badge */}
+                                {place.photos && place.photos.length > 1 && (
+                                  <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                                    <ImageIcon className="w-3 h-3" />
+                                    {place.photos.length}
                                   </div>
                                 )}
                               </div>
 
-                                {/* Content */}
-                                <div className="flex-1 p-4 min-w-0">
-                                  <div className="flex items-start justify-between gap-2">
-                                    <div className="flex-1 min-w-0">
-                                      <h3 className="font-semibold text-gray-900 text-base mb-1 truncate">
-                                        {place.name}
-                                      </h3>
-                                      <div className="flex items-center text-sm text-gray-600 mb-2">
-                                        <MapPinIcon className="w-4 h-4 mr-1 text-gray-400 flex-shrink-0" />
-                                        <span className="truncate">
-                                          {place.type === 'stay' &&
-                                            'Accommodation & Theme Parks'}
-                                          {place.type === 'activity' &&
-                                            'Attractions & Activities'}
-                                          {place.type === 'food' &&
-                                            'Restaurants & Dining'}
-                                          {place.type === 'transport' &&
-                                            'Transportation'}
-                                        </span>
-                                      </div>
-                                      {place.address && (
-                                        <p className="text-sm text-gray-500 break-words whitespace-normal">
-                                          {place.address}
-                                        </p>
-                                      )}
-                                    </div>
-
-                                    {/* View Images button */}
+                              {/* Content */}
+                              <div className="flex-1 p-3 sm:p-4 min-w-0">
+                                <div className="flex flex-col h-full">
+                                  {/* Header with title and view button */}
+                                  <div className="flex items-start justify-between gap-2 mb-2">
+                                    <h3 className="font-semibold text-gray-900 text-sm sm:text-base leading-tight line-clamp-2">
+                                      {place.name}
+                                    </h3>
+                                    {/* View Images button - Desktop */}
                                     <button
                                       onClick={() => handleLocationClick(place)}
-                                      className="ml-4 flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors flex-shrink-0"
+                                      className="hidden sm:flex items-center text-xs sm:text-sm text-[#160E53] hover:text-[#241A7A] transition-colors flex-shrink-0 font-medium"
                                     >
-                                      <ImageIcon className="w-4 h-4 mr-1" />
-                                      View Images
+                                      <ImageIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
+                                      <span className="hidden md:inline">View Images</span>
+                                      <span className="md:hidden">View</span>
                                     </button>
                                   </div>
+                                  
+                                  {/* Category tag - Desktop */}
+                                  <div className="hidden sm:flex items-center text-xs text-gray-500 mb-2">
+                                    <MapPinIcon className="w-3.5 h-3.5 mr-1 text-gray-400 flex-shrink-0" />
+                                    <span>
+                                      {place.type === 'stay' && 'Accommodation'}
+                                      {place.type === 'activity' && 'Activity'}
+                                      {place.type === 'food' && 'Restaurant'}
+                                      {place.type === 'transport' && 'Transport'}
+                                    </span>
+                                  </div>
+                                  
+                                  {/* Address */}
+                                  {place.address && (
+                                    <p className="text-xs sm:text-sm text-gray-500 line-clamp-2 sm:line-clamp-3 flex-1">
+                                      {place.address}
+                                    </p>
+                                  )}
+                                  
+                                  {/* Mobile View Images button */}
+                                  <button
+                                    onClick={() => handleLocationClick(place)}
+                                    className="sm:hidden mt-3 w-full flex items-center justify-center gap-1.5 text-sm text-white bg-[#160E53] hover:bg-[#241A7A] transition-colors font-medium py-2 px-3 rounded-lg"
+                                  >
+                                    <ImageIcon className="w-4 h-4" />
+                                    View All Images
+                                  </button>
                                 </div>
                               </div>
                             </div>
                           </div>
                         </div>
-                      ))}
+                      </div>
+                    ))}
 
                     {/* Notes in timeline */}
                     {currentDay.notes && (
                       <div className="relative flex items-start">
-                        {/* Timeline Dot for Notes */}
-                        <div className="relative z-10 w-12 h-12 bg-white border-2 border-[#160E53] rounded-full flex-shrink-0 flex items-center justify-center p-0 m-0">
-                          <div className="w-6 h-6 bg-[#160E53] rounded-full flex items-center justify-center p-0 m-0">
-                            <FileText className="w-4 h-4 text-white" strokeWidth={2} />
+                        {/* Timeline Dot for Notes - Hidden on mobile */}
+                        <div className="hidden sm:flex relative z-10 w-10 h-10 md:w-12 md:h-12 bg-white border-2 border-[#160E53] rounded-full flex-shrink-0 items-center justify-center p-0 m-0">
+                          <div className="w-5 h-5 md:w-6 md:h-6 bg-[#160E53] rounded-full flex items-center justify-center p-0 m-0">
+                            <FileText className="w-3 h-3 md:w-4 md:h-4 text-white" strokeWidth={2} />
                           </div>
                         </div>
 
                         {/* Notes Content */}
-                        <div className="ml-6 flex-1">
-                          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                            <div className="flex items-start">
-                              <div className="text-[#160E53] mr-2">
-                                <FileText className="w-5 h-5" strokeWidth={2} />
+                        <div className="sm:ml-4 md:ml-6 flex-1 w-full">
+                          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-3 sm:p-4 border border-blue-200">
+                            <div className="flex items-start gap-2 sm:gap-3">
+                              <div className="text-[#160E53] flex-shrink-0">
+                                <FileText className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2} />
                               </div>
-                              <div>
-                                <h4 className="font-medium text-[#160E53] mb-1">
+                              <div className="min-w-0 flex-1">
+                                <h4 className="font-medium text-[#160E53] mb-1 text-sm sm:text-base">
                                   Notes
                                 </h4>
-                                <p className="text-sm text-gray-700">
+                                <p className="text-xs sm:text-sm text-gray-700 break-words">
                                   {currentDay.notes}
                                 </p>
                               </div>
@@ -652,20 +676,20 @@ export default function JourneyDetailsPage() {
                   </div>
                 </div>
               ) : (
-                <div className="bg-white rounded-lg p-6 border border-gray-200 text-center">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3 p-0 m-0">
-                    <span className="text-blue-600 text-xl leading-none flex items-center justify-center w-full h-full">📍</span>
+                <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl p-4 sm:p-6 border border-gray-200 text-center">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 bg-[#160E53]/10 rounded-full flex items-center justify-center mx-auto mb-3 p-0 m-0">
+                    <MapPinIcon className="w-6 h-6 sm:w-7 sm:h-7 text-[#160E53]" />
                   </div>
-                  <h3 className="font-medium text-gray-900 mb-1">
+                  <h3 className="font-medium text-gray-900 mb-1 text-sm sm:text-base">
                     No places added yet
                   </h3>
-                  <p className="text-gray-500 text-sm mb-4">
+                  <p className="text-gray-500 text-xs sm:text-sm mb-4 max-w-xs mx-auto">
                     {isOwner 
                       ? 'Start planning your day by adding places to visit, restaurants, or accommodations.'
                       : 'This day has no places added yet.'}
                   </p>
                   {isOwner && (
-                    <button className="bg-[#160E53] text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors">
+                    <button className="bg-[#160E53] text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-[#241A7A] transition-colors">
                       Add Your First Place
                     </button>
                   )}
@@ -686,8 +710,8 @@ export default function JourneyDetailsPage() {
         </div>
 
         {/* Right Side - Map */}
-        <div className="lg:col-span-1 rounded-lg overflow-hidden shadow-sm lg:sticky lg:top-6 lg:self-start">
-          <div className="h-[calc(100vh-8rem)] min-h-[460px]">
+        <div className="lg:col-span-1 rounded-xl overflow-hidden shadow-sm lg:sticky lg:top-6 lg:self-start order-first lg:order-last mb-4 lg:mb-0">
+          <div className="h-[280px] sm:h-[320px] md:h-[380px] lg:h-[calc(100vh-8rem)] lg:min-h-[460px]">
             <JourneyMap
               locations={getAllJourneyLocations()}
               center={getJourneyCenter()}
@@ -697,40 +721,15 @@ export default function JourneyDetailsPage() {
         </div>
       </div>
 
-      {/* View Images Modal - Full Screen */}
-      <Modal
-        isOpen={!!selectedLocation}
-        onClose={() => setSelectedLocation(null)}
-        className="max-w-7xl w-full h-[90vh]"
-      >
-        <div className="p-4 sm:p-6 h-full flex flex-col">
-          <div className="flex justify-between items-center mb-4 flex-shrink-0">
-            <h3 className="text-lg font-semibold text-gray-900">
-              {selectedLocation?.name || 'Location images'}
-            </h3>
-            <button
-              onClick={() => setSelectedLocation(null)}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <CloseIcon className="w-5 h-5" />
-            </button>
-          </div>
-
-          {selectedLocation?.photos && selectedLocation.photos.length > 0 ? (
-            <div className="flex-1 overflow-auto">
-              <PhotoGallery
-                // Use final public file URLs; if backend stored keys, convert via getImageUrl
-                photos={selectedLocation.photos
-                  .filter(p => !!p)
-                  .map(p => getImageUrl(p))}
-                showRemoveButton={false}
-              />
-            </div>
-          ) : (
-            <p className="text-sm text-gray-500">No images available</p>
-          )}
-        </div>
-      </Modal>
+      {/* View Images Modal - Compact Slideshow */}
+      {selectedLocation && (
+        <ImageViewerModal
+          isOpen={!!selectedLocation}
+          onClose={() => setSelectedLocation(null)}
+          images={selectedLocation?.photos?.filter(p => !!p).map(p => getImageUrl(p)) || []}
+          title={selectedLocation?.name || 'Location images'}
+        />
+      )}
     </div>
   );
 }
