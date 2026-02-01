@@ -51,24 +51,18 @@ export default function UserPostsGrid({
               <div className="relative aspect-square bg-gray-100">
                 {post.mediaUrls && post.mediaUrls.length > 0 ? (
                   <div className="relative w-full h-full">
-                    {/* Fallback to regular img tag for now */}
                     <Image
                       src={post.mediaUrls[0]}
-                      alt={post.description}
-                      className="w-full h-full object-cover"
-                      width={100}
-                      height={100}
+                      alt={post.description || 'Post image'}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                      className="object-cover"
+                      quality={85}
                       onError={e => {
                         console.error(
                           'Image failed to load:',
                           post.mediaUrls[0],
                           e
-                        );
-                      }}
-                      onLoad={() => {
-                        console.log(
-                          'Image loaded successfully:',
-                          post.mediaUrls[0]
                         );
                       }}
                     />
