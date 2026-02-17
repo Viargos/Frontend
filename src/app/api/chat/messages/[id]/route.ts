@@ -1,12 +1,12 @@
 import { NextRequest } from 'next/server';
-import { backendFetch } from '@/lib/api/backend-fetch';
+import { backendFetch } from '@/lib/api/utils';
 import { HttpMethod } from '@/enums';
 import {
   handleBackendResponse,
   createErrorResponse,
   parseRequestBody,
   extractParams,
-} from '@/lib/api/utils/response-helpers';
+} from '@/lib/api/utils';
 
 /**
  * PUT /api/chat/messages/:id

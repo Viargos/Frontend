@@ -1,11 +1,11 @@
 import { NextRequest } from 'next/server';
 import { AUTH_ENDPOINTS } from '@/lib/auth/auth.config';
-import { backendFetch, proxyBackendResponse } from '@/lib/api/backend-fetch';
+import { backendFetch, proxyBackendResponse } from '@/lib/api/utils';
 import { HttpMethod } from '@/enums';
 import {
   createErrorResponse,
   parseRequestBody,
-} from '@/lib/api/utils/response-helpers';
+} from '@/lib/api/utils';
 
 export async function POST(request: NextRequest) {
   try {

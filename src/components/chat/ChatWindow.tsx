@@ -278,7 +278,7 @@ export default function ChatWindow({
   }, [messages]);
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-lg h-full flex flex-col overflow-hidden">
+    <div className="h-full flex flex-col overflow-hidden">
       {/* Chat Header */}
       <ChatHeader
         chat={chat}
@@ -293,7 +293,7 @@ export default function ChatWindow({
         <div
           ref={messagesContainerRef}
           onScroll={handleScroll}
-          className="flex-1 p-4 space-y-4 overflow-y-auto"
+          className="flex-1 p-4 space-y-4 overflow-y-auto bg-gray-50"
           style={{ scrollBehavior: 'smooth' }}
         >
           {Object.keys(messageGroups).length === 0 ? (

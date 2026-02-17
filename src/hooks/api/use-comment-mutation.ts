@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { getApiClient } from '@/lib/api/client';
-import { API_ENDPOINTS } from '@/lib/api/endpoints';
+import { API_ENDPOINTS } from '@/lib/api/config/endpoints';
 import { PostComment } from '@/types/post.types';
 
 interface CreateCommentResponse {

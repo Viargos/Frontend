@@ -8,7 +8,8 @@ import { User, UserStats, RelationshipStatus } from '@/types/user.types';
 import { Button } from '@/components/ui';
 import { UserPlus, UserMinus, UserCheck, MessageCircle } from 'lucide-react';
 import { UserApi } from '@/lib/api';
-import { useChatStore } from '@/store/chat.store';
+import { useChatUIStore } from '@/store/chat-ui.store';
+import { useCreateConversation } from '@/hooks/chat';
 import { useAuthStore } from '@/store/auth.store';
 import { FollowersFollowingModal, ModalType } from '@/components/profile';
 
@@ -77,7 +78,8 @@ export default function UserProfileHeader({
   const [modalTab, setModalTab] = useState<ModalType>('followers');
   const router = useRouter();
   const { user: currentUser } = useAuthStore();
-  const { createConversation, setSelectedChat } = useChatStore();
+  const { setSelectedChat } = useChatUIStore();
+  const createConversationMutation = useCreateConversation();
 
   const handleOpenFollowers = () => {
     setModalTab('followers');
@@ -122,7 +124,7 @@ export default function UserProfileHeader({
     setIsMessageLoading(true);
     try {
       // Create or get existing conversation
-      const conversation = await createConversation(user.id);
+      const conversation = await createConversationMutation.mutateAsync(user.id);
 
       // Set the selected chat to the conversation user
       setSelectedChat({

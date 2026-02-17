@@ -1,4 +1,4 @@
-import { httpClient } from '../core/api-client';
+import { httpClient, ExtendedRequestInit } from '../core/api-client';
 import { API_ENDPOINTS } from '../config/endpoints';
 import { HttpMethod } from '@/enums';
 import type { UserProfileResponseDto } from '@/lib/dtos/user/user-profile-response.dto';
@@ -11,9 +11,10 @@ export class UserApiService {
    * Get current user's profile
    * @returns User profile with stats and relationship data
    */
-  async getProfile(): Promise<UserProfileResponseDto> {
+  async getProfile(options?: ExtendedRequestInit): Promise<UserProfileResponseDto> {
     const response = await httpClient.get<ApiResponse<UserProfileResponseDto>>(
-      API_ENDPOINTS.USER.ME
+      API_ENDPOINTS.USER.ME,
+      options
     );
     return response.data;
   }
@@ -78,8 +79,8 @@ export class UserApiService {
    * Get current user's profile (alias for getProfile)
    * @returns User profile with stats and relationship data
    */
-  async getCurrentUserProfile(): Promise<UserProfileResponseDto> {
-    return this.getProfile();
+  async getCurrentUserProfile(options?: ExtendedRequestInit): Promise<UserProfileResponseDto> {
+    return this.getProfile(options);
   }
 
   /**

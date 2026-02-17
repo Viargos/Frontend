@@ -10,7 +10,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getApiClient } from '@/lib/api/client';
-import { API_ENDPOINTS } from '@/lib/api/endpoints';
+import { API_ENDPOINTS } from '@/lib/api/config/endpoints';
 
 /**
  * Example: Fetch posts

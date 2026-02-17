@@ -2,24 +2,27 @@ import { httpClient } from '../core/api-client';
 import { API_ENDPOINTS } from '../config/endpoints';
 import { HttpMethod } from '@/enums';
 import { buildUrl } from '@/lib/utils/url.utils';
+import type { ChatConversation, ChatMessage } from '@/types/chat.types';
 import type {
   GetConversationsResponseDto,
   GetMessagesResponseDto,
-  CreateConversationResponseDto,
   SendMessageResponseDto,
+  CreateConversationResponseDto,
 } from '@/lib/dtos/chat';
-import type { ChatConversation, ChatMessage } from '@/types/chat.types';
 
 export class ChatApiService {
   /**
    * Get all conversations for current user
    * @returns Array of chat conversations with last message
+   *
+   * Note: Chat backend returns non-standard format { data: { conversations: [...] } }
+   * instead of standard { data: [...] }
    */
   async getConversations(): Promise<ChatConversation[]> {
     const response = await httpClient.get<GetConversationsResponseDto>(
       API_ENDPOINTS.CHAT.CONVERSATIONS
     );
-    return response.data;
+    return response.data.conversations;
   }
 
   /**
@@ -37,7 +40,7 @@ export class ChatApiService {
       params
     );
     const response = await httpClient.get<GetMessagesResponseDto>(url);
-    return response.data;
+    return response.data.messages;
   }
 
   /**
@@ -53,7 +56,7 @@ export class ChatApiService {
       API_ENDPOINTS.CHAT.SEND_MESSAGE,
       data
     );
-    return response.data;
+    return response.data.message;
   }
 
   /**
@@ -66,7 +69,7 @@ export class ChatApiService {
       API_ENDPOINTS.CHAT.CREATE_CONVERSATION,
       { userId }
     );
-    return response.data;
+    return response.data.conversation;
   }
 
   /**

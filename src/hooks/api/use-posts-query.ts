@@ -1,6 +1,6 @@
 import { useInfiniteQuery, UseInfiniteQueryOptions } from '@tanstack/react-query';
 import { getApiClient } from '@/lib/api/client';
-import { API_ENDPOINTS } from '@/lib/api/endpoints';
+import { API_ENDPOINTS } from '@/lib/api/config/endpoints';
 import { Post } from '@/types/post.types';
 
 interface PostsPage {
@@ -57,7 +57,7 @@ export function usePostsInfiniteQuery(options: UsePostsInfiniteQueryOptions = {}
         params.append('location', filters.location);
       }
 
-      const endpoint = `${API_ENDPOINTS.POSTS.LIST}?${params.toString()}`;
+      const endpoint = `${API_ENDPOINTS.DASHBOARD.POSTS}?${params.toString()}`;
       const response = await apiClient.get<any>(endpoint);
 
       // Backend returns: { statusCode, message, data: { posts, hasMore, nextCursor } }

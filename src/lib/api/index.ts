@@ -30,4 +30,4 @@ export { ApiError, ApiErrorCode } from './core/api-error';
 
 // Server-only: Do NOT export backend-fetch from here. It uses next/headers and
 // would be pulled into client bundles. Route handlers should import directly:
-//   import { backendFetch } from '@/lib/api/backend-fetch';
+//   import { backendFetch } from '@/lib/api/utils';

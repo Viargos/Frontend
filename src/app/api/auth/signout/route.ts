@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AUTH_ENDPOINTS } from '@/lib/auth/auth.config';
-import { backendFetch } from '@/lib/api/backend-fetch';
+import { backendFetch } from '@/lib/api/utils';
 import { HttpMethod } from '@/enums';
 
 /**
