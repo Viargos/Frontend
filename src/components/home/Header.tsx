@@ -9,9 +9,10 @@ import { Button } from '@/components/ui';
 import { User } from '@/types/auth.types';
 import { User as SearchUser } from '@/types/user.types';
 import { useAuthStore } from '@/store/auth.store';
+import { useAuthModalStore } from '@/store/auth-modal.store';
+import { useLogout } from '@/hooks/auth/use-logout';
 import { useClickOutside } from '@/hooks/useClickOutside';
 import { useUserSearch } from '@/hooks/useUserSearch';
-import ModalContainer from '@/components/auth/ModalContainer';
 import { CreatePostModal } from '@/components/post';
 import {
   SearchIcon,
@@ -24,14 +25,19 @@ interface HeaderProps {
   user?: User | null;
 }
 
-export default function Header({ user }: HeaderProps) {
+export default function Header({ user: userProp }: HeaderProps) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [showCreatePostModal, setShowCreatePostModal] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
-  const { logout, isAuthenticated, openLogin, openSignup } = useAuthStore();
+  const { user: storeUser } = useAuthStore();
+  const { openLogin, openSignup } = useAuthModalStore();
+  const { logout } = useLogout();
+  // Use prop if provided, otherwise use store user
+  const user = userProp || storeUser;
+  const isAuthenticated = user !== null;
   const router = useRouter();
 
   // Use search API for authenticated users, empty results for guests
@@ -528,9 +534,6 @@ export default function Header({ user }: HeaderProps) {
           </>
         )}
       </div>
-
-      {/* Auth Modal */}
-      <ModalContainer />
 
       {/* Create Post Modal */}
       <CreatePostModal

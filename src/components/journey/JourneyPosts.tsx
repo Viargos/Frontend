@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Post } from '@/types/post.types';
-import { serviceFactory } from '@/lib/services/service-factory';
+import { PostApi, ApiError } from '@/lib/api';
 import Image from 'next/image';
 import { CreatePostModal, PostMediaSlideshow } from '@/components/post';
 import { AlertCircleIcon, ImageIcon, PlusIcon, HeartIcon, ChatBubbleIcon } from '@/components/icons';
@@ -30,12 +30,11 @@ export default function JourneyPosts({
       try {
         setIsLoading(true);
         setError(null);
-        const postService = serviceFactory.postService;
-        const response = await postService.getPostsByJourney(journeyId);
-        setPosts(response.data || []);
+        const list = await PostApi.listByJourney(journeyId);
+        setPosts((list || []) as Post[]);
       } catch (err) {
+        setError(err instanceof ApiError ? err.getUserMessage() : err instanceof Error ? err.message : 'Failed to load posts');
         console.error('Error fetching journey posts:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load posts');
       } finally {
         setIsLoading(false);
       }
@@ -47,12 +46,10 @@ export default function JourneyPosts({
   }, [journeyId]);
 
   const handlePostCreated = () => {
-    // Refresh the posts list after creating a new post
     const fetchJourneyPosts = async () => {
       try {
-        const postService = serviceFactory.postService;
-        const response = await postService.getPostsByJourney(journeyId);
-        setPosts(response.data || []);
+        const list = await PostApi.listByJourney(journeyId);
+        setPosts((list || []) as Post[]);
       } catch (err) {
         console.error('Error fetching journey posts:', err);
       }

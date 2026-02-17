@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { User, UserStats, RelationshipStatus } from '@/types/user.types';
 import { Button } from '@/components/ui';
 import { UserPlus, UserMinus, UserCheck, MessageCircle } from 'lucide-react';
-import { userService } from '@/lib/services/service-factory';
+import { UserApi } from '@/lib/api';
 import { useChatStore } from '@/store/chat.store';
 import { useAuthStore } from '@/store/auth.store';
 import { FollowersFollowingModal, ModalType } from '@/components/profile';
@@ -96,12 +96,12 @@ export default function UserProfileHeader({
     try {
       if (isFollowing) {
         // Unfollow user
-        await userService.unfollowUser(user.id);
+        await UserApi.unfollow(user.id);
         setIsFollowing(false);
         onFollowChange?.(false);
       } else {
         // Follow user
-        await userService.followUser(user.id);
+        await UserApi.follow(user.id);
         setIsFollowing(true);
         onFollowChange?.(true);
       }

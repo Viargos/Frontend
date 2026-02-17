@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { X, Users, UserPlus } from 'lucide-react';
 import { User } from '@/types/user.types';
-import { userService } from '@/lib/services/service-factory';
+import { UserApi } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import { ChevronRightIcon } from '@/components/icons';
 
@@ -147,11 +147,11 @@ export default function FollowersFollowingModal({
 
       try {
         if (activeTab === 'followers') {
-          const response = await userService.getFollowers(userId);
-          setFollowers(response.data || []);
+          const users = await UserApi.getFollowers(userId);
+          setFollowers(users);
         } else {
-          const response = await userService.getFollowing(userId);
-          setFollowing(response.data || []);
+          const users = await UserApi.getFollowing(userId);
+          setFollowing(users);
         }
       } catch (err: any) {
         setError(err.message || 'Failed to load data');

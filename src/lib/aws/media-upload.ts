@@ -4,13 +4,26 @@
 // 1) Asks the backend for a pre-signed upload URL
 // 2) Uploads the file to that URL with a standard fetch PUT request
 
-// API base URL for backend requests (used only for direct fetch fallbacks)
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+/**
+ * Media Upload Module
+ *
+ * Responsibilities:
+ * - Validate files before upload
+ * - Get pre-signed URLs from backend via API client
+ * - Upload files directly to S3 using pre-signed URLs
+ * - Delete files via backend API
+ *
+ * MUST:
+ * - Use API client for backend requests (inherits auth + refresh logic)
+ * - Use XMLHttpRequest for direct S3 uploads (no auth needed)
+ *
+ * MUST NOT:
+ * - Use token service or localStorage
+ * - Add Authorization headers manually
+ * - Handle auth errors (API client does this)
+ */
 
-// ✅ Use existing token service so we NEVER expose AWS keys in the frontend
-// and rely solely on backend JWT-protected endpoints.
-import { tokenSvc } from "@/lib/services/service-factory";
+import { getApiClient } from '@/lib/api/client';
 
 // File type configurations
 const ALLOWED_FILE_TYPES = {
@@ -128,89 +141,43 @@ export const uploadToS3 = async (
       generateUniqueFileName(file.name, options.folder);
     const contentType = getContentType(file);
 
-    // 1) Ask backend for a pre-signed URL
-    //    This call is authenticated with the user's JWT and the backend
-    //    uses AWS credentials from environment variables ONLY.
-    const token = tokenSvc.getToken();
+    // 1) Ask backend for a pre-signed URL using API client
+    //    API client automatically:
+    //    - Adds credentials: 'include' for cookies
+    //    - Handles token refresh if access token expired
+    //    - Logs out if refresh token expired
+    const apiClient = getApiClient();
 
-    // If there is no token at all, short‑circuit with a clear auth error
-    if (!token) {
-      console.warn("Upload blocked: no auth token found for /users/upload-url");
-      return {
-        success: false,
-        error: "You must be signed in to upload media. Please log in and try again.",
-      };
-    }
-
-    const presignResponse = await fetch(`${API_BASE_URL}/users/upload-url`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({
+    let presignData: any;
+    try {
+      presignData = await apiClient.post<any>('/users/upload-url', {
         fileName,
         contentType,
         folder: options.folder,
-      }),
-    });
-
-    if (!presignResponse.ok) {
-      const rawText = await presignResponse.text();
-
-      // Try to parse JSON error from backend so we can detect auth failures
-      try {
-        const parsed: any = rawText ? JSON.parse(rawText) : null;
-        const statusCode = parsed?.statusCode;
-        const message = parsed?.message;
-
-        // Backend uses statusCode 10001 for generic auth failure
-        if (statusCode === 10001 || presignResponse.status === 401) {
-          console.warn("Upload URL request unauthorized:", parsed);
-          return {
-            success: false,
-            error:
-              "Your session has expired or you are not authorized. Please sign in again and retry the upload.",
-          };
-        }
-
-        return {
-          success: false,
-          error:
-            message ||
-            "Failed to obtain upload URL from server. Please try again.",
-        };
-      } catch {
-        // Fallback if response is not JSON
-        return {
-          success: false,
-          error:
-            rawText ||
-            "Failed to obtain upload URL from server. Please try again.",
-        };
-      }
+      });
+    } catch (error: any) {
+      // API client already handled auth errors (refresh/logout)
+      // Just return user-friendly message
+      console.error('Failed to get upload URL:', error);
+      return {
+        success: false,
+        error: error.message || 'Failed to obtain upload URL. Please try again.',
+      };
     }
 
-    // Safely parse response and support both direct and wrapped formats:
-    // - { uploadUrl, fileUrl, key }
-    // - { statusCode, message, data: { uploadUrl, fileUrl, key } }
-    const rawJson: any = await presignResponse.json();
-    const payload =
-      rawJson && typeof rawJson === "object" && rawJson.data
-        ? rawJson.data
-        : rawJson;
-
+    // Parse response - support both direct and wrapped formats
+    const payload = presignData?.data || presignData;
     const uploadUrl: string | undefined = payload?.uploadUrl;
     const key: string | undefined = payload?.key;
-    // Some backends may not return a public fileUrl and only return the S3 key.
-    // In that case, derive the final public URL from the known bucket and key.
     let fileUrl: string | undefined = payload?.fileUrl;
+
+    // Derive fileUrl from key if not provided
     if (key && !fileUrl) {
       fileUrl = `https://viargos-sandbox.s3.us-east-2.amazonaws.com/${key}`;
     }
 
     if (!uploadUrl || !key) {
-      console.error("Invalid upload URL response payload:", rawJson);
+      console.error("Invalid upload URL response:", presignData);
       return {
         success: false,
         error: "Server did not return a valid upload URL.",
@@ -218,6 +185,7 @@ export const uploadToS3 = async (
     }
 
     // 2) Upload the file directly to S3 using the pre-signed URL
+    //    Pre-signed URL contains auth - no Authorization header needed
     const uploadRequest = new XMLHttpRequest();
 
     const uploadPromise = new Promise<Response>((resolve, reject) => {
@@ -304,30 +272,11 @@ export const deleteMediaFile = async (
   fileUrlOrKey: string
 ): Promise<{ success: boolean; error?: string }> => {
   try {
-    const token = tokenSvc.getToken();
-    if (!token) {
-      return {
-        success: false,
-        error: "You must be logged in to delete media files.",
-      };
-    }
+    const apiClient = getApiClient();
 
-    const response = await fetch(`${API_BASE_URL}/users/media`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+    await apiClient.delete('/users/media', {
       body: JSON.stringify({ fileUrlOrKey }),
     });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      return {
-        success: false,
-        error: errorText || "Failed to delete file",
-      };
-    }
 
     return { success: true };
   } catch (error: any) {
@@ -339,7 +288,7 @@ export const deleteMediaFile = async (
   }
 };
 
-// Helper function to extract S3 key from URL (still useful for mapping)
+// Helper function to extract S3 key from URL
 export const extractS3KeyFromUrl = (url: string): string | null => {
   try {
     const parsedUrl = new URL(url);
@@ -376,7 +325,7 @@ export const isVideoFile = (file: File): boolean => {
   return ALLOWED_FILE_TYPES.videos.includes(file.type);
 };
 
-// Generate thumbnail URL (assuming you have a thumbnail generation service)
+// Generate thumbnail URL
 export const generateThumbnailUrl = (
   originalUrl: string,
   _size: string = "150x150"

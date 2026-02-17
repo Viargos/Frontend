@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Post } from "@/types/post.types";
-import { postService } from "@/lib/services/service-factory";
+import { PostApi, ApiError } from "@/lib/api";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import Button from "@/components/ui/Button";
 import { formatDistanceToNow } from "date-fns";
@@ -50,31 +50,17 @@ export default function ProfilePostsGrid({
         setIsLoading(true);
         setError(null);
 
-        let response;
-        // Fetch ALL posts without limit - don't pass filters object at all
-        if (userId) {
-          response = await postService.getPostsByUser(userId);
-        } else {
-          response = await postService.getPostsByUser("me");
-        }
+        const list = userId
+          ? await PostApi.listByUser(userId)
+          : await PostApi.listByUser("me");
 
-        // Log API response for debugging
-        console.log("[API_POSTS_RESPONSE]", {
-          statusCode: response.statusCode,
-          postsCount: response.data?.length || 0,
-          posts: response.data
-        });
-
-        if (response.data) {
-          // Log before setting state
-          console.log("[STATE_POSTS_BEFORE_SET]", {
-            count: response.data.length
-          });
-          setPosts(response.data);
+        if (Array.isArray(list)) {
+          setPosts(list as Post[]);
         }
-      } catch (err: any) {
+      } catch (err) {
+        const message = err instanceof ApiError ? err.getUserMessage() : err instanceof Error ? err.message : "Failed to load posts";
         console.error("Error fetching posts:", err);
-        setError(err.message || "Failed to load posts");
+        setError(message);
       } finally {
         setIsLoading(false);
       }
@@ -90,10 +76,8 @@ export default function ProfilePostsGrid({
 
     try {
       setDeletingPostId(postId);
-      console.log("Attempting to delete post:", postId);
 
-      const response = await postService.deletePost(postId);
-      console.log("Delete response:", response);
+      await PostApi.delete(postId);
 
       // Remove post from local state
       setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
@@ -101,15 +85,10 @@ export default function ProfilePostsGrid({
       // Call parent callback if provided
       onDeletePost?.(postId);
 
-      console.log("Post deleted successfully");
-    } catch (err: any) {
+    } catch (err) {
+      const message = err instanceof ApiError ? err.getUserMessage() : err instanceof Error ? err.message : "Unknown error";
       console.error("Error deleting post:", err);
-      console.error("Error details:", {
-        message: err.message,
-        status: err.status,
-        response: err.response,
-      });
-      alert(`Failed to delete post: ${err.message || "Unknown error"}`);
+      alert(`Failed to delete post: ${message}`);
     } finally {
       setDeletingPostId(null);
     }

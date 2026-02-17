@@ -9,7 +9,7 @@ import InputField from "@/components/ui/InputField";
 import { TextArea } from "@/components/ui/TextArea";
 import { Post } from "@/types/post.types";
 import { CreatePostDto } from "@/types/post.types";
-import { postService, journeyService } from "@/lib/services/service-factory";
+import { PostApi, JourneyApi, ApiError } from "@/lib/api";
 import { Journey } from "@/types/journey.types";
 import JourneyIcon from "@/components/icons/JourneyIcon";
 import { CalendarIcon } from "@/components/icons/CalendarIcon";
@@ -59,17 +59,13 @@ export default function EditPostModal({
         try {
           setIsLoadingJourneys(true);
           setError(null);
-          const response = await journeyService.getMyJourneys();
-
-          if (Array.isArray(response)) {
-            setJourneys(response);
-            if (response.length === 0) {
-              setError(
-                "No journeys found. Create a journey first to link posts to it."
-              );
-            }
-          } else {
-            setError("Invalid response format from server");
+          const response = await JourneyApi.getMyJourneys();
+          const journeys = response; // API already extracts .data
+          setJourneys(journeys);
+          if (journeys.length === 0) {
+            setError(
+              "No journeys found. Create a journey first to link posts to it."
+            );
           }
         } catch (error: any) {
           setError(error.message || "Failed to load journeys");
@@ -98,15 +94,17 @@ export default function EditPostModal({
         journeyId: selectedJourney?.id || undefined,
       };
 
-      const response = await postService.updatePost(post.id, updateData);
+      const response = await PostApi.update(post.id, updateData);
 
-      if (response.data) {
-        onSuccess?.(response.data);
-        onClose();
+      const updatedPost = response?.data ?? (response as unknown as Post);
+      if (updatedPost && typeof (updatedPost as Post).id === 'string') {
+        onSuccess?.(updatedPost as Post);
       }
-    } catch (error: any) {
+      onClose();
+    } catch (error) {
+      const message = error instanceof ApiError ? error.getUserMessage() : error instanceof Error ? error.message : "Failed to update post. Please try again.";
       console.error("Error updating post:", error);
-      setError(error.message || "Failed to update post. Please try again.");
+      setError(message);
     } finally {
       setIsLoading(false);
     }

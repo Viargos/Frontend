@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { postService } from '@/lib/services/service-factory';
+import { PostApi, ApiError } from '@/lib/api';
 
 interface UsePostLikeProps {
   postId: string;
@@ -72,25 +72,30 @@ export const usePostLike = ({
     try {
       // Make the API call in the background
       const response = shouldLike
-        ? await postService.likePost(postId)
-        : await postService.unlikePost(postId);
+        ? await PostApi.like(postId)
+        : await PostApi.unlike(postId);
 
-      if (response.data) {
-        // Sync with backend response (source of truth)
-        // Usually this will match our optimistic update
-        setIsLiked(response.data.isLiked);
-        setLocalLikeCount(response.data.likeCount);
+      // Sync with backend response (source of truth)
+      // Usually this will match our optimistic update
+      setIsLiked(response.isLiked);
+      setLocalLikeCount(response.likeCount);
 
-        // Update parent with actual backend values
-        onLikeChange?.(postId, response.data.isLiked, response.data.likeCount);
-      }
-    } catch {
+      // Update parent with actual backend values
+      onLikeChange?.(postId, response.isLiked, response.likeCount);
+    } catch (error) {
       // ❌ ROLLBACK - Revert to previous state on error
       setIsLiked(previousIsLiked);
       setLocalLikeCount(previousLikeCount);
 
       // Notify parent to rollback
       onLikeChange?.(postId, previousIsLiked, previousLikeCount);
+
+      // Log error for debugging (ApiError has getUserMessage())
+      if (error instanceof ApiError) {
+        console.error('Like/unlike failed:', error.getUserMessage());
+      } else {
+        console.error('Like/unlike failed:', error);
+      }
     } finally {
       // Reset ref and state
       isLikingRef.current = false;

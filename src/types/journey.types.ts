@@ -1,10 +1,8 @@
-export enum PlaceType {
-  STAY = 'STAY',
-  ACTIVITY = 'ACTIVITY',
-  FOOD = 'FOOD',
-  TRANSPORT = 'TRANSPORT',
-  NOTE = 'NOTE',
-}
+import { PlaceType } from '@/enums';
+import { JourneyMediaType } from '@/enums';
+
+// Re-export enums so components can import them from this file
+export { PlaceType, JourneyMediaType };
 
 export interface Journey {
   id: string;
@@ -19,11 +17,6 @@ export interface Journey {
   days?: JourneyDay[];
   createdAt?: string;
   updatedAt?: string;
-}
-
-export enum JourneyMediaType {
-  IMAGE = 'image',
-  VIDEO = 'video',
 }
 
 export interface JourneyMedia {

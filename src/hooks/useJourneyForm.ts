@@ -1,11 +1,10 @@
 import { useState, useCallback } from "react";
+import { PlaceType, JourneyMediaType } from "@/enums";
 import {
-  PlaceType,
   CreateJourneyPlace,
   CreateJourneyDay,
-  JourneyMediaType,
 } from "@/types/journey.types";
-import apiClient from "@/lib/api.legacy";
+import { JourneyApi } from "@/lib/api";
 import {
   validateTimeRange,
   addMinutesToTime,
@@ -539,9 +538,6 @@ export const useJourneyForm = (): UseJourneyFormReturn => {
       const dataToUse = { ...formData, ...overrideData };
 
       try {
-        const token = localStorage.getItem("viargos_auth_token");
-        console.log("Token in localStorage:", token ? "EXISTS" : "MISSING");
-
         const journeyDays: CreateJourneyDay[] = days.map((dayLabel, index) => {
           const dayNumber = parseInt(dayLabel.split(" ")[1]);
           const dayDate = new Date(dataToUse.startDate);
@@ -636,65 +632,14 @@ export const useJourneyForm = (): UseJourneyFormReturn => {
           )
         );
         console.log("Any media present in payload:", hasAnyMedia);
-        const response = await apiClient.createJourney(journeyData as any);
-        console.log("Full API Response:", response);
-        console.log("Response structure:", {
-          hasData: !!response?.data,
-          statusCode: response?.statusCode,
-          message: response?.message,
-          dataKeys: response?.data ? Object.keys(response.data) : null,
-          dataId: response?.data?.id,
-        });
+        const response = await JourneyApi.createJourney(journeyData as any);
+        const journey = response; // API already extracts .data
+        console.log("Journey created successfully:", journey);
 
-        if (
-          !response ||
-          (!response.data &&
-            response.statusCode !== 200 &&
-            response.statusCode !== 201)
-        ) {
-          console.error("Response validation failed:", {
-            response,
-            hasData: !!response?.data,
-            statusCode: response?.statusCode,
-          });
-          throw new Error(response?.message || "Failed to create journey");
-        }
-
-        // Try different ways to extract the journey ID
-        let journeyId: string | null = null;
-
-        if (response.data?.id) {
-          journeyId = response.data.id;
-        } else if (response.id) {
-          // Sometimes the ID might be directly on the response
-          journeyId = response.id;
-        } else if (typeof response.data === "string") {
-          // Sometimes the ID might be returned as a string
-          journeyId = response.data;
-        } else if (response.data && typeof response.data === "object") {
-          // Look for any ID-like properties
-          const possibleIdFields = ["id", "_id", "journeyId", "journey_id"];
-          for (const field of possibleIdFields) {
-            if (response.data[field]) {
-              journeyId = response.data[field];
-              break;
-            }
-          }
-        }
-
+        const journeyId = journey?.id;
         if (!journeyId) {
-          console.error("Journey ID validation failed:", {
-            hasData: !!response.data,
-            dataId: response?.data?.id,
-            responseId: response?.id,
-            fullData: response?.data,
-            fullResponse: response,
-          });
           throw new Error("No journey ID found in server response");
         }
-
-        console.log("Journey created successfully:", response.data);
-        console.log("Returning journey ID:", journeyId);
         return journeyId;
       } catch (error: any) {
         console.error("Failed to create journey:", error);

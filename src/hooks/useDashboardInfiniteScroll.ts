@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { dashboardService } from '@/lib/services/service-factory';
+import { DashboardApi } from '@/lib/api';
 import { DashboardFilters, DashboardPostsState } from '@/types/dashboard.types';
 import { Post } from '@/types/post.types';
 
@@ -26,83 +26,93 @@ export function useDashboardInfiniteScroll(options: UseDashboardInfiniteScrollOp
   const filtersRef = useRef<DashboardFilters>(initialFilters);
 
   // Load initial posts
-  const loadInitialPosts = useCallback(async (searchFilters?: DashboardFilters) => {
-    if (!enabled) return;
+  const loadInitialPosts = useCallback(
+    async (searchFilters?: DashboardFilters) => {
+      if (!enabled) return;
 
-    // Cancel any ongoing request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
+      // Cancel any ongoing request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
 
-    setState(prev => ({
-      ...prev,
-      isLoading: true,
-      error: null,
-      posts: [], // Clear existing posts for new search/filter
-      nextCursor: null,
-      hasNextPage: true,
-    }));
+      setState(prev => ({
+        ...prev,
+        isLoading: true,
+        error: null,
+        posts: [], // Clear existing posts for new search/filter
+        nextCursor: null,
+        hasNextPage: true,
+      }));
 
-    try {
-      abortControllerRef.current = new AbortController();
-      
-      const filtersToUse = searchFilters || filtersRef.current;
-      const response = await dashboardService.getDashboardPosts({
-        ...filtersToUse,
-        cursor: undefined, // Always start fresh
-      });
+      try {
+        abortControllerRef.current = new AbortController();
 
-      if (response.data) {
+        const filtersToUse = searchFilters || filtersRef.current;
+        const data = await DashboardApi.getPosts({
+          ...filtersToUse,
+          cursor: undefined, // Always start fresh
+        });
+
         setState(prev => ({
           ...prev,
-          posts: Array.isArray(response.data.posts) ? response.data.posts : [],
-          nextCursor: response.data.nextCursor,
-          hasNextPage: response.data.hasNextPage,
+          posts: Array.isArray(data.posts) ? data.posts : [],
+          nextCursor: data.nextCursor ?? null,
+          hasNextPage: data.hasMore ?? false,
           isLoading: false,
         }));
+
+        isInitialLoadRef.current = false;
+      } catch (error: any) {
+        if (error.name !== 'AbortError') {
+          setState(prev => ({
+            ...prev,
+            error: error.message || 'Failed to load posts',
+            isLoading: false,
+          }));
+        }
       }
-      
-      isInitialLoadRef.current = false;
-    } catch (error: any) {
-      if (error.name !== 'AbortError') {
-        setState(prev => ({
-          ...prev,
-          error: error.message || 'Failed to load posts',
-          isLoading: false,
-        }));
-      }
-    }
-  }, [enabled]);
+    },
+    [enabled],
+  );
 
   // Load more posts for infinite scroll
-  const loadMorePosts = useCallback(async () => {
-    if (!enabled || state.isLoadingMore || !state.hasNextPage || !state.nextCursor) return;
+  const loadMorePosts = useCallback(
+    async () => {
+      if (
+        !enabled ||
+        state.isLoadingMore ||
+        !state.hasNextPage ||
+        !state.nextCursor
+      )
+        return;
 
-    setState(prev => ({ ...prev, isLoadingMore: true, error: null }));
+      setState(prev => ({ ...prev, isLoadingMore: true, error: null }));
 
-    try {
-      const response = await dashboardService.getDashboardPosts({
-        ...filtersRef.current,
-        cursor: state.nextCursor,
-      });
+      try {
+        const data = await DashboardApi.getPosts({
+          ...filtersRef.current,
+          cursor: state.nextCursor,
+        });
 
-      if (response.data && Array.isArray(response.data.posts)) {
         setState(prev => ({
           ...prev,
-          posts: [...prev.posts, ...response.data.posts],
-          nextCursor: response.data.nextCursor,
-          hasNextPage: response.data.hasNextPage,
+          posts: Array.isArray(data.posts)
+            ? [...prev.posts, ...data.posts]
+            : prev.posts,
+          nextCursor: data.nextCursor ?? null,
+          hasNextPage: data.hasMore ?? false,
+          isLoadingMore: false,
+        }));
+      } catch (error: any) {
+        setState(prev => ({
+          ...prev,
+          error: error.message || 'Failed to load more posts',
           isLoadingMore: false,
         }));
       }
-    } catch (error: any) {
-      setState(prev => ({
-        ...prev,
-        error: error.message || 'Failed to load more posts',
-        isLoadingMore: false,
-      }));
-    }
-  }, [enabled, state.isLoadingMore, state.hasNextPage, state.nextCursor]);
+    },
+    [enabled, state.isLoadingMore, state.hasNextPage, state.nextCursor],
+  );
 
   // Update filters and reload
   const updateFilters = useCallback((newFilters: Partial<DashboardFilters>) => {

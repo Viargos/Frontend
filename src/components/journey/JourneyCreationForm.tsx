@@ -8,7 +8,7 @@ import {
   CreateJourneyDay,
   CreateJourneyPlace
 } from '@/types/journey.types';
-import { JourneyService } from '@/lib/services/journey.service';
+import { JourneyApi } from '@/lib/api';
 import { Button, InputField } from '@/components/ui';
 import { Hotel, Trees, UtensilsCrossed, Car, FileText, Calendar } from 'lucide-react';
 
@@ -48,8 +48,6 @@ export default function JourneyCreationForm({ onSuccess, onCancel }: JourneyCrea
       }
     ]
   });
-
-  const journeyService = new JourneyService();
 
   const handleTitleChange = useCallback((value: string) => {
     setFormData(prev => ({ ...prev, title: value }));
@@ -180,7 +178,8 @@ export default function JourneyCreationForm({ onSuccess, onCancel }: JourneyCrea
 
     try {
       setIsSubmitting(true);
-      const journey = await journeyService.createComprehensiveJourney(formData);
+      const response = await JourneyApi.createComprehensiveJourney(formData);
+      const journey = response; // API already extracts .data
       onSuccess?.(journey.id);
     } catch (error: any) {
       setError(error.message || 'Failed to create journey');

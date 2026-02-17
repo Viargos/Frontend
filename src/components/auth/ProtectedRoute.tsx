@@ -25,22 +25,18 @@ export default function ProtectedRoute({
   fallback,
   redirectTo = "/" 
 }: ProtectedRouteProps) {
-  const { user, isAuthenticated } = useAuthStore();
+  const { user } = useAuthStore();
   const router = useRouter();
+  const isAuthenticated = user !== null;
 
   useEffect(() => {
     // Redirect unauthenticated users
-    if (isAuthenticated === false) {
+    if (!isAuthenticated) {
       router.push(redirectTo);
     }
   }, [isAuthenticated, router, redirectTo]);
 
-  // Show loading while auth state is being determined
-  if (isAuthenticated === null) {
-    return fallback || <PageLoading text="Loading..." />;
-  }
-
-  // Show loading if redirecting
+  // Show loading if redirecting or no user
   if (!isAuthenticated || !user) {
     return fallback || <PageLoading text="Redirecting..." />;
   }

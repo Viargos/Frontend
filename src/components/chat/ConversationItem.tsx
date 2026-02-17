@@ -39,7 +39,8 @@ function ConversationItem({
     return `${days}d`;
   };
 
-  const truncateMessage = (content: string, maxLength: number = 50) => {
+  const truncateMessage = (content: string | undefined | null, maxLength: number = 50) => {
+    if (!content) return '';
     return content.length > maxLength
       ? `${content.substring(0, maxLength)}...`
       : content;

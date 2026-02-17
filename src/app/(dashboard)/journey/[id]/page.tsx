@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { JourneyMap } from '@/components/maps';
-import { serviceFactory } from '@/lib/services/service-factory';
+import { JourneyApi } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import { Journey } from '@/types/journey.types';
 import { format } from 'date-fns';
@@ -69,8 +69,8 @@ export default function JourneyDetailsPage() {
         if (!journeyId) {
           throw new Error('No journey ID provided');
         }
-        const journeyService = serviceFactory.journeyService;
-        const fetchedJourney = await journeyService.getJourneyById(journeyId);
+        const response = await JourneyApi.getById(journeyId);
+        const fetchedJourney = response; // API already extracts .data
         console.log('Journey data received:', fetchedJourney);
         if (fetchedJourney?.days) {
           const imageSummary = fetchedJourney.days.flatMap((day: any) =>
@@ -551,7 +551,8 @@ export default function JourneyDetailsPage() {
                                   <Image
                                     src={getImageUrl(place.photos[0])}
                                     alt={place.name}
-                                    className="w-full h-full object-cover"
+                                    fill
+                                    className="object-cover"
                                     onError={() => handleImageError(place.id)}
                                   />
                                 ) : (

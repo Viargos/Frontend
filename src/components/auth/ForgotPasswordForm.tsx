@@ -1,10 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion } from 'framer-motion';
-import { useAuthStore } from '@/store/auth.store';
+import { AuthApi, ApiError, ApiErrorCode } from '@/lib/api';
 import Button from '@/components/ui/Button';
 
 const forgotPasswordSchema = z.object({
@@ -16,13 +17,17 @@ type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 export interface ForgotPasswordFormProps {
   onSuccess?: (email: string) => void;
   onSwitchToLogin?: () => void;
+  onError?: (message: string) => void; // Callback to report errors to parent
+  onClearError?: () => void; // Callback to clear errors
 }
 
 export default function ForgotPasswordForm({
   onSuccess,
   onSwitchToLogin,
+  onError,
+  onClearError,
 }: ForgotPasswordFormProps) {
-  const { forgotPassword, isLoading, error, clearError } = useAuthStore();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
@@ -34,19 +39,29 @@ export default function ForgotPasswordForm({
     mode: 'onBlur',
   });
 
-  const onSubmit = async (data: ForgotPasswordFormData) => {
-    clearError();
+  const onSubmit = async (formData: ForgotPasswordFormData) => {
+    onClearError?.();
+    setIsSubmitting(true);
 
     try {
-      const result = await forgotPassword(data.email);
+      await AuthApi.forgotPassword({ email: formData.email });
 
-      if (result.success) {
-        reset();
-        onSuccess?.(data.email);
-      }
-      // Error is already handled in the store
+      reset();
+      onSuccess?.(formData.email);
     } catch (error) {
-      console.error('Forgot password form error:', error);
+      if (error instanceof ApiError) {
+        if (error.is(ApiErrorCode.NOT_FOUND)) {
+          onError?.('Email not found. Please check and try again.');
+        } else {
+          onError?.(error.getUserMessage());
+        }
+      } else {
+        onError?.(
+          error instanceof Error ? error.message : 'An unexpected error occurred'
+        );
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -83,18 +98,6 @@ export default function ForgotPasswordForm({
       </motion.div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
-        {error && (
-          <motion.div
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm"
-            initial={{ opacity: 0, scale: 0.95, y: -10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -10 }}
-            transition={{ duration: 0.2 }}
-          >
-            {error}
-          </motion.div>
-        )}
-
         <motion.div variants={itemVariants}>
           <label
             htmlFor="email"
@@ -108,7 +111,7 @@ export default function ForgotPasswordForm({
             id="email"
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black transition-all duration-200"
             placeholder="Enter your email"
-            disabled={isLoading}
+            disabled={isSubmitting}
             autoComplete="email"
             whileFocus={{ scale: 1.02, borderColor: '#3B82F6' }}
           />
@@ -131,10 +134,10 @@ export default function ForgotPasswordForm({
               variant="primary"
               size="lg"
               className="w-full"
-              disabled={isLoading || !isValid}
-              loading={isLoading}
+              disabled={isSubmitting || !isValid}
+              loading={isSubmitting}
             >
-              {isLoading ? 'Sending...' : 'Send Reset Code'}
+              {isSubmitting ? 'Sending...' : 'Send Reset Code'}
             </Button>
           </motion.div>
         </motion.div>
@@ -146,7 +149,7 @@ export default function ForgotPasswordForm({
               type="button"
               onClick={onSwitchToLogin}
               className="font-medium text-blue-600 hover:text-blue-500 focus:outline-none focus:underline"
-              disabled={isLoading}
+              disabled={isSubmitting}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >

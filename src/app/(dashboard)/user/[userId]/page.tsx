@@ -4,11 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
-import {
-  userService,
-  postService,
-  journeyService,
-} from '@/lib/services/service-factory';
+import { PostApi, ApiError } from '@/lib/api';
+import { UserApi, JourneyApi } from '@/lib/api';
 import { UserDetailsData, RecentPost } from '@/types/user.types';
 import { convertRecentJourneysToJourneys } from '@/utils/journey.utils';
 import { Journey } from '@/types/journey.types';
@@ -112,29 +109,72 @@ export default function UserDetailsPage() {
       setError(null);
 
       try {
-        const response = await userService.getUserDetails(userId);
+        const response = await UserApi.getDetails(userId);
 
-        // Log API response for debugging
-        console.log('[API_USER_DETAILS_RESPONSE]', {
-          statusCode: response.statusCode,
-          recentJourneysCount: response.data?.recentJourneys?.length || 0,
-          recentPostsCount: response.data?.recentPosts?.length || 0,
-          statsJourneysCount: response.data?.stats?.journeysCount || 0,
-          statsPostsCount: response.data?.stats?.postsCount || 0,
-          response: response,
-        });
+        // Support both top-level and nested { data: { user, stats, ... } } from backend
+        const raw = (response as { data?: typeof response }).data ?? response;
+        const user = raw?.user;
+        const stats = raw?.stats;
+        const relationshipStatus = raw?.relationshipStatus;
+        const recentFollowers = Array.isArray(raw?.recentFollowers) ? raw.recentFollowers : [];
+        const recentFollowing = Array.isArray(raw?.recentFollowing) ? raw.recentFollowing : [];
+        const recentPostsRaw = Array.isArray(raw?.recentPosts) ? raw.recentPosts : [];
+        const recentJourneysRaw = Array.isArray(raw?.recentJourneys) ? raw.recentJourneys : [];
 
-        if (response.statusCode === 10000) {
-          setUserDetails(response.data);
+        if (!user?.id) {
+          setError('User Not Found');
+          setUserDetails(null);
+          return;
+        }
+
+        // Transform to UserDetailsData with safe defaults
+        const userDetailsData: UserDetailsData = {
+          user,
+          stats: {
+            followersCount: stats?.followersCount ?? 0,
+            followingCount: stats?.followingCount ?? 0,
+            postsCount: stats?.postsCount ?? 0,
+            journeysCount: stats?.journeysCount ?? 0,
+          },
+          relationshipStatus: {
+            isFollowing: relationshipStatus?.isFollowing ?? false,
+            isFollowedBy: relationshipStatus?.isFollowedBy ?? false,
+          },
+          recentFollowers,
+          recentFollowing,
+          recentPosts: recentPostsRaw.map((post: { id: string; description?: string; likeCount?: number; commentCount?: number; createdAt: string; mediaUrls?: string[] }) => ({
+            id: post.id,
+            description: post.description ?? '',
+            likeCount: post.likeCount ?? 0,
+            commentCount: post.commentCount ?? 0,
+            createdAt: post.createdAt,
+            mediaUrls: post.mediaUrls ?? [],
+          })),
+          recentJourneys: recentJourneysRaw.map((journey: { id: string; title: string; description?: string; coverImage?: string | null; daysCount?: number; createdAt: string; author: { id: string; username: string; profileImage?: string | null }; previewPlaces?: string[]; type?: string }) => ({
+            id: journey.id,
+            title: journey.title,
+            description: journey.description ?? '',
+            coverImage: journey.coverImage ?? null,
+            daysCount: journey.daysCount ?? 0,
+            createdAt: journey.createdAt,
+            author: {
+              id: journey.author?.id ?? '',
+              username: journey.author?.username ?? '',
+              profileImage: journey.author?.profileImage ?? null,
+            },
+            previewPlaces: journey.previewPlaces ?? [],
+            type: journey.type ?? '',
+          })),
+        };
+
+        setUserDetails(userDetailsData);
 
           // Fetch ALL journeys and posts separately to bypass the 5-item limit
           // Check if we need to fetch more based on stats
           const needsMoreJourneys =
-            (response.data?.stats?.journeysCount || 0) >
-            (response.data?.recentJourneys?.length || 0);
+            (stats?.journeysCount ?? 0) > (recentJourneysRaw?.length ?? 0);
           const needsMorePosts =
-            (response.data?.stats?.postsCount || 0) >
-            (response.data?.recentPosts?.length || 0);
+            (stats?.postsCount ?? 0) > (recentPostsRaw?.length ?? 0);
 
           // Always try to fetch all journeys if there's a discrepancy, or if journey/map tab is active
           // This ensures we get all available journeys, not just the 5 from recentJourneys
@@ -142,23 +182,24 @@ export default function UserDetailsPage() {
             needsMoreJourneys ||
             activeTab === 'journey' ||
             activeTab === 'map' ||
-            response.data?.stats?.journeysCount > 5
+            (stats?.journeysCount ?? 0) > 5
           ) {
             setIsLoadingJourneys(true);
             try {
               console.log('[FETCHING_ALL_JOURNEYS]', {
                 userId,
                 isViewingOwnProfile,
-                statsCount: response.data?.stats?.journeysCount,
-                recentCount: response.data?.recentJourneys?.length,
+                statsCount: stats?.journeysCount,
+                recentCount: recentJourneysRaw?.length,
               });
 
               if (isViewingOwnProfile) {
                 // For own profile, fetch ALL journeys using getMyJourneys (no limit)
-                const allJourneysData = await journeyService.getMyJourneys({
+                const response = await JourneyApi.getMyJourneys({
                   limit: undefined,
                   offset: undefined,
                 });
+                const allJourneysData = response; // API already extracts .data
                 setAllJourneys(allJourneysData);
 
                 console.log('[STATE_JOURNEYS_COUNT_OWN_PROFILE]', {
@@ -172,9 +213,10 @@ export default function UserDetailsPage() {
                   console.log('[ATTEMPTING_TO_FETCH_ALL_JOURNEYS_FOR_USER]', {
                     userId,
                   });
-                  const allPublicJourneys = await journeyService.getAllJourneys(
+                  const publicResponse = await JourneyApi.getAllJourneys(
                     { limit: undefined, offset: undefined }
                   );
+                  const allPublicJourneys = publicResponse.data;
 
                   console.log('[ALL_PUBLIC_JOURNEYS_RECEIVED]', {
                     totalCount: allPublicJourneys.length,
@@ -197,7 +239,7 @@ export default function UserDetailsPage() {
                   console.log('[FILTERING_RESULT]', {
                     targetUserId: userId,
                     filteredCount: userJourneys.length,
-                    statsCount: response.data?.stats?.journeysCount,
+                    statsCount: stats?.journeysCount,
                   });
 
                   // Always use filtered journeys if we found any, even if less than stats count
@@ -206,26 +248,24 @@ export default function UserDetailsPage() {
                     setAllJourneys(userJourneys);
                     console.log('[STATE_JOURNEYS_COUNT_OTHER_USER_FILTERED]', {
                       count: userJourneys.length,
-                      statsCount: response.data?.stats?.journeysCount,
+                      statsCount: stats?.journeysCount,
                       allPublicJourneysCount: allPublicJourneys.length,
                       discrepancy:
-                        (response.data?.stats?.journeysCount || 0) -
-                        userJourneys.length,
+                        (stats?.journeysCount ?? 0) - userJourneys.length,
                       journeys: userJourneys,
                     });
                   } else {
                     // No journeys found in public list - might be private journeys
                     // Use recentJourneys as fallback (limited to 5 by backend)
                     const convertedJourneys = convertRecentJourneysToJourneys(
-                      response.data.recentJourneys || []
+                      recentJourneysRaw
                     );
                     setAllJourneys(convertedJourneys);
                     console.warn('[STATE_JOURNEYS_COUNT_OTHER_USER_FALLBACK]', {
                       count: convertedJourneys.length,
-                      statsCount: response.data?.stats?.journeysCount,
+                      statsCount: stats?.journeysCount,
                       discrepancy:
-                        (response.data?.stats?.journeysCount || 0) -
-                        convertedJourneys.length,
+                        (stats?.journeysCount ?? 0) - convertedJourneys.length,
                       reason:
                         'No journeys found in public journeys list - may be private',
                       journeys: convertedJourneys,
@@ -239,14 +279,14 @@ export default function UserDetailsPage() {
                     stack: filterError?.stack,
                   });
                   const convertedJourneys = convertRecentJourneysToJourneys(
-                    response.data.recentJourneys || []
+                    recentJourneysRaw
                   );
                   setAllJourneys(convertedJourneys);
                   console.warn(
                     '[STATE_JOURNEYS_COUNT_OTHER_USER_ERROR_FALLBACK]',
                     {
                       count: convertedJourneys.length,
-                      statsCount: response.data?.stats?.journeysCount,
+                      statsCount: stats?.journeysCount,
                       error: filterError?.message,
                     }
                   );
@@ -256,7 +296,7 @@ export default function UserDetailsPage() {
               console.error('Failed to fetch journeys:', err);
               // Fallback to recentJourneys from response
               const convertedJourneys = convertRecentJourneysToJourneys(
-                response.data?.recentJourneys || []
+                recentJourneysRaw
               );
               setAllJourneys(convertedJourneys);
             } finally {
@@ -265,15 +305,14 @@ export default function UserDetailsPage() {
           } else {
             // Still set journeys from response even if we don't need to fetch more
             const convertedJourneys = convertRecentJourneysToJourneys(
-              response.data?.recentJourneys || []
+              recentJourneysRaw
             );
             setAllJourneys(convertedJourneys);
             console.log('[STATE_JOURNEYS_COUNT_INITIAL]', {
               count: convertedJourneys.length,
-              statsCount: response.data?.stats?.journeysCount,
+              statsCount: stats?.journeysCount,
               discrepancy:
-                (response.data?.stats?.journeysCount || 0) -
-                convertedJourneys.length,
+                (stats?.journeysCount ?? 0) - convertedJourneys.length,
             });
           }
 
@@ -282,14 +321,14 @@ export default function UserDetailsPage() {
           setAllJourneys(prevJourneys => {
             if (
               prevJourneys.length === 0 &&
-              response.data?.recentJourneys?.length > 0
+              recentJourneysRaw?.length > 0
             ) {
               const convertedJourneys = convertRecentJourneysToJourneys(
-                response.data.recentJourneys
+                recentJourneysRaw
               );
               console.log('[STATE_JOURNEYS_COUNT_FINAL_FALLBACK]', {
                 count: convertedJourneys.length,
-                statsCount: response.data?.stats?.journeysCount,
+                statsCount: stats?.journeysCount,
               });
               return convertedJourneys;
             }
@@ -301,21 +340,13 @@ export default function UserDetailsPage() {
             try {
               // Fetch ALL posts - pass a very large limit to get all posts (backend doesn't support unlimited)
               // Using 1000 as a reasonable upper bound that should cover all user posts
-              const postsResponse = await postService.getPostsByUser(userId, {
+              const list = await PostApi.listByUser(userId, {
                 limit: 1000,
                 offset: 0,
               });
 
-              console.log('[API_POSTS_RESPONSE]', {
-                userId,
-                statusCode: postsResponse.statusCode,
-                postsCount: postsResponse.data?.length || 0,
-                posts: postsResponse.data,
-              });
-
-              if (postsResponse.data) {
-                // Convert Post[] to RecentPost[] format
-                const recentPosts: RecentPost[] = postsResponse.data.map(
+              if (Array.isArray(list) && list.length > 0) {
+                const recentPosts: RecentPost[] = list.map(
                   post => ({
                     id: post.id,
                     description: post.description || '',
@@ -325,28 +356,36 @@ export default function UserDetailsPage() {
                     mediaUrls: post.media?.map(m => m.url) || [],
                   })
                 );
-
                 setAllPosts(recentPosts);
-
-                console.log('[STATE_POSTS_COUNT]', {
-                  count: recentPosts.length,
-                  posts: recentPosts,
-                });
               }
-            } catch (err: any) {
+            } catch (err) {
               console.error('Failed to fetch posts:', err);
-              // Fallback to recentPosts from userDetails
-              setAllPosts(response.data.recentPosts || []);
+              setAllPosts(
+                recentPostsRaw.map((post: { id: string; description?: string; likeCount?: number; commentCount?: number; createdAt: string; mediaUrls?: string[] }) => ({
+                  id: post.id,
+                  description: post.description ?? '',
+                  likeCount: post.likeCount ?? 0,
+                  commentCount: post.commentCount ?? 0,
+                  createdAt: post.createdAt,
+                  mediaUrls: post.mediaUrls ?? [],
+                }))
+              );
             } finally {
               setIsLoadingPosts(false);
             }
           } else {
             // Use recentPosts from userDetails if we don't need to fetch more
-            setAllPosts(response.data.recentPosts || []);
+            setAllPosts(
+              recentPostsRaw.map((post: { id: string; description?: string; likeCount?: number; commentCount?: number; createdAt: string; mediaUrls?: string[] }) => ({
+                id: post.id,
+                description: post.description ?? '',
+                likeCount: post.likeCount ?? 0,
+                commentCount: post.commentCount ?? 0,
+                createdAt: post.createdAt,
+                mediaUrls: post.mediaUrls ?? [],
+              }))
+            );
           }
-        } else {
-          setError(response.message || 'Failed to load user details');
-        }
       } catch (err: any) {
         setError(err.message || 'Failed to load user details');
       } finally {

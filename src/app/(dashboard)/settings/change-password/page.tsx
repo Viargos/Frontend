@@ -39,12 +39,7 @@ export default function ChangePasswordPage() {
     setIsLoading(true);
 
     try {
-      // TODO: Implement actual password change API call
-      // await serviceFactory.authService.changePassword({
-      //   currentPassword,
-      //   newPassword
-      // });
-
+      // TODO: Implement actual password change API call via AuthApi
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
 

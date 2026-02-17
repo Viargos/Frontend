@@ -1,14 +1,12 @@
 import { useState, useCallback, useEffect } from "react";
+import { PlaceType, JourneyMediaType } from "@/enums";
 import {
-  PlaceType,
   CreateJourneyPlace,
   CreateJourneyDay,
-  JourneyMediaType,
   Journey,
   UpdateJourneyDto,
 } from "@/types/journey.types";
-import apiClient from "@/lib/api.legacy";
-import { serviceFactory } from "@/lib/services/service-factory";
+import { JourneyApi } from "@/lib/api";
 import {
   validateTimeRange,
   addMinutesToTime,
@@ -135,8 +133,8 @@ export const useEditJourneyForm = (journeyId: string): UseEditJourneyFormReturn 
         setIsLoadingJourney(true);
         setLoadError(null);
 
-        const journeyService = serviceFactory.journeyService;
-        const journey = await journeyService.getJourneyById(journeyId);
+        const response = await JourneyApi.getById(journeyId);
+        const journey = response; // API already extracts .data
 
         if (!journey) {
           throw new Error("Journey not found");
@@ -702,22 +700,8 @@ export const useEditJourneyForm = (journeyId: string): UseEditJourneyFormReturn 
           JSON.stringify(updateData, null, 2)
         );
 
-        const response = await apiClient.updateJourney(journeyId, updateData);
-        console.log("Update API Response:", response);
-
-        // Check for successful response - accept 200, 201, and custom success code 10000
-        const isSuccess = response && (
-          response.statusCode === 200 ||
-          response.statusCode === 201 ||
-          response.statusCode === 10000 ||
-          (response.data && !response.message?.toLowerCase().includes('error'))
-        );
-
-        if (!isSuccess) {
-          throw new Error(response?.message || "Failed to update journey");
-        }
-
-        console.log("Journey updated successfully:", response.data);
+        const updateResponse = await JourneyApi.updateJourney(journeyId, updateData);
+        console.log("Journey updated successfully:", updateResponse.data);
         return true;
       } catch (error: any) {
         console.error("Failed to update journey:", error);

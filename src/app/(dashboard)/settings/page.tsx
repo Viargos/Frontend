@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth.store';
+import { useLogout } from '@/hooks/auth/use-logout';
 import { SettingsHeader, SettingsSection, SettingsItem, SettingsToggle } from '@/components/settings';
 import { Modal } from '@/components/ui';
 import {
@@ -29,13 +29,12 @@ import {
 } from '@/components/icons';
 
 export default function SettingsPage() {
-  const { user, logout } = useAuthStore();
-  const router = useRouter();
+  const { user } = useAuthStore();
+  const { logout } = useLogout();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const handleLogout = () => {
-    logout();
-    router.push('/');
+    logout(); // logoutAction will handle redirect
   };
 
   return (

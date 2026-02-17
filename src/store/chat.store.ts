@@ -7,7 +7,7 @@ import {
   ChatConversation,
   SendMessageData,
 } from '@/types/chat.types';
-import { chatService } from '@/lib/services/service-factory';
+import { ChatApi } from '@/lib/api';
 import { WebSocketService } from '@/lib/services/websocket.service';
 import { useAuthStore } from './auth.store';
 
@@ -174,10 +174,10 @@ export const useChatStore = create<ChatStore>()(
           // 🔄 FIX: Prevent duplicate messages by ID (including temp messages)
           const existingMessage = state.messages.find(
             msg => msg.id === message.id ||
-            (msg.id.startsWith('temp-') && msg.content === message.content &&
+            (msg.id && msg.id.startsWith('temp-') && msg.content === message.content &&
              msg.senderId === message.senderId && msg.receiverId === message.receiverId)
           );
-          if (existingMessage && !message.id.startsWith('temp-')) {
+          if (existingMessage && message.id && !message.id.startsWith('temp-')) {
             // If real message already exists, don't add duplicate
             return state;
           }
@@ -275,7 +275,7 @@ export const useChatStore = create<ChatStore>()(
 
         // 🔄 FIX: Also sync with backend to persist the read status
         try {
-          await chatService.markConversationAsRead(conversationId);
+          await ChatApi.markConversationAsRead(conversationId);
         } catch (error) {
           console.error('Failed to mark conversation as read on backend:', error);
           // Don't throw - local state is already updated for good UX
@@ -305,6 +305,9 @@ export const useChatStore = create<ChatStore>()(
 
       // WebSocket actions
       sendMessage: async data => {
+        // 🔄 FIX: Declare tempId outside try block so it's accessible in catch
+        let tempId: string | null = null;
+
         try {
           if (!data.content || !data.content.trim()) {
             throw new Error('Message cannot be empty');
@@ -318,7 +321,7 @@ export const useChatStore = create<ChatStore>()(
           const trimmedContent = data.content.trim();
 
           // 🔄 FIX: Create a temporary message for immediate UI update (optimistic update)
-          const tempId = `temp-${Date.now()}-${Math.random()}`;
+          tempId = `temp-${Date.now()}-${Math.random()}`;
           const tempMessage: ChatMessage = {
             id: tempId,
             senderId: currentUserId,
@@ -343,12 +346,12 @@ export const useChatStore = create<ChatStore>()(
             } catch (wsError) {
               // If WebSocket fails, fall back to API
               console.warn('WebSocket send failed, falling back to API:', wsError);
-              const response = await chatService.sendMessage({
+              const response = await ChatApi.sendMessage({
                 receiverId: data.receiverId,
                 content: trimmedContent,
               });
 
-              const realMessage = response.message;
+              const realMessage = response;
               if (realMessage) {
                 // 🔄 FIX: Replace temp message with real one and update conversation
                 set(state => {
@@ -384,12 +387,12 @@ export const useChatStore = create<ChatStore>()(
             }
           } else {
             // Fallback to API if WebSocket is not connected
-            const response = await chatService.sendMessage({
+            const response = await ChatApi.sendMessage({
               receiverId: data.receiverId,
               content: trimmedContent,
             });
 
-            const realMessage = response.message;
+            const realMessage = response;
             if (realMessage) {
               // 🔄 FIX: Replace temp message with real one and update conversation
               set(state => {
@@ -425,10 +428,12 @@ export const useChatStore = create<ChatStore>()(
           }
         } catch (error: any) {
           console.error('Failed to send message:', error);
-          // 🔄 FIX: Remove temp message on error
-          set(state => ({
-            messages: state.messages.filter(msg => msg.id !== tempId),
-          }));
+          // 🔄 FIX: Remove temp message on error (only if tempId was created)
+          if (tempId) {
+            set(state => ({
+              messages: state.messages.filter(msg => msg.id !== tempId),
+            }));
+          }
           set({ error: error.message || 'Failed to send message' });
           throw error;
         }
@@ -436,17 +441,17 @@ export const useChatStore = create<ChatStore>()(
 
       connect: async () => {
         try {
-          // Get token from auth store
+          // Check if user is authenticated (cookie-based)
           const authState = useAuthStore.getState();
-          const token = authState.token;
+          const currentUser = authState.user;
 
-          if (!token) {
+          if (!currentUser) {
             set({ isConnected: false });
             return;
           }
 
-          // Create WebSocket service instance
-          wsService = new WebSocketService(token);
+          // Create WebSocket service instance (no token needed - uses cookies)
+          wsService = new WebSocketService();
 
           // Connect to WebSocket
           await wsService.connect();
@@ -465,6 +470,10 @@ export const useChatStore = create<ChatStore>()(
 
           wsService.onMessageSent(message => {
             const msg = message as ChatMessage;
+            const currentUserId = useAuthStore.getState().user?.id;
+
+            if (!currentUserId) return;
+
             set(state => {
               // 🔄 FIX: Find and replace temp message with real one
               const tempMessageIndex = state.messages.findIndex(
@@ -600,8 +609,8 @@ export const useChatStore = create<ChatStore>()(
           }
 
           // Create conversation via API
-          const response = await chatService.createConversation(userId);
-          const newConversation = response.conversation;
+          const response = await ChatApi.createConversation(userId);
+          const newConversation = response;
 
           // 🔄 FIX: Add to conversations immediately - triggers UI update
           set(state => ({
@@ -648,20 +657,18 @@ export const useChatStore = create<ChatStore>()(
       fetchConversations: async () => {
         try {
           set({ isLoading: true, error: null });
-          const response = await chatService.getConversations();
+          const response = await ChatApi.getConversations();
 
           // 🔄 FIX: Preserve unread count = 0 for currently selected conversation
           // This prevents stale backend data from overwriting local "read" state
           const currentSelectedChat = get().selectedChat;
-          const conversationsWithCorrectUnread = response.conversations.map(
-            conv => {
-              // If this is the currently selected conversation, keep unreadCount = 0
-              if (currentSelectedChat && conv.user.id === currentSelectedChat.id) {
-                return { ...conv, unreadCount: 0 };
-              }
-              return conv;
+          const conversationsWithCorrectUnread = response.map(conv => {
+            // If this is the currently selected conversation, keep unreadCount = 0
+            if (currentSelectedChat && conv.user.id === currentSelectedChat.id) {
+              return { ...conv, unreadCount: 0 };
             }
-          );
+            return conv;
+          });
 
           const sorted = sortConversationsByLastMessage(conversationsWithCorrectUnread);
           // 🔄 FIX: This set triggers UI update automatically via Zustand
@@ -691,12 +698,12 @@ export const useChatStore = create<ChatStore>()(
         try {
           // 🔄 FIX: Use separate loading state for messages
           set({ isLoadingMessages: true, error: null });
-          const response = await chatService.getMessages(conversationId, {
+          const response = await ChatApi.getMessages(conversationId, {
             limit: 50,
             offset: 0,
           });
           // 🔄 FIX: Messages are returned DESC from API, but we need ASC for display
-          const sortedMessages = sortMessagesAsc(response.messages);
+          const sortedMessages = sortMessagesAsc(response);
           // 🔄 FIX: This set triggers UI update automatically
           set({ messages: sortedMessages });
         } catch (error: any) {

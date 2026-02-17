@@ -63,11 +63,8 @@ export class WebSocketService {
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
 
-  constructor(private token: string) {
-    logger.debug('WebSocketService instance created', {
-      hasToken: !!token,
-    });
-    this.validateToken(token);
+  constructor() {
+    logger.debug('WebSocketService instance created (cookie-based auth)');
   }
 
   connect(): Promise<void> {
@@ -79,14 +76,13 @@ export class WebSocketService {
 
         logger.info('WebSocket connecting', {
           namespace: chatNamespace,
-          hasToken: !!this.token,
         });
 
         this.socket = io(chatNamespace, {
-          auth: {
-            token: this.token,
-          },
           transports: ['websocket', 'polling'],
+          withCredentials: true, // Send cookies with connection
+          // Cookies are automatically included in the handshake when withCredentials is true
+          // Backend will read viargos_access_token from cookie header
         });
 
         this.socket.on('connect', () => {
@@ -436,15 +432,6 @@ export class WebSocketService {
   // ========================================
   // Private Validation Methods (SRP)
   // ========================================
-
-  /**
-   * Validate token
-   */
-  private validateToken(token: string): void {
-    if (!token || typeof token !== 'string' || token.trim().length === 0) {
-      throw new Error(ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD('Token'));
-    }
-  }
 
   /**
    * Validate conversation ID

@@ -24,6 +24,12 @@ export default function CommentItem({
   const router = useRouter();
   const { user: currentUser } = useAuthStore();
 
+  // Early return if comment user data is missing
+  if (!comment.user) {
+    console.warn('CommentItem: Missing user data for comment', comment.id);
+    return null;
+  }
+
   const hasReplies = comment.replyCount > 0;
 
   // Limit nesting depth for visual hierarchy
@@ -31,6 +37,7 @@ export default function CommentItem({
   const indentClass = indentLevel > 0 ? `ml-${indentLevel * 4} sm:ml-${indentLevel * 6}` : '';
 
   const handleUserClick = () => {
+    if (!comment.user) return;
     if (comment.user.id === currentUser?.id) {
       router.push('/profile');
     } else {
@@ -50,7 +57,7 @@ export default function CommentItem({
         className="flex-shrink-0 cursor-pointer"
         onClick={handleUserClick}
       >
-        {comment.user.profileImage ? (
+        {comment.user?.profileImage ? (
           <Image
             src={comment.user.profileImage}
             alt={comment.user.username || 'User'}
@@ -60,7 +67,7 @@ export default function CommentItem({
           />
         ) : (
           <div className="w-9 h-9 rounded-full bg-[#160E53] flex items-center justify-center text-white font-bold text-sm">
-            {comment.user.username?.charAt(0).toUpperCase() || 'U'}
+            {comment.user?.username?.charAt(0).toUpperCase() || 'U'}
           </div>
         )}
       </div>
@@ -73,7 +80,7 @@ export default function CommentItem({
             onClick={handleUserClick}
             className="font-semibold text-sm text-gray-900 hover:underline"
           >
-            {comment.user.username}
+            {comment.user?.username || 'Unknown User'}
           </button>
           <span className="text-xs text-gray-500">
             {formatDistanceToNow(new Date(comment.createdAt), {

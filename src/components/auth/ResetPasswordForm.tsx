@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion } from 'framer-motion';
-import { useAuthStore } from '@/store/auth.store';
+import { AuthApi, ApiError, ApiErrorCode } from '@/lib/api';
 import Button from '@/components/ui/Button';
 import { EyeIcon, EyeOffIcon } from '@/components/icons';
 
@@ -20,15 +20,21 @@ const resetPasswordSchema = z.object({
 type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 
 export interface ResetPasswordFormProps {
+  email: string; // Required: email from forgot password flow
   onSuccess?: () => void;
   onSwitchToLogin?: () => void;
+  onError?: (message: string) => void; // Callback to report errors to parent
+  onClearError?: () => void; // Callback to clear errors
 }
 
 export default function ResetPasswordForm({
+  email,
   onSuccess,
   onSwitchToLogin,
+  onError,
+  onClearError,
 }: ResetPasswordFormProps) {
-  const { resetPassword, isLoading, error, clearError } = useAuthStore();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -42,19 +48,34 @@ export default function ResetPasswordForm({
     mode: 'onBlur',
   });
 
-  const onSubmit = async (data: ResetPasswordFormData) => {
-    clearError();
-    
+  const onSubmit = async (formData: ResetPasswordFormData) => {
+    onClearError?.();
+    setIsSubmitting(true);
+
     try {
-      const result = await resetPassword(data.password);
-      
-      if (result.success) {
-        reset();
-        onSuccess?.();
-      }
-      // Error is already handled in the store
+      await AuthApi.resetPassword({
+        email,
+        newPassword: formData.password,
+      });
+
+      reset();
+      onSuccess?.();
     } catch (error) {
-      console.error('Reset password form error:', error);
+      if (error instanceof ApiError) {
+        if (error.is(ApiErrorCode.INVALID_OTP)) {
+          onError?.('Invalid or expired code. Please try again.');
+        } else if (error.is(ApiErrorCode.VALIDATION_ERROR)) {
+          onError?.(error.message);
+        } else {
+          onError?.(error.getUserMessage());
+        }
+      } else {
+        onError?.(
+          error instanceof Error ? error.message : 'An unexpected error occurred'
+        );
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -91,18 +112,6 @@ export default function ResetPasswordForm({
       </motion.div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
-        {error && (
-          <motion.div 
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm"
-            initial={{ opacity: 0, scale: 0.95, y: -10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -10 }}
-            transition={{ duration: 0.2 }}
-          >
-            {error}
-          </motion.div>
-        )}
-
         <motion.div variants={itemVariants}>
           <label
             htmlFor="password"
@@ -117,7 +126,7 @@ export default function ResetPasswordForm({
               id="password"
               className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black transition-all duration-200"
               placeholder="Enter your new password"
-              disabled={isLoading}
+              disabled={isSubmitting}
               autoComplete="new-password"
               whileFocus={{ scale: 1.02, borderColor: '#3B82F6' }}
             />
@@ -167,7 +176,7 @@ export default function ResetPasswordForm({
               id="confirmPassword"
               className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black transition-all duration-200"
               placeholder="Confirm your new password"
-              disabled={isLoading}
+              disabled={isSubmitting}
               autoComplete="new-password"
               whileFocus={{ scale: 1.02, borderColor: '#3B82F6' }}
             />
@@ -210,10 +219,10 @@ export default function ResetPasswordForm({
               variant="primary"
               size="lg"
               className="w-full"
-              disabled={isLoading || !isValid}
-              loading={isLoading}
+              disabled={isSubmitting || !isValid}
+              loading={isSubmitting}
             >
-              {isLoading ? 'Resetting...' : 'Reset Password'}
+              {isSubmitting ? 'Resetting...' : 'Reset Password'}
             </Button>
           </motion.div>
         </motion.div>
@@ -225,7 +234,7 @@ export default function ResetPasswordForm({
               type="button"
               onClick={onSwitchToLogin}
               className="font-medium text-blue-600 hover:text-blue-500 focus:outline-none focus:underline"
-              disabled={isLoading}
+              disabled={isSubmitting}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >

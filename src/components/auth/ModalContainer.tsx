@@ -1,13 +1,13 @@
 'use client';
 
 import AuthModal from './AuthModal';
-import { useAuthStore } from '@/store/auth.store';
+import { useAuthModalStore } from '@/store/auth-modal.store';
 
 export default function ModalContainer() {
   const {
     activeModal,
     closeAllModals,
-  } = useAuthStore();
+  } = useAuthModalStore();
 
   // Map auth store modal types to AuthModal steps
   const getInitialStep = (): 'login' | 'signup' | 'otp' => {

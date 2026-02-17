@@ -6,8 +6,9 @@ import Button from "@/components/ui/Button";
 import { TextArea } from "@/components/ui/TextArea";
 import PostMediaUploader from "./PostMediaUploader";
 import LocationSearch from "@/components/journey/LocationSearch";
-import { CreatePostFormData, PostType, MediaType } from "@/types/post.types";
-import { postService } from "@/lib/services/service-factory";
+import { PostType, MediaType } from "@/enums";
+import { CreatePostFormData } from "@/types/post.types";
+import { PostApi, ApiError } from "@/lib/api";
 
 interface Location {
   id: string;
@@ -184,14 +185,14 @@ export default function StandalonePostForm({
       setError(null);
 
       // Create the post
-      const postResponse = await postService.createPost({
+      const post = await PostApi.create({
         description: formData.description,
         location: formData.location,
         latitude: formData.latitude,
         longitude: formData.longitude,
       });
 
-      if (!postResponse.data) {
+      if (!post?.id) {
         throw new Error("Failed to create post: No data returned");
       }
 
@@ -199,7 +200,7 @@ export default function StandalonePostForm({
       if (formData.media.length > 0) {
         for (let i = 0; i < formData.media.length; i++) {
           const mediaItem = formData.media[i];
-          await postService.addMediaToPost(postResponse.data.id, {
+          await PostApi.addMedia(post.id, {
             type: mediaItem.type,
             url: mediaItem.preview,
             order: i,
@@ -207,9 +208,9 @@ export default function StandalonePostForm({
         }
       }
 
-      onSuccess(postResponse.data.id);
-    } catch (error: any) {
-      setError(error.message || "Failed to create post");
+      onSuccess(post.id);
+    } catch (error) {
+      setError(error instanceof ApiError ? error.getUserMessage() : error instanceof Error ? error.message : "Failed to create post");
     } finally {
       setLoading(false);
     }

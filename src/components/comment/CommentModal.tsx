@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, MessageSquare } from 'lucide-react';
 import Image from 'next/image';
 import { Post, PostComment } from '@/types/post.types';
-import { postService } from '@/lib/services/service-factory';
+import { PostApi, ApiError } from '@/lib/api';
 import CommentForm from './CommentForm';
 import CommentList from './CommentList';
 
@@ -54,13 +54,10 @@ export default function CommentModal({
       setError(null);
 
       try {
-        const response = await postService.getComments(post.id, {
-          limit: 10,
-          offset: 0,
-        });
-        setComments(response.data || []);
+        const list = await PostApi.getComments(post.id, { limit: 10, offset: 0 });
+        setComments((list || []) as PostComment[]);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load comments');
+        setError(err instanceof ApiError ? err.getUserMessage() : err instanceof Error ? err.message : 'Failed to load comments');
         console.error('Error fetching comments:', err);
       } finally {
         setIsLoading(false);
@@ -74,17 +71,16 @@ export default function CommentModal({
   const handleAddComment = async (content: string) => {
     setIsAddingComment(true);
     try {
-      const newComment = await postService.addComment(post.id, content);
+      const newComment = await PostApi.addComment(post.id, { content });
 
       // Optimistically add the comment to the list
-      if (newComment.data) {
-        setComments((prev) => [newComment.data, ...prev]);
-        const newCount = localCommentCount + 1;
-        setLocalCommentCount(newCount);
-        onCommentCountChange?.(post.id, newCount);
-      }
+      setComments((prev) => [newComment as PostComment, ...prev]);
+      const newCount = localCommentCount + 1;
+      setLocalCommentCount(newCount);
+      onCommentCountChange?.(post.id, newCount);
     } catch (err) {
-      console.error('Failed to add comment:', err);
+      if (err instanceof ApiError) console.error('Failed to add comment:', err.getUserMessage());
+      else console.error('Failed to add comment:', err);
       throw err; // Let CommentForm handle the error display
     } finally {
       setIsAddingComment(false);

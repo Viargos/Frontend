@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, MapPin, Edit3, Trash2, Copy, Share2, MoreHorizontal } from 'lucide-react';
 import { Journey } from '@/types/journey.types';
-import { useJourneyStore } from '@/store/journey.store';
 import { useRouter } from 'next/navigation';
 
 interface JourneyCardProps {
@@ -24,13 +23,6 @@ export default function JourneyCard({
 }: JourneyCardProps) {
   const [showDropdown, setShowDropdown] = useState(false);
   const router = useRouter();
-  
-  const { 
-    deleteJourney, 
-    duplicateJourney, 
-    isDeleting, 
-    isCreating 
-  } = useJourneyStore();
 
   const handleCardClick = () => {
     router.push(`/journey/${journey.id}`);
@@ -50,11 +42,6 @@ export default function JourneyCard({
     e.stopPropagation();
     if (onDelete) {
       onDelete(journey.id);
-    } else {
-      const success = await deleteJourney(journey.id);
-      if (success) {
-        // Optionally show success message
-      }
     }
     setShowDropdown(false);
   };
@@ -63,8 +50,6 @@ export default function JourneyCard({
     e.stopPropagation();
     if (onDuplicate) {
       onDuplicate(journey.id);
-    } else {
-      await duplicateJourney(journey.id);
     }
     setShowDropdown(false);
   };

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Post, PostComment } from '@/types/post.types';
-import { postService } from '@/lib/services/service-factory';
+import { PostApi, ApiError } from '@/lib/api';
 import CommentForm from './CommentForm';
 import CommentList from './CommentList';
 
@@ -53,13 +53,11 @@ export default function CommentSection({
       setIsLoading(true);
 
       try {
-        const response = await postService.getComments(post.id, {
-          limit: 10,
-          offset: 0,
-        });
-        setComments(response.data || []);
+        const list = await PostApi.getComments(post.id, { limit: 10, offset: 0 });
+        setComments((list || []) as PostComment[]);
       } catch (err) {
-        console.error('Error fetching comments:', err);
+        if (err instanceof ApiError) console.error('Error fetching comments:', err.getUserMessage());
+        else console.error('Error fetching comments:', err);
       } finally {
         setIsLoading(false);
       }
@@ -72,17 +70,16 @@ export default function CommentSection({
   const handleAddComment = async (content: string) => {
     setIsAddingComment(true);
     try {
-      const newComment = await postService.addComment(post.id, content);
+      const newComment = await PostApi.addComment(post.id, { content });
 
       // Optimistically add the comment to the list
-      if (newComment.data) {
-        setComments((prev) => [newComment.data!, ...prev]);
-        const newCount = localCommentCount + 1;
-        setLocalCommentCount(newCount);
-        onCommentCountChange?.(post.id, newCount);
-      }
+      setComments((prev) => [newComment as PostComment, ...prev]);
+      const newCount = localCommentCount + 1;
+      setLocalCommentCount(newCount);
+      onCommentCountChange?.(post.id, newCount);
     } catch (err) {
-      console.error('Failed to add comment:', err);
+      if (err instanceof ApiError) console.error('Failed to add comment:', err.getUserMessage());
+      else console.error('Failed to add comment:', err);
       throw err; // Let CommentForm handle the error display
     } finally {
       setIsAddingComment(false);

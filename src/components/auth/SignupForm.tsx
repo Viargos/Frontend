@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useAuthStore } from '@/store/auth.store';
+import { AuthApi, ApiError, ApiErrorCode } from '@/lib/api';
 import { EyeOffIcon, EyeIcon, SpinnerIcon } from '@/components/icons';
 
 const signupSchema = z
@@ -25,13 +25,17 @@ type SignupFormData = z.infer<typeof signupSchema>;
 interface SignupFormProps {
   onSuccess?: (email: string) => void;
   onSwitchToLogin?: () => void;
+  onError?: (message: string) => void; // Callback to report errors to parent
+  onClearError?: () => void; // Callback to clear errors
 }
 
 export default function SignupForm({
   onSuccess,
   onSwitchToLogin,
+  onError,
+  onClearError,
 }: SignupFormProps) {
-  const { signup, isLoading, error } = useAuthStore();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -39,51 +43,39 @@ export default function SignupForm({
     register,
     handleSubmit,
     formState: { errors },
-    setError,
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
   });
 
-  const onSubmit = async (data: SignupFormData) => {
+  const onSubmit = async (formData: SignupFormData) => {
+    onClearError?.();
+    setIsSubmitting(true);
+
     try {
-      const result = await signup({
-        username: data.username,
-        email: data.email,
-        phoneNumber: data.phoneNumber,
-        password: data.password,
+      const data = await AuthApi.signup({
+        username: formData.username,
+        email: formData.email,
+        phoneNumber: formData.phoneNumber,
+        password: formData.password,
       });
 
-      // Only call onSuccess if signup was successful
-      if (result.success) {
-        onSuccess?.(data.email);
-      } else {
-        // Check if the error has field-specific validation errors
-        if (
-          result.error &&
-          typeof result.error === 'object' &&
-          'errors' in result.error
-        ) {
-          const validationErrors = result.error.errors as Record<
-            string,
-            string
-          >;
-
-          // Set field-specific errors using react-hook-form
-          Object.entries(validationErrors).forEach(([field, message]) => {
-            if (field === 'email') {
-              setError('email', { type: 'server', message });
-            } else if (field === 'phoneNumber') {
-              setError('phoneNumber', { type: 'server', message });
-            } else if (field === 'username') {
-              setError('username', { type: 'server', message });
-            }
-          });
+      onSuccess?.(data.email);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        if (error.is(ApiErrorCode.CONFLICT)) {
+          onError?.('Email already exists. Please sign in instead.');
+        } else if (error.is(ApiErrorCode.VALIDATION_ERROR)) {
+          onError?.(error.message);
+        } else {
+          onError?.(error.getUserMessage());
         }
-
-        return;
+      } else {
+        onError?.(
+          error instanceof Error ? error.message : 'An unexpected error occurred'
+        );
       }
-    } catch {
-      // Error is handled in the store
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -97,12 +89,6 @@ export default function SignupForm({
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {error && typeof error === 'string' && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
-            {error}
-          </div>
-        )}
-
         <div>
           <label
             htmlFor="username"
@@ -234,10 +220,10 @@ export default function SignupForm({
 
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={isSubmitting}
           className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#160E53] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#160E53] disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLoading ? (
+          {isSubmitting ? (
             <div className="flex items-center">
               <SpinnerIcon className="-ml-1 mr-3 h-5 w-5 text-white" />
               Creating account...

@@ -3,11 +3,13 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth.store';
+import { useLogout } from '@/hooks/auth/use-logout';
 import { PageLoading, ErrorBoundary } from '@/components/common';
 import { LeftSidebar } from '@/components/layout';
 import { Header } from '@/components/home';
 import { BottomNavigation } from '@/components/navigation';
 import { AnimatedHeader, AnimatedSidebar } from '@/components/dashboard';
+import { SentryTestButton } from '@/components/test/SentryTestButton';
 
 /**
  * Dashboard Layout - Layout for all authenticated routes
@@ -19,7 +21,8 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, isInitializing } = useAuthStore();
+  const { logout } = useLogout();
   const router = useRouter();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
@@ -38,17 +41,25 @@ export default function DashboardLayout({
     localStorage.setItem('sidebarCollapsed', String(newState));
   };
 
+  // Handle authentication state after initialization
   useEffect(() => {
-    // Redirect unauthenticated users to home
-    if (isAuthenticated === false) router.push('/');
-  }, [isAuthenticated, router]);
+    // Wait for AuthInitializer to finish
+    if (isInitializing) return;
 
-  // Show loading while auth state is being determined or user is being redirected
-  if (isAuthenticated === null) {
+    // If no user after initialization, redirect to home
+    // (This handles the case where cookies expired or user logged out)
+    if (!user) {
+      router.push('/?session=expired');
+    }
+  }, [isInitializing, user, router]);
+
+  // Show loading while initializing (session rehydration)
+  if (isInitializing) {
     return <PageLoading text="Loading..." />;
   }
 
-  if (!isAuthenticated || !user) {
+  // Show loading if user is null (will redirect via useEffect above)
+  if (!user) {
     return <PageLoading text="Redirecting..." />;
   }
 
@@ -83,6 +94,9 @@ export default function DashboardLayout({
 
         {/* Bottom Navigation for Mobile */}
         <BottomNavigation user={user} onLogout={logout} />
+
+        {/* Sentry test controls (dev only) */}
+        <SentryTestButton />
       </div>
     </ErrorBoundary>
   );

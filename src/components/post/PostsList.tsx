@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Post } from "@/types/post.types";
 import PostCard from "./PostCard";
-import { postService } from "@/lib/services/service-factory";
+import { PostApi, ApiError } from "@/lib/api";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { PostsEmptyIcon } from "@/components/icons";
 
@@ -26,22 +26,16 @@ export default function PostsList({ userId, className = "" }: PostsListProps) {
         setIsLoading(true);
         setError(null);
 
-        let response;
-        if (userId) {
-          // Fetch posts by specific user
-          response = await postService.getPostsByUser(userId);
-        } else {
-          // For now, we'll use the current user's posts as "all posts"
-          // In a real app, you'd have an endpoint for all posts
-          response = await postService.getPostsByUser("me");
-        }
+        const list = userId
+          ? await PostApi.listByUser(userId)
+          : await PostApi.listByUser("me");
 
-        if (response.data) {
-          setPosts(response.data);
+        if (Array.isArray(list)) {
+          setPosts(list as Post[]);
         }
-      } catch (err: any) {
+      } catch (err) {
+        setError(err instanceof ApiError ? err.getUserMessage() : err instanceof Error ? err.message : "Failed to load posts");
         console.error("Error fetching posts:", err);
-        setError(err.message || "Failed to load posts");
       } finally {
         setIsLoading(false);
       }

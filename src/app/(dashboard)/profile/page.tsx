@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/auth.store';
 import { useProfileStore } from '@/store/profile.store';
 import { useJourneyStore } from '@/store/journey.store';
+import { useMyJourneys, useDeleteJourney } from '@/hooks/journey/useJourneyQueries';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ProfileHeader, ProfileTabs, ProfileJourneyCard, ProfilePostsGrid } from '@/components/profile';
@@ -15,7 +16,8 @@ import { UserProfile } from '@/types/profile.types';
 import { JourneyIcon } from '@/components/icons';
 
 export default function ProfilePage() {
-  const { user, isAuthenticated } = useAuthStore();
+  const { user } = useAuthStore();
+  const isAuthenticated = user !== null;
   const {
     profile,
     stats,
@@ -33,12 +35,15 @@ export default function ProfilePage() {
     deleteJourney,
     clearError,
   } = useProfileStore();
-  const {
-    journeys,
-    isLoading: isJourneysLoading,
-    loadMyJourneys,
-    deleteJourney: deleteJourneyFromStore,
-  } = useJourneyStore();
+
+  // React Query for journeys
+  const { filters } = useJourneyStore();
+  const { data: journeys = [], isLoading: isJourneysLoading } = useMyJourneys(
+    activeTab === 'journey' || activeTab === 'map'
+      ? { ...filters, limit: undefined, offset: undefined }
+      : undefined
+  );
+  const deleteJourneyMutation = useDeleteJourney();
   const router = useRouter();
 
   // Map-related state
@@ -53,16 +58,7 @@ export default function ProfilePage() {
     }
   }, [isAuthenticated, user, loadProfileAndStats]);
 
-  // Fetch journeys when journey or map tab is active
-  useEffect(() => {
-    if (isAuthenticated && user && (activeTab === 'journey' || activeTab === 'map')) {
-      // Load ALL journeys without limit - explicitly remove limit filter
-      loadMyJourneys({ limit: undefined, offset: undefined });
-    }
-  }, [isAuthenticated, user, activeTab, loadMyJourneys]);
-
-
-  // Log rendered journeys count when journeys change
+  // Log rendered journeys count when journeys change (React Query auto-fetches based on activeTab)
   useEffect(() => {
     if (activeTab === 'journey' && journeys.length > 0) {
       console.log("[RENDERED_JOURNEYS_COUNT]", {
@@ -155,12 +151,10 @@ export default function ProfilePage() {
     // Delete from profile store (updates recentJourneys and makes API call)
     const result = await deleteJourney(journeyId);
 
-    // Also update journey store to keep UI in sync
-    // The journey store will handle "Journey not found" gracefully
-    // Since backend is idempotent, calling both stores is safe
+    // Also invalidate React Query cache to keep UI in sync
     if (result.success || (result.error && result.error.toLowerCase().includes('journey not found'))) {
-      // Update journey store - it will handle errors gracefully
-      await deleteJourneyFromStore(journeyId);
+      // React Query mutation will automatically invalidate and refetch
+      await deleteJourneyMutation.mutateAsync(journeyId);
     }
 
     if (!result.success && result.error && !result.error.toLowerCase().includes('journey not found')) {
@@ -178,20 +172,25 @@ export default function ProfilePage() {
     return <UserProfileSkeleton />;
   }
 
-  // Use profile data from the store, fallback to user data
-  const currentProfile: UserProfile | null = profile || (user ? {
-    id: user.id,
-    username: user.username,
-    email: user.email,
-    phoneNumber: user.phoneNumber,
-    bio: user.bio || '',
-    location: user.location || '',
-    profileImage: user.profileImage,
-    bannerImage: user.bannerImage,
-    isActive: user.isActive,
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt,
-  } : null);
+  // Use profile data from the store, fallback to user data (guard against missing id)
+  const currentProfile: UserProfile | null =
+    (profile?.id != null
+      ? profile
+      : user?.id != null
+        ? {
+            id: user.id,
+            username: user.username,
+            email: user.email ?? '',
+            phoneNumber: user.phoneNumber,
+            bio: (user as { bio?: string }).bio ?? '',
+            location: (user as { location?: string }).location ?? '',
+            profileImage: user.profileImage,
+            bannerImage: (user as { bannerImage?: string }).bannerImage,
+            isActive: (user as { isActive?: boolean }).isActive ?? true,
+            createdAt: user.createdAt instanceof Date ? user.createdAt : new Date(user.createdAt),
+            updatedAt: user.updatedAt instanceof Date ? user.updatedAt : new Date(user.updatedAt),
+          }
+        : null);
 
   return (
     <motion.div
@@ -218,8 +217,8 @@ export default function ProfilePage() {
         </motion.div>
       )}
 
-      {/* Profile Header */}
-      {currentProfile && (
+      {/* Profile Header - only when we have a valid profile with id */}
+      {currentProfile?.id && (
         <ProfileHeader
           profile={currentProfile}
           profileImageUrl={profileImageUrl}
@@ -261,7 +260,7 @@ export default function ProfilePage() {
               </div>
             ) : journeys.length > 0 ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 w-full">
-                {journeys.map((journey, index) => (
+                {journeys.filter((j): j is Journey => j != null && j.id != null).map((journey, index) => (
                   <ProfileJourneyCard
                     key={journey.id}
                     journey={journey}

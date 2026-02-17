@@ -3,19 +3,17 @@
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { Map, Calendar, MapPin, Star } from 'lucide-react';
-import { useJourneyStore } from '@/store/journey.store';
+import { useJourneyStats } from '@/hooks/journey/useJourneyQueries';
 import { LoadingSpinner } from '@/components/ui';
 
 interface JourneysStatsProps {
   className?: string;
+  userId?: string;
 }
 
-export default function JourneysStats({ className = '' }: JourneysStatsProps) {
-  const { stats, isLoadingStats, loadStats } = useJourneyStore();
-
-  useEffect(() => {
-    loadStats();
-  }, [loadStats]);
+export default function JourneysStats({ className = '', userId }: JourneysStatsProps) {
+  // React Query for stats
+  const { data: stats, isLoading: isLoadingStats } = useJourneyStats(userId);
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) {
