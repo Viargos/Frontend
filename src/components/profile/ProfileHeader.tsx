@@ -10,13 +10,13 @@ import { PlusIcon, MapPinIcon } from '@/components/icons';
 
 interface ProfileHeaderProps {
   profile: UserProfile;
-  profileImageUrl: string | null;
-  bannerImageUrl: string | null;
-  isImageUploading: boolean;
+  profileImageUrl?: string | null;
+  bannerImageUrl?: string | null;
+  isImageUploading?: boolean;
   stats?: UserStats | null;
   isStatsLoading?: boolean;
-  onProfileImageUpload: (file: File) => void;
-  onBannerImageUpload: (file: File) => void;
+  onProfileImageUpload?: (file: File) => void;
+  onBannerImageUpload?: (file: File) => void;
 }
 
 // Stat item component for use within the header
@@ -245,6 +245,35 @@ export default function ProfileHeader({
               <MapPinIcon className="w-4 h-4 sm:w-5 sm:h-5" />
               {profile.location}
             </motion.div>
+          )}
+
+          {/* Email - Only shown on own profile */}
+          {profile.email && (
+            <motion.p
+              className="text-gray-600 text-sm sm:text-base text-center sm:text-left"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+            >
+              {profile.email}
+            </motion.p>
+          )}
+
+          {/* Join Date - Only shown on own profile */}
+          {profile.createdAt && (
+            <motion.p
+              className="text-gray-500 text-xs sm:text-sm text-center sm:text-left"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+            >
+              Joined{' '}
+              {new Date(profile.createdAt).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </motion.p>
           )}
         </div>
 

@@ -25,3 +25,22 @@ export async function POST(
     return createErrorResponse('Internal server error', 500);
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await extractParams(params);
+    const res = await backendFetch(`/api/posts/${id}/like`, {
+      method: HttpMethod.DELETE,
+      forwardCookies: true,
+    });
+
+    return handleBackendResponse(res, 'Request failed');
+  } catch (error) {
+    const { id } = await extractParams(params);
+    console.error(`[DELETE /api/posts/${id}/like] Error:`, error);
+    return createErrorResponse('Internal server error', 500);
+  }
+}

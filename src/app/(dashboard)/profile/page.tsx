@@ -1,74 +1,45 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useAuthStore } from '@/store/auth.store';
-import { useProfileStore } from '@/store/profile.store';
-import { useJourneyStore } from '@/store/journey.store';
-import { useMyJourneys, useDeleteJourney } from '@/hooks/journey/useJourneyQueries';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { useMyJourneys, useDeleteJourney } from '@/hooks/journey/useJourneyQueries';
+import { useCurrentUserProfile, useCurrentUserPosts } from '@/hooks/profile';
 import { ProfileHeader, ProfileTabs, ProfileJourneyCard, ProfilePostsGrid } from '@/components/profile';
 import { Button, LoadingSpinner, UserProfileSkeleton } from '@/components/ui';
 import AllJourneysMap from '@/components/maps/AllJourneysMap';
 import JourneyCard from '@/components/maps/JourneyCard';
 import { Journey } from '@/types/journey.types';
-import { UserProfile } from '@/types/profile.types';
 import { JourneyIcon } from '@/components/icons';
 
 export default function ProfilePage() {
-  const { user } = useAuthStore();
-  const isAuthenticated = user !== null;
-  const {
-    profile,
-    stats,
-    profileImageUrl,
-    bannerImageUrl,
-    isLoading,
-    isStatsLoading,
-    isImageUploading,
-    error,
-    activeTab,
-    setActiveTab,
-    loadProfileAndStats,
-    uploadProfileImage,
-    uploadBannerImage,
-    deleteJourney,
-    clearError,
-  } = useProfileStore();
-
-  // React Query for journeys
-  const { filters } = useJourneyStore();
-  const { data: journeys = [], isLoading: isJourneysLoading } = useMyJourneys(
-    activeTab === 'journey' || activeTab === 'map'
-      ? { ...filters, limit: undefined, offset: undefined }
-      : undefined
-  );
-  const deleteJourneyMutation = useDeleteJourney();
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState<'journey' | 'post' | 'map'>('journey');
+
+  // React Query: Fetch current user profile (always)
+  const {
+    data: profileData,
+    isLoading: isLoadingProfile,
+    error: profileError,
+  } = useCurrentUserProfile();
+
+  // React Query: Fetch journeys (only when journey/map tab is active)
+  const { data: journeys = [], isLoading: isLoadingJourneys } = useMyJourneys({
+    limit: undefined,
+    offset: undefined,
+    enabled: activeTab === 'journey' || activeTab === 'map',
+  });
+
+  // React Query: Fetch posts (only when post tab is active)
+  const { data: posts = [], isLoading: isLoadingPosts } = useCurrentUserPosts({
+    enabled: activeTab === 'post',
+  });
+
+  const deleteJourneyMutation = useDeleteJourney();
 
   // Map-related state
   const [selectedJourney, setSelectedJourney] = useState<Journey | null>(null);
   const [showJourneyCard, setShowJourneyCard] = useState(false);
-
-  // Load profile and stats when component mounts
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      // Use optimized method that loads both profile, stats, and recent journeys in one call
-      loadProfileAndStats();
-    }
-  }, [isAuthenticated, user, loadProfileAndStats]);
-
-  // Log rendered journeys count when journeys change (React Query auto-fetches based on activeTab)
-  useEffect(() => {
-    if (activeTab === 'journey' && journeys.length > 0) {
-      console.log("[RENDERED_JOURNEYS_COUNT]", {
-        count: journeys.length,
-        journeys: journeys
-      });
-    }
-  }, [journeys, activeTab]);
-
-  // Hover state management
   const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const [isHoverMode, setIsHoverMode] = React.useState(false);
 
@@ -131,35 +102,13 @@ export default function ProfilePage() {
     }
   };
 
-  // Handle image uploads
-  const handleProfileImageUpload = async (file: File) => {
-    const result = await uploadProfileImage(file);
-    if (!result.success && result.error) {
-      console.error('Profile image upload failed:', result.error);
-    }
-  };
-
-  const handleBannerImageUpload = async (file: File) => {
-    const result = await uploadBannerImage(file);
-    if (!result.success && result.error) {
-      console.error('Banner image upload failed:', result.error);
-    }
-  };
-
   // Handle journey deletion
   const handleDeleteJourney = async (journeyId: string) => {
-    // Delete from profile store (updates recentJourneys and makes API call)
-    const result = await deleteJourney(journeyId);
-
-    // Also invalidate React Query cache to keep UI in sync
-    if (result.success || (result.error && result.error.toLowerCase().includes('journey not found'))) {
-      // React Query mutation will automatically invalidate and refetch
+    try {
       await deleteJourneyMutation.mutateAsync(journeyId);
-    }
-
-    if (!result.success && result.error && !result.error.toLowerCase().includes('journey not found')) {
-      console.error('Journey deletion failed:', result.error);
-      // You could show a toast notification here
+      // React Query automatically invalidates and refetches
+    } catch (error) {
+      console.error('Journey deletion failed:', error);
     }
   };
 
@@ -168,29 +117,36 @@ export default function ProfilePage() {
   };
 
   // Show loading state while profile loading
-  if (isLoading) {
+  if (isLoadingProfile) {
     return <UserProfileSkeleton />;
   }
 
-  // Use profile data from the store, fallback to user data (guard against missing id)
-  const currentProfile: UserProfile | null =
-    (profile?.id != null
-      ? profile
-      : user?.id != null
-        ? {
-            id: user.id,
-            username: user.username,
-            email: user.email ?? '',
-            phoneNumber: user.phoneNumber,
-            bio: (user as { bio?: string }).bio ?? '',
-            location: (user as { location?: string }).location ?? '',
-            profileImage: user.profileImage,
-            bannerImage: (user as { bannerImage?: string }).bannerImage,
-            isActive: (user as { isActive?: boolean }).isActive ?? true,
-            createdAt: user.createdAt instanceof Date ? user.createdAt : new Date(user.createdAt),
-            updatedAt: user.updatedAt instanceof Date ? user.updatedAt : new Date(user.updatedAt),
-          }
-        : null);
+  // Error state
+  if (profileError || !profileData) {
+    return (
+      <motion.div
+        className="flex flex-col items-center justify-center py-16 px-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+            Failed to Load Profile
+          </h2>
+          <p className="text-gray-600 mb-6">
+            {profileError?.message || "Couldn't load your profile data."}
+          </p>
+          <Button
+            variant="primary"
+            onClick={() => window.location.reload()}
+          >
+            Reload Page
+          </Button>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -199,37 +155,11 @@ export default function ProfilePage() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
     >
-      {/* Error Display */}
-      {error && (
-        <motion.div
-          className="w-full bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm"
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-        >
-          {error}
-          <button
-            onClick={clearError}
-            className="ml-2 text-red-600 hover:text-red-800 font-medium"
-          >
-            Dismiss
-          </button>
-        </motion.div>
-      )}
-
-      {/* Profile Header - only when we have a valid profile with id */}
-      {currentProfile?.id && (
-        <ProfileHeader
-          profile={currentProfile}
-          profileImageUrl={profileImageUrl}
-          bannerImageUrl={bannerImageUrl}
-          isImageUploading={isImageUploading}
-          stats={stats}
-          isStatsLoading={isStatsLoading}
-          onProfileImageUpload={handleProfileImageUpload}
-          onBannerImageUpload={handleBannerImageUpload}
-        />
-      )}
+      {/* Profile Header */}
+      <ProfileHeader
+        profile={profileData.user}
+        stats={profileData.stats}
+      />
 
       {/* We've moved the stats to the ProfileHeader component */}
 
@@ -254,13 +184,13 @@ export default function ProfilePage() {
 
           {/* Journey Cards */}
           <div className="flex flex-col items-start gap-3 w-full">
-            {isJourneysLoading ? (
+            {isLoadingJourneys ? (
               <div className="flex items-center justify-center py-8 w-full">
                 <LoadingSpinner size="lg" />
               </div>
             ) : journeys.length > 0 ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 w-full">
-                {journeys.filter((j): j is Journey => j != null && j.id != null).map((journey, index) => (
+                {journeys.map((journey, index) => (
                   <ProfileJourneyCard
                     key={journey.id}
                     journey={journey}
@@ -295,14 +225,9 @@ export default function ProfilePage() {
             My Posts
           </h2>
           <ProfilePostsGrid
-            userId="me"
-            onEditPost={postId => {
-              // TODO: Implement edit functionality
-              console.log('Edit post:', postId);
-            }}
-            onDeletePost={postId => {
-              console.log('Post deleted:', postId);
-            }}
+            posts={posts}
+            isLoading={isLoadingPosts}
+            username={profileData.user.username}
           />
         </div>
       )}
@@ -329,7 +254,7 @@ export default function ProfilePage() {
 
           {/* Map Container */}
           <div className="relative w-full h-[600px] bg-gray-50 rounded-lg overflow-hidden shadow-sm">
-            {isJourneysLoading ? (
+            {isLoadingJourneys ? (
               <div className="flex items-center justify-center h-full">
                 <LoadingSpinner size="lg" />
               </div>
@@ -355,13 +280,7 @@ export default function ProfilePage() {
                 </div>
               </div>
             ) : (
-              <>
-                {console.log(
-                  'Rendering AllJourneysMap with',
-                  journeys.length,
-                  'journeys'
-                )}
-                <AllJourneysMap
+              <AllJourneysMap
                   journeys={journeys}
                   onJourneyClick={handleJourneyClick}
                   onJourneyHover={handleJourneyHover}
@@ -402,7 +321,6 @@ export default function ProfilePage() {
                     ) : null
                   }
                 />
-              </>
             )}
           </div>
         </div>

@@ -78,7 +78,7 @@ export default function EditJourneyPage() {
 
     if (success) {
       setShowReviewModal(false);
-      router.push(`/journey/${journeyId}`);
+      router.replace(`/journey/${journeyId}`);
     }
   };
 
@@ -92,7 +92,7 @@ export default function EditJourneyPage() {
     const success = await submitUpdateWithData(updatedFormData);
 
     if (success) {
-      router.push(`/journey/${journeyId}`);
+      router.replace(`/journey/${journeyId}`);
     }
   };
 

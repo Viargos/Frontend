@@ -88,12 +88,21 @@ export default function LoginForm({
       onSuccess?.();
     } catch (error) {
       if (error instanceof ApiError) {
+        // Log full error details for debugging backend error messages
+        console.error('[LoginForm] API Error:', {
+          code: error.code,
+          message: error.message,
+          statusCode: error.statusCode,
+          details: error.details,
+        });
+
         if (error.is(ApiErrorCode.EMAIL_NOT_VERIFIED)) {
           onSwitchToOtp?.(formData.email);
         } else {
           onError?.(error.getUserMessage());
         }
       } else {
+        console.error('[LoginForm] Unexpected error:', error);
         const message =
           error instanceof Error ? error.message : 'An unexpected error occurred';
         onError?.(message);

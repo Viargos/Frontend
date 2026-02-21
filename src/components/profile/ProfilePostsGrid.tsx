@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Post } from "@/types/post.types";
 import { PostApi, ApiError } from "@/lib/api";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
-import Button from "@/components/ui/Button";
 import { formatDistanceToNow } from "date-fns";
 import EditIcon from "@/components/icons/EditIcon";
 import DeleteIcon from "@/components/icons/DeleteIcon";
@@ -15,76 +14,52 @@ import ChatIcon from "@/components/icons/ChatIcon";
 import EditPostModal from "@/components/post/EditPostModal";
 import MediaCarousel from "@/components/post/MediaCarousel";
 import { PostsEmptyIcon, ImageIcon } from "@/components/icons";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import Button from "@/components/ui/Button";
 
 interface ProfilePostsGridProps {
-  userId?: string;
+  posts: Post[];
+  isLoading: boolean;
+  username: string;
   className?: string;
-  onEditPost?: (postId: string) => void;
-  onDeletePost?: (postId: string) => void;
 }
 
 export default function ProfilePostsGrid({
-  userId,
+  posts,
+  isLoading,
+  username,
   className = "",
-  onEditPost,
-  onDeletePost,
 }: ProfilePostsGridProps) {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [localPosts, setLocalPosts] = useState<Post[]>(posts);
   const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [postToDelete, setPostToDelete] = useState<string | null>(null);
 
-  // Log posts state changes
-  useEffect(() => {
-    console.log("[STATE_POSTS_COUNT]", {
-      count: posts.length,
-      posts: posts
-    });
+  // Update local posts when props change
+  React.useEffect(() => {
+    setLocalPosts(posts);
   }, [posts]);
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
+  const handleDeleteClick = (postId: string) => {
+    setPostToDelete(postId);
+    setShowDeleteConfirm(true);
+  };
 
-        const list = userId
-          ? await PostApi.listByUser(userId)
-          : await PostApi.listByUser("me");
-
-        if (Array.isArray(list)) {
-          setPosts(list as Post[]);
-        }
-      } catch (err) {
-        const message = err instanceof ApiError ? err.getUserMessage() : err instanceof Error ? err.message : "Failed to load posts";
-        console.error("Error fetching posts:", err);
-        setError(message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPosts();
-  }, [userId]);
-
-  const handleDeletePost = async (postId: string) => {
-    if (!confirm("Are you sure you want to delete this post?")) {
-      return;
-    }
+  const handleConfirmDelete = async () => {
+    if (!postToDelete) return;
 
     try {
-      setDeletingPostId(postId);
+      setDeletingPostId(postToDelete);
 
-      await PostApi.delete(postId);
+      await PostApi.delete(postToDelete);
 
       // Remove post from local state
-      setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
+      setLocalPosts((prevPosts) => prevPosts.filter((post) => post.id !== postToDelete));
 
-      // Call parent callback if provided
-      onDeletePost?.(postId);
-
+      setShowDeleteConfirm(false);
+      setPostToDelete(null);
     } catch (err) {
       const message = err instanceof ApiError ? err.getUserMessage() : err instanceof Error ? err.message : "Unknown error";
       console.error("Error deleting post:", err);
@@ -94,20 +69,22 @@ export default function ProfilePostsGrid({
     }
   };
 
+  const handleCancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setPostToDelete(null);
+  };
+
   const handleEditPost = (postId: string) => {
-    console.log("Edit post clicked:", postId);
-    const post = posts.find((p) => p.id === postId);
+    const post = localPosts.find((p) => p.id === postId);
     if (post) {
       setEditingPost(post);
       setShowEditModal(true);
     }
-    onEditPost?.(postId);
   };
 
   const handleEditSuccess = (updatedPost: Post) => {
-    console.log("Post updated successfully:", updatedPost);
     // Update the post in the local state
-    setPosts((prevPosts) =>
+    setLocalPosts((prevPosts) =>
       prevPosts.map((post) => (post.id === updatedPost.id ? updatedPost : post))
     );
     setShowEditModal(false);
@@ -127,20 +104,7 @@ export default function ProfilePostsGrid({
     );
   }
 
-  if (error) {
-    return (
-      <div className={`text-center py-12 ${className}`}>
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-          <p className="text-red-600 mb-4">{error}</p>
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            Try again
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  if (posts.length === 0) {
+  if (localPosts.length === 0) {
     return (
       <div className={`text-center py-12 ${className}`}>
         <PostsEmptyIcon className="w-16 h-16 mx-auto mb-4 text-gray-300" />
@@ -150,18 +114,12 @@ export default function ProfilePostsGrid({
     );
   }
 
-  // Log render count
-  console.log("[RENDER_POSTS_COUNT]", {
-    count: posts.length,
-    posts: posts
-  });
-
   return (
     <>
       <div className={`w-full ${className}`}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           <AnimatePresence>
-            {posts.map((post, index) => (
+            {localPosts.map((post, index) => (
               <motion.div
                 key={post.id}
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -198,7 +156,7 @@ export default function ProfilePostsGrid({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDeletePost(post.id);
+                        handleDeleteClick(post.id);
                       }}
                       disabled={deletingPostId === post.id}
                       className="w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-lg text-red-500 disabled:opacity-50"
@@ -225,7 +183,7 @@ export default function ProfilePostsGrid({
                       <Button
                         variant="secondary"
                         size="sm"
-                        onClick={() => handleDeletePost(post.id)}
+                        onClick={() => handleDeleteClick(post.id)}
                         disabled={deletingPostId === post.id}
                         className="bg-red-500/80 backdrop-blur-sm hover:bg-red-500 text-white border border-red-400/50 shadow-lg"
                       >
@@ -290,6 +248,19 @@ export default function ProfilePostsGrid({
           onSuccess={handleEditSuccess}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Delete Post"
+        message="Are you sure you want to delete this post? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        isDestructive
+        isLoading={deletingPostId !== null}
+      />
     </>
   );
 }

@@ -40,9 +40,58 @@ export class ApiError extends Error {
       case ApiErrorCode.NETWORK_ERROR:
         return 'Network error. Please check your connection.';
       case ApiErrorCode.VALIDATION_ERROR:
-        return this.message || 'Please check your input.';
+        // Try to extract detailed validation error from details field
+        return this.extractValidationMessage() || this.message || 'Please check your input.';
       default:
         return this.message || 'Something went wrong. Please try again.';
+    }
+  }
+
+  /**
+   * Extract detailed validation message from error details
+   * Handles multiple backend response formats
+   */
+  private extractValidationMessage(): string | null {
+    if (!this.details) return null;
+
+    try {
+      const details = this.details as any;
+
+      // Format 1: { message: "Detailed error" }
+      if (details.message && typeof details.message === 'string') {
+        return details.message;
+      }
+
+      // Format 2: { errors: [{ message: "..." }] }
+      if (Array.isArray(details.errors) && details.errors.length > 0) {
+        const firstError = details.errors[0];
+        if (firstError.message) {
+          return firstError.message;
+        }
+      }
+
+      // Format 3: { errors: { email: "Invalid format" } }
+      if (details.errors && typeof details.errors === 'object') {
+        const errorMessages = Object.values(details.errors).filter(
+          (msg): msg is string => typeof msg === 'string'
+        );
+        if (errorMessages.length > 0) {
+          return errorMessages[0];
+        }
+      }
+
+      // Format 4: { details: [{ message: "..." }] }
+      if (Array.isArray(details.details) && details.details.length > 0) {
+        const firstDetail = details.details[0];
+        if (firstDetail.message) {
+          return firstDetail.message;
+        }
+      }
+
+      return null;
+    } catch {
+      // Silently fail if details parsing errors - return null to use fallback
+      return null;
     }
   }
 

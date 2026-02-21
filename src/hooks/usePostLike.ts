@@ -17,10 +17,11 @@ interface UsePostLikeReturn {
 
 /**
  * Optimistic like/unlike functionality
- * - Instantly updates UI on click (optimistic update)
- * - API call happens in background
- * - Rolls back on error
- * - Syncs with backend response on success
+ * - Instantly updates UI on click (optimistic update is source of truth)
+ * - API call happens in background for persistence
+ * - Only rolls back on error
+ * - Prevents duplicate likes/unlikes while API is in progress
+ * - If already liked, clicking will unlike (and vice versa)
  */
 export const usePostLike = ({
   postId,
@@ -71,17 +72,11 @@ export const usePostLike = ({
 
     try {
       // Make the API call in the background
-      const response = shouldLike
-        ? await PostApi.like(postId)
-        : await PostApi.unlike(postId);
+      // We don't update UI from response - optimistic update is the source of truth
+      await (shouldLike ? PostApi.like(postId) : PostApi.unlike(postId));
 
-      // Sync with backend response (source of truth)
-      // Usually this will match our optimistic update
-      setIsLiked(response.isLiked);
-      setLocalLikeCount(response.likeCount);
-
-      // Update parent with actual backend values
-      onLikeChange?.(postId, response.isLiked, response.likeCount);
+      // Success - keep the optimistic update (no UI changes needed)
+      // The optimistic values are already set and displayed to the user
     } catch (error) {
       // ❌ ROLLBACK - Revert to previous state on error
       setIsLiked(previousIsLiked);

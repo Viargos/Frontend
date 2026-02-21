@@ -35,6 +35,7 @@ export default function AuthModals({
           onClose={onClose}
           onSwitchToSignup={onSwitchToSignup}
           onSwitchToForgotPassword={onSwitchToForgotPassword}
+          onSwitchToOtp={onSwitchToOtp}  {/* ✅ Pass OTP switch handler for unverified emails */}
         />
       )}
 

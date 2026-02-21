@@ -62,14 +62,25 @@ export default function SignupForm({
       onSuccess?.(data.email);
     } catch (error) {
       if (error instanceof ApiError) {
+        // Log full error details for debugging backend validation messages
+        console.error('[SignupForm] API Error:', {
+          code: error.code,
+          message: error.message,
+          statusCode: error.statusCode,
+          details: error.details,
+        });
+
         if (error.is(ApiErrorCode.CONFLICT)) {
           onError?.('Email already exists. Please sign in instead.');
         } else if (error.is(ApiErrorCode.VALIDATION_ERROR)) {
-          onError?.(error.message);
+          // Use getUserMessage() for consistent error handling
+          // If backend sends detailed message, it will be shown
+          onError?.(error.getUserMessage());
         } else {
           onError?.(error.getUserMessage());
         }
       } else {
+        console.error('[SignupForm] Unexpected error:', error);
         onError?.(
           error instanceof Error ? error.message : 'An unexpected error occurred'
         );

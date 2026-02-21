@@ -20,22 +20,15 @@ export async function GET(
   { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const { userId  } = await extractParams(params);
-    const res = await backendFetch(`/api/users/relationships/${userId}/following`, {
-      method: HttpMethod.GET,
-      forwardCookies: true,
-    });
-    const body = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      return NextResponse.json(
-        {
-          error: (body as ApiErrorDto).error ?? 'Failed to fetch following',
-          message: (body as ApiErrorDto).message,
-        } as ApiErrorDto,
-        { status: res.status }
-      );
-    }
-    return handleBackendResponse(res, 'Request failed');
+    const { userId } = await extractParams(params);
+    const res = await backendFetch(
+      `/api/users/relationships/${userId}/following`,
+      {
+        method: HttpMethod.GET,
+        forwardCookies: true,
+      }
+    );
+    return handleBackendResponse(res, 'Failed to fetch following');
   } catch (error) {
     console.error('[GET /api/user/relationships/[userId]/following] Error:', error);
     return createErrorResponse('Internal server error', 500);

@@ -74,12 +74,15 @@ export class PostApiService {
    * @param id Post ID
    * @returns Updated like status and count
    */
-  async like(id: string): Promise<{ isLiked: boolean; likesCount: number }> {
+  async like(id: string): Promise<{ isLiked: boolean; likeCount: number }> {
     const response = await httpClient.post<LikeResponseDto>(
       API_ENDPOINTS.POSTS.LIKE(id),
       {}
     );
-    return response.data;
+    return {
+      isLiked: response.data.isLiked,
+      likeCount: response.data.likeCount,
+    };
   }
 
   /**
@@ -87,12 +90,14 @@ export class PostApiService {
    * @param id Post ID
    * @returns Updated like status and count
    */
-  async unlike(id: string): Promise<{ isLiked: boolean; likesCount: number }> {
-    const response = await httpClient.post<LikeResponseDto>(
-      API_ENDPOINTS.POSTS.UNLIKE(id),
-      {}
+  async unlike(id: string): Promise<{ isLiked: boolean; likeCount: number }> {
+    const response = await httpClient.delete<LikeResponseDto>(
+      API_ENDPOINTS.POSTS.UNLIKE(id)
     );
-    return response.data;
+    return {
+      isLiked: response.data.isLiked,
+      likeCount: response.data.likeCount,
+    };
   }
 
   /**

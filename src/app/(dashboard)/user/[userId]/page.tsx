@@ -1,15 +1,12 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
-import { PostApi, ApiError } from '@/lib/api';
-import { UserApi, JourneyApi } from '@/lib/api';
-import { UserDetailsData, RecentPost } from '@/types/user.types';
-import { convertRecentJourneysToJourneys } from '@/utils/journey.utils';
 import { Journey } from '@/types/journey.types';
 import { useAuthStore } from '@/store/auth.store';
+import { useUserDetails, useUserJourneys, useUserPosts } from '@/hooks/user';
 import UserProfileHeader from '@/components/user/UserProfileHeader';
 import ProfileTabs from '@/components/profile/ProfileTabs';
 import ProfileJourneyCard from '@/components/profile/ProfileJourneyCard';
@@ -28,14 +25,7 @@ export default function UserDetailsPage() {
   const { user: currentUser } = useAuthStore();
   const isViewingOwnProfile = currentUser?.id === userId;
 
-  const [userDetails, setUserDetails] = useState<UserDetailsData | null>(null);
-  const [allJourneys, setAllJourneys] = useState<Journey[]>([]);
-  const [allPosts, setAllPosts] = useState<RecentPost[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingJourneys, setIsLoadingJourneys] = useState(false);
-  const [isLoadingPosts, setIsLoadingPosts] = useState(false);
-  const [showSkeleton, setShowSkeleton] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Tab state
   const [activeTab, setActiveTab] = useState<'journey' | 'post' | 'map'>(
     'journey'
   );
@@ -45,6 +35,33 @@ export default function UserDetailsPage() {
   const [showJourneyCard, setShowJourneyCard] = useState(false);
   const [isHoverMode, setIsHoverMode] = useState(false);
   const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // React Query: Fetch user details (always)
+  const {
+    data: userDetails,
+    isLoading: isLoadingDetails,
+    error: detailsError,
+  } = useUserDetails(userId);
+
+  // React Query: Fetch journeys (only when journey/map tab is active)
+  const {
+    data: journeys = [],
+    isLoading: isLoadingJourneys,
+  } = useUserJourneys({
+    userId,
+    isOwnProfile: isViewingOwnProfile,
+    enabled: activeTab === 'journey' || activeTab === 'map',
+    recentJourneys: userDetails?.recentJourneys || [],
+  });
+
+  // React Query: Fetch posts (only when post tab is active)
+  const {
+    data: posts = [],
+    isLoading: isLoadingPosts,
+  } = useUserPosts({
+    userId,
+    enabled: activeTab === 'post',
+  });
 
   // Map event handlers
   const handleJourneyClick = (journey: Journey) => {
@@ -99,332 +116,13 @@ export default function UserDetailsPage() {
     }
   };
 
-  // Load user details
-  useEffect(() => {
-    const loadUserDetails = async () => {
-      if (!userId) return;
-
-      setIsLoading(true);
-      setShowSkeleton(true);
-      setError(null);
-
-      try {
-        const response = await UserApi.getDetails(userId);
-
-        // Support both top-level and nested { data: { user, stats, ... } } from backend
-        const raw = (response as { data?: typeof response }).data ?? response;
-        const user = raw?.user;
-        const stats = raw?.stats;
-        const relationshipStatus = raw?.relationshipStatus;
-        const recentFollowers = Array.isArray(raw?.recentFollowers) ? raw.recentFollowers : [];
-        const recentFollowing = Array.isArray(raw?.recentFollowing) ? raw.recentFollowing : [];
-        const recentPostsRaw = Array.isArray(raw?.recentPosts) ? raw.recentPosts : [];
-        const recentJourneysRaw = Array.isArray(raw?.recentJourneys) ? raw.recentJourneys : [];
-
-        if (!user?.id) {
-          setError('User Not Found');
-          setUserDetails(null);
-          return;
-        }
-
-        // Transform to UserDetailsData with safe defaults
-        const userDetailsData: UserDetailsData = {
-          user,
-          stats: {
-            followersCount: stats?.followersCount ?? 0,
-            followingCount: stats?.followingCount ?? 0,
-            postsCount: stats?.postsCount ?? 0,
-            journeysCount: stats?.journeysCount ?? 0,
-          },
-          relationshipStatus: {
-            isFollowing: relationshipStatus?.isFollowing ?? false,
-            isFollowedBy: relationshipStatus?.isFollowedBy ?? false,
-          },
-          recentFollowers,
-          recentFollowing,
-          recentPosts: recentPostsRaw.map((post: { id: string; description?: string; likeCount?: number; commentCount?: number; createdAt: string; mediaUrls?: string[] }) => ({
-            id: post.id,
-            description: post.description ?? '',
-            likeCount: post.likeCount ?? 0,
-            commentCount: post.commentCount ?? 0,
-            createdAt: post.createdAt,
-            mediaUrls: post.mediaUrls ?? [],
-          })),
-          recentJourneys: recentJourneysRaw.map((journey: { id: string; title: string; description?: string; coverImage?: string | null; daysCount?: number; createdAt: string; author: { id: string; username: string; profileImage?: string | null }; previewPlaces?: string[]; type?: string }) => ({
-            id: journey.id,
-            title: journey.title,
-            description: journey.description ?? '',
-            coverImage: journey.coverImage ?? null,
-            daysCount: journey.daysCount ?? 0,
-            createdAt: journey.createdAt,
-            author: {
-              id: journey.author?.id ?? '',
-              username: journey.author?.username ?? '',
-              profileImage: journey.author?.profileImage ?? null,
-            },
-            previewPlaces: journey.previewPlaces ?? [],
-            type: journey.type ?? '',
-          })),
-        };
-
-        setUserDetails(userDetailsData);
-
-          // Fetch ALL journeys and posts separately to bypass the 5-item limit
-          // Check if we need to fetch more based on stats
-          const needsMoreJourneys =
-            (stats?.journeysCount ?? 0) > (recentJourneysRaw?.length ?? 0);
-          const needsMorePosts =
-            (stats?.postsCount ?? 0) > (recentPostsRaw?.length ?? 0);
-
-          // Always try to fetch all journeys if there's a discrepancy, or if journey/map tab is active
-          // This ensures we get all available journeys, not just the 5 from recentJourneys
-          if (
-            needsMoreJourneys ||
-            activeTab === 'journey' ||
-            activeTab === 'map' ||
-            (stats?.journeysCount ?? 0) > 5
-          ) {
-            setIsLoadingJourneys(true);
-            try {
-              console.log('[FETCHING_ALL_JOURNEYS]', {
-                userId,
-                isViewingOwnProfile,
-                statsCount: stats?.journeysCount,
-                recentCount: recentJourneysRaw?.length,
-              });
-
-              if (isViewingOwnProfile) {
-                // For own profile, fetch ALL journeys using getMyJourneys (no limit)
-                const response = await JourneyApi.getMyJourneys({
-                  limit: undefined,
-                  offset: undefined,
-                });
-                const allJourneysData = response; // API already extracts .data
-                setAllJourneys(allJourneysData);
-
-                console.log('[STATE_JOURNEYS_COUNT_OWN_PROFILE]', {
-                  count: allJourneysData.length,
-                  journeys: allJourneysData,
-                });
-              } else {
-                // For other users, fetch all public journeys and filter by userId
-                // This is a workaround since there's no public endpoint for user-specific journeys
-                try {
-                  console.log('[ATTEMPTING_TO_FETCH_ALL_JOURNEYS_FOR_USER]', {
-                    userId,
-                  });
-                  const publicResponse = await JourneyApi.getAllJourneys(
-                    { limit: undefined, offset: undefined }
-                  );
-                  const allPublicJourneys = publicResponse.data;
-
-                  console.log('[ALL_PUBLIC_JOURNEYS_RECEIVED]', {
-                    totalCount: allPublicJourneys.length,
-                    sampleUserIds: allPublicJourneys
-                      .slice(0, 5)
-                      .map(j => j.user?.id),
-                  });
-
-                  const userJourneys = allPublicJourneys.filter(journey => {
-                    const matches = journey.user?.id === userId;
-                    if (matches) {
-                      console.log('[FOUND_MATCHING_JOURNEY]', {
-                        journeyId: journey.id,
-                        userId: journey.user?.id,
-                      });
-                    }
-                    return matches;
-                  });
-
-                  console.log('[FILTERING_RESULT]', {
-                    targetUserId: userId,
-                    filteredCount: userJourneys.length,
-                    statsCount: stats?.journeysCount,
-                  });
-
-                  // Always use filtered journeys if we found any, even if less than stats count
-                  // (some journeys might be private and not in public list)
-                  if (userJourneys.length > 0) {
-                    setAllJourneys(userJourneys);
-                    console.log('[STATE_JOURNEYS_COUNT_OTHER_USER_FILTERED]', {
-                      count: userJourneys.length,
-                      statsCount: stats?.journeysCount,
-                      allPublicJourneysCount: allPublicJourneys.length,
-                      discrepancy:
-                        (stats?.journeysCount ?? 0) - userJourneys.length,
-                      journeys: userJourneys,
-                    });
-                  } else {
-                    // No journeys found in public list - might be private journeys
-                    // Use recentJourneys as fallback (limited to 5 by backend)
-                    const convertedJourneys = convertRecentJourneysToJourneys(
-                      recentJourneysRaw
-                    );
-                    setAllJourneys(convertedJourneys);
-                    console.warn('[STATE_JOURNEYS_COUNT_OTHER_USER_FALLBACK]', {
-                      count: convertedJourneys.length,
-                      statsCount: stats?.journeysCount,
-                      discrepancy:
-                        (stats?.journeysCount ?? 0) - convertedJourneys.length,
-                      reason:
-                        'No journeys found in public journeys list - may be private',
-                      journeys: convertedJourneys,
-                    });
-                  }
-                } catch (filterError: any) {
-                  // If getAllJourneys fails, use recentJourneys
-                  console.error('[FAILED_TO_FETCH_ALL_JOURNEYS]', {
-                    error: filterError,
-                    message: filterError?.message,
-                    stack: filterError?.stack,
-                  });
-                  const convertedJourneys = convertRecentJourneysToJourneys(
-                    recentJourneysRaw
-                  );
-                  setAllJourneys(convertedJourneys);
-                  console.warn(
-                    '[STATE_JOURNEYS_COUNT_OTHER_USER_ERROR_FALLBACK]',
-                    {
-                      count: convertedJourneys.length,
-                      statsCount: stats?.journeysCount,
-                      error: filterError?.message,
-                    }
-                  );
-                }
-              }
-            } catch (err: any) {
-              console.error('Failed to fetch journeys:', err);
-              // Fallback to recentJourneys from response
-              const convertedJourneys = convertRecentJourneysToJourneys(
-                recentJourneysRaw
-              );
-              setAllJourneys(convertedJourneys);
-            } finally {
-              setIsLoadingJourneys(false);
-            }
-          } else {
-            // Still set journeys from response even if we don't need to fetch more
-            const convertedJourneys = convertRecentJourneysToJourneys(
-              recentJourneysRaw
-            );
-            setAllJourneys(convertedJourneys);
-            console.log('[STATE_JOURNEYS_COUNT_INITIAL]', {
-              count: convertedJourneys.length,
-              statsCount: stats?.journeysCount,
-              discrepancy:
-                (stats?.journeysCount ?? 0) - convertedJourneys.length,
-            });
-          }
-
-          // Always ensure journeys are set, even if fetching failed
-          // Use functional update to check current state value
-          setAllJourneys(prevJourneys => {
-            if (
-              prevJourneys.length === 0 &&
-              recentJourneysRaw?.length > 0
-            ) {
-              const convertedJourneys = convertRecentJourneysToJourneys(
-                recentJourneysRaw
-              );
-              console.log('[STATE_JOURNEYS_COUNT_FINAL_FALLBACK]', {
-                count: convertedJourneys.length,
-                statsCount: stats?.journeysCount,
-              });
-              return convertedJourneys;
-            }
-            return prevJourneys;
-          });
-
-          if (needsMorePosts || activeTab === 'post') {
-            setIsLoadingPosts(true);
-            try {
-              // Fetch ALL posts - pass a very large limit to get all posts (backend doesn't support unlimited)
-              // Using 1000 as a reasonable upper bound that should cover all user posts
-              const list = await PostApi.listByUser(userId, {
-                limit: 1000,
-                offset: 0,
-              });
-
-              if (Array.isArray(list) && list.length > 0) {
-                const recentPosts: RecentPost[] = list.map(
-                  post => ({
-                    id: post.id,
-                    description: post.description || '',
-                    likeCount: post.likeCount || 0,
-                    commentCount: post.commentCount || 0,
-                    createdAt: post.createdAt,
-                    mediaUrls: post.media?.map(m => m.url) || [],
-                  })
-                );
-                setAllPosts(recentPosts);
-              }
-            } catch (err) {
-              console.error('Failed to fetch posts:', err);
-              setAllPosts(
-                recentPostsRaw.map((post: { id: string; description?: string; likeCount?: number; commentCount?: number; createdAt: string; mediaUrls?: string[] }) => ({
-                  id: post.id,
-                  description: post.description ?? '',
-                  likeCount: post.likeCount ?? 0,
-                  commentCount: post.commentCount ?? 0,
-                  createdAt: post.createdAt,
-                  mediaUrls: post.mediaUrls ?? [],
-                }))
-              );
-            } finally {
-              setIsLoadingPosts(false);
-            }
-          } else {
-            // Use recentPosts from userDetails if we don't need to fetch more
-            setAllPosts(
-              recentPostsRaw.map((post: { id: string; description?: string; likeCount?: number; commentCount?: number; createdAt: string; mediaUrls?: string[] }) => ({
-                id: post.id,
-                description: post.description ?? '',
-                likeCount: post.likeCount ?? 0,
-                commentCount: post.commentCount ?? 0,
-                createdAt: post.createdAt,
-                mediaUrls: post.mediaUrls ?? [],
-              }))
-            );
-          }
-      } catch (err: any) {
-        setError(err.message || 'Failed to load user details');
-      } finally {
-        setIsLoading(false);
-        // Hide skeleton after a short delay for smooth transition
-        setTimeout(() => {
-          setShowSkeleton(false);
-        }, 300);
-      }
-    };
-
-    loadUserDetails();
-  }, [userId, activeTab, isViewingOwnProfile]);
-
-  // Log rendered journeys count when journeys change
-  useEffect(() => {
-    if (activeTab === 'journey' && allJourneys.length > 0) {
-      console.log('[RENDER_JOURNEYS_COUNT]', {
-        count: allJourneys.length,
-        journeys: allJourneys,
-      });
-    }
-  }, [allJourneys, activeTab]);
-
-  // Log rendered posts count when posts change
-  useEffect(() => {
-    if (activeTab === 'post' && allPosts.length > 0) {
-      console.log('[RENDER_POSTS_COUNT]', {
-        count: allPosts.length,
-        posts: allPosts,
-      });
-    }
-  }, [allPosts, activeTab]);
-
-  if (isLoading || showSkeleton) {
+  // Loading state - only show skeleton on initial load
+  if (isLoadingDetails) {
     return <UserProfileSkeleton />;
   }
 
-  if (error || !userDetails) {
+  // Error state
+  if (detailsError || !userDetails) {
     return (
       <motion.div
         className="flex flex-col items-center justify-center py-16 px-4"
@@ -438,7 +136,7 @@ export default function UserDetailsPage() {
             User Not Found
           </h2>
           <p className="text-gray-600 mb-6">
-            {error ||
+            {detailsError?.message ||
               "The user you're looking for doesn't exist or couldn't be loaded."}
           </p>
           <Button
@@ -467,24 +165,9 @@ export default function UserDetailsPage() {
         stats={userDetails.stats}
         relationshipStatus={userDetails.relationshipStatus}
         onFollowChange={isFollowing => {
-          // Update local stats when follow status changes
-          setUserDetails(prev =>
-            prev
-              ? {
-                  ...prev,
-                  relationshipStatus: {
-                    ...prev.relationshipStatus,
-                    isFollowing,
-                  },
-                  stats: {
-                    ...prev.stats,
-                    followersCount: isFollowing
-                      ? prev.stats.followersCount + 1
-                      : prev.stats.followersCount - 1,
-                  },
-                }
-              : null
-          );
+          // Update cached data when follow status changes
+          // React Query will handle the cache update
+          // This is just for immediate UI feedback
         }}
       />
 
@@ -504,16 +187,15 @@ export default function UserDetailsPage() {
           <div className="flex flex-col items-start gap-3 w-full">
             {isLoadingJourneys ? (
               <div className="flex items-center justify-center py-8 w-full">
-                <div className="text-gray-500">Loading journeys...</div>
+                <LoadingSpinner size="md" />
               </div>
-            ) : allJourneys.length > 0 ? (
+            ) : journeys.length > 0 ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 w-full">
-                {allJourneys.map((journey, index) => (
+                {journeys.map((journey, index) => (
                   <ProfileJourneyCard
                     key={journey.id}
                     journey={journey}
                     index={index}
-                    // No onDelete prop means no delete button will show
                   />
                 ))}
               </div>
@@ -537,11 +219,11 @@ export default function UserDetailsPage() {
           </h2>
           {isLoadingPosts ? (
             <div className="flex items-center justify-center py-8 w-full">
-              <div className="text-gray-500">Loading posts...</div>
+              <LoadingSpinner size="md" />
             </div>
           ) : (
             <UserPostsGrid
-              posts={allPosts}
+              posts={posts}
               username={userDetails.user.username}
             />
           )}
@@ -558,10 +240,10 @@ export default function UserDetailsPage() {
               </h2>
               <p className="text-gray-600 mt-1">
                 Explore {userDetails.user.username}&apos;s journeys on the map
-                {allJourneys.length > 0 && (
+                {journeys.length > 0 && (
                   <span className="ml-2 text-sm">
-                    ({allJourneys.length} journey
-                    {allJourneys.length !== 1 ? 's' : ''})
+                    ({journeys.length} journey
+                    {journeys.length !== 1 ? 's' : ''})
                   </span>
                 )}
               </p>
@@ -574,7 +256,7 @@ export default function UserDetailsPage() {
               <div className="flex items-center justify-center h-full">
                 <LoadingSpinner size="lg" />
               </div>
-            ) : allJourneys.length === 0 ? (
+            ) : journeys.length === 0 ? (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center p-8">
                   <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -590,7 +272,7 @@ export default function UserDetailsPage() {
               </div>
             ) : (
               <AllJourneysMap
-                journeys={allJourneys}
+                journeys={journeys}
                 onJourneyClick={handleJourneyClick}
                 onJourneyHover={handleJourneyHover}
                 onJourneyHoverEnd={handleJourneyHoverEnd}

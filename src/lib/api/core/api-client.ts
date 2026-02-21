@@ -108,7 +108,8 @@ class ApiClient {
         throw new ApiError(
           response.status,
           this.mapStatusToErrorCode(response.status),
-          body.message ?? 'Request failed'
+          body.message ?? 'Request failed',
+          errorData  // ✅ Pass full error body as details so backend validation errors are preserved
         );
       }
 
