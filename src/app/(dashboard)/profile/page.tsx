@@ -158,6 +158,8 @@ export default function ProfilePage() {
       {/* Profile Header */}
       <ProfileHeader
         profile={profileData.user}
+        profileImageUrl={profileData.user.profileImage}
+        bannerImageUrl={profileData.user.bannerImage}
         stats={profileData.stats}
       />
 
