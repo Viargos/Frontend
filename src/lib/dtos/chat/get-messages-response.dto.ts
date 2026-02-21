@@ -3,11 +3,15 @@ import type { ChatMessage } from '@/types/chat.types';
 /**
  * Response DTO for GET /api/chat/conversations/[id]/messages
  *
- * Backend contract: { data: ChatMessage[] }
+ * Backend contract: { data: { messages: ChatMessage[] } }
  *
- * This DTO is for type assertions in route handlers only.
- * API service methods should unwrap `response.data` and return ChatMessage[] directly.
+ * NOTE: Chat backend uses NON-STANDARD nested format,
+ * unlike other APIs (PostApi, UserApi, etc.) which use { data: T }
+ *
+ * API service methods should unwrap to: response.data.messages
  */
 export interface GetMessagesResponseDto {
-  data: ChatMessage[];
+  data: {
+    messages: ChatMessage[];
+  };
 }

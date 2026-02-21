@@ -217,16 +217,11 @@ export default function UserDetailsPage() {
           <h2 className="text-black font-outfit text-2xl font-medium leading-[120%]">
             {userDetails.user.username}&apos;s Posts
           </h2>
-          {isLoadingPosts ? (
-            <div className="flex items-center justify-center py-8 w-full">
-              <LoadingSpinner size="md" />
-            </div>
-          ) : (
-            <UserPostsGrid
-              posts={posts}
-              username={userDetails.user.username}
-            />
-          )}
+          <UserPostsGrid
+            posts={posts}
+            isLoading={isLoadingPosts}
+            username={userDetails.user.username}
+          />
         </div>
       )}
 

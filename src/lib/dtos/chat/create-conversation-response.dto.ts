@@ -3,11 +3,15 @@ import type { ChatConversation } from '@/types/chat.types';
 /**
  * Response DTO for POST /api/chat/conversations
  *
- * Backend contract: { data: ChatConversation }
+ * Backend contract: { data: { conversation: ChatConversation } }
  *
- * This DTO is for type assertions in route handlers only.
- * API service methods should unwrap `response.data` and return ChatConversation directly.
+ * NOTE: Chat backend uses NON-STANDARD nested format,
+ * unlike other APIs (PostApi, UserApi, etc.) which use { data: T }
+ *
+ * API service methods should unwrap to: response.data.conversation
  */
 export interface CreateConversationResponseDto {
-  data: ChatConversation;
+  data: {
+    conversation: ChatConversation;
+  };
 }

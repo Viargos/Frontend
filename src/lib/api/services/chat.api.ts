@@ -3,20 +3,20 @@ import { API_ENDPOINTS } from '../config/endpoints';
 import { HttpMethod } from '@/enums';
 import { buildUrl } from '@/lib/utils/url.utils';
 import type { ChatConversation, ChatMessage } from '@/types/chat.types';
-import type {
-  GetConversationsResponseDto,
-  GetMessagesResponseDto,
-  SendMessageResponseDto,
-  CreateConversationResponseDto,
-} from '@/lib/dtos/chat';
+import type { GetConversationsResponseDto } from '@/lib/dtos/chat/get-conversations-response.dto';
+import type { GetMessagesResponseDto } from '@/lib/dtos/chat/get-messages-response.dto';
+import type { SendMessageResponseDto } from '@/lib/dtos/chat/send-message-response.dto';
+import type { CreateConversationResponseDto } from '@/lib/dtos/chat/create-conversation-response.dto';
 
 export class ChatApiService {
   /**
    * Get all conversations for current user
    * @returns Array of chat conversations with last message
    *
-   * Note: Chat backend returns non-standard format { data: { conversations: [...] } }
-   * instead of standard { data: [...] }
+   * Backend contract: { data: { conversations: ChatConversation[] } }
+   * Route Handler: GET /api/chat/conversations
+   *
+   * NOTE: Chat backend uses non-standard nested format
    */
   async getConversations(): Promise<ChatConversation[]> {
     const response = await httpClient.get<GetConversationsResponseDto>(
@@ -30,6 +30,11 @@ export class ChatApiService {
    * @param conversationId Conversation ID
    * @param params Pagination parameters (limit, offset)
    * @returns Array of chat messages
+   *
+   * Backend contract: { data: { messages: ChatMessage[] } }
+   * Route Handler: GET /api/chat/conversations/[id]/messages
+   *
+   * NOTE: Chat backend uses non-standard nested format
    */
   async getMessages(
     conversationId: string,
@@ -47,6 +52,12 @@ export class ChatApiService {
    * Send message to another user
    * @param data Message data (receiverId, content)
    * @returns Created message
+   *
+   * Backend contract: { message: ChatMessage }
+   * Route Handler: POST /api/chat/messages
+   *
+   * NOTE: This endpoint returns DIFFERENT format than getConversations!
+   * No data wrapper - returns { message: {...} } directly
    */
   async sendMessage(data: {
     receiverId: string;
@@ -56,13 +67,18 @@ export class ChatApiService {
       API_ENDPOINTS.CHAT.SEND_MESSAGE,
       data
     );
-    return response.data.message;
+    return response.message;
   }
 
   /**
    * Create new conversation with user
    * @param userId User ID to start conversation with
    * @returns Created conversation
+   *
+   * Backend contract: { data: { conversation: ChatConversation } }
+   * Route Handler: POST /api/chat/conversations
+   *
+   * NOTE: Chat backend uses non-standard nested format
    */
   async createConversation(userId: string): Promise<ChatConversation> {
     const response = await httpClient.post<CreateConversationResponseDto>(

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Post } from "@/types/post.types";
 import { PostApi, ApiError } from "@/lib/api";
-import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import PostsGridSkeleton from "@/components/ui/PostsGridSkeleton";
 import { formatDistanceToNow } from "date-fns";
 import EditIcon from "@/components/icons/EditIcon";
 import DeleteIcon from "@/components/icons/DeleteIcon";
@@ -97,11 +97,7 @@ export default function ProfilePostsGrid({
   };
 
   if (isLoading) {
-    return (
-      <div className={`flex justify-center py-12 ${className}`}>
-        <LoadingSpinner size="lg" />
-      </div>
-    );
+    return <PostsGridSkeleton className={className} />;
   }
 
   if (localPosts.length === 0) {

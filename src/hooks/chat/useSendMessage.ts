@@ -10,10 +10,11 @@
 
 import { useMutation, useQueryClient, UseMutationResult } from '@tanstack/react-query';
 import { ChatApi } from '@/lib/api';
-import { ChatMessage, SendMessageData } from '@/types/chat.types';
+import { ChatMessage, SendMessageData, MessageStatus } from '@/types/chat.types';
 import { useAuthStore } from '@/store/auth.store';
 import { messageKeys } from './useMessages';
 import { conversationKeys } from './useConversations';
+import { v4 as uuidv4 } from 'uuid';
 
 // Helper to get conversation ID from user IDs
 function getConversationId(userId1: string, userId2: string): string {
@@ -65,14 +66,18 @@ export function useSendMessage(): UseMutationResult<
       );
       const previousConversations = queryClient.getQueryData(conversationKeys.lists());
 
-      // Create temporary message
+      // Create temporary message with optimistic status
+      const tempId = uuidv4();
       const tempMessage: ChatMessage = {
-        id: `temp-${Date.now()}`,
+        id: `temp-${tempId}`,
+        tempId,
         senderId: currentUser.id,
         receiverId,
         content: content.trim(),
         isRead: false,
         createdAt: new Date(),
+        status: MessageStatus.SENDING, // 🕐 Clock icon
+        isOptimistic: true,
       };
 
       // Optimistically add message to cache
@@ -94,11 +99,17 @@ export function useSendMessage(): UseMutationResult<
       return { previousMessages, previousConversations, tempMessage };
     },
 
-    // Success - replace temp message with real one
+    // Success - replace temp message with real one + add SENT status
     onSuccess: (realMessage, variables, context) => {
       const { conversationId } = variables;
 
       if (!context) return;
+
+      // Add SENT status to real message (✓ tick)
+      const sentMessage: ChatMessage = {
+        ...realMessage,
+        status: MessageStatus.SENT,
+      };
 
       // Replace temp message with real message
       queryClient.setQueryData<ChatMessage[]>(
@@ -106,7 +117,7 @@ export function useSendMessage(): UseMutationResult<
         (old = []) => {
           return old
             .filter(msg => msg.id !== context.tempMessage.id)
-            .concat(realMessage)
+            .concat(sentMessage)
             .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
         }
       );
@@ -116,30 +127,29 @@ export function useSendMessage(): UseMutationResult<
         if (!old) return old;
         return old.map((conv: any) =>
           conv.id === conversationId
-            ? { ...conv, lastMessage: realMessage, updatedAt: realMessage.createdAt }
+            ? { ...conv, lastMessage: sentMessage, updatedAt: sentMessage.createdAt }
             : conv
         );
       });
     },
 
-    // Error - rollback optimistic update
+    // Error - mark message as FAILED instead of removing it
     onError: (error, variables, context) => {
       if (!context) return;
 
       const { conversationId } = variables;
 
-      // Restore previous messages
-      if (context.previousMessages) {
-        queryClient.setQueryData(
-          messageKeys.list(conversationId),
-          context.previousMessages
-        );
-      }
-
-      // Restore previous conversations
-      if (context.previousConversations) {
-        queryClient.setQueryData(conversationKeys.lists(), context.previousConversations);
-      }
+      // Mark temp message as FAILED (⚠️ warning icon)
+      queryClient.setQueryData<ChatMessage[]>(
+        messageKeys.list(conversationId),
+        (old = []) => {
+          return old.map(msg =>
+            msg.id === context.tempMessage.id
+              ? { ...msg, status: MessageStatus.FAILED }
+              : msg
+          );
+        }
+      );
 
       console.error('Failed to send message:', error);
     },

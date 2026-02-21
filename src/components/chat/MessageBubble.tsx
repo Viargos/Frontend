@@ -1,7 +1,53 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ChatMessage } from '@/types/chat.types';
+import { ChatMessage, MessageStatus } from '@/types/chat.types';
+
+/**
+ * WhatsApp-like message status icon
+ * Shows delivery/read status for sent messages
+ */
+function MessageStatusIcon({ status }: { status?: MessageStatus }) {
+  switch (status) {
+    case MessageStatus.SENDING:
+      // Clock icon (⏱️ or 🕐) - message being sent
+      return (
+        <span className="inline-block ml-1 text-xs opacity-60" title="Sending">
+          🕐
+        </span>
+      );
+    case MessageStatus.SENT:
+      // Single checkmark (✓) - message sent to server
+      return (
+        <span className="inline-block ml-1 text-xs opacity-80" title="Sent">
+          ✓
+        </span>
+      );
+    case MessageStatus.DELIVERED:
+      // Double checkmark (✓✓) - message delivered to recipient
+      return (
+        <span className="inline-block ml-1 text-xs opacity-80" title="Delivered">
+          ✓✓
+        </span>
+      );
+    case MessageStatus.READ:
+      // Blue double checkmark - message read by recipient
+      return (
+        <span className="inline-block ml-1 text-xs text-blue-400" title="Read">
+          ✓✓
+        </span>
+      );
+    case MessageStatus.FAILED:
+      // Warning icon (⚠️) - message failed to send
+      return (
+        <span className="inline-block ml-1 text-xs text-red-300" title="Failed to send">
+          ⚠️
+        </span>
+      );
+    default:
+      return null;
+  }
+}
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -69,13 +115,15 @@ export default function MessageBubble({
           }`}
         >
           <p className="text-sm">{message.content}</p>
-          <p
-            className={`text-xs mt-1 ${
+          <div
+            className={`flex items-center gap-1 mt-1 text-xs ${
               isOwnMessage ? 'text-indigo-100' : 'text-gray-500'
             }`}
           >
-            {formatTime(message.createdAt)}
-          </p>
+            <span>{formatTime(message.createdAt)}</span>
+            {/* Show status icon only for own messages */}
+            {isOwnMessage && <MessageStatusIcon status={message.status} />}
+          </div>
         </div>
       </div>
     </motion.div>

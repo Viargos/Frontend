@@ -11,9 +11,11 @@ import { PostsEmptyIcon, ImageIcon } from '@/components/icons';
 import Image from 'next/image';
 import { usePostLike } from '@/hooks/usePostLike';
 import PostDetailModal from '@/components/post/PostDetailModal';
+import PostsGridSkeleton from '@/components/ui/PostsGridSkeleton';
 
 interface UserPostsGridProps {
   posts: Post[];
+  isLoading?: boolean;
   className?: string;
   username: string;
 }
@@ -155,6 +157,7 @@ function PostGridItem({ post, index, onPostClick }: PostGridItemProps) {
 
 export default function UserPostsGrid({
   posts,
+  isLoading = false,
   className = '',
   username,
 }: UserPostsGridProps) {
@@ -184,6 +187,10 @@ export default function UserPostsGrid({
     },
     [router, handleCloseModal]
   );
+
+  if (isLoading) {
+    return <PostsGridSkeleton className={className} />;
+  }
 
   if (posts.length === 0) {
     return (
