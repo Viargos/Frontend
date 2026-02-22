@@ -84,32 +84,18 @@ export default function JourneyMap({
       locationsByDay[day].push(location);
     });
 
-    // For each day, sort locations and create a path
+    // For each day, create a path using the array order (already correct after drag-and-drop)
     Object.entries(locationsByDay).forEach(([day, dayLocations]) => {
-      // Sort by ID which contains day and index information
-      const sortedLocations = [...dayLocations].sort((a, b) => {
-        // Extract index from ID (assuming format 'Day X-Y' where Y is the index)
-        const partsA = a.id.split('-');
-        const partsB = b.id.split('-');
-        const indexA = parseInt(partsA[partsA.length - 1]) || 0;
-        const indexB = parseInt(partsB[partsB.length - 1]) || 0;
-        
-        console.log('📍 Sorting locations:', {
-          a: { id: a.id, index: indexA, lat: a.lat, lng: a.lng },
-          b: { id: b.id, index: indexB, lat: b.lat, lng: b.lng }
-        });
-        
-        return indexA - indexB;
-      });
-
-      console.log('🗺️ Creating path for', day, ':', sortedLocations.map(l => ({
+      // Use dayLocations directly - no sorting needed
+      // The parent component already provides locations in the correct order
+      console.log('🗺️ Creating path for', day, ':', dayLocations.map(l => ({
         id: l.id,
         name: l.name,
         lat: l.lat,
         lng: l.lng
       })));
 
-      paths[day] = sortedLocations.map(loc => ({
+      paths[day] = dayLocations.map(loc => ({
         lat: loc.lat,
         lng: loc.lng,
       }));
@@ -132,15 +118,8 @@ export default function JourneyMap({
     });
 
     Object.entries(locationsByDay).forEach(([day, dayLocations]) => {
-      const sortedLocations = [...dayLocations].sort((a, b) => {
-        const partsA = a.id.split('-');
-        const partsB = b.id.split('-');
-        const indexA = parseInt(partsA[partsA.length - 1]) || 0;
-        const indexB = parseInt(partsB[partsB.length - 1]) || 0;
-        return indexA - indexB;
-      });
-
-      paths[day] = sortedLocations.map(loc => ({
+      // Use dayLocations directly - respect the order from parent component
+      paths[day] = dayLocations.map(loc => ({
         lat: loc.lat,
         lng: loc.lng,
       }));

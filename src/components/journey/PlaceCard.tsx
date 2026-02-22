@@ -1,8 +1,13 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CreateJourneyPlace, PlaceType } from '@/types/journey.types';
-import { Hotel, Trees, UtensilsCrossed, Car, FileText, ChevronDownIcon, TrashIcon } from 'lucide-react';
+import { Hotel, Trees, UtensilsCrossed, Car, FileText, ChevronDownIcon, TrashIcon, GripVertical } from 'lucide-react';
 import { PlaceForm } from './PlaceForm';
+
+export interface DragHandleProps {
+  listeners: Record<string, unknown>;
+  attributes: Record<string, unknown>;
+}
 
 interface PlaceCardProps {
   place: CreateJourneyPlace;
@@ -14,6 +19,8 @@ interface PlaceCardProps {
   onUpdateField: (field: keyof CreateJourneyPlace, value: string | number) => void;
   onAddPhoto: (photoKey: string) => void;
   onRemovePhoto: (photoIndex: number) => void;
+  /** When provided, a drag handle (grip) is shown and only it triggers drag (e.g. for SortablePlaceCard) */
+  dragHandleProps?: DragHandleProps;
 }
 
 export const PlaceCard: React.FC<PlaceCardProps> = ({
@@ -25,7 +32,8 @@ export const PlaceCard: React.FC<PlaceCardProps> = ({
   onRemove,
   onUpdateField,
   onAddPhoto,
-  onRemovePhoto
+  onRemovePhoto,
+  dragHandleProps,
 }) => {
   const getPlaceIcon = () => {
     switch (place.type) {
@@ -59,6 +67,16 @@ export const PlaceCard: React.FC<PlaceCardProps> = ({
         whileTap={{ scale: 0.998 }}
       >
         <div className="flex items-center gap-3">
+          {dragHandleProps && (
+            <div
+              className="flex items-center justify-center touch-none cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600"
+              onClick={(e) => e.stopPropagation()}
+              {...dragHandleProps.attributes}
+              {...dragHandleProps.listeners}
+            >
+              <GripVertical className="w-5 h-5" strokeWidth={2} />
+            </div>
+          )}
           <motion.div
             className="flex min-w-10 min-h-10 w-10 h-10 flex-col justify-center items-center gap-0 rounded-full border border-gray-200 bg-gray-100 p-0 m-0"
             whileHover={{ scale: 1.05 }}

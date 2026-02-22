@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import Button from "@/components/ui/Button";
-import { postService } from "@/lib/services/service-factory";
+import { PostApi, ApiError } from "@/lib/api";
 import { ImageUploadIcon, CloseIcon } from "@/components/icons";
 
 interface MediaItem {
@@ -55,26 +55,24 @@ export default function PostMediaUploader({
 
       try {
         const uploadPromises = filesToUpload.map(async (file) => {
-          // Use PostService uploadPostMedia method (following DRY principle)
-          const response = await postService.uploadPostMedia(file);
-
-          if (response.data) {
+          const result = await PostApi.uploadMedia(file);
+          if (result?.imageUrl) {
             return {
               id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-              url: response.data.imageUrl,
+              url: result.imageUrl,
               name: file.name,
               type: file.type,
             };
           }
-          throw new Error(response.message || "Upload failed");
+          throw new Error(result?.message || "Upload failed");
         });
 
         const uploadedItems = await Promise.all(uploadPromises);
         const updatedItems = [...mediaItems, ...uploadedItems];
         updateMediaItems(updatedItems);
-      } catch (error: any) {
+      } catch (error) {
         console.error("Upload error:", error);
-        setUploadError(error.message || "Failed to upload files");
+        setUploadError(error instanceof ApiError ? error.getUserMessage() : error instanceof Error ? error.message : "Failed to upload files");
       } finally {
         setIsUploading(false);
       }

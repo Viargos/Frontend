@@ -513,7 +513,7 @@ export default function DiscoverPage() {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: 384, opacity: 0 }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="w-96 bg-white shadow-2xl z-20 flex flex-col h-full"
+              className="w-96 bg-white shadow-2xl z-20 flex flex-col h-[calc(100vh-80px)]"
             >
               {/* Sidebar Header */}
               <div className="p-6 border-b border-gray-200 flex-shrink-0">

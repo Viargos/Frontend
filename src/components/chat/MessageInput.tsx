@@ -22,27 +22,29 @@ export default function MessageInput({ onSendMessage }: MessageInputProps) {
     }
   }, [messageInput]);
 
-  const handleSendMessage = async (e: React.FormEvent) => {
+  const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedContent = messageInput.trim();
-    
+
     if (!trimmedContent || isSending) {
       return;
     }
 
-    setIsSending(true);
-    try {
-      await onSendMessage(trimmedContent);
-      setMessageInput('');
-      // Reset textarea height
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
-      }
-    } catch (error) {
-      console.error('Error sending message:', error);
-    } finally {
-      setIsSending(false);
+    // WhatsApp-like UX: Clear input IMMEDIATELY
+    setMessageInput('');
+    // Reset textarea height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
     }
+
+    // Send message in background (optimistic update handles UI)
+    setIsSending(true);
+    onSendMessage(trimmedContent);
+
+    // Reset sending state after a short delay (prevents double-send)
+    setTimeout(() => {
+      setIsSending(false);
+    }, 500);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

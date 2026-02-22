@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuthStore } from "@/store/auth.store";
+import { AuthApi, ApiError, ApiErrorCode } from "@/lib/api";
 import { SpinnerIcon } from "@/components/icons";
 
 const otpSchema = z.object({
@@ -18,6 +19,8 @@ interface OtpVerificationFormProps {
   onSuccess?: () => void;
   onResendOtp?: () => void;
   isPasswordReset?: boolean;
+  onError?: (message: string) => void; // Callback to report errors to parent
+  onClearError?: () => void; // Callback to clear errors
 }
 
 export default function OtpVerificationForm({
@@ -25,8 +28,12 @@ export default function OtpVerificationForm({
   onSuccess,
   onResendOtp,
   isPasswordReset = false,
+  onError,
+  onClearError,
 }: OtpVerificationFormProps) {
-  const { verifyOtp, isLoading, error } = useAuthStore();
+  const { setUser } = useAuthStore();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -46,7 +53,7 @@ export default function OtpVerificationForm({
 
   useEffect(() => {
     // Only auto-submit when 6 digits are entered, not loading, and not previously submitted
-    if (otpValue.length === 6 && !isLoading && !hasSubmitted) {
+    if (otpValue.length === 6 && !isSubmitting && !hasSubmitted) {
       setHasSubmitted(true);
       // Small delay to ensure the last digit is properly set
       const timer = setTimeout(() => {
@@ -57,7 +64,7 @@ export default function OtpVerificationForm({
       // Reset submission flag when OTP is changed/cleared
       setHasSubmitted(false);
     }
-  }, [otpValue, isLoading, hasSubmitted]);
+  }, [otpValue, isSubmitting, hasSubmitted]);
 
   useEffect(() => {
     if (resendTimer > 0) {
@@ -67,20 +74,47 @@ export default function OtpVerificationForm({
   }, [resendTimer]);
 
   const onSubmit = async (data: OtpFormData) => {
-    try {
-      const result = await verifyOtp(email, data.otp, isPasswordReset);
+    onClearError?.();
+    setIsSubmitting(true);
 
-      if (result.success) {
-        // Call the success callback (handles modal closing and redirect)
-        onSuccess?.();
-      } else {
-        // If verification failed, allow resubmission
+    try {
+      // Call AuthApi to verify OTP (handles cookie setting for signup flow)
+      const result = await AuthApi.verifyOtp({
+        email,
+        otp: data.otp,
+      });
+
+      // Extract user from response
+      const user = result.user;
+
+      if (!user?.id || !user?.email) {
+        onError?.('Invalid response format');
         setHasSubmitted(false);
+        return;
       }
-    } catch {
-      // Error is handled in the store
+
+      // Only update store if this is signup verification (not password reset)
+      if (!isPasswordReset) {
+        setUser(user);
+      }
+
+      // Call the success callback (handles modal closing and redirect)
+      onSuccess?.();
+    } catch (error) {
+      if (error instanceof ApiError) {
+        if (error.is(ApiErrorCode.INVALID_OTP)) {
+          onError?.('Invalid or expired verification code. Please try again.');
+        } else {
+          onError?.(error.getUserMessage());
+        }
+      } else {
+        const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+        onError?.(errorMessage);
+      }
       // Allow resubmission after error
       setHasSubmitted(false);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -108,11 +142,22 @@ export default function OtpVerificationForm({
   };
 
   const handleResendOtp = async () => {
+    setIsResending(true);
     setResendTimer(60);
+
     try {
-      await onResendOtp?.();
-    } catch {
-      // Error is handled by parent component
+      await AuthApi.resendOtp({ email });
+      onClearError?.();
+      // Successfully resent OTP
+    } catch (error) {
+      if (error instanceof ApiError) {
+        onError?.(error.getUserMessage());
+      } else {
+        const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+        onError?.(errorMessage);
+      }
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -131,12 +176,6 @@ export default function OtpVerificationForm({
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
-            {error}
-          </div>
-        )}
-
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-4 text-center">
             Enter the 6-digit code
@@ -191,10 +230,10 @@ export default function OtpVerificationForm({
 
         <button
           type="submit"
-          disabled={isLoading || otpValue.length !== 6}
+          disabled={isSubmitting || otpValue.length !== 6}
           className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#160E53] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLoading ? (
+          {isSubmitting ? (
             <div className="flex items-center">
               <SpinnerIcon className="-ml-1 mr-3 h-5 w-5 text-white" />
               Verifying...

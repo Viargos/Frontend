@@ -6,8 +6,9 @@ import Button from "@/components/ui/Button";
 import { TextArea } from "@/components/ui/TextArea";
 import PostMediaUploader from "./PostMediaUploader";
 import { Journey } from "@/types/journey.types";
-import { CreatePostFormData, PostType, MediaType } from "@/types/post.types";
-import { journeyService, postService } from "@/lib/services/service-factory";
+import { PostType, MediaType } from "@/enums";
+import { CreatePostFormData } from "@/types/post.types";
+import { PostApi, JourneyApi, ApiError } from "@/lib/api";
 import JourneyIcon from "@/components/icons/JourneyIcon";
 import { CalendarIcon } from "@/components/icons/CalendarIcon";
 import MapIcon from "@/components/icons/MapIcon";
@@ -49,17 +50,13 @@ export default function JourneyLinkedPostForm({
       try {
         setLoading(true);
         setError(null);
-        const response = await journeyService.getMyJourneys();
-
-        if (Array.isArray(response)) {
-          setJourneys(response);
-          if (response.length === 0) {
-            setError(
-              "No journeys found. Create a journey first to link posts to it."
-            );
-          }
-        } else {
-          setError("Invalid response format from server");
+        const response = await JourneyApi.getMyJourneys();
+        const journeys = response; // API already extracts .data
+        setJourneys(journeys);
+        if (journeys.length === 0) {
+          setError(
+            "No journeys found. Create a journey first to link posts to it."
+          );
         }
       } catch (error: any) {
         setError(error.message || "Failed to load journeys");
@@ -114,16 +111,20 @@ export default function JourneyLinkedPostForm({
       setError(null);
 
       // Create the post
-      const postResponse = await postService.createPost({
+      const post = await PostApi.create({
         description: formData.description,
         journeyId: formData.journeyId,
       });
+
+      if (!post?.id) {
+        throw new Error("Failed to create post: No data returned");
+      }
 
       // Add media if any
       if (formData.media.length > 0) {
         for (let i = 0; i < formData.media.length; i++) {
           const mediaItem = formData.media[i];
-          await postService.addMediaToPost(postResponse.data.id, {
+          await PostApi.addMedia(post.id, {
             type: mediaItem.type,
             url: mediaItem.preview,
             order: i,
@@ -131,9 +132,9 @@ export default function JourneyLinkedPostForm({
         }
       }
 
-      onSuccess(postResponse.data.id);
-    } catch (error: any) {
-      setError(error.message || "Failed to create post");
+      onSuccess(post.id);
+    } catch (error) {
+      setError(error instanceof ApiError ? error.getUserMessage() : error instanceof Error ? error.message : "Failed to create post");
     } finally {
       setLoading(false);
     }

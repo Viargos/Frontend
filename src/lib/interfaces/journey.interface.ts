@@ -1,6 +1,6 @@
-import { 
-  Journey, 
-  CreateJourneyDto, 
+import {
+  Journey,
+  CreateJourneyDto,
   UpdateJourneyDto,
   JourneyFilters,
   JourneyStats,
@@ -8,13 +8,14 @@ import {
   JourneyBanner,
   AddActivityData,
   UpdateActivityData,
-  JourneyLocation
+  JourneyLocation,
 } from '@/types/journey.types';
+import type { JourneyListResponseDto } from '@/lib/dtos/journey';
 
 export interface IJourneyService {
   // Journey CRUD operations
-  getMyJourneys(filters?: JourneyFilters): Promise<Journey[]>;
-  getAllJourneys(filters?: JourneyFilters): Promise<Journey[]>;
+  getMyJourneys(filters?: JourneyFilters): Promise<JourneyListResponseDto>;
+  getAllJourneys(filters?: JourneyFilters): Promise<JourneyListResponseDto>;
   getJourneyById(id: string): Promise<Journey>;
   createJourney(data: CreateJourneyDto): Promise<Journey>;
   updateJourney(id: string, data: UpdateJourneyDto): Promise<Journey>;
@@ -43,6 +44,5 @@ export interface IJourneyService {
   duplicateJourney(id: string, newTitle?: string): Promise<Journey>;
   
   // Location services
-  searchLocations(query: string, center?: { lat: number; lng: number }): Promise<JourneyLocation[]>;
   getLocationDetails(locationId: string): Promise<JourneyLocation>;
 }

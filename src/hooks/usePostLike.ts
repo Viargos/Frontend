@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { postService } from '@/lib/services/service-factory';
+import { PostApi, ApiError } from '@/lib/api';
 
 interface UsePostLikeProps {
   postId: string;
@@ -17,10 +17,11 @@ interface UsePostLikeReturn {
 
 /**
  * Optimistic like/unlike functionality
- * - Instantly updates UI on click (optimistic update)
- * - API call happens in background
- * - Rolls back on error
- * - Syncs with backend response on success
+ * - Instantly updates UI on click (optimistic update is source of truth)
+ * - API call happens in background for persistence
+ * - Only rolls back on error
+ * - Prevents duplicate likes/unlikes while API is in progress
+ * - If already liked, clicking will unlike (and vice versa)
  */
 export const usePostLike = ({
   postId,
@@ -71,26 +72,25 @@ export const usePostLike = ({
 
     try {
       // Make the API call in the background
-      const response = shouldLike
-        ? await postService.likePost(postId)
-        : await postService.unlikePost(postId);
+      // We don't update UI from response - optimistic update is the source of truth
+      await (shouldLike ? PostApi.like(postId) : PostApi.unlike(postId));
 
-      if (response.data) {
-        // Sync with backend response (source of truth)
-        // Usually this will match our optimistic update
-        setIsLiked(response.data.isLiked);
-        setLocalLikeCount(response.data.likeCount);
-
-        // Update parent with actual backend values
-        onLikeChange?.(postId, response.data.isLiked, response.data.likeCount);
-      }
-    } catch {
+      // Success - keep the optimistic update (no UI changes needed)
+      // The optimistic values are already set and displayed to the user
+    } catch (error) {
       // ❌ ROLLBACK - Revert to previous state on error
       setIsLiked(previousIsLiked);
       setLocalLikeCount(previousLikeCount);
 
       // Notify parent to rollback
       onLikeChange?.(postId, previousIsLiked, previousLikeCount);
+
+      // Log error for debugging (ApiError has getUserMessage())
+      if (error instanceof ApiError) {
+        console.error('Like/unlike failed:', error.getUserMessage());
+      } else {
+        console.error('Like/unlike failed:', error);
+      }
     } finally {
       // Reset ref and state
       isLikingRef.current = false;

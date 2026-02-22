@@ -3,20 +3,21 @@
 import { useRef, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { UserProfile, UserStats } from '@/types/profile.types';
+import { UserProfile } from '@/types/profile.types';
+import { UserStats } from '@/types/user.types';
 import { LoadingSpinner } from '@/components/ui';
 import FollowersFollowingModal, { ModalType } from './FollowersFollowingModal';
 import { PlusIcon, MapPinIcon } from '@/components/icons';
 
 interface ProfileHeaderProps {
   profile: UserProfile;
-  profileImageUrl: string | null;
-  bannerImageUrl: string | null;
-  isImageUploading: boolean;
+  profileImageUrl?: string | null;
+  bannerImageUrl?: string | null;
+  isImageUploading?: boolean;
   stats?: UserStats | null;
   isStatsLoading?: boolean;
-  onProfileImageUpload: (file: File) => void;
-  onBannerImageUpload: (file: File) => void;
+  onProfileImageUpload?: (file: File) => void;
+  onBannerImageUpload?: (file: File) => void;
 }
 
 // Stat item component for use within the header
@@ -64,9 +65,9 @@ const StatItem = ({
 
 export default function ProfileHeader({
   profile,
-  profileImageUrl,
-  bannerImageUrl,
-  isImageUploading,
+  profileImageUrl = null,
+  bannerImageUrl = null,
+  isImageUploading = false,
   stats = null,
   isStatsLoading = false,
   onProfileImageUpload,
@@ -89,14 +90,14 @@ export default function ProfileHeader({
 
   const handleProfileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
+    if (file && onProfileImageUpload) {
       onProfileImageUpload(file);
     }
   };
 
   const handleBannerUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
+    if (file && onBannerImageUpload) {
       onBannerImageUpload(file);
     }
   };
@@ -129,36 +130,40 @@ export default function ProfileHeader({
           />
         )}
 
-        {/* Banner Upload Button */}
-        <motion.button
-          onClick={() => bannerInputRef.current?.click()}
-          disabled={isImageUploading}
-          className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-white backdrop-blur-sm text-blue-600 px-2 py-1 sm:px-3 sm:py-2 rounded-md text-xs sm:text-sm hover:bg-[#160E53] hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-2"
-          whileHover={{
-            scale: 1.05,
-            backgroundColor: '#001a6e',
-            color: 'white',
-          }}
-          whileTap={{ scale: 0.95 }}
-        >
-          {isImageUploading ? (
-            <>
-              <LoadingSpinner size="sm" />
-              Uploading...
-            </>
-          ) : (
-            'Change Banner'
-          )}
-        </motion.button>
+        {/* Banner Upload Button - Only show if upload handler provided */}
+        {onBannerImageUpload && (
+          <>
+            <motion.button
+              onClick={() => bannerInputRef.current?.click()}
+              disabled={isImageUploading}
+              className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-white backdrop-blur-sm text-blue-600 px-2 py-1 sm:px-3 sm:py-2 rounded-md text-xs sm:text-sm hover:bg-[#160E53] hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-2"
+              whileHover={{
+                scale: 1.05,
+                backgroundColor: '#001a6e',
+                color: 'white',
+              }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {isImageUploading ? (
+                <>
+                  <LoadingSpinner size="sm" />
+                  Uploading...
+                </>
+              ) : (
+                'Change Banner'
+              )}
+            </motion.button>
 
-        <input
-          ref={bannerInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleBannerUpload}
-          disabled={isImageUploading}
-        />
+            <input
+              ref={bannerInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleBannerUpload}
+              disabled={isImageUploading}
+            />
+          </>
+        )}
       </div>
 
       {/* Avatar and Info Section */}
@@ -187,29 +192,33 @@ export default function ProfileHeader({
               </div>
             )}
 
-            {/* Profile Upload Button */}
-            <motion.button
-              onClick={() => profileInputRef.current?.click()}
-              disabled={isImageUploading}
-              className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 bg-[#160E53] text-white p-1.5 sm:p-2 rounded-full hover:bg-blue-700 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              {isImageUploading ? (
-                <LoadingSpinner size="xs" />
-              ) : (
-                <PlusIcon className="w-3 h-3 sm:w-4 sm:h-4" />
-              )}
-            </motion.button>
+            {/* Profile Upload Button - Only show if upload handler provided */}
+            {onProfileImageUpload && (
+              <>
+                <motion.button
+                  onClick={() => profileInputRef.current?.click()}
+                  disabled={isImageUploading}
+                  className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 bg-[#160E53] text-white p-1.5 sm:p-2 rounded-full hover:bg-blue-700 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  {isImageUploading ? (
+                    <LoadingSpinner size="xs" />
+                  ) : (
+                    <PlusIcon className="w-3 h-3 sm:w-4 sm:h-4" />
+                  )}
+                </motion.button>
 
-            <input
-              ref={profileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleProfileUpload}
-              disabled={isImageUploading}
-            />
+                <input
+                  ref={profileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleProfileUpload}
+                  disabled={isImageUploading}
+                />
+              </>
+            )}
           </div>
 
           {/* Name */}
@@ -246,6 +255,35 @@ export default function ProfileHeader({
               {profile.location}
             </motion.div>
           )}
+
+          {/* Email - Only shown on own profile */}
+          {profile.email && (
+            <motion.p
+              className="text-gray-600 text-sm sm:text-base text-center sm:text-left"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+            >
+              {profile.email}
+            </motion.p>
+          )}
+
+          {/* Join Date - Only shown on own profile */}
+          {profile.createdAt && (
+            <motion.p
+              className="text-gray-500 text-xs sm:text-sm text-center sm:text-left"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+            >
+              Joined{' '}
+              {new Date(profile.createdAt).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </motion.p>
+          )}
         </div>
 
         {/* Stats Display */}
@@ -266,17 +304,17 @@ export default function ProfileHeader({
             </div>
           ) : (
             <div className="flex items-center gap-3 sm:gap-4 md:gap-6 lg:gap-8">
-              <StatItem label="Posts" value={stats?.posts || 0} />
-              <StatItem label="Journeys" value={stats?.journeys || 0} />
+              <StatItem label="Posts" value={stats?.postsCount || 0} />
+              <StatItem label="Journeys" value={stats?.journeysCount || 0} />
               <StatItem
                 label="Followers"
-                value={stats?.followers || 0}
+                value={stats?.followersCount || 0}
                 onClick={handleOpenFollowers}
                 clickable
               />
               <StatItem
                 label="Following"
-                value={stats?.following || 0}
+                value={stats?.followingCount || 0}
                 onClick={handleOpenFollowing}
                 clickable
               />

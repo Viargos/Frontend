@@ -4,11 +4,108 @@ import {
   ProfileState,
   ProfileTab,
   UserProfile,
+  UserStats,
+  RecentJourney,
   ProfileUpdateData,
   ImageUploadResult,
 } from "@/types/profile.types";
-import { serviceFactory } from "@/lib/services/service-factory";
+import { RecentPost } from "@/types/user.types";
 import { ApiError } from "@/lib/interfaces/http-client.interface";
+import { UserApi, JourneyApi } from "@/lib/api";
+import type { UserDto } from "@/lib/dtos/user/user.dto";
+import type { UserStatsDto } from "@/lib/dtos/user/user-stats.dto";
+import type { JourneySummaryDto } from "@/lib/dtos/user/journey-summary.dto";
+import type { PostSummaryDto } from "@/lib/dtos/user/post-summary.dto";
+
+function mapUserDtoToProfile(user: UserDto): UserProfile {
+  return {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    phoneNumber: user.phoneNumber,
+    bio: "",
+    location: "",
+    isActive: true,
+    createdAt: new Date(user.createdAt),
+    updatedAt: new Date(user.updatedAt),
+    profileImage: user.profileImage,
+    bannerImage: user.bannerImage,
+  };
+}
+
+function mapStatsDtoToStats(stats: UserStatsDto): UserStats {
+  return {
+    posts: stats.postsCount ?? 0,
+    journeys: stats.journeysCount ?? 0,
+    followers: stats.followersCount ?? 0,
+    following: stats.followingCount ?? 0,
+  };
+}
+
+function mapJourneySummaryToRecent(j: JourneySummaryDto | undefined | null): RecentJourney {
+  if (!j) return { id: "", title: "", description: "", coverImage: null, daysCount: 0, createdAt: "", author: { id: "", username: "", profileImage: null }, previewPlaces: [], type: "" };
+  return {
+    id: j.id ?? "",
+    title: j.title ?? "",
+    description: j.description ?? "",
+    coverImage: j.coverImage ?? null,
+    daysCount: j.daysCount ?? 0,
+    createdAt: typeof j.createdAt === "string" ? j.createdAt : j.createdAt?.toISOString?.() ?? "",
+    author: {
+      id: j.author?.id ?? "",
+      username: j.author?.username ?? "",
+      profileImage: j.author?.profileImage ?? null,
+    },
+    previewPlaces: Array.isArray(j.previewPlaces) ? j.previewPlaces : [],
+    type: j.type ?? "",
+  };
+}
+
+function mapPostSummaryToRecent(p: PostSummaryDto | undefined | null): RecentPost {
+  if (!p) return { id: "", description: "", likeCount: 0, commentCount: 0, createdAt: "", mediaUrls: [] };
+  return {
+    id: p.id ?? "",
+    description: p.description ?? "",
+    likeCount: p.likeCount ?? 0,
+    commentCount: p.commentCount ?? 0,
+    createdAt: typeof p.createdAt === "string" ? p.createdAt : (p.createdAt as Date)?.toISOString?.() ?? "",
+    mediaUrls: Array.isArray(p.mediaUrls) ? p.mediaUrls : [],
+  };
+}
+
+/** Extract user object from /api/user/me response (backend may wrap in data or return at top level). */
+function extractUserFromProfileResponse(data: Record<string, unknown>): UserDto | null {
+  if (!data) return null;
+  const nested = data.data as Record<string, unknown> | undefined;
+  if (nested?.user && typeof nested.user === "object")
+    return nested.user as UserDto;
+  if (data.user && typeof data.user === "object") return data.user as UserDto;
+  if (typeof data.id === "string" && typeof data.username === "string") return data as unknown as UserDto;
+  return null;
+}
+
+/** Extract stats from profile response. */
+function extractStatsFromProfileResponse(data: Record<string, unknown>): UserStatsDto | null {
+  if (!data) return null;
+  const nested = data.data as Record<string, unknown> | undefined;
+  const stats = (nested?.stats ?? data.stats) as UserStatsDto | undefined;
+  if (stats && typeof stats === "object") return stats;
+  return null;
+}
+
+/** Extract recentJourneys array from profile response. */
+function extractRecentJourneysFromProfileResponse(data: Record<string, unknown>): JourneySummaryDto[] {
+  const nested = data.data as Record<string, unknown> | undefined;
+  const arr = (nested?.recentJourneys ?? data.recentJourneys) as JourneySummaryDto[] | undefined;
+  return Array.isArray(arr) ? arr : [];
+}
+
+/** Extract recentPosts array from profile response. */
+function extractRecentPostsFromProfileResponse(data: Record<string, unknown>): PostSummaryDto[] {
+  const nested = data.data as Record<string, unknown> | undefined;
+  const arr = (nested?.recentPosts ?? data.recentPosts) as PostSummaryDto[] | undefined;
+  return Array.isArray(arr) ? arr : [];
+}
 
 interface ProfileStore extends ProfileState {
   // Actions
@@ -58,27 +155,34 @@ export const useProfileStore = create<ProfileStore>()(
         set({ activeTab: tab });
       },
 
-      // Combined profile and stats loading (optimized)
+      // Combined profile and stats loading (cookie-based auth via same-origin /api/user/me)
       loadProfileAndStats: async (): Promise<void> => {
         try {
           set({ isLoading: true, isStatsLoading: true, error: null });
 
-          const response =
-            await serviceFactory.profileService.getCurrentUserProfileWithJourneys();
+          const data = await UserApi.getProfile();
+          const raw = data as unknown as Record<string, unknown>;
 
-          if (response.data) {
-            const { profile, stats, recentJourneys, recentPosts } = response.data;
-            set({
-              profile,
-              stats,
-              recentJourneys,
-              recentPosts,
-              profileImageUrl: profile.profileImage || null,
-              bannerImageUrl: profile.bannerImage || null,
-            });
-          } else {
-            throw new Error("Failed to load profile data");
+          const user = extractUserFromProfileResponse(raw);
+          if (!user) {
+            set({ error: "Invalid profile response: user data missing" });
+            return;
           }
+
+          const profile = mapUserDtoToProfile(user);
+          const statsDto = extractStatsFromProfileResponse(raw);
+          const stats = mapStatsDtoToStats(statsDto ?? { followersCount: 0, followingCount: 0, postsCount: 0, journeysCount: 0 });
+          const recentJourneys = extractRecentJourneysFromProfileResponse(raw).map(mapJourneySummaryToRecent);
+          const recentPosts = extractRecentPostsFromProfileResponse(raw).map(mapPostSummaryToRecent);
+
+          set({
+            profile,
+            stats,
+            recentJourneys,
+            recentPosts,
+            profileImageUrl: profile.profileImage != null ? profile.profileImage : null,
+            bannerImageUrl: profile.bannerImage != null ? profile.bannerImage : null,
+          });
         } catch (error) {
           const errorMessage = get().extractErrorMessage(error);
           set({ error: errorMessage });
@@ -92,11 +196,12 @@ export const useProfileStore = create<ProfileStore>()(
         try {
           set({ isLoading: true, error: null });
 
-          const response =
-            await serviceFactory.profileService.getCurrentUserProfile();
+          const data = await UserApi.getCurrentUserProfile();
+          const raw = data as unknown as Record<string, unknown>;
 
-          if (response.data) {
-            const profile = response.data as UserProfile;
+          const user = extractUserFromProfileResponse(raw);
+          if (user) {
+            const profile = mapUserDtoToProfile(user);
             set({
               profile,
               profileImageUrl: profile.profileImage || null,
@@ -116,11 +221,13 @@ export const useProfileStore = create<ProfileStore>()(
         try {
           set({ isStatsLoading: true, error: null });
 
-          const response =
-            await serviceFactory.profileService.getCurrentUserStats();
+          const data = await UserApi.getCurrentUserStats();
+          const raw = data as unknown as Record<string, unknown>;
 
-          if (response.data) {
-            set({ stats: response.data });
+          const statsDto = extractStatsFromProfileResponse(raw);
+          if (statsDto) {
+            const stats = mapStatsDtoToStats(statsDto);
+            set({ stats });
           }
         } catch (error) {
           const errorMessage = get().extractErrorMessage(error);
@@ -137,12 +244,12 @@ export const useProfileStore = create<ProfileStore>()(
         try {
           set({ isLoading: true, error: null });
 
-          const response = await serviceFactory.profileService.updateProfile(
-            data
-          );
+          const response = await UserApi.updateProfile(data);
+          const raw = response as unknown as Record<string, unknown>;
 
-          if (response.data) {
-            const updatedProfile = response.data as UserProfile;
+          const user = extractUserFromProfileResponse(raw);
+          if (user) {
+            const updatedProfile = mapUserDtoToProfile(user);
             set({ profile: updatedProfile });
             return { success: true };
           }
@@ -162,25 +269,20 @@ export const useProfileStore = create<ProfileStore>()(
         try {
           set({ isImageUploading: true, error: null });
 
-          const response =
-            await serviceFactory.profileService.uploadProfileImage(file);
+          const response = await UserApi.uploadProfileImage(file);
+          const { imageUrl } = response;
 
-          if (response.data) {
-            const { imageUrl } = response.data;
-            set({ profileImageUrl: imageUrl });
+          set({ profileImageUrl: imageUrl });
 
-            // Update profile object if it exists
-            const currentProfile = get().profile;
-            if (currentProfile) {
-              set({
-                profile: { ...currentProfile, profileImage: imageUrl },
-              });
-            }
-
-            return { success: true, imageUrl };
+          // Update profile object if it exists
+          const currentProfile = get().profile;
+          if (currentProfile) {
+            set({
+              profile: { ...currentProfile, profileImage: imageUrl },
+            });
           }
 
-          return { success: false, error: "Failed to upload profile image" };
+          return { success: true, imageUrl };
         } catch (error) {
           const errorMessage = get().extractErrorMessage(error);
           set({ error: errorMessage });
@@ -194,25 +296,20 @@ export const useProfileStore = create<ProfileStore>()(
         try {
           set({ isImageUploading: true, error: null });
 
-          const response =
-            await serviceFactory.profileService.uploadBannerImage(file);
+          const response = await UserApi.uploadBannerImage(file);
+          const { imageUrl } = response;
 
-          if (response.data) {
-            const { imageUrl } = response.data;
-            set({ bannerImageUrl: imageUrl });
+          set({ bannerImageUrl: imageUrl });
 
-            // Update profile object if it exists
-            const currentProfile = get().profile;
-            if (currentProfile) {
-              set({
-                profile: { ...currentProfile, bannerImage: imageUrl },
-              });
-            }
-
-            return { success: true, imageUrl };
+          // Update profile object if it exists
+          const currentProfile = get().profile;
+          if (currentProfile) {
+            set({
+              profile: { ...currentProfile, bannerImage: imageUrl },
+            });
           }
 
-          return { success: false, error: "Failed to upload banner image" };
+          return { success: true, imageUrl };
         } catch (error) {
           const errorMessage = get().extractErrorMessage(error);
           set({ error: errorMessage });
@@ -230,7 +327,7 @@ export const useProfileStore = create<ProfileStore>()(
         try {
           set({ isImageUploading: true, error: null });
 
-          await serviceFactory.profileService.deleteProfileImage();
+          await UserApi.deleteProfileImage();
 
           set({ profileImageUrl: null });
 
@@ -259,7 +356,7 @@ export const useProfileStore = create<ProfileStore>()(
         try {
           set({ isImageUploading: true, error: null });
 
-          await serviceFactory.profileService.deleteBannerImage();
+          await UserApi.deleteBannerImage();
 
           set({ bannerImageUrl: null });
 
@@ -288,7 +385,7 @@ export const useProfileStore = create<ProfileStore>()(
         try {
           set({ isLoading: true, error: null });
 
-          await serviceFactory.journeyService.deleteJourney(journeyId);
+          await JourneyApi.deleteJourney(journeyId);
 
           // Remove the journey from recentJourneys list
           const currentJourneys = get().recentJourneys;

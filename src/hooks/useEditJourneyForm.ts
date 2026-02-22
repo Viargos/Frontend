@@ -1,18 +1,17 @@
 import { useState, useCallback, useEffect } from "react";
+import { PlaceType, JourneyMediaType } from "@/enums";
 import {
-  PlaceType,
   CreateJourneyPlace,
   CreateJourneyDay,
-  JourneyMediaType,
   Journey,
   UpdateJourneyDto,
 } from "@/types/journey.types";
-import apiClient from "@/lib/api.legacy";
-import { serviceFactory } from "@/lib/services/service-factory";
+import { JourneyApi } from "@/lib/api";
 import {
   validateTimeRange,
   addMinutesToTime,
 } from "@/utils/time.utils";
+import { recalculateDayTimeline } from "@/utils/journeyTimeline.helper";
 
 export interface EditJourneyFormData {
   title: string;
@@ -45,8 +44,9 @@ export interface UseEditJourneyFormReturn {
   journeyPlaces: { [key: string]: CreateJourneyPlace[] };
   getActiveDayPlaces: () => CreateJourneyPlace[];
   getPlacesByType: (type: PlaceType) => CreateJourneyPlace[];
-  addPlaceToActiveDay: (type: PlaceType) => void;
+  addPlaceToActiveDay: (type: PlaceType) => string | undefined;
   removePlaceFromActiveDay: (index: number) => void;
+  reorderPlaces: (dayKey: string, oldIndex: number, newIndex: number) => void;
   updatePlaceField: (
     index: number,
     field: keyof CreateJourneyPlace,
@@ -56,10 +56,10 @@ export interface UseEditJourneyFormReturn {
   addPhotoToPlace: (index: number, photoKey: string) => void;
   removePhotoFromPlace: (index: number, photoIndex: number) => void;
 
-  // UI state
-  expandedPlaces: { [key: string]: boolean };
-  togglePlaceExpansion: (dayKey: string, placeIndex: number) => void;
-  isPlaceExpanded: (dayKey: string, placeIndex: number) => boolean;
+  // UI state (key = place.id for stable identity across reorder)
+  expandedPlaces: { [placeId: string]: boolean };
+  togglePlaceExpansion: (placeId: string) => void;
+  isPlaceExpanded: (placeId: string) => boolean;
 
   // Form submission
   isSubmitting: boolean;
@@ -135,8 +135,8 @@ export const useEditJourneyForm = (journeyId: string): UseEditJourneyFormReturn 
         setIsLoadingJourney(true);
         setLoadError(null);
 
-        const journeyService = serviceFactory.journeyService;
-        const journey = await journeyService.getJourneyById(journeyId);
+        const response = await JourneyApi.getById(journeyId);
+        const journey = response; // API already extracts .data
 
         if (!journey) {
           throw new Error("Journey not found");
@@ -194,6 +194,7 @@ export const useEditJourneyForm = (journeyId: string): UseEditJourneyFormReturn 
                 }
 
                 places.push({
+                  id: (place as { id?: string }).id ?? crypto.randomUUID(),
                   type: place.type as PlaceType,
                   name: place.name,
                   description: place.description || "",
@@ -212,6 +213,7 @@ export const useEditJourneyForm = (journeyId: string): UseEditJourneyFormReturn 
             // Add notes as a NOTE type place if exists
             if (day.notes) {
               places.push({
+                id: crypto.randomUUID(),
                 type: PlaceType.NOTE,
                 name: "Notes",
                 description: day.notes,
@@ -356,21 +358,17 @@ export const useEditJourneyForm = (journeyId: string): UseEditJourneyFormReturn 
   };
 
   const addPlaceToActiveDay = useCallback(
-    (type: PlaceType) => {
+    (type: PlaceType): string | undefined => {
       if (type === PlaceType.NOTE) {
         const existingPlaces = journeyPlaces[activeDay] || [];
         const hasExistingNote = existingPlaces.some(
           (place) => place.type === PlaceType.NOTE
         );
-
-        if (hasExistingNote) {
-          return;
-        }
+        if (hasExistingNote) return undefined;
       }
 
       const existingPlaces = journeyPlaces[activeDay] || [];
       const newIndex = existingPlaces.length;
-
       let startTime: string;
       let endTime: string;
 
@@ -388,7 +386,9 @@ export const useEditJourneyForm = (journeyId: string): UseEditJourneyFormReturn 
         endTime = calculated.endTime;
       }
 
+      const newId = crypto.randomUUID();
       const newPlace: CreateJourneyPlace = {
+        id: newId,
         name: getPlaceholderName(type),
         description: "",
         type: type,
@@ -406,6 +406,7 @@ export const useEditJourneyForm = (journeyId: string): UseEditJourneyFormReturn 
         ...prev,
         [activeDay]: [...(prev[activeDay] || []), newPlace],
       }));
+      return newId;
     },
     [activeDay, journeyPlaces]
   );
@@ -456,6 +457,22 @@ export const useEditJourneyForm = (journeyId: string): UseEditJourneyFormReturn 
       });
     },
     [activeDay]
+  );
+
+  const reorderPlaces = useCallback(
+    (dayKey: string, oldIndex: number, newIndex: number) => {
+      setJourneyPlaces((prev) => {
+        const dayPlaces = prev[dayKey] ? [...prev[dayKey]] : [];
+        if (oldIndex === newIndex || oldIndex < 0 || newIndex < 0 || oldIndex >= dayPlaces.length || newIndex >= dayPlaces.length) {
+          return prev;
+        }
+        const [moved] = dayPlaces.splice(oldIndex, 1);
+        dayPlaces.splice(newIndex, 0, moved);
+        const recalculated = recalculateDayTimeline(dayPlaces);
+        return { ...prev, [dayKey]: recalculated };
+      });
+    },
+    []
   );
 
   const updatePlaceField = useCallback(
@@ -599,22 +616,15 @@ export const useEditJourneyForm = (journeyId: string): UseEditJourneyFormReturn 
     [activeDay]
   );
 
-  const togglePlaceExpansion = useCallback(
-    (dayKey: string, placeIndex: number) => {
-      const key = `${dayKey}-${placeIndex}`;
-      setExpandedPlaces((prev) => ({
-        ...prev,
-        [key]: !prev[key],
-      }));
-    },
-    []
-  );
+  const togglePlaceExpansion = useCallback((placeId: string) => {
+    setExpandedPlaces((prev) => ({
+      ...prev,
+      [placeId]: !prev[placeId],
+    }));
+  }, []);
 
   const isPlaceExpanded = useCallback(
-    (dayKey: string, placeIndex: number) => {
-      const key = `${dayKey}-${placeIndex}`;
-      return expandedPlaces[key] || false;
-    },
+    (placeId: string) => expandedPlaces[placeId] ?? false,
     [expandedPlaces]
   );
 
@@ -702,22 +712,8 @@ export const useEditJourneyForm = (journeyId: string): UseEditJourneyFormReturn 
           JSON.stringify(updateData, null, 2)
         );
 
-        const response = await apiClient.updateJourney(journeyId, updateData);
-        console.log("Update API Response:", response);
-
-        // Check for successful response - accept 200, 201, and custom success code 10000
-        const isSuccess = response && (
-          response.statusCode === 200 ||
-          response.statusCode === 201 ||
-          response.statusCode === 10000 ||
-          (response.data && !response.message?.toLowerCase().includes('error'))
-        );
-
-        if (!isSuccess) {
-          throw new Error(response?.message || "Failed to update journey");
-        }
-
-        console.log("Journey updated successfully:", response.data);
+        const updateResponse = await JourneyApi.updateJourney(journeyId, updateData);
+        console.log("Journey updated successfully:", updateResponse.data);
         return true;
       } catch (error: any) {
         console.error("Failed to update journey:", error);
@@ -765,6 +761,7 @@ export const useEditJourneyForm = (journeyId: string): UseEditJourneyFormReturn 
     getPlacesByType,
     addPlaceToActiveDay,
     removePlaceFromActiveDay,
+    reorderPlaces,
     updatePlaceField,
     updatePlacePhotos,
     addPhotoToPlace,

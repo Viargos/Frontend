@@ -15,6 +15,7 @@ export { default as Modal } from './Modal';
 export { default as SocialButton } from './SocialButton';
 export { default as Tabs } from './Tabs';
 export { default as UserProfileSkeleton } from './UserProfileSkeleton';
+export { default as PostsGridSkeleton } from './PostsGridSkeleton';
 
 // Components with named exports
 export { ErrorAlert } from './ErrorAlert';

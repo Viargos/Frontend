@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth.store';
+import { AuthApi, ApiError, ApiErrorCode } from '@/lib/api';
 import Button from '@/components/ui/Button';
 
 const loginSchema = z.object({
@@ -21,6 +21,8 @@ export interface LoginFormProps {
   onSwitchToSignup?: () => void;
   onSwitchToForgotPassword?: () => void;
   onSwitchToOtp?: (email: string) => void; // 🔄 NEW: Callback to switch to OTP verification
+  onError?: (message: string) => void; // Callback to report errors to parent
+  onClearError?: () => void; // Callback to clear errors
 }
 
 export default function LoginForm({
@@ -28,9 +30,11 @@ export default function LoginForm({
   onSwitchToSignup,
   onSwitchToForgotPassword,
   onSwitchToOtp,
+  onError,
+  onClearError,
 }: LoginFormProps) {
-  const router = useRouter();
-  const { login, isLoading, error, clearError } = useAuthStore();
+  const { setUser } = useAuthStore();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const hasHandledVerificationErrorRef = useRef(false); // 🔄 NEW: Prevent duplicate handling
 
   const {
@@ -38,7 +42,6 @@ export default function LoginForm({
     handleSubmit,
     formState: { errors },
     reset,
-    getValues,
     watch,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -52,93 +55,62 @@ export default function LoginForm({
   // Form validation based on field content only
   const isFormValid = email.trim().length > 0 && password.trim().length > 0;
 
-  const onSubmit = async (data: LoginFormData) => {
-    clearError();
-    hasHandledVerificationErrorRef.current = false; // Reset flag on new submission
+  const onSubmit = async (formData: LoginFormData) => {
+    onClearError?.();
+    hasHandledVerificationErrorRef.current = false;
+    setIsSubmitting(true);
 
     try {
-      const result = await login(data);
+      const data = await AuthApi.signin({
+        email: formData.email,
+        password: formData.password,
+      });
 
-      if (result.success) {
-        reset();
-        onSuccess?.();
-        // Redirect to dashboard after successful login
-        router.push('/dashboard');
+      // Extract user from response (handle different response formats)
+      let user: unknown;
+      if (data && typeof data === 'object') {
+        if ('user' in data && data.user) {
+          user = data.user;
+        } else if ('data' in data && data.data && typeof data.data === 'object' && 'user' in data.data) {
+          user = (data.data as { user?: unknown }).user;
+        } else if ('id' in data && 'email' in data) {
+          user = data;
+        }
+      }
+
+      if (!user || typeof user !== 'object' || !('id' in user) || !('email' in user)) {
+        onError?.('Invalid response format');
+        return;
+      }
+
+      setUser(user as Parameters<typeof setUser>[0]);
+      reset();
+      onSuccess?.();
+    } catch (error) {
+      if (error instanceof ApiError) {
+        // Log full error details for debugging backend error messages
+        console.error('[LoginForm] API Error:', {
+          code: error.code,
+          message: error.message,
+          statusCode: error.statusCode,
+          details: error.details,
+        });
+
+        if (error.is(ApiErrorCode.EMAIL_NOT_VERIFIED)) {
+          onSwitchToOtp?.(formData.email);
+        } else {
+          onError?.(error.getUserMessage());
+        }
       } else {
-        // 🔄 FIX: Check if error is "Please verify your email address"
-        // Check both result.error and store error
-        const errorToCheck = result.error || error;
-        if (!hasHandledVerificationErrorRef.current) {
-          hasHandledVerificationErrorRef.current = true;
-          await handleEmailVerificationError(data.email, errorToCheck);
-        }
+        console.error('[LoginForm] Unexpected error:', error);
+        const message =
+          error instanceof Error ? error.message : 'An unexpected error occurred';
+        onError?.(message);
       }
-    } catch (_error) {
-      console.error('Login form error:', _error);
-
-      // 🔄 FIX: Also check error from store in case it's set there
-      const userEmail = getValues('email');
-      if (userEmail && !hasHandledVerificationErrorRef.current) {
-        hasHandledVerificationErrorRef.current = true;
-        // Check both caught error and store error
-        const errorToCheck = _error || useAuthStore.getState().error;
-        await handleEmailVerificationError(userEmail, errorToCheck);
-      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
-
-  // 🔄 NEW: Helper function to handle email verification errors
-  const handleEmailVerificationError = async (
-    email: string,
-    error: unknown
-  ) => {
-    const errorMessage =
-      typeof error === 'string'
-        ? error
-        : (error as any)?.message || error || '';
-
-    const errorString = String(errorMessage).toLowerCase();
-
-    // Check if error indicates email verification is required
-    if (
-      errorString.includes('verify your email') ||
-      errorString.includes('please verify your email address') ||
-      errorString.includes('account not active') ||
-      errorString.includes('email not verified') ||
-      errorString.includes('verify email')
-    ) {
-      // ✅ Backend already generates and sends OTP during login attempt
-      // No need to call resendOtp here - just navigate to verification
-      onSwitchToOtp?.(email);
-    }
-  };
-
-  // 🔄 NEW: Also check error from store when it changes (in case error is set after async operation)
-  useEffect(() => {
-    if (error && !hasHandledVerificationErrorRef.current) {
-      const errorString = String(error).toLowerCase();
-      if (
-        errorString.includes('verify your email') ||
-        errorString.includes('please verify your email address') ||
-        errorString.includes('account not active') ||
-        errorString.includes('email not verified') ||
-        errorString.includes('verify email')
-      ) {
-        const userEmail = getValues('email');
-        if (userEmail && onSwitchToOtp) {
-          hasHandledVerificationErrorRef.current = true; // Mark as handled
-          // Automatically navigate to OTP verification
-          handleEmailVerificationError(userEmail, error);
-        }
-      }
-    }
-
-    // Reset flag when error is cleared
-    if (!error) {
-      hasHandledVerificationErrorRef.current = false;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [error]);
 
   // Animation variants for form elements
   const containerVariants = {
@@ -171,18 +143,6 @@ export default function LoginForm({
       </motion.div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
-        {error && (
-          <motion.div
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm"
-            initial={{ opacity: 0, scale: 0.95, y: -10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -10 }}
-            transition={{ duration: 0.2 }}
-          >
-            {error}
-          </motion.div>
-        )}
-
         <motion.div variants={itemVariants}>
           <label
             htmlFor="email"
@@ -196,7 +156,7 @@ export default function LoginForm({
             id="email"
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black transition-all duration-200"
             placeholder="Enter your email"
-            disabled={isLoading}
+            disabled={isSubmitting}
             autoComplete="email"
             whileFocus={{ scale: 1.02, borderColor: '#160E53' }}
           />
@@ -226,7 +186,7 @@ export default function LoginForm({
               id="password"
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black transition-all duration-200"
               placeholder="Enter your password"
-              disabled={isLoading}
+              disabled={isSubmitting}
               autoComplete="current-password"
               whileFocus={{ scale: 1.02, borderColor: '#3B82F6' }}
             />
@@ -251,7 +211,7 @@ export default function LoginForm({
             type="button"
             onClick={onSwitchToForgotPassword}
             className="text-sm font-medium text-blue-600 hover:text-blue-500 focus:outline-none focus:underline"
-            disabled={isLoading}
+            disabled={isSubmitting}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -266,10 +226,10 @@ export default function LoginForm({
               variant="primary"
               size="lg"
               className="w-full"
-              disabled={isLoading || !isFormValid}
-              loading={isLoading}
+              disabled={isSubmitting || !isFormValid}
+              loading={isSubmitting}
             >
-              {isLoading ? 'Signing in...' : 'Sign in'}
+              {isSubmitting ? 'Signing in...' : 'Sign in'}
             </Button>
           </motion.div>
         </motion.div>
@@ -281,7 +241,7 @@ export default function LoginForm({
               type="button"
               onClick={onSwitchToSignup}
               className="font-medium text-blue-600 hover:text-blue-500 focus:outline-none focus:underline"
-              disabled={isLoading}
+              disabled={isSubmitting}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >

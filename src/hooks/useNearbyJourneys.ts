@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import apiClient from '@/lib/api.legacy';
+import { JourneyApi } from '@/lib/api';
 import {
   LocationCoordinates,
   NearbyJourneysParams,
@@ -48,51 +48,19 @@ export function useNearbyJourneys(
   const fetchNearbyJourneys = useCallback(
     async (params: NearbyJourneysParams) => {
       try {
-        console.log('[useNearbyJourneys] Fetching with params:', params);
         setIsLoading(true);
         setError(null);
         setLastParams(params);
 
-        const response = await apiClient.getNearbyJourneys(params);
-        console.log('[useNearbyJourneys] Raw API response:', response);
+        const response = await JourneyApi.getNearby(params);
+        // response is already the array of journeys (API wrapper extracts .data)
+        const journeysData = response;
 
-        // Handle double-wrapped response from API client
-        let journeysData;
-        if (response.statusCode === 10000 && response.data) {
-          // API client wrapper - extract the nested data
-          const nestedResponse = response.data as any;
-          console.log('[useNearbyJourneys] Nested response:', nestedResponse);
-          if (nestedResponse.statusCode === 200 && nestedResponse.data) {
-            journeysData = nestedResponse.data;
-          } else {
-            throw new Error(
-              nestedResponse.message || 'Failed to fetch nearby journeys'
-            );
-          }
-        } else if (response.statusCode === 200 && response.data) {
-          // Direct backend response
-          journeysData = response.data;
-        } else {
-          console.error('[useNearbyJourneys] Unexpected response format:', response);
-          throw new Error(
-            response.message || 'Failed to fetch nearby journeys'
-          );
-        }
-
-        console.log('[useNearbyJourneys] Parsed journeys data:', {
-          count: journeysData?.length || 0,
-          journeys: journeysData,
-        });
-
-        setJourneys(journeysData || []);
-        onSuccess?.(journeysData || []);
-      } catch (err: any) {
-        const errorMessage = err.message || 'Failed to fetch nearby journeys';
-        console.error('[useNearbyJourneys] Error fetching journeys:', {
-          error: err,
-          message: errorMessage,
-          params,
-        });
+        setJourneys(journeysData);
+        onSuccess?.(journeysData);
+      } catch (err: unknown) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Failed to fetch nearby journeys';
         setError(errorMessage);
         onError?.(errorMessage);
         setJourneys([]);

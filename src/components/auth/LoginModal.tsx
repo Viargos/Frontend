@@ -13,6 +13,7 @@ export interface LoginModalProps {
   onClose: () => void;
   onSwitchToSignup: () => void;
   onSwitchToForgotPassword?: () => void;
+  onSwitchToOtp?: (email: string) => void; // ✅ NEW: Switch to OTP if email not verified
 }
 
 export default function LoginModal({
@@ -20,6 +21,7 @@ export default function LoginModal({
   onClose,
   onSwitchToSignup,
   onSwitchToForgotPassword,
+  onSwitchToOtp,
 }: LoginModalProps) {
   const router = useRouter();
   const { clearError, error } = useAuthStore();
@@ -93,6 +95,7 @@ export default function LoginModal({
             onSuccess={handleLoginSuccess}
             onSwitchToSignup={handleSwitchToSignup}
             onSwitchToForgotPassword={handleSwitchToForgotPassword}
+            onSwitchToOtp={onSwitchToOtp}  {/* ✅ Pass OTP switch handler */}
           />
         </div>
       </motion.div>

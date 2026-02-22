@@ -1,32 +1,30 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useState } from 'react';
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { useJourneyStore } from '@/store/journey.store';
 import { useAuthStore } from '@/store/auth.store';
+import { useMyJourneys, useDeleteJourney, useDuplicateJourney } from '@/hooks/journey/useJourneyQueries';
 import { JourneysHeader, JourneysGrid } from '@/components/journeys';
 import { LoadingSpinner } from '@/components/ui';
 import { useRouter } from 'next/navigation';
 
 export default function JourneysPage() {
   const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading } = useAuthStore();
-  const { 
-    journeys, 
-    isLoading, 
-    error, 
-    loadMyJourneys, 
-    clearError,
-    deleteJourney,
-    duplicateJourney
-  } = useJourneyStore();
+  const { user } = useAuthStore();
+  const isAuthenticated = user !== null;
+  const authLoading = false; // No loading state needed - middleware handles auth
 
-  // Load journeys when component mounts and user is authenticated
-  useEffect(() => {
-    if (isAuthenticated && !authLoading) {
-      loadMyJourneys();
-    }
-  }, [isAuthenticated, authLoading, loadMyJourneys]);
+  // UI state (filters) from simplified store
+  const { filters } = useJourneyStore();
+
+  // Data fetching with React Query
+  const { data: journeys = [], isLoading, error } = useMyJourneys(filters);
+  const deleteMutation = useDeleteJourney();
+  const duplicateMutation = useDuplicateJourney();
+
+  // Local error state for mutations
+  const [mutationError, setMutationError] = useState<string | null>(null);
 
   const handleCreateJourney = () => {
     // This will be handled by the JourneysHeader component
@@ -39,12 +37,22 @@ export default function JourneysPage() {
 
   const handleDeleteJourney = async (journeyId: string) => {
     if (window.confirm('Are you sure you want to delete this journey?')) {
-      await deleteJourney(journeyId);
+      try {
+        await deleteMutation.mutateAsync(journeyId);
+        setMutationError(null);
+      } catch (err) {
+        setMutationError(err instanceof Error ? err.message : 'Failed to delete journey');
+      }
     }
   };
 
   const handleDuplicateJourney = async (journeyId: string) => {
-    await duplicateJourney(journeyId);
+    try {
+      await duplicateMutation.mutateAsync({ id: journeyId });
+      setMutationError(null);
+    } catch (err) {
+      setMutationError(err instanceof Error ? err.message : 'Failed to duplicate journey');
+    }
   };
 
   // Show loading spinner while checking authentication
@@ -56,15 +64,18 @@ export default function JourneysPage() {
     );
   }
 
+  // Combine query error and mutation error
+  const displayError = error?.message || mutationError;
+
   return (
     <ProtectedRoute>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Error Message */}
-          {error && (
+          {displayError && (
             <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center justify-between">
-              <span>{error}</span>
+              <span>{displayError}</span>
               <button
-                onClick={clearError}
+                onClick={() => setMutationError(null)}
                 className="text-red-600 hover:text-red-800 transition-colors"
               >
                 ×
@@ -73,7 +84,7 @@ export default function JourneysPage() {
           )}
 
           {/* Page Header with Search and Create */}
-          <JourneysHeader 
+          <JourneysHeader
             onCreateJourney={handleCreateJourney}
           />
 

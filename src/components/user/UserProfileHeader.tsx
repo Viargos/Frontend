@@ -7,8 +7,9 @@ import { useRouter } from 'next/navigation';
 import { User, UserStats, RelationshipStatus } from '@/types/user.types';
 import { Button } from '@/components/ui';
 import { UserPlus, UserMinus, UserCheck, MessageCircle } from 'lucide-react';
-import { userService } from '@/lib/services/service-factory';
-import { useChatStore } from '@/store/chat.store';
+import { UserApi } from '@/lib/api';
+import { useChatUIStore } from '@/store/chat-ui.store';
+import { useCreateConversation } from '@/hooks/chat';
 import { useAuthStore } from '@/store/auth.store';
 import { FollowersFollowingModal, ModalType } from '@/components/profile';
 
@@ -77,7 +78,8 @@ export default function UserProfileHeader({
   const [modalTab, setModalTab] = useState<ModalType>('followers');
   const router = useRouter();
   const { user: currentUser } = useAuthStore();
-  const { createConversation, setSelectedChat } = useChatStore();
+  const { setSelectedChat } = useChatUIStore();
+  const createConversationMutation = useCreateConversation();
 
   const handleOpenFollowers = () => {
     setModalTab('followers');
@@ -96,12 +98,12 @@ export default function UserProfileHeader({
     try {
       if (isFollowing) {
         // Unfollow user
-        await userService.unfollowUser(user.id);
+        await UserApi.unfollow(user.id);
         setIsFollowing(false);
         onFollowChange?.(false);
       } else {
         // Follow user
-        await userService.followUser(user.id);
+        await UserApi.follow(user.id);
         setIsFollowing(true);
         onFollowChange?.(true);
       }
@@ -122,7 +124,7 @@ export default function UserProfileHeader({
     setIsMessageLoading(true);
     try {
       // Create or get existing conversation
-      const conversation = await createConversation(user.id);
+      const conversation = await createConversationMutation.mutateAsync(user.id);
 
       // Set the selected chat to the conversation user
       setSelectedChat({
@@ -275,15 +277,15 @@ export default function UserProfileHeader({
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
         >
-          {/* Action Buttons */}
-          <motion.div
-            className="flex items-center gap-3"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.6, duration: 0.3 }}
-          >
-            {/* Message Button */}
-            {currentUser && currentUser.id !== user.id && (
+          {/* Action Buttons - Only show for other users, not own profile */}
+          {currentUser && currentUser.id !== user.id && (
+            <motion.div
+              className="flex items-center gap-3"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.6, duration: 0.3 }}
+            >
+              {/* Message Button */}
               <Button
                 variant="primary"
                 size="sm"
@@ -296,33 +298,33 @@ export default function UserProfileHeader({
               >
                 Message
               </Button>
-            )}
 
-            {/* Follow Button */}
-            <Button
-              variant={buttonProps.variant}
-              size="sm"
-              onClick={handleFollowClick}
-              disabled={isLoading}
-              loading={isLoading}
-              icon={buttonProps.icon}
-              iconPosition="leading"
-              className="min-w-[100px] group"
-            >
-              <span
-                className={`transition-all duration-200 ${
-                  isFollowing ? 'group-hover:hidden' : ''
-                }`}
+              {/* Follow Button */}
+              <Button
+                variant={buttonProps.variant}
+                size="sm"
+                onClick={handleFollowClick}
+                disabled={isLoading}
+                loading={isLoading}
+                icon={buttonProps.icon}
+                iconPosition="leading"
+                className="min-w-[100px] group"
               >
-                {buttonProps.text}
-              </span>
-              {isFollowing && (
-                <span className="hidden group-hover:inline transition-all duration-200">
-                  {buttonProps.hoverText}
+                <span
+                  className={`transition-all duration-200 ${
+                    isFollowing ? 'group-hover:hidden' : ''
+                  }`}
+                >
+                  {buttonProps.text}
                 </span>
-              )}
-            </Button>
-          </motion.div>
+                {isFollowing && (
+                  <span className="hidden group-hover:inline transition-all duration-200">
+                    {buttonProps.hoverText}
+                  </span>
+                )}
+              </Button>
+            </motion.div>
+          )}
 
           {/* Stats Display */}
           <div className="flex items-center gap-3 sm:gap-4 md:gap-6 lg:gap-8">

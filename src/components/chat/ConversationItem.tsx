@@ -6,18 +6,17 @@ import { ChatConversation } from '@/types/chat.types';
 
 interface ConversationItemProps {
   conversation: ChatConversation;
-  isSelected: boolean;
-  onSelect: (user: any) => void;
-  index: number;
+  isActive: boolean;
+  onClick: () => void;
 }
 
 function ConversationItem({
   conversation,
-  isSelected,
-  onSelect,
+  isActive,
+  onClick,
 }: ConversationItemProps) {
   const handleClick = () => {
-    onSelect(conversation.user);
+    onClick();
   };
 
   const formatTime = (date: Date | string) => {
@@ -39,7 +38,8 @@ function ConversationItem({
     return `${days}d`;
   };
 
-  const truncateMessage = (content: string, maxLength: number = 50) => {
+  const truncateMessage = (content: string | undefined | null, maxLength: number = 50) => {
+    if (!content) return '';
     return content.length > maxLength
       ? `${content.substring(0, maxLength)}...`
       : content;
@@ -48,7 +48,7 @@ function ConversationItem({
   return (
     <div
       className={`p-4 cursor-pointer hover:bg-gray-50 transition-all duration-200 ${
-        isSelected
+        isActive
           ? 'bg-primary-blue/5 border-r-2 border-primary-blue shadow-sm'
           : 'hover:shadow-sm'
       }`}
@@ -97,7 +97,7 @@ function ConversationItem({
           <div className="flex items-center justify-between mb-1">
             <h3
               className={`text-sm font-semibold truncate ${
-                isSelected ? 'text-primary-blue' : 'text-gray-900'
+                isActive ? 'text-primary-blue' : 'text-gray-900'
               }`}
             >
               {conversation.user.username}
@@ -143,7 +143,7 @@ export default memo(ConversationItem, (prevProps, nextProps) => {
   // Return false if props are different (re-render)
   return (
     prevProps.conversation.id === nextProps.conversation.id &&
-    prevProps.isSelected === nextProps.isSelected &&
+    prevProps.isActive === nextProps.isActive &&
     prevProps.conversation.lastMessage?.id === nextProps.conversation.lastMessage?.id &&
     prevProps.conversation.lastMessage?.content === nextProps.conversation.lastMessage?.content &&
     prevProps.conversation.lastMessage?.createdAt === nextProps.conversation.lastMessage?.createdAt &&

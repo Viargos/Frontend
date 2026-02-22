@@ -53,15 +53,8 @@ export interface PostComment {
   replies?: PostComment[];
 }
 
-export enum MediaType {
-  IMAGE = "image",
-  VIDEO = "video",
-}
-
-export enum PostType {
-  JOURNEY_LINKED = "journey_linked",
-  STANDALONE = "standalone",
-}
+import type { MediaType } from '@/enums';
+import type { PostType } from '@/enums';
 
 // DTOs for API calls
 export interface CreatePostDto {

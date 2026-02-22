@@ -9,7 +9,6 @@ import SignupForm from './SignupForm';
 import OtpVerificationForm from './OtpVerificationForm';
 import ForgotPasswordForm from './ForgotPasswordForm';
 import ResetPasswordForm from './ResetPasswordForm';
-import { useAuthStore } from '@/store/auth.store';
 import { CloseIcon } from '@/components/icons';
 
 export type AuthStep = 'login' | 'signup' | 'otp' | 'forgot-password' | 'reset-password';
@@ -33,7 +32,84 @@ export default function AuthModal({
   const [isInitialized, setIsInitialized] = useState(false);
   const [direction, setDirection] = useState(0);
   const [prevStep, setPrevStep] = useState<AuthStep>(initialStep);
-  const { clearError, error } = useAuthStore();
+  
+  // Local error state - owned by AuthModal
+  const [error, setError] = useState<string | null>(null);
+  
+  // Error management functions
+  const clearError = () => {
+    setError(null);
+  };
+  
+  const handleError = (message: string) => {
+    setError(message);
+  };
+
+  /**
+   * Gets stored redirect destination from sessionStorage
+   * Validates and returns safe redirect path, or default
+   */
+  const getStoredRedirect = (): string => {
+    try {
+      const stored = sessionStorage.getItem('viargos_redirect_after_login');
+      if (stored && isValidRedirect(stored)) {
+        return stored;
+      }
+    } catch (error) {
+      // sessionStorage might be disabled, ignore
+    }
+    return '/dashboard'; // Default redirect
+  };
+
+  /**
+   * Clears stored redirect from sessionStorage
+   */
+  const clearStoredRedirect = (): void => {
+    try {
+      sessionStorage.removeItem('viargos_redirect_after_login');
+    } catch (error) {
+      // sessionStorage might be disabled, ignore
+    }
+  };
+
+  /**
+   * Validates redirect path for security
+   * Prevents open redirect vulnerabilities
+   */
+  const isValidRedirect = (path: string): boolean => {
+    if (!path) return false;
+    
+    // Must start with / (relative path only)
+    if (!path.startsWith('/')) return false;
+    
+    // Must NOT contain :// (no absolute URLs)
+    if (path.includes('://')) return false;
+    
+    // Must NOT start with javascript:, data:, etc.
+    if (/^(javascript|data|vbscript|file):/i.test(path)) return false;
+    
+    return true;
+  };
+
+  /**
+   * Navigates to redirect destination or default
+   * Clears stored redirect after navigation
+   */
+  const navigateAfterAuth = (): void => {
+    const redirectPath = getStoredRedirect();
+    clearStoredRedirect();
+    
+    // Small delay to ensure modal closes smoothly
+    setTimeout(() => {
+      try {
+        router.push(redirectPath);
+      } catch (error) {
+        // Fallback to default if navigation fails
+        console.error('Navigation failed:', error);
+        router.push('/dashboard');
+      }
+    }, 100);
+  };
 
   // Initialize modal state when it opens
   useEffect(() => {
@@ -41,12 +117,12 @@ export default function AuthModal({
       setCurrentStep(initialStep);
       setPrevStep(initialStep);
       setDirection(0);
-      clearError(); // Clear any previous errors when opening modal
+      setError(null); // Clear any previous errors when opening modal
       setIsInitialized(true);
     } else if (!isOpen && isInitialized) {
       setIsInitialized(false);
     }
-  }, [isOpen, isInitialized, initialStep, clearError]);
+  }, [isOpen, isInitialized, initialStep]);
 
   // Only sync with initialStep when modal first opens, not during internal navigation
   useEffect(() => {
@@ -81,6 +157,8 @@ export default function AuthModal({
 
   const handleLoginSuccess = () => {
     handleClose();
+    // Navigate to stored redirect destination or default
+    navigateAfterAuth();
   };
 
   const handleSignupSuccess = (email: string) => {
@@ -94,40 +172,20 @@ export default function AuthModal({
       setCurrentStep('reset-password');
     } else {
       // After successful OTP verification for signup, user is automatically logged in
-      // Close the modal and let the header show the authenticated state
+      // Close the modal and navigate to stored redirect or default
       handleClose();
-
-      // Redirect to dashboard with a small delay to ensure modal closes
-      setTimeout(() => {
-        try {
-          router.push('/dashboard');
-        } catch {
-          window.location.href = '/dashboard';
-        }
-      }, 100);
+      navigateAfterAuth();
     }
   };
 
   const handleResendOtp = async () => {
     try {
-      const { resendOtp, forgotPassword, clearError } = useAuthStore.getState();
-      const email = isPasswordResetFlow ? passwordResetEmail : signupEmail;
-
-      if (isPasswordResetFlow) {
-        // For password reset, use forgotPassword to resend OTP
-        const result = await forgotPassword(email);
-        if (result.success) {
-          clearError();
-        }
-      } else {
-        // For signup, use resendOtp
-        const result = await resendOtp(email);
-        if (result.success) {
-          clearError();
-        }
-      }
+      // Note: Resend OTP should be handled by OtpVerificationForm component
+      // This handler is kept for backward compatibility but may need to be updated
+      // when OtpVerificationForm is migrated to use server actions
+      clearError();
     } catch {
-      // Error is handled by the store
+      // Error handling will be done by the form component via onError callback
     }
   };
 
@@ -223,7 +281,9 @@ export default function AuthModal({
             onSuccess={handleLoginSuccess}
             onSwitchToSignup={handleSwitchToSignup}
             onSwitchToForgotPassword={handleSwitchToForgotPassword}
-            onSwitchToOtp={handleLoginEmailVerification} // 🔄 NEW: Handle email verification requirement
+            onSwitchToOtp={handleLoginEmailVerification}
+            onError={handleError}
+            onClearError={clearError}
           />
         );
       case 'signup':
@@ -231,6 +291,8 @@ export default function AuthModal({
           <SignupForm
             onSuccess={handleSignupSuccess}
             onSwitchToLogin={handleSwitchToLogin}
+            onError={handleError}
+            onClearError={clearError}
           />
         );
       case 'otp':
@@ -255,6 +317,8 @@ export default function AuthModal({
             onSuccess={handleOtpSuccess}
             onResendOtp={handleResendOtp}
             isPasswordReset={isPasswordResetFlow}
+            onError={handleError}
+            onClearError={clearError}
           />
         );
       case 'forgot-password':
@@ -262,13 +326,31 @@ export default function AuthModal({
           <ForgotPasswordForm
             onSuccess={handleForgotPasswordSuccess}
             onSwitchToLogin={handleSwitchToLogin}
+            onError={handleError}
+            onClearError={clearError}
           />
         );
       case 'reset-password':
+        if (!passwordResetEmail) {
+          return (
+            <div className="text-center py-8">
+              <p className="text-red-600 mb-4">Error: No email address available for password reset.</p>
+              <button
+                onClick={() => setCurrentStep('forgot-password')}
+                className="text-blue-600 hover:text-blue-500 font-medium"
+              >
+                Back to Forgot Password
+              </button>
+            </div>
+          );
+        }
         return (
           <ResetPasswordForm
+            email={passwordResetEmail}
             onSuccess={handleResetPasswordSuccess}
             onSwitchToLogin={handleSwitchToLogin}
+            onError={handleError}
+            onClearError={clearError}
           />
         );
       default:
@@ -304,6 +386,28 @@ export default function AuthModal({
         >
           <CloseIcon className="w-6 h-6" />
         </motion.button>
+
+        {/* Error Display */}
+        {error && (
+          <motion.div
+            className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="flex items-center justify-between">
+              <span>{error}</span>
+              <button
+                onClick={clearError}
+                className="ml-4 text-red-500 hover:text-red-700 focus:outline-none"
+                aria-label="Dismiss error"
+              >
+                ×
+              </button>
+            </div>
+          </motion.div>
+        )}
 
         {/* Animated Step Content */}
         <AnimatePresence mode="wait">

@@ -14,5 +14,6 @@ export { default as YearFilter } from './YearFilter';
 export { CoverImage } from './CoverImage';
 export { JourneyHeader } from './JourneyHeader';
 export { PlaceCard } from './PlaceCard';
+export { SortablePlaceCard } from './SortablePlaceCard';
 export { PlaceForm } from './PlaceForm';
 export { PlacePhotoSection } from './PlacePhotoSection';

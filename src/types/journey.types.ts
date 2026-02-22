@@ -1,10 +1,8 @@
-export enum PlaceType {
-  STAY = 'STAY',
-  ACTIVITY = 'ACTIVITY',
-  FOOD = 'FOOD',
-  TRANSPORT = 'TRANSPORT',
-  NOTE = 'NOTE',
-}
+import { PlaceType } from '@/enums';
+import { JourneyMediaType } from '@/enums';
+
+// Re-export enums so components can import them from this file
+export { PlaceType, JourneyMediaType };
 
 export interface Journey {
   id: string;
@@ -19,11 +17,6 @@ export interface Journey {
   days?: JourneyDay[];
   createdAt?: string;
   updatedAt?: string;
-}
-
-export enum JourneyMediaType {
-  IMAGE = 'image',
-  VIDEO = 'video',
 }
 
 export interface JourneyMedia {
@@ -55,6 +48,7 @@ export interface JourneyPlace {
   longitude?: number;
   media?: JourneyMedia[];
   day: JourneyDay;
+  order?: number; // Display order for drag-and-drop persistence
 }
 
 export interface JourneyDayPlace {
@@ -216,11 +210,12 @@ export interface JourneySettings {
 
 // New types for comprehensive journey creation
 export interface CreateJourneyPlace {
+  id: string;
   type: PlaceType;
   name: string;
   description?: string;
-  startTime?: string;
-  endTime?: string;
+  startTime: string; // ✅ Required - every place must have start time
+  endTime: string; // ✅ Required - every place must have end time
   address?: string;
   latitude?: number;
   longitude?: number;
@@ -228,6 +223,7 @@ export interface CreateJourneyPlace {
   media?: JourneyMedia[]; // Optional structured media for places
   hasManualStart?: boolean; // Track if user manually edited start time
   hasManualEnd?: boolean; // Track if user manually edited end time
+  order?: number; // Track display order for drag-and-drop persistence
 }
 
 export interface CreateJourneyDay {

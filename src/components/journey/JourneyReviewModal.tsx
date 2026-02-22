@@ -73,8 +73,8 @@ export default function JourneyReviewModal({
     (journeyPlaces[day] || [])
       .filter((place) => place.type !== PlaceType.NOTE)
       .filter((place) => isValidCoordinate(place.latitude, place.longitude))
-      .map((place, index) => ({
-        id: `${day}-${index}`,
+      .map((place) => ({
+        id: place.id,
         name: place.name,
         lat: place.latitude as number,
         lng: place.longitude as number,
@@ -225,9 +225,9 @@ export default function JourneyReviewModal({
                       {/* Places */}
                       {nonNotePlaces.length > 0 ? (
                         <div className="space-y-3">
-                          {nonNotePlaces.map((place, placeIndex) => (
+                          {nonNotePlaces.map((place) => (
                             <div
-                              key={placeIndex}
+                              key={place.id}
                               className="bg-white rounded-lg p-4 border border-slate-200 hover:border-slate-300 transition-colors"
                             >
                               <div className="flex items-start gap-3">

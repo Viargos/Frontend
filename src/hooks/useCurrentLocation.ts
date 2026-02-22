@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { LocationCoordinates } from '@/types/user.types';
-import { locationService } from '@/lib/services/location.service';
+import { LocationApi } from '@/lib/api';
 
 export interface UseCurrentLocationReturn {
   location: LocationCoordinates | null;
@@ -28,8 +28,33 @@ export function useCurrentLocation(
     setError(null);
 
     try {
-      const currentLocation = await locationService.getCurrentLocation();
-      
+      // Try browser geolocation first
+      if (typeof navigator !== 'undefined' && navigator.geolocation) {
+        try {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              timeout: 5000,
+              maximumAge: 300000, // Cache for 5 minutes
+            });
+          });
+
+          const currentLocation: LocationCoordinates = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          };
+
+          setLocation(currentLocation);
+          setIsLoading(false);
+          return;
+        } catch (geoError) {
+          // Browser geolocation failed, fall back to IP-based
+          console.warn('Browser geolocation failed, falling back to IP-based location');
+        }
+      }
+
+      // Fallback to IP-based location via LocationApi
+      const currentLocation = await LocationApi.getCurrentLocation();
+
       if (currentLocation) {
         setLocation(currentLocation);
       } else {

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Manrope, Outfit } from 'next/font/google';
 import './globals.css';
 import AuthInitializer from '@/components/auth/AuthInitializer';
+import { Providers } from './providers';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/next';
 
@@ -34,11 +35,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${manrope.variable} ${outfit.variable} antialiased`}>
-        <AuthInitializer>
-          {children}
-          <SpeedInsights />
-          <Analytics />
-        </AuthInitializer>
+        <Providers>
+          <AuthInitializer>
+            {children}
+            <SpeedInsights />
+            <Analytics />
+          </AuthInitializer>
+        </Providers>
       </body>
     </html>
   );

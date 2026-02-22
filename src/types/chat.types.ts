@@ -1,3 +1,14 @@
+/**
+ * Message delivery status for WhatsApp-like UX
+ */
+export enum MessageStatus {
+  SENDING = 'sending',      // 🕐 Clock (optimistic - not yet sent)
+  SENT = 'sent',            // ✓ Single tick (API success)
+  DELIVERED = 'delivered',  // ✓✓ Double tick (future feature)
+  READ = 'read',            // Blue ✓✓ (future feature)
+  FAILED = 'failed',        // ⚠️ Warning (API error)
+}
+
 export interface ChatMessage {
   id: string;
   senderId: string;
@@ -7,6 +18,11 @@ export interface ChatMessage {
   createdAt: Date;
   sender?: ChatUser;
   receiver?: ChatUser;
+
+  // Optimistic update fields (not from backend)
+  status?: MessageStatus;   // Message delivery status
+  tempId?: string;          // Temporary ID for optimistic messages (before API response)
+  isOptimistic?: boolean;   // Flag to identify optimistic messages
 }
 
 export interface ChatUser {

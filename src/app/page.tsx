@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuthStore } from '@/store/auth.store';
+import { useAuthModalStore } from '@/store/auth-modal.store';
 import { Header } from '@/components/home';
 import ModalContainer from '@/components/auth/ModalContainer';
 import { ErrorBoundary, Loader } from '@/components/common';
@@ -11,9 +10,8 @@ import '@/lib/scroll-utils'; // Import scroll reset utility
 import Lottie from 'lottie-react';
 import planeAnimation from '@/lib/animation/plane.json';
 
-export default function Home() {
-  const { user, isAuthenticated, openSignup, openLogin } = useAuthStore();
-  const router = useRouter();
+function HomeContent() {
+  const { openSignup, openLogin } = useAuthModalStore();
   const [isLoading, setIsLoading] = useState(true);
   const [showContent, setShowContent] = useState(false);
 
@@ -30,11 +28,6 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Redirect authenticated users to dashboard
-  useEffect(() => {
-    if (isAuthenticated && user) router.push('/dashboard');
-  }, [isAuthenticated, user, router]);
-
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
     visible: {
@@ -42,7 +35,7 @@ export default function Home() {
       opacity: 1,
       transition: {
         duration: 0.6,
-        ease: [0.6, -0.05, 0.01, 0.99],
+        ease: 'easeOut',
       },
     },
   };
@@ -54,7 +47,7 @@ export default function Home() {
       opacity: 1,
       transition: {
         duration: 0.8,
-        ease: [0.6, -0.05, 0.01, 0.99],
+        ease: 'easeOut',
       },
     },
   };
@@ -100,14 +93,14 @@ export default function Home() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="w-full bg-white border-b border-gray-200 px-4"
             >
-              <div className="max-w-7xl mx-auto">
-                <Header user={user} />
-              </div>
+                <div className="max-w-7xl mx-auto">
+                  <Header />
+                </div>
             </motion.div>
 
             {/* Hero Section - Full Width */}
             <motion.div
-              variants={heroVariants} 
+              variants={heroVariants}
               className="relative overflow-hidden min-h-[700px] sm:min-h-[800px] w-full"
             >
               {/* Plane Animation Background */}
@@ -184,5 +177,13 @@ export default function Home() {
       {/* Auth Modal */}
       <ModalContainer />
     </ErrorBoundary>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<Loader />}>
+      <HomeContent />
+    </Suspense>
   );
 }

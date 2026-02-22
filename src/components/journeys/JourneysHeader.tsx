@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Search, Filter } from 'lucide-react';
 import { useJourneyStore } from '@/store/journey.store';
+import { useCreateJourney } from '@/hooks/journey/useJourneyQueries';
 import { NewJourneyModal } from '@/components/journey';
 import { useRouter } from 'next/navigation';
 
@@ -21,22 +22,22 @@ export default function JourneysHeader({
   const [showNewJourneyModal, setShowNewJourneyModal] = useState(false);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const router = useRouter();
-  
+
+  // UI state from store (filters, search query)
   const {
     searchQuery,
     filters,
-    searchJourneys,
     setSearchQuery,
     setFilters,
     resetFilters,
-    createJourney,
   } = useJourneyStore();
+
+  // React Query mutation for creating journey
+  const createJourneyMutation = useCreateJourney();
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    if (query.trim()) {
-      searchJourneys(query);
-    }
+    // Note: Actual filtering is handled by parent component using React Query
   };
 
   const handleCreateJourney = () => {
@@ -54,18 +55,19 @@ export default function JourneysHeader({
     location: string;
     locationData?: any;
   }) => {
-    const newJourney = await createJourney({
-      title: journeyData.name,
-      description: `Journey to ${journeyData.location} on ${journeyData.journeyDate}`,
-    });
-
-    if (newJourney) {
+    try {
+      await createJourneyMutation.mutateAsync({
+        title: journeyData.name,
+        description: `Journey to ${journeyData.location} on ${journeyData.journeyDate}`,
+      });
       setShowNewJourneyModal(false);
+    } catch (error) {
+      console.error('Failed to create journey:', error);
     }
   };
 
   const handleSortChange = (sortBy: string) => {
-    setFilters({ 
+    setFilters({
       sortBy: sortBy as any,
       sortOrder: filters.sortBy === sortBy && filters.sortOrder === 'desc' ? 'asc' : 'desc'
     });
@@ -82,7 +84,7 @@ export default function JourneysHeader({
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         {/* Title and Description */}
         <div>
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.5 }}
@@ -90,7 +92,7 @@ export default function JourneysHeader({
           >
             My Journeys
           </motion.h1>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.5 }}
@@ -101,7 +103,7 @@ export default function JourneysHeader({
         </div>
 
         {/* Action Buttons */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.4, duration: 0.5 }}
@@ -121,7 +123,7 @@ export default function JourneysHeader({
 
       {/* Search and Filter Bar */}
       {(showSearch || showFilters) && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.5 }}
@@ -178,7 +180,7 @@ export default function JourneysHeader({
                         <button
                           key={option.value}
                           onClick={() => handleSortChange(option.value)}
-                          className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${ 
+                          className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
                             filters.sortBy === option.value
                               ? 'bg-green-50 text-green-700'
                               : 'hover:bg-gray-50 text-gray-700'

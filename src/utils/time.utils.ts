@@ -65,6 +65,23 @@ export const formatTime = (time: string): string => {
   return time;
 };
 
+/**
+ * Calculate duration between two times in minutes.
+ * Returns minimum of 15 minutes to prevent zero-duration bugs.
+ */
+export const getDurationInMinutes = (
+  startTime: string,
+  endTime: string
+): number => {
+  if (!startTime || !endTime) return 60;
+
+  const start = timeToMinutes(startTime);
+  const end = timeToMinutes(endTime);
+  const duration = end - start;
+
+  return Math.max(15, duration);
+};
+
 
 
 

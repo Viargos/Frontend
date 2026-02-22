@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { PostComment } from '@/types/post.types';
-import { postService } from '@/lib/services/service-factory';
+import { PostApi, ApiError } from '@/lib/api';
 import { CommentItem, CommentForm } from '@/components/comment';
 import { Button } from '@/components/ui';
 import { MessageSquare, Loader2 } from 'lucide-react';
@@ -54,19 +54,18 @@ export default function CommentList({
 
     setIsLoadingMore(true);
     try {
-      const response = await postService.getComments(postId, {
+      const newComments = await PostApi.getComments(postId, {
         limit,
         offset: page * limit,
       });
-
-      const newComments = response.data || [];
-      const updatedComments = [...comments, ...newComments];
+      const updatedComments = [...comments, ...(newComments || [])];
       setComments(updatedComments);
       setPage(page + 1);
-      setHasMore(newComments.length === limit);
+      setHasMore((newComments?.length ?? 0) === limit);
       onCommentsUpdate?.(updatedComments);
     } catch (error) {
-      console.error('Failed to load more comments:', error);
+      if (error instanceof ApiError) console.error('Failed to load more comments:', error.getUserMessage());
+      else console.error('Failed to load more comments:', error);
     } finally {
       setIsLoadingMore(false);
     }
@@ -76,20 +75,22 @@ export default function CommentList({
   const handleReplySubmit = async (content: string) => {
     if (!replyState.parentComment) return;
 
-    await postService.addComment(postId, content, replyState.parentComment.id);
+    await PostApi.addComment(postId, {
+      content,
+      parentId: replyState.parentComment.id,
+    });
 
-    // Refresh comments or add optimistically
-    const response = await postService.getComments(postId, { limit: page * limit });
-    const updatedComments = response.data || [];
-    setComments(updatedComments);
-    onCommentsUpdate?.(updatedComments);
-    onCommentCountChange?.(updatedComments.length);
+    // Refresh comments
+    const updatedComments = await PostApi.getComments(postId, { limit: page * limit });
+    setComments(updatedComments || []);
+    onCommentsUpdate?.(updatedComments || []);
+    onCommentCountChange?.(updatedComments?.length ?? 0);
 
     // Update reply count on parent comment
-    const updatedParent = updatedComments.find(c => c.id === replyState.parentComment!.id);
+    const updatedParent = (updatedComments || []).find(c => c.id === replyState.parentComment!.id);
     if (updatedParent) {
       setComments(prev =>
-        prev.map(c => (c.id === updatedParent.id ? updatedParent : c))
+        prev.map(c => (c.id === updatedParent.id ? (updatedParent as PostComment) : c))
       );
     }
 
@@ -114,11 +115,11 @@ export default function CommentList({
     // Load replies
     setLoadingReplies(commentId);
     try {
-      const response = await postService.getReplies(commentId, { limit: 50 });
-      const replies = response.data || [];
-      setExpandedReplies(prev => ({ ...prev, [commentId]: replies }));
+      const replies = await PostApi.getReplies(commentId, { limit: 50 });
+      setExpandedReplies(prev => ({ ...prev, [commentId]: (replies || []) as PostComment[] }));
     } catch (error) {
-      console.error('Failed to load replies:', error);
+      if (error instanceof ApiError) console.error('Failed to load replies:', error.getUserMessage());
+      else console.error('Failed to load replies:', error);
     } finally {
       setLoadingReplies(null);
     }
@@ -127,7 +128,6 @@ export default function CommentList({
   // Handle reply button click
   const handleReply = (comment: PostComment) => {
     setReplyState({ commentId: comment.id, parentComment: comment });
-    setEditState({ commentId: null, content: '' });
   };
 
   // Cancel reply

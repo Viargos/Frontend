@@ -1,6 +1,7 @@
 export { default as CompactPostCard } from './CompactPostCard';
 export { default as CreatePostModal } from './CreatePostModal';
 export { default as EditPostModal } from './EditPostModal';
+export { default as PostDetailModal } from './PostDetailModal';
 export { default as GuestCompactPostCard } from './GuestCompactPostCard';
 export { default as GuestPostCard } from './GuestPostCard';
 export { default as GuestPostsList } from './GuestPostsList';
