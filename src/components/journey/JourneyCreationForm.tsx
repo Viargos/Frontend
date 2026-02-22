@@ -101,6 +101,7 @@ export default function JourneyCreationForm({ onSuccess, onCancel }: JourneyCrea
 
   const addPlace = useCallback((dayIndex: number) => {
     const newPlace: CreateJourneyPlace = {
+      id: crypto.randomUUID(),
       type: PlaceType.ACTIVITY,
       name: '',
       description: '',

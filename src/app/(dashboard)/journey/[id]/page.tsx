@@ -506,143 +506,190 @@ export default function JourneyDetailsPage() {
                     <div className="hidden sm:block absolute left-5 md:left-6 top-0 bottom-0 w-0.5 bg-gray-200"></div>
 
                   <div className="space-y-4 sm:space-y-6">
-                    {/* All places combined in timeline format */}
-                    {[
-                      ...getPlacesByType(currentDay).placeToStay,
-                      ...getPlacesByType(currentDay).placesToGo,
-                      ...getPlacesByType(currentDay).food,
-                      ...getPlacesByType(currentDay).transport,
-                    ].map((place, index) => (
-                      <div
-                        key={`${place.id}-${index}`}
-                        className="relative flex items-start"
-                      >
-                        {/* Timeline Dot - Hidden on mobile for cleaner look */}
-                        <div 
-                          className={`hidden sm:flex relative z-10 w-10 h-10 md:w-12 md:h-12 bg-white border-2 rounded-full flex-shrink-0 items-center justify-center p-0 m-0 transition-transform duration-300 hover:scale-110 border-[#160E53]`}
-                        >
-                          <div className="w-5 h-5 md:w-6 md:h-6 bg-white rounded-full flex items-center justify-center p-0 m-0">
-                            {place.type === 'stay' && (
-                              <Hotel className="w-3 h-3 md:w-4 md:h-4 text-[#160E53]" strokeWidth={2} />
-                            )}
-                            {place.type === 'activity' && (
-                              <Trees className="w-3 h-3 md:w-4 md:h-4 text-[#160E53]" strokeWidth={2} />
-                            )}
-                            {place.type === 'food' && (
-                              <UtensilsCrossed className="w-3 h-3 md:w-4 md:h-4 text-[#160E53]" strokeWidth={2} />
-                            )}
-                            {place.type === 'transport' && (
-                              <Car className="w-3 h-3 md:w-4 md:h-4 text-[#160E53]" strokeWidth={2} />
-                            )}
-                            {place.type === 'note' && (
-                              <FileText className="w-3 h-3 md:w-4 md:h-4 text-[#160E53]" strokeWidth={2} />
-                            )}
-                          </div>
-                        </div>
+                    {/* Render places in backend array order (user's drag order) */}
+                    {(currentDay.places || [])
+                      .filter((place: any) => place.type !== 'NOTE')
+                      .map((place: any, index: number) => {
+                        // Derive photos from legacy fields OR from media (IMAGE type)
+                        const legacyPhotos: string[] =
+                          (place.photos as string[] | undefined) ||
+                          ((place as any).images as string[] | undefined) ||
+                          [];
 
-                        {/* Timeline Content */}
-                        <div className="sm:ml-4 md:ml-6 flex-1 min-w-0 w-full">
-                          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                            {/* Mobile Layout: Stack vertically */}
-                            <div className="flex flex-col sm:flex-row">
-                              {/* Activity Image */}
-                              <div className="relative w-full sm:w-28 md:w-32 lg:w-36 h-32 sm:h-28 md:h-32 lg:h-36 bg-gray-100 flex-shrink-0">
-                                {place.photos && place.photos.length > 0 && !failedImages.has(place.id) ? (
-                                  <Image
-                                    src={getImageUrl(place.photos[0])}
-                                    alt={place.name}
-                                    fill
-                                    className="object-cover"
-                                    onError={() => handleImageError(place.id)}
-                                  />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-                                    <div className="w-12 h-12 sm:w-10 sm:h-10 bg-[#160E53] rounded-full flex items-center justify-center">
-                                      {place.type === 'stay' && (
-                                        <Hotel className="w-6 h-6 sm:w-5 sm:h-5 text-white" strokeWidth={2} />
-                                      )}
-                                      {place.type === 'activity' && (
-                                        <Trees className="w-6 h-6 sm:w-5 sm:h-5 text-white" strokeWidth={2} />
-                                      )}
-                                      {place.type === 'food' && (
-                                        <UtensilsCrossed className="w-6 h-6 sm:w-5 sm:h-5 text-white" strokeWidth={2} />
-                                      )}
-                                      {place.type === 'transport' && (
-                                        <Car className="w-6 h-6 sm:w-5 sm:h-5 text-white" strokeWidth={2} />
-                                      )}
-                                    </div>
-                                  </div>
+                        const mediaImages: string[] = Array.isArray(place.media)
+                          ? place.media
+                              .filter(
+                                (m: any) =>
+                                  m &&
+                                  typeof m.url === 'string' &&
+                                  m.url.length > 0 &&
+                                  (m.type === 'IMAGE' || m.type === 'image')
+                              )
+                              .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
+                              .map((m: any) => m.url)
+                          : [];
+
+                        const combinedPhotos = (
+                          legacyPhotos.length > 0 ? legacyPhotos : mediaImages
+                        ) as string[];
+
+                        // Map to UI-compatible type
+                        const mappedType =
+                          place.type === 'STAY'
+                            ? 'stay'
+                            : place.type === 'ACTIVITY'
+                            ? 'activity'
+                            : place.type === 'FOOD'
+                            ? 'food'
+                            : place.type === 'TRANSPORT'
+                            ? 'transport'
+                            : place.type === 'NOTE'
+                            ? 'note'
+                            : 'note';
+
+                        const location: Location = {
+                          id: place.id,
+                          name: place.name,
+                          lat: place.latitude ? parseFloat(place.latitude) : 0,
+                          lng: place.longitude ? parseFloat(place.longitude) : 0,
+                          type: mappedType,
+                          address: place.address || place.description,
+                          day: `Day ${currentDay.dayNumber + 1}`,
+                          photos: combinedPhotos,
+                        };
+
+                        return (
+                          <div
+                            key={`${location.id}-${index}`}
+                            className="relative flex items-start"
+                          >
+                            {/* Timeline Dot - Hidden on mobile for cleaner look */}
+                            <div
+                              className={`hidden sm:flex relative z-10 w-10 h-10 md:w-12 md:h-12 bg-white border-2 rounded-full flex-shrink-0 items-center justify-center p-0 m-0 transition-transform duration-300 hover:scale-110 border-[#160E53]`}
+                            >
+                              <div className="w-5 h-5 md:w-6 md:h-6 bg-white rounded-full flex items-center justify-center p-0 m-0">
+                                {location.type === 'stay' && (
+                                  <Hotel className="w-3 h-3 md:w-4 md:h-4 text-[#160E53]" strokeWidth={2} />
                                 )}
-                                {/* Type badge on mobile */}
-                                <div className="absolute top-2 left-2 sm:hidden">
-                                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#160E53] text-white`}>
-                                    {place.type === 'stay' && 'Stay'}
-                                    {place.type === 'activity' && 'Activity'}
-                                    {place.type === 'food' && 'Food'}
-                                    {place.type === 'transport' && 'Transport'}
-                                  </span>
-                                </div>
-                                {/* Photo count badge */}
-                                {place.photos && place.photos.length > 1 && (
-                                  <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                                    <ImageIcon className="w-3 h-3" />
-                                    {place.photos.length}
-                                  </div>
+                                {location.type === 'activity' && (
+                                  <Trees className="w-3 h-3 md:w-4 md:h-4 text-[#160E53]" strokeWidth={2} />
+                                )}
+                                {location.type === 'food' && (
+                                  <UtensilsCrossed className="w-3 h-3 md:w-4 md:h-4 text-[#160E53]" strokeWidth={2} />
+                                )}
+                                {location.type === 'transport' && (
+                                  <Car className="w-3 h-3 md:w-4 md:h-4 text-[#160E53]" strokeWidth={2} />
+                                )}
+                                {location.type === 'note' && (
+                                  <FileText className="w-3 h-3 md:w-4 md:h-4 text-[#160E53]" strokeWidth={2} />
                                 )}
                               </div>
+                            </div>
 
-                              {/* Content */}
-                              <div className="flex-1 p-3 sm:p-4 min-w-0">
-                                <div className="flex flex-col h-full">
-                                  {/* Header with title and view button */}
-                                  <div className="flex items-start justify-between gap-2 mb-2">
-                                    <h3 className="font-semibold text-gray-900 text-sm sm:text-base leading-tight line-clamp-2">
-                                      {place.name}
-                                    </h3>
-                                    {/* View Images button - Desktop */}
-                                    <button
-                                      onClick={() => handleLocationClick(place)}
-                                      className="hidden sm:flex items-center text-xs sm:text-sm text-[#160E53] hover:text-[#241A7A] transition-colors flex-shrink-0 font-medium"
-                                    >
-                                      <ImageIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
-                                      <span className="hidden md:inline">View Images</span>
-                                      <span className="md:hidden">View</span>
-                                    </button>
+                            {/* Timeline Content */}
+                            <div className="sm:ml-4 md:ml-6 flex-1 min-w-0 w-full">
+                              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                                {/* Mobile Layout: Stack vertically */}
+                                <div className="flex flex-col sm:flex-row">
+                                  {/* Activity Image */}
+                                  <div className="relative w-full sm:w-28 md:w-32 lg:w-36 h-32 sm:h-28 md:h-32 lg:h-36 bg-gray-100 flex-shrink-0">
+                                    {location.photos && location.photos.length > 0 && !failedImages.has(location.id) ? (
+                                      <Image
+                                        src={getImageUrl(location.photos[0])}
+                                        alt={location.name}
+                                        fill
+                                        className="object-cover"
+                                        onError={() => handleImageError(location.id)}
+                                      />
+                                    ) : (
+                                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                                        <div className="w-12 h-12 sm:w-10 sm:h-10 bg-[#160E53] rounded-full flex items-center justify-center">
+                                          {location.type === 'stay' && (
+                                            <Hotel className="w-6 h-6 sm:w-5 sm:h-5 text-white" strokeWidth={2} />
+                                          )}
+                                          {location.type === 'activity' && (
+                                            <Trees className="w-6 h-6 sm:w-5 sm:h-5 text-white" strokeWidth={2} />
+                                          )}
+                                          {location.type === 'food' && (
+                                            <UtensilsCrossed className="w-6 h-6 sm:w-5 sm:h-5 text-white" strokeWidth={2} />
+                                          )}
+                                          {location.type === 'transport' && (
+                                            <Car className="w-6 h-6 sm:w-5 sm:h-5 text-white" strokeWidth={2} />
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+                                    {/* Type badge on mobile */}
+                                    <div className="absolute top-2 left-2 sm:hidden">
+                                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#160E53] text-white`}>
+                                        {location.type === 'stay' && 'Stay'}
+                                        {location.type === 'activity' && 'Activity'}
+                                        {location.type === 'food' && 'Food'}
+                                        {location.type === 'transport' && 'Transport'}
+                                      </span>
+                                    </div>
+                                    {/* Photo count badge */}
+                                    {location.photos && location.photos.length > 1 && (
+                                      <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                                        <ImageIcon className="w-3 h-3" />
+                                        {location.photos.length}
+                                      </div>
+                                    )}
                                   </div>
-                                  
-                                  {/* Category tag - Desktop */}
-                                  <div className="hidden sm:flex items-center text-xs text-gray-500 mb-2">
-                                    <MapPinIcon className="w-3.5 h-3.5 mr-1 text-gray-400 flex-shrink-0" />
-                                    <span>
-                                      {place.type === 'stay' && 'Accommodation'}
-                                      {place.type === 'activity' && 'Activity'}
-                                      {place.type === 'food' && 'Restaurant'}
-                                      {place.type === 'transport' && 'Transport'}
-                                    </span>
+
+                                  {/* Content */}
+                                  <div className="flex-1 p-3 sm:p-4 min-w-0">
+                                    <div className="flex flex-col h-full">
+                                      {/* Header with title and view button */}
+                                      <div className="flex items-start justify-between gap-2 mb-2">
+                                        <h3 className="font-semibold text-gray-900 text-sm sm:text-base leading-tight line-clamp-2">
+                                          {location.name}
+                                        </h3>
+                                        {/* View Images button - Desktop */}
+                                        <button
+                                          onClick={() => handleLocationClick(location)}
+                                          className="hidden sm:flex items-center text-xs sm:text-sm text-[#160E53] hover:text-[#241A7A] transition-colors flex-shrink-0 font-medium"
+                                        >
+                                          <ImageIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
+                                          <span className="hidden md:inline">View Images</span>
+                                          <span className="md:hidden">View</span>
+                                        </button>
+                                      </div>
+
+                                      {/* Category tag - Desktop */}
+                                      <div className="hidden sm:flex items-center text-xs text-gray-500 mb-2">
+                                        <MapPinIcon className="w-3.5 h-3.5 mr-1 text-gray-400 flex-shrink-0" />
+                                        <span>
+                                          {location.type === 'stay' && 'Accommodation'}
+                                          {location.type === 'activity' && 'Activity'}
+                                          {location.type === 'food' && 'Restaurant'}
+                                          {location.type === 'transport' && 'Transport'}
+                                        </span>
+                                      </div>
+
+                                      {/* Address */}
+                                      {location.address && (
+                                        <p className="text-xs sm:text-sm text-gray-500 line-clamp-2 sm:line-clamp-3 flex-1">
+                                          {location.address}
+                                        </p>
+                                      )}
+
+                                      {/* Mobile View Images button */}
+                                      <button
+                                        onClick={() => handleLocationClick(location)}
+                                        className="sm:hidden mt-3 w-full flex items-center justify-center gap-1.5 text-sm text-white bg-[#160E53] hover:bg-[#241A7A] transition-colors font-medium py-2 px-3 rounded-lg"
+                                      >
+                                        <ImageIcon className="w-4 h-4" />
+                                        View All Images
+                                      </button>
+                                    </div>
                                   </div>
-                                  
-                                  {/* Address */}
-                                  {place.address && (
-                                    <p className="text-xs sm:text-sm text-gray-500 line-clamp-2 sm:line-clamp-3 flex-1">
-                                      {place.address}
-                                    </p>
-                                  )}
-                                  
-                                  {/* Mobile View Images button */}
-                                  <button
-                                    onClick={() => handleLocationClick(place)}
-                                    className="sm:hidden mt-3 w-full flex items-center justify-center gap-1.5 text-sm text-white bg-[#160E53] hover:bg-[#241A7A] transition-colors font-medium py-2 px-3 rounded-lg"
-                                  >
-                                    <ImageIcon className="w-4 h-4" />
-                                    View All Images
-                                  </button>
                                 </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      </div>
-                    ))}
+                        );
+                      })}
 
                     {/* Notes in timeline */}
                     {currentDay.notes && (

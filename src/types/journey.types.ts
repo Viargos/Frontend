@@ -48,6 +48,7 @@ export interface JourneyPlace {
   longitude?: number;
   media?: JourneyMedia[];
   day: JourneyDay;
+  order?: number; // Display order for drag-and-drop persistence
 }
 
 export interface JourneyDayPlace {
@@ -209,11 +210,12 @@ export interface JourneySettings {
 
 // New types for comprehensive journey creation
 export interface CreateJourneyPlace {
+  id: string;
   type: PlaceType;
   name: string;
   description?: string;
-  startTime?: string;
-  endTime?: string;
+  startTime: string; // ✅ Required - every place must have start time
+  endTime: string; // ✅ Required - every place must have end time
   address?: string;
   latitude?: number;
   longitude?: number;
@@ -221,6 +223,7 @@ export interface CreateJourneyPlace {
   media?: JourneyMedia[]; // Optional structured media for places
   hasManualStart?: boolean; // Track if user manually edited start time
   hasManualEnd?: boolean; // Track if user manually edited end time
+  order?: number; // Track display order for drag-and-drop persistence
 }
 
 export interface CreateJourneyDay {

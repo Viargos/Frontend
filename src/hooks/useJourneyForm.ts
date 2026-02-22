@@ -1,14 +1,12 @@
 import { useState, useCallback } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { PlaceType, JourneyMediaType } from "@/enums";
 import {
   CreateJourneyPlace,
   CreateJourneyDay,
 } from "@/types/journey.types";
 import { JourneyApi } from "@/lib/api";
-import {
-  validateTimeRange,
-  addMinutesToTime,
-} from "@/utils/time.utils";
+import { recalculateDayTimeline } from "@/utils/journeyTimeline.helper";
 
 export interface JourneyFormData {
   title: string;
@@ -36,8 +34,18 @@ export interface UseJourneyFormReturn {
   journeyPlaces: { [key: string]: CreateJourneyPlace[] };
   getActiveDayPlaces: () => CreateJourneyPlace[];
   getPlacesByType: (type: PlaceType) => CreateJourneyPlace[];
-  addPlaceToActiveDay: (type: PlaceType) => void;
+  /**
+   * Add a place to the active day
+   * @param type - Type of place to add
+   * @param initialData - Optional initial data for the place (e.g., coordinates from map click)
+   * @returns UUID of new place, or undefined if NOTE already exists
+   */
+  addPlaceToActiveDay: (
+    type: PlaceType,
+    initialData?: Partial<CreateJourneyPlace>
+  ) => string | undefined;
   removePlaceFromActiveDay: (index: number) => void;
+  reorderPlaces: (dayKey: string, oldIndex: number, newIndex: number) => void;
   updatePlaceField: (
     index: number,
     field: keyof CreateJourneyPlace,
@@ -47,10 +55,10 @@ export interface UseJourneyFormReturn {
   addPhotoToPlace: (index: number, photoKey: string) => void;
   removePhotoFromPlace: (index: number, photoIndex: number) => void;
 
-  // UI state
-  expandedPlaces: { [key: string]: boolean };
-  togglePlaceExpansion: (dayKey: string, placeIndex: number) => void;
-  isPlaceExpanded: (dayKey: string, placeIndex: number) => boolean;
+  // UI state (key = place.id for stable identity across reorder)
+  expandedPlaces: { [placeId: string]: boolean };
+  togglePlaceExpansion: (placeId: string) => void;
+  isPlaceExpanded: (placeId: string) => boolean;
 
   // Form submission
   isSubmitting: boolean;
@@ -185,79 +193,45 @@ export const useJourneyForm = (): UseJourneyFormReturn => {
     }
   };
 
-  // Calculate time based on index (starting at 09:00)
-  const calculateTimeForIndex = (index: number): { startTime: string; endTime: string } => {
-    const baseHour = 9; // Start at 09:00
-    const startHour = baseHour + index;
-    const endHour = startHour + 1;
-
-    const formatTime = (hour: number): string => {
-      return `${hour.toString().padStart(2, '0')}:00`;
-    };
-
-    return {
-      startTime: formatTime(startHour),
-      endTime: formatTime(endHour),
-    };
-  };
-
   const addPlaceToActiveDay = useCallback(
-    (type: PlaceType) => {
+    (
+      type: PlaceType,
+      initialData?: Partial<CreateJourneyPlace>
+    ): string | undefined => {
       if (type === PlaceType.NOTE) {
         const existingPlaces = journeyPlaces[activeDay] || [];
         const hasExistingNote = existingPlaces.some(
           (place) => place.type === PlaceType.NOTE
         );
-
-        if (hasExistingNote) {
-          return;
-        }
+        if (hasExistingNote) return undefined;
       }
 
-      const existingPlaces = journeyPlaces[activeDay] || [];
-      const newIndex = existingPlaces.length;
-
-      // Default behavior: Activity[0] keeps its own time, Activity[i] auto-sets
-      let startTime: string;
-      let endTime: string;
-
-      if (newIndex === 0) {
-        // Activity[0] keeps its own time (calculated based on index)
-        const calculated = calculateTimeForIndex(newIndex);
-        startTime = calculated.startTime;
-        endTime = calculated.endTime;
-      } else if (newIndex > 0 && existingPlaces[newIndex - 1].endTime) {
-        // Activity[i]: startTime = activity[i-1].endTime (no gap)
-        const previousEndTime = existingPlaces[newIndex - 1].endTime;
-        startTime = previousEndTime;
-        // endTime = startTime + 1 hour (default duration)
-        endTime = addMinutesToTime(startTime, 60);
-      } else {
-        // Fallback: calculate based on index
-        const calculated = calculateTimeForIndex(newIndex);
-        startTime = calculated.startTime;
-        endTime = calculated.endTime;
-      }
-
+      const newId = uuidv4();
       const newPlace: CreateJourneyPlace = {
+        id: newId,
         name: getPlaceholderName(type),
         description: "",
         type: type,
-        startTime: startTime,
-        endTime: endTime,
+        startTime: "09:00",
+        endTime: "10:00",
         latitude: 0,
         longitude: 0,
         address: "",
         photos: [],
-        // New places haven't been manually edited yet
         hasManualStart: false,
         hasManualEnd: false,
+        ...initialData, // ✅ Merge initial data (e.g., coordinates from map click)
       };
 
-      setJourneyPlaces((prev) => ({
-        ...prev,
-        [activeDay]: [...(prev[activeDay] || []), newPlace],
-      }));
+      setJourneyPlaces((prev) => {
+        const updatedPlaces = [...(prev[activeDay] || []), newPlace];
+        const recalculated = recalculateDayTimeline(updatedPlaces);
+        return {
+          ...prev,
+          [activeDay]: recalculated,
+        };
+      });
+      return newId;
     },
     [activeDay, journeyPlaces]
   );
@@ -267,56 +241,30 @@ export const useJourneyForm = (): UseJourneyFormReturn => {
       setJourneyPlaces((prev) => {
         const currentPlaces = prev[activeDay] || [];
         const updatedPlaces = currentPlaces.filter((_, i) => i !== index);
-
-        // Preserve time linking: link each place's start time to previous end time
-        // ONLY if it hasn't been manually edited
-        const placesWithLinkedTimes = updatedPlaces.map((place, newIndex) => {
-          let startTime = place.startTime;
-          let endTime = place.endTime;
-
-          // Link start time to previous activity's end time (no gap)
-          // ONLY if start time hasn't been manually edited
-          if (newIndex > 0 && updatedPlaces[newIndex - 1].endTime && !place.hasManualStart) {
-            const previousEndTime = updatedPlaces[newIndex - 1].endTime;
-            startTime = previousEndTime; // No gap - start exactly when previous ends
-            // If end time also not manually edited, set to startTime + 1 hour
-            if (!place.hasManualEnd) {
-              endTime = addMinutesToTime(startTime, 60);
-            }
-          } else if (!startTime) {
-            // Fallback: calculate if no previous end time
-            const calculated = calculateTimeForIndex(newIndex);
-            startTime = calculated.startTime;
-          }
-
-          // Ensure end time exists and is valid
-          if (!endTime || (startTime && !validateTimeRange(startTime, endTime))) {
-            if (startTime && !place.hasManualEnd) {
-              // Default: endTime = startTime + 1 hour
-              endTime = addMinutesToTime(startTime, 60);
-            } else {
-              const calculated = calculateTimeForIndex(newIndex);
-              endTime = calculated.endTime;
-            }
-          }
-
-          return {
-            ...place,
-            startTime,
-            endTime,
-            // Preserve manual edit flags
-            hasManualStart: place.hasManualStart || false,
-            hasManualEnd: place.hasManualEnd || false,
-          };
-        });
-
+        const recalculated = recalculateDayTimeline(updatedPlaces);
         return {
           ...prev,
-          [activeDay]: placesWithLinkedTimes,
+          [activeDay]: recalculated,
         };
       });
     },
     [activeDay]
+  );
+
+  const reorderPlaces = useCallback(
+    (dayKey: string, oldIndex: number, newIndex: number) => {
+      setJourneyPlaces((prev) => {
+        const dayPlaces = prev[dayKey] ? [...prev[dayKey]] : [];
+        if (oldIndex === newIndex || oldIndex < 0 || newIndex < 0 || oldIndex >= dayPlaces.length || newIndex >= dayPlaces.length) {
+          return prev;
+        }
+        const [moved] = dayPlaces.splice(oldIndex, 1);
+        dayPlaces.splice(newIndex, 0, moved);
+        const recalculated = recalculateDayTimeline(dayPlaces);
+        return { ...prev, [dayKey]: recalculated };
+      });
+    },
+    []
   );
 
   const updatePlaceField = useCallback(
@@ -325,35 +273,33 @@ export const useJourneyForm = (): UseJourneyFormReturn => {
       field: keyof CreateJourneyPlace,
       value: string | number
     ) => {
-      // Log coordinate updates
       if (field === 'latitude' || field === 'longitude') {
         console.log(`📍 useJourneyForm: Updating ${field} for place ${index}:`, value);
       }
 
       const isTimeField = field === 'startTime' || field === 'endTime';
-      const isStartTime = field === 'startTime';
-      const isEndTime = field === 'endTime';
+      const formattedValue =
+        isTimeField && typeof value === 'string' ? value.trim() : value;
 
       setJourneyPlaces((prev) => {
         const currentPlaces = prev[activeDay] || [];
         const currentPlace = currentPlaces[index];
-
         if (!currentPlace) return prev;
 
-        // Format time value if it's a time field
-        // For HTML5 time inputs, the value is already in HH:mm format, so we can use it directly
-        const formattedValue = isTimeField && typeof value === 'string'
-          ? value.trim() // Just trim, don't reformat (HTML5 time inputs already provide correct format)
-          : value;
-
-        // Always allow the update - validation is for display purposes only
-        // Users should be able to type any time and fix it later
         const updatedPlace: CreateJourneyPlace = {
           ...currentPlace,
           [field]: formattedValue,
         };
+        if (field === 'startTime') updatedPlace.hasManualStart = true;
+        if (field === 'endTime') updatedPlace.hasManualEnd = true;
 
-        // Log the updated place if coordinates changed
+        const updatedPlaces = currentPlaces.map((place, i) =>
+          i === index ? updatedPlace : place
+        );
+        const recalculated = isTimeField
+          ? recalculateDayTimeline(updatedPlaces)
+          : updatedPlaces;
+
         if (field === 'latitude' || field === 'longitude') {
           console.log('📍 useJourneyForm: Updated place:', {
             index,
@@ -363,89 +309,9 @@ export const useJourneyForm = (): UseJourneyFormReturn => {
           });
         }
 
-        // Mark time fields as manually edited when user changes them
-        if (isStartTime) {
-          updatedPlace.hasManualStart = true;
-        } else if (isEndTime) {
-          updatedPlace.hasManualEnd = true;
-        }
-
-        const updatedPlaces = currentPlaces.map((place, i) =>
-          i === index ? updatedPlace : place
-        );
-
-        // Manual update behavior: cascade times when end time is edited
-        if (isEndTime && typeof formattedValue === 'string') {
-          // When user manually changes end time of activity i:
-          // - Update start time of activity i+1 to match this new end time
-          // - Update end time of activity i+1 to startTime + 1 hour
-          // - Continue cascading only for activities that have not been manually edited
-
-          let currentEndTime = formattedValue;
-          let cascadeIndex = index + 1;
-
-          // Cascade through all subsequent activities that haven't been manually edited
-          while (cascadeIndex < updatedPlaces.length) {
-            const nextPlace = updatedPlaces[cascadeIndex];
-
-            // Stop cascading if start time is manually edited (can't update it)
-            if (nextPlace.hasManualStart) {
-              break;
-            }
-
-            // startTime[i+1] = endTime[i] (match the new end time)
-            const newStartTime = currentEndTime;
-
-            // Update end time if not manually edited
-            if (!nextPlace.hasManualEnd) {
-              // endTime[i+1] = startTime + 1 hour (default duration)
-              const newEndTime = addMinutesToTime(newStartTime, 60);
-
-              // Validate the time range
-              if (validateTimeRange(newStartTime, newEndTime)) {
-                updatedPlaces[cascadeIndex] = {
-                  ...nextPlace,
-                  startTime: newStartTime,
-                  endTime: newEndTime,
-                  // Preserve manual edit flags
-                  hasManualStart: nextPlace.hasManualStart || false,
-                  hasManualEnd: nextPlace.hasManualEnd || false,
-                };
-                // Update currentEndTime for next iteration
-                currentEndTime = newEndTime;
-                cascadeIndex++;
-              } else {
-                // Invalid range, stop cascading
-                break;
-              }
-            } else {
-              // End time is manually edited, only update start time
-              const nextEndTime = nextPlace.endTime || '';
-              if (!nextEndTime || validateTimeRange(newStartTime, nextEndTime)) {
-                updatedPlaces[cascadeIndex] = {
-                  ...nextPlace,
-                  startTime: newStartTime,
-                  // Preserve manual edit flags
-                  hasManualStart: nextPlace.hasManualStart || false,
-                  hasManualEnd: nextPlace.hasManualEnd || false,
-                };
-                // Continue cascading with the manual end time
-                currentEndTime = nextEndTime;
-                cascadeIndex++;
-              } else {
-                // Invalid range, stop cascading
-                break;
-              }
-            }
-          }
-        }
-        // When start time is updated, we DON'T update previous activity's end time
-        // (as per requirements: "make sure it does NOT break the previous activity's end time")
-        // Validation is already done above
-
         return {
           ...prev,
-          [activeDay]: updatedPlaces,
+          [activeDay]: recalculated,
         };
       });
     },
@@ -510,22 +376,15 @@ export const useJourneyForm = (): UseJourneyFormReturn => {
     [activeDay]
   );
 
-  const togglePlaceExpansion = useCallback(
-    (dayKey: string, placeIndex: number) => {
-      const key = `${dayKey}-${placeIndex}`;
-      setExpandedPlaces((prev) => ({
-        ...prev,
-        [key]: !prev[key],
-      }));
-    },
-    []
-  );
+  const togglePlaceExpansion = useCallback((placeId: string) => {
+    setExpandedPlaces((prev) => ({
+      ...prev,
+      [placeId]: !prev[placeId],
+    }));
+  }, []);
 
   const isPlaceExpanded = useCallback(
-    (dayKey: string, placeIndex: number) => {
-      const key = `${dayKey}-${placeIndex}`;
-      return expandedPlaces[key] || false;
-    },
+    (placeId: string) => expandedPlaces[placeId] ?? false,
     [expandedPlaces]
   );
 
@@ -584,6 +443,7 @@ export const useJourneyForm = (): UseJourneyFormReturn => {
                 address: place.address || "",
                 latitude: place.latitude || null,
                 longitude: place.longitude || null,
+                order: placeIndex, // ✅ Preserve drag-and-drop order
               };
 
               if (media.length > 0) {
@@ -693,6 +553,7 @@ export const useJourneyForm = (): UseJourneyFormReturn => {
     getPlacesByType,
     addPlaceToActiveDay,
     removePlaceFromActiveDay,
+    reorderPlaces,
     updatePlaceField,
     updatePlacePhotos,
     addPhotoToPlace,

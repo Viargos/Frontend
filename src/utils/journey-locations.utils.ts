@@ -17,6 +17,7 @@ export interface JourneyLocation {
   placeId?: string;
   startTime?: string;
   endTime?: string;
+  order?: number;
 }
 
 /**
@@ -62,6 +63,7 @@ export const extractJourneyLocations = (journey: Journey | null): JourneyLocatio
           placeId: place.id,
           startTime: place.startTime || undefined,
           endTime: place.endTime || undefined,
+          order: (place as any).order !== undefined ? (place as any).order : undefined,
         };
 
         locations.push(location);
@@ -69,14 +71,18 @@ export const extractJourneyLocations = (journey: Journey | null): JourneyLocatio
     });
   });
 
-  // Sort by day number, then by start time if available
+  // Sort by day number, then by order field (if available)
   return locations.sort((a, b) => {
     if (a.dayNumber !== b.dayNumber) {
       return (a.dayNumber || 0) - (b.dayNumber || 0);
     }
-    if (a.startTime && b.startTime) {
-      return a.startTime.localeCompare(b.startTime);
+    // Sort by order field if both places have it
+    const orderA = (a as any).order;
+    const orderB = (b as any).order;
+    if (orderA !== undefined && orderB !== undefined) {
+      return orderA - orderB;
     }
+    // Otherwise respect array order (no sorting)
     return 0;
   });
 };
@@ -116,17 +122,21 @@ export const extractDayLocations = (day: JourneyDay, journeyId: string): Journey
         placeId: place.id,
         startTime: place.startTime || undefined,
         endTime: place.endTime || undefined,
+        order: (place as any).order !== undefined ? (place as any).order : undefined,
       };
 
       locations.push(location);
     }
   });
 
-  // Sort by start time if available
+  // Sort by order field if available, otherwise respect array order
   return locations.sort((a, b) => {
-    if (a.startTime && b.startTime) {
-      return a.startTime.localeCompare(b.startTime);
+    const orderA = (a as any).order;
+    const orderB = (b as any).order;
+    if (orderA !== undefined && orderB !== undefined) {
+      return orderA - orderB;
     }
+    // Respect array order if no order field
     return 0;
   });
 };

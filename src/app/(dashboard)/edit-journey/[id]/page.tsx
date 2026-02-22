@@ -2,7 +2,21 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { DayFilter, PlanningCategory, CoverImage, PlaceCard, JourneyReviewModal } from '@/components/journey';
+import {
+  DndContext,
+  type DragEndEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import {
+  DayFilter,
+  PlanningCategory,
+  CoverImage,
+  SortablePlaceCard,
+  JourneyReviewModal,
+} from '@/components/journey';
 import { Hotel, Trees, UtensilsCrossed, Car, FileText, ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { PlaceType, CreateJourneyPlace } from '@/types/journey.types';
 import { useEditJourneyForm } from '@/hooks/useEditJourneyForm';
@@ -39,6 +53,7 @@ export default function EditJourneyPage() {
     getActiveDayPlaces,
     addPlaceToActiveDay,
     removePlaceFromActiveDay,
+    reorderPlaces,
     updatePlaceField,
     addPhotoToPlace,
     removePhotoFromPlace,
@@ -49,6 +64,28 @@ export default function EditJourneyPage() {
     setErrorMessage,
     submitUpdateWithData,
   } = useEditJourneyForm(journeyId);
+
+  const activeDayPlaces = getActiveDayPlaces();
+  const placeIds = useMemo(() => activeDayPlaces.map((p) => p.id), [activeDayPlaces]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    })
+  );
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+      const oldIndex = activeDayPlaces.findIndex((p) => p.id === active.id);
+      const newIndex = activeDayPlaces.findIndex((p) => p.id === over.id);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        reorderPlaces(activeDay, oldIndex, newIndex);
+      }
+    },
+    [activeDayPlaces, activeDay, reorderPlaces]
+  );
 
   // Initialize journey name and subtitle from loaded data
   if (journeyLoaded && !nameInitialized && formData.title) {
@@ -171,6 +208,7 @@ export default function EditJourneyPage() {
         const lng = event.latLng.lng();
 
         const newPlace: CreateJourneyPlace = {
+          id: '', // Not stored; addPlaceToActiveDay creates the place with id in the hook
           name: 'New Place',
           description: '',
           type: activePlaceType || PlaceType.ACTIVITY,
@@ -181,19 +219,11 @@ export default function EditJourneyPage() {
           address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
         };
 
-        addPlaceToActiveDay(newPlace.type);
-
-        const newIndex = getActiveDayPlaces().length;
-        togglePlaceExpansion(activeDay, newIndex);
+        const newPlaceId = addPlaceToActiveDay(newPlace.type);
+        if (newPlaceId) togglePlaceExpansion(newPlaceId);
       }
     },
-    [
-      activePlaceType,
-      activeDay,
-      addPlaceToActiveDay,
-      getActiveDayPlaces,
-      togglePlaceExpansion,
-    ]
+    [activePlaceType, activeDay, addPlaceToActiveDay, togglePlaceExpansion]
   );
 
   // Handle cover image upload
@@ -381,36 +411,36 @@ export default function EditJourneyPage() {
 
               {/* Places Display Section */}
               <div className="flex flex-col items-start gap-6 w-full">
-                {getActiveDayPlaces().length > 0 && (
-                  <div className="w-full space-y-4">
-                    {getActiveDayPlaces().map((place, index) => {
-                      return (
-                        <PlaceCard
-                          key={`${activeDay}-place-${index}`}
-                          place={place}
-                          index={index}
-                          dayKey={activeDay}
-                          isExpanded={isPlaceExpanded(activeDay, index)}
-                          onToggleExpansion={() =>
-                            togglePlaceExpansion(activeDay, index)
-                          }
-                          onRemove={() => removePlaceFromActiveDay(index)}
-                          onUpdateField={(field, value) =>
-                            updatePlaceField(index, field, value)
-                          }
-                          onAddPhoto={photoKey =>
-                            addPhotoToPlace(index, photoKey)
-                          }
-                          onRemovePhoto={photoIndex =>
-                            removePhotoFromPlace(index, photoIndex)
-                          }
-                        />
-                      );
-                    })}
-                  </div>
+                {activeDayPlaces.length > 0 && (
+                  <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+                    <SortableContext items={placeIds} strategy={verticalListSortingStrategy}>
+                      <div className="w-full space-y-4">
+                        {activeDayPlaces.map((place, index) => (
+                          <SortablePlaceCard
+                            key={place.id}
+                            place={place}
+                            index={index}
+                            dayKey={activeDay}
+                            isExpanded={isPlaceExpanded(place.id)}
+                            onToggleExpansion={() => togglePlaceExpansion(place.id)}
+                            onRemove={() => removePlaceFromActiveDay(index)}
+                            onUpdateField={(field, value) =>
+                              updatePlaceField(index, field, value)
+                            }
+                            onAddPhoto={(photoKey) =>
+                              addPhotoToPlace(index, photoKey)
+                            }
+                            onRemovePhoto={(photoIndex) =>
+                              removePhotoFromPlace(index, photoIndex)
+                            }
+                          />
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
                 )}
 
-                {getActiveDayPlaces().length === 0 && (
+                {activeDayPlaces.length === 0 && (
                   <div className="w-full p-8 text-center text-gray-500 border border-dashed border-gray-300 rounded-lg">
                     <p>No places added for this day. Use the categories above to add places.</p>
                   </div>
