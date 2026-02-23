@@ -84,12 +84,8 @@ export default async function DashboardPage() {
   const initialPosts = await fetchInitialPosts();
 
   return (
-    <div className="flex-1 p-4 sm:p-6 w-full flex justify-center min-h-[calc(100vh-200px)]">
-      <div className="w-full max-w-6xl flex flex-col min-h-full">
-        <div className="flex justify-center items-center flex-1 w-full">
-          <DashboardFeed initialData={initialPosts} />
-        </div>
-      </div>
+    <div className="flex-1 p-4 sm:p-6 w-full min-h-[calc(100vh-200px)]">
+      <DashboardFeed initialData={initialPosts} />
     </div>
   );
 }

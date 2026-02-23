@@ -131,14 +131,13 @@ export class UserApiService {
     const formData = new FormData();
     formData.append('image', file);
 
-    const response = await httpClient.request<
-      ApiResponse<{ imageUrl: string; message?: string }>
-    >(API_ENDPOINTS.USER.PROFILE_IMAGE, {
-      method: HttpMethod.POST,
-      body: formData,
-      bodyAsFormData: true,
-    });
-    return response.data;
+    return httpClient.request<{ imageUrl: string; message?: string }>(
+      API_ENDPOINTS.USER.PROFILE_IMAGE,
+      {
+        method: HttpMethod.POST,
+        body: formData,
+      }
+    );
   }
 
   /**
@@ -152,14 +151,13 @@ export class UserApiService {
     const formData = new FormData();
     formData.append('image', file);
 
-    const response = await httpClient.request<
-      ApiResponse<{ imageUrl: string; message?: string }>
-    >(API_ENDPOINTS.USER.BANNER_IMAGE, {
-      method: HttpMethod.POST,
-      body: formData,
-      bodyAsFormData: true,
-    });
-    return response.data;
+    return httpClient.request<{ imageUrl: string; message?: string }>(
+      API_ENDPOINTS.USER.BANNER_IMAGE,
+      {
+        method: HttpMethod.POST,
+        body: formData,
+      }
+    );
   }
 
   /**

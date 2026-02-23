@@ -206,20 +206,23 @@ export class PostApiService {
    * Upload media file
    * @param file Image file to upload
    * @returns S3 image URL and success message
+   *
+   * NOTE: The backend's TransformInterceptor passes this response through
+   * unwrapped because it contains a 'message' key, so the shape is
+   * { imageUrl, message } directly — not { data: { imageUrl, message } }.
    */
   async uploadMedia(
     file: File
   ): Promise<{ imageUrl: string; message: string }> {
     const formData = new FormData();
     formData.append('image', file);
-    const response = await httpClient.request<
-      ApiResponse<{ imageUrl: string; message: string }>
-    >(API_ENDPOINTS.POSTS.UPLOAD_MEDIA, {
-      method: HttpMethod.POST,
-      body: formData,
-      bodyAsFormData: true,
-    });
-    return response.data;
+    return httpClient.request<{ imageUrl: string; message: string }>(
+      API_ENDPOINTS.POSTS.UPLOAD_MEDIA,
+      {
+        method: HttpMethod.POST,
+        body: formData,
+      }
+    );
   }
 }
 

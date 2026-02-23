@@ -1,6 +1,5 @@
 import { httpClient } from '../core/api-client';
 import { API_ENDPOINTS } from '../config/endpoints';
-import { HttpMethod } from '@/enums';
 import { buildUrl } from '@/lib/utils/url.utils';
 import {
   transformToDetailedJourney,
@@ -121,9 +120,9 @@ export class JourneyApiService {
     id: string,
     data: UpdateJourneyDto
   ): Promise<Journey> {
-    const response = await httpClient.request<UpdateJourneyResponseDto>(
+    const response = await httpClient.patch<UpdateJourneyResponseDto>(
       API_ENDPOINTS.JOURNEYS.UPDATE(id),
-      { method: HttpMethod.PATCH, body: data }
+      data
     );
     return response.data;
   }
@@ -212,9 +211,9 @@ export class JourneyApiService {
     data: UpdateActivityData
   ): Promise<JourneyLocation> {
     const { locationId, updates } = data;
-    const response = await httpClient.request<UpdateActivityResponseDto>(
+    const response = await httpClient.put<UpdateActivityResponseDto>(
       API_ENDPOINTS.JOURNEYS.ACTIVITY(journeyId, locationId),
-      { method: HttpMethod.PUT, body: updates }
+      updates
     );
     return response.data;
   }
@@ -241,12 +240,9 @@ export class JourneyApiService {
     dayId: string,
     locationIds: string[]
   ): Promise<void> {
-    await httpClient.request(
+    await httpClient.put(
       API_ENDPOINTS.JOURNEYS.REORDER_ACTIVITIES(journeyId),
-      {
-        method: HttpMethod.PUT,
-        body: { dayId, locationIds },
-      }
+      { dayId, locationIds }
     );
   }
 
@@ -260,12 +256,9 @@ export class JourneyApiService {
     id: string,
     banner: JourneyBanner
   ): Promise<DetailedJourney> {
-    const response = await httpClient.request<UpdateBannerResponseDto>(
+    const response = await httpClient.put<UpdateBannerResponseDto>(
       API_ENDPOINTS.JOURNEYS.BANNER(id),
-      {
-        method: HttpMethod.PUT,
-        body: banner,
-      }
+      banner
     );
     return response.data;
   }

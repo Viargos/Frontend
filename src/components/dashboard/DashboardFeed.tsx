@@ -157,9 +157,9 @@ export default function DashboardFeed({
   }
 
   return (
-    <div className={className}>
+    <div className={`w-full ${className}`}>
       <motion.div
-        className="max-w-[700px] mx-auto space-y-6"
+        className="max-w-[680px] mx-auto space-y-5"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.1 }}

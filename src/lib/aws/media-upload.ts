@@ -150,7 +150,7 @@ export const uploadToS3 = async (
 
     let presignData: any;
     try {
-      presignData = await apiClient.post<any>('/users/upload-url', {
+      presignData = await apiClient.post<any>('/api/users/upload-url', {
         fileName,
         contentType,
         folder: options.folder,
@@ -274,7 +274,7 @@ export const deleteMediaFile = async (
   try {
     const apiClient = getApiClient();
 
-    await apiClient.delete('/users/media', {
+    await apiClient.delete('/api/users/media', {
       body: JSON.stringify({ fileUrlOrKey }),
     });
 
