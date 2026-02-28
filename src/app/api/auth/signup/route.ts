@@ -1,23 +1,17 @@
-import { NextRequest } from 'next/server';
-import { AUTH_ENDPOINTS } from '@/lib/auth/auth.config';
-import { backendFetch, proxyBackendResponse } from '@/lib/api/utils';
-import { HttpMethod } from '@/enums';
-import {
-  createErrorResponse,
-  parseRequestBody,
-} from '@/lib/api/utils';
+import { backendConfigErrorResponse, getBackendBaseUrl } from '@/app/api/_shared/backend-url';
+import { proxyToBackend } from '@/app/api/_shared/proxy';
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    const body = await parseRequestBody(request);
-    const res = await backendFetch(AUTH_ENDPOINTS.SIGNUP, {
-      method: HttpMethod.POST,
-      body: JSON.stringify(body),
-      forwardCookies: true,
+    const body = await request.text();
+
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: '/auth/signup',
+      body,
+      request,
     });
-    return proxyBackendResponse(res);
-  } catch (error) {
-    console.error('[Signup Route Handler] Error:', error);
-    return createErrorResponse('Internal server error', 500);
+  } catch {
+    return backendConfigErrorResponse();
   }
 }

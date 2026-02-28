@@ -1,30 +1,17 @@
-import { NextRequest } from 'next/server';
-import { backendFetch } from '@/lib/api/utils';
-import { HttpMethod } from '@/enums';
-import {
-  handleBackendResponse,
-  createErrorResponse,
-  parseRequestBody,
-} from '@/lib/api/utils';
+import { backendConfigErrorResponse, getBackendBaseUrl } from '@/app/api/_shared/backend-url';
+import { proxyToBackend } from '@/app/api/_shared/proxy';
 
-/**
- * POST /api/chat/messages
- *
- * Send a new chat message.
- *
- * Backend contract: { data: ChatMessage }
- */
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    const body = await parseRequestBody(request);
-    const res = await backendFetch('/api/chat/messages', {
-      method: HttpMethod.POST,
-      body: JSON.stringify(body),
-      forwardCookies: true,
+    const body = await request.text();
+
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: '/chat/messages',
+      body,
+      request,
     });
-    return handleBackendResponse(res, 'Failed to send message');
-  } catch (error) {
-    console.error('[POST /api/chat/messages] Error:', error);
-    return createErrorResponse('Internal server error', 500);
+  } catch {
+    return backendConfigErrorResponse();
   }
 }

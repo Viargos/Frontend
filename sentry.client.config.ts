@@ -1,46 +1,53 @@
 import * as Sentry from '@sentry/nextjs';
-import { useAuthStore } from '@/store/auth.store';
+import { Env } from './src/libs/Env';
 
+/**
+ * Sentry client-side configuration.
+ * Captures errors and performance metrics from the browser.
+ */
 Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-
-  // Environment
+  dsn: Env.NEXT_PUBLIC_SENTRY_DSN,
   environment: process.env.NODE_ENV,
 
-  // Performance Monitoring
+  // Performance monitoring
   tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
 
-  // Only send events in production to avoid dev noise
-  enabled: process.env.NODE_ENV === 'production',
+  // Session replay - records user sessions when errors occur
+  replaysSessionSampleRate: 0.1, // 10% of sessions
+  replaysOnErrorSampleRate: 1.0, // 100% of sessions with errors
 
-  // Attach user context from auth store when available
-  beforeSend(event) {
-    try {
-      const authState = useAuthStore.getState();
-      const user = authState.user as
-        | { id?: string; email?: string; username?: string }
-        | null;
+  // Filter out low-priority errors
+  beforeSend(event, hint) {
+    const error = hint.originalException;
 
-      if (user) {
-        event.user = {
-          id: user.id,
-          email: user.email,
-          username: user.username,
-        };
-      }
-    } catch {
-      // Swallow any errors from reading auth state
+    // Ignore network errors (user's internet connection issues)
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      return null;
+    }
+
+    // Ignore canceled requests
+    if (event.exception?.values?.[0]?.value?.includes('AbortError')) {
+      return null;
+    }
+
+    // Remove sensitive data
+    if (event.request) {
+      delete event.request.cookies;
+      delete event.request.headers?.Authorization;
     }
 
     return event;
   },
 
-  // Basic tags to identify this app
-  initialScope: {
-    tags: {
-      app: 'viargos-frontend',
-      runtime: 'client',
-    },
-  },
-});
+  // Performance tracking
+  integrations: [
+    Sentry.browserTracingIntegration(),
+    Sentry.replayIntegration({
+      maskAllText: true,
+      blockAllMedia: true,
+    }),
+  ],
 
+  // Don't send PII (personally identifiable information)
+  sendDefaultPii: false,
+});

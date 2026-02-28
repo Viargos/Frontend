@@ -1,46 +1,28 @@
-import { NextRequest } from 'next/server';
-import { backendFetch } from '@/lib/api/utils';
-import { HttpMethod } from '@/enums';
-import {
-  handleBackendResponse,
-  createErrorResponse,
-  extractParams,
-} from '@/lib/api/utils';
+import { backendConfigErrorResponse, getBackendBaseUrl } from '@/app/api/_shared/backend-url';
+import { proxyToBackend } from '@/app/api/_shared/proxy';
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await extractParams(params);
-    const res = await backendFetch(`/api/posts/${id}/like`, {
-      method: HttpMethod.POST,
-      forwardCookies: true,
+    const { id } = await context.params;
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: `/posts/${id}/like`,
+      request,
     });
-
-    return handleBackendResponse(res, 'Request failed');
-  } catch (error) {
-    const { id } = await extractParams(params);
-    console.error(`[POST /api/posts/${id}/like] Error:`, error);
-    return createErrorResponse('Internal server error', 500);
+  } catch {
+    return backendConfigErrorResponse();
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await extractParams(params);
-    const res = await backendFetch(`/api/posts/${id}/like`, {
-      method: HttpMethod.DELETE,
-      forwardCookies: true,
+    const { id } = await context.params;
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: `/posts/${id}/like`,
+      request,
     });
-
-    return handleBackendResponse(res, 'Request failed');
-  } catch (error) {
-    const { id } = await extractParams(params);
-    console.error(`[DELETE /api/posts/${id}/like] Error:`, error);
-    return createErrorResponse('Internal server error', 500);
+  } catch {
+    return backendConfigErrorResponse();
   }
 }

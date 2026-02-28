@@ -1,49 +1,28 @@
-import { NextRequest } from 'next/server';
-import { backendFetch } from '@/lib/api/utils';
-import { HttpMethod } from '@/enums';
-import {
-  handleBackendResponse,
-  createErrorResponse,
-  extractParams,
-} from '@/lib/api/utils';
+import { backendConfigErrorResponse, getBackendBaseUrl } from '@/app/api/_shared/backend-url';
+import { proxyToBackend } from '@/app/api/_shared/proxy';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await extractParams(params);
-    const res = await backendFetch(`/api/chat/conversations/${id}`, {
-      method: HttpMethod.GET,
-      forwardCookies: true,
+    const { id } = await context.params;
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: `/chat/conversations/${id}`,
+      request,
     });
-    return handleBackendResponse(res, 'Failed to fetch conversation');
-  } catch (error) {
-    console.error('[GET /api/chat/conversations/[id]] Error:', error);
-    return createErrorResponse('Internal server error', 500);
+  } catch {
+    return backendConfigErrorResponse();
   }
 }
 
-/**
- * DELETE /api/chat/conversations/:id
- *
- * Delete a conversation.
- *
- * Backend contract: { message: string } or { data: {...} }
- */
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await extractParams(params);
-    const res = await backendFetch(`/api/chat/conversations/${id}`, {
-      method: HttpMethod.DELETE,
-      forwardCookies: true,
+    const { id } = await context.params;
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: `/chat/conversations/${id}`,
+      request,
     });
-    return handleBackendResponse(res, 'Failed to delete conversation');
-  } catch (error) {
-    console.error('[DELETE /api/chat/conversations/[id]] Error:', error);
-    return createErrorResponse('Internal server error', 500);
+  } catch {
+    return backendConfigErrorResponse();
   }
 }

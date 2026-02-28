@@ -1,0 +1,3 @@
+export const DISCOVER_DEFAULT_RADIUS_KM = 500;
+
+export const DISCOVER_DEFAULT_LIMIT = 20;

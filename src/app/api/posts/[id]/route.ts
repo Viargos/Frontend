@@ -1,68 +1,43 @@
-import { NextRequest } from 'next/server';
-import { backendFetch } from '@/lib/api/utils';
-import { HttpMethod } from '@/enums';
-import {
-  handleBackendResponse,
-  createErrorResponse,
-  parseRequestBody,
-  extractParams,
-} from '@/lib/api/utils';
+import { backendConfigErrorResponse, getBackendBaseUrl } from '@/app/api/_shared/backend-url';
+import { proxyToBackend } from '@/app/api/_shared/proxy';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await extractParams(params);
-    const res = await backendFetch(`/api/posts/${id}`, {
-      method: HttpMethod.GET,
-      forwardCookies: true,
+    const { id } = await context.params;
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: `/posts/${id}`,
+      request,
     });
-
-    return handleBackendResponse(res, 'Request failed');
-  } catch (error) {
-    const { id } = await extractParams(params);
-    console.error(`[GET /api/posts/${id}] Error:`, error);
-    return createErrorResponse('Internal server error', 500);
+  } catch {
+    return backendConfigErrorResponse();
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await extractParams(params);
-    const body = await parseRequestBody(request);
-    const res = await backendFetch(`/api/posts/${id}`, {
-      method: HttpMethod.PUT,
-      body: JSON.stringify(body),
-      forwardCookies: true,
+    const { id } = await context.params;
+    const body = await request.text();
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: `/posts/${id}`,
+      body,
+      request,
     });
-
-    return handleBackendResponse(res, 'Request failed');
-  } catch (error) {
-    const { id } = await extractParams(params);
-    console.error(`[PUT /api/posts/${id}] Error:`, error);
-    return createErrorResponse('Internal server error', 500);
+  } catch {
+    return backendConfigErrorResponse();
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await extractParams(params);
-    const res = await backendFetch(`/api/posts/${id}`, {
-      method: HttpMethod.DELETE,
-      forwardCookies: true,
+    const { id } = await context.params;
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: `/posts/${id}`,
+      request,
     });
-
-    return handleBackendResponse(res, 'Request failed');
-  } catch (error) {
-    const { id } = await extractParams(params);
-    console.error(`[DELETE /api/posts/${id}] Error:`, error);
-    return createErrorResponse('Internal server error', 500);
+  } catch {
+    return backendConfigErrorResponse();
   }
 }

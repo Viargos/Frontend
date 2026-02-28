@@ -1,25 +1,18 @@
-import { NextRequest } from 'next/server';
-import { AUTH_ENDPOINTS } from '@/lib/auth/auth.config';
-import { backendFetch, proxyBackendResponse } from '@/lib/api/utils';
-import { HttpMethod } from '@/enums';
-import {
-  parseRequestBody,
-  createErrorResponse,
-} from '@/lib/api/utils';
+import { backendConfigErrorResponse, getBackendBaseUrl } from '@/app/api/_shared/backend-url';
+import { proxyToBackend } from '@/app/api/_shared/proxy';
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    const body = await parseRequestBody(request);
+    const body = await request.text();
 
-    const res = await backendFetch(AUTH_ENDPOINTS.VERIFY_OTP, {
-      method: HttpMethod.POST,
-      body: JSON.stringify(body),
-      forwardCookies: true,
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: '/auth/verify-otp',
+      body,
+      forwardSetCookie: true,
+      request,
     });
-
-    return proxyBackendResponse(res, { forwardSetCookie: true });
-  } catch (error) {
-    console.error('[POST /api/auth/verify-otp] Error:', error);
-    return createErrorResponse('OTP verification failed', 500);
+  } catch {
+    return backendConfigErrorResponse();
   }
 }

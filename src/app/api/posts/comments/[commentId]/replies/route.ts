@@ -1,30 +1,17 @@
-import { NextRequest } from 'next/server';
-import { backendFetch } from '@/lib/api/utils';
-import { HttpMethod } from '@/enums';
-import {
-  handleBackendResponse,
-  createErrorResponse,
-  extractParams,
-} from '@/lib/api/utils';
+import { backendConfigErrorResponse, getBackendBaseUrl } from '@/app/api/_shared/backend-url';
+import { proxyToBackend } from '@/app/api/_shared/proxy';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ commentId: string }> }
-) {
+export async function GET(request: Request, context: { params: Promise<{ commentId: string }> }) {
   try {
-    const { commentId } = await extractParams(params);
-    const res = await backendFetch(`/api/posts/comments/${commentId}/replies`, {
-      method: HttpMethod.GET,
-      forwardCookies: true,
-      searchParams: request.nextUrl.searchParams,
-    });
+    const requestUrl = new URL(request.url);
+    const { commentId } = await context.params;
 
-    return handleBackendResponse(res, 'Request failed');
-  } catch (error) {
-    console.error(
-      '[GET /api/posts/comments/[commentId]/replies] Error:',
-      error
-    );
-    return createErrorResponse('Internal server error', 500);
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: `/posts/comments/${commentId}/replies${requestUrl.search}`,
+      request,
+    });
+  } catch {
+    return backendConfigErrorResponse();
   }
 }

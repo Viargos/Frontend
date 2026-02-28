@@ -1,55 +1,34 @@
-import { NextRequest } from 'next/server';
-import { backendFetch } from '@/lib/api/utils';
-import { HttpMethod } from '@/enums';
-import {
-  handleBackendResponse,
-  createErrorResponse,
-  parseRequestBody,
-  extractParams,
-} from '@/lib/api/utils';
+import { backendConfigErrorResponse, getBackendBaseUrl } from '@/app/api/_shared/backend-url';
+import { proxyToBackend } from '@/app/api/_shared/proxy';
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string; locationId: string }> }
-) {
+type Params = { id: string; locationId: string };
+
+export async function PUT(request: Request, context: { params: Promise<Params> }) {
   try {
-    const { id, locationId } = await extractParams(params);
-    const body = await parseRequestBody(request);
+    const { id, locationId } = await context.params;
+    const body = await request.text();
 
-    const res = await backendFetch(`/journeys/${id}/activities/${locationId}`, {
-      method: HttpMethod.PUT,
-      body: JSON.stringify(body),
-      forwardCookies: true,
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: `/journeys/${id}/activities/${locationId}`,
+      body,
+      request,
     });
-
-    return handleBackendResponse(res, 'Request failed');
-  } catch (error) {
-    console.error(
-      '[PUT /api/journeys/[id]/activities/[locationId]] Error:',
-      error
-    );
-    return createErrorResponse('Internal server error', 500);
+  } catch {
+    return backendConfigErrorResponse();
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string; locationId: string }> }
-) {
+export async function DELETE(request: Request, context: { params: Promise<Params> }) {
   try {
-    const { id, locationId } = await extractParams(params);
+    const { id, locationId } = await context.params;
 
-    const res = await backendFetch(`/journeys/${id}/activities/${locationId}`, {
-      method: HttpMethod.DELETE,
-      forwardCookies: true,
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: `/journeys/${id}/activities/${locationId}`,
+      request,
     });
-
-    return handleBackendResponse(res, 'Request failed');
-  } catch (error) {
-    console.error(
-      '[DELETE /api/journeys/[id]/activities/[locationId]] Error:',
-      error
-    );
-    return createErrorResponse('Internal server error', 500);
+  } catch {
+    return backendConfigErrorResponse();
   }
 }

@@ -1,59 +1,32 @@
-import { NextRequest } from 'next/server';
-import { backendFetch } from '@/lib/api/utils';
-import { HttpMethod } from '@/enums';
-import {
-  handleBackendResponse,
-  createErrorResponse,
-  parseRequestBody,
-  extractParams,
-} from '@/lib/api/utils';
+import { backendConfigErrorResponse, getBackendBaseUrl } from '@/app/api/_shared/backend-url';
+import { proxyToBackend } from '@/app/api/_shared/proxy';
 
-/**
- * PUT /api/chat/messages/:id
- *
- * Update a chat message.
- *
- * Backend contract: { data: ChatMessage }
- */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await extractParams(params);
-    const body = await parseRequestBody(request);
-    const res = await backendFetch(`/api/chat/messages/${id}`, {
-      method: HttpMethod.PUT,
-      body: JSON.stringify(body),
-      forwardCookies: true,
+    const { id } = await context.params;
+    const body = await request.text();
+
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: `/chat/messages/${id}`,
+      body,
+      request,
     });
-    return handleBackendResponse(res, 'Failed to update message');
-  } catch (error) {
-    console.error('[PUT /api/chat/messages/[id]] Error:', error);
-    return createErrorResponse('Internal server error', 500);
+  } catch {
+    return backendConfigErrorResponse();
   }
 }
 
-/**
- * DELETE /api/chat/messages/:id
- *
- * Delete a chat message.
- *
- * Backend contract: { message: string } or { data: {...} }
- */
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await extractParams(params);
-    const res = await backendFetch(`/api/chat/messages/${id}`, {
-      method: HttpMethod.DELETE,
-      forwardCookies: true,
+    const { id } = await context.params;
+
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: `/chat/messages/${id}`,
+      request,
     });
-    return handleBackendResponse(res, 'Failed to delete message');
-  } catch (error) {
-    console.error('[DELETE /api/chat/messages/[id]] Error:', error);
-    return createErrorResponse('Internal server error', 500);
+  } catch {
+    return backendConfigErrorResponse();
   }
 }

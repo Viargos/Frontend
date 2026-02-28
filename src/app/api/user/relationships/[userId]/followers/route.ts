@@ -1,31 +1,17 @@
-import { NextRequest } from 'next/server';
-import { backendFetch } from '@/lib/api/utils';
-import { HttpMethod } from '@/enums';
-import {
-  handleBackendResponse,
-  createErrorResponse,
-  extractParams,
-} from '@/lib/api/utils';
+import { backendConfigErrorResponse, getBackendBaseUrl } from '@/app/api/_shared/backend-url';
+import { proxyToBackend } from '@/app/api/_shared/proxy';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ userId: string }> }
-) {
+export async function GET(request: Request, context: { params: Promise<{ userId: string }> }) {
   try {
-    const { userId } = await extractParams(params);
-    const res = await backendFetch(
-      `/api/users/relationships/${userId}/followers`,
-      {
-        method: HttpMethod.GET,
-        forwardCookies: true,
-      }
-    );
-    return handleBackendResponse(res, 'Failed to fetch followers');
-  } catch (error) {
-    console.error(
-      '[GET /api/user/relationships/[userId]/followers] Error:',
-      error
-    );
-    return createErrorResponse('Internal server error', 500);
+    const requestUrl = new URL(request.url);
+    const { userId } = await context.params;
+
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: `/users/relationships/${userId}/followers${requestUrl.search}`,
+      request,
+    });
+  } catch {
+    return backendConfigErrorResponse();
   }
 }

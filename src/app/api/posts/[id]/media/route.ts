@@ -1,29 +1,18 @@
-import { NextRequest } from 'next/server';
-import { backendFetch } from '@/lib/api/utils';
-import { HttpMethod } from '@/enums';
-import {
-  handleBackendResponse,
-  createErrorResponse,
-  parseRequestBody,
-  extractParams,
-} from '@/lib/api/utils';
+import { backendConfigErrorResponse, getBackendBaseUrl } from '@/app/api/_shared/backend-url';
+import { proxyToBackend } from '@/app/api/_shared/proxy';
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id: postId } = await extractParams(params);
-    const body = await parseRequestBody(request);
-    const res = await backendFetch(`/api/posts/${postId}/media`, {
-      method: HttpMethod.POST,
-      body: JSON.stringify(body),
-      forwardCookies: true,
-    });
+    const { id } = await context.params;
+    const body = await request.arrayBuffer();
 
-    return handleBackendResponse(res, 'Request failed');
-  } catch (error) {
-    console.error('[POST /api/posts/[id]/media] Error:', error);
-    return createErrorResponse('Internal server error', 500);
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: `/posts/${id}/media`,
+      body,
+      request,
+    });
+  } catch {
+    return backendConfigErrorResponse();
   }
 }

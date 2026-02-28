@@ -1,22 +1,16 @@
-import { NextRequest } from 'next/server';
-import { backendFetch } from '@/lib/api/utils';
-import { HttpMethod } from '@/enums';
-import {
-  handleBackendResponse,
-  createErrorResponse,
-} from '@/lib/api/utils';
+import { backendConfigErrorResponse, getBackendBaseUrl } from '@/app/api/_shared/backend-url';
+import { proxyToBackend } from '@/app/api/_shared/proxy';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   try {
-    const res = await backendFetch('/api/journeys/nearby', {
-      method: HttpMethod.GET,
-      forwardCookies: true,
-      searchParams: request.nextUrl.searchParams,
-    });
+    const requestUrl = new URL(request.url);
 
-    return handleBackendResponse(res, 'Failed to fetch nearby journeys');
-  } catch (error) {
-    console.error('[GET /api/journeys/nearby] Error:', error);
-    return createErrorResponse('Internal server error', 500);
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: `/journeys/nearby${requestUrl.search}`,
+      request,
+    });
+  } catch {
+    return backendConfigErrorResponse();
   }
 }
