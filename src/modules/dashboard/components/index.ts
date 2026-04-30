@@ -10,3 +10,4 @@ export * from './DashboardPostCard';
 export * from './DashboardPostCardSkeleton';
 export * from './DashboardShell';
 export * from './DashboardSidebar';
+export * from './JourneyDropdown';

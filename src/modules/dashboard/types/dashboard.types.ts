@@ -16,6 +16,7 @@ export type DashboardPostComment = {
   content: string;
   createdAt: string;
   userId?: string;
+  user?: DashboardPostUser;
   isPending?: boolean;
 };
 
@@ -41,6 +42,31 @@ export type DashboardFeedModel = {
   hasMore: boolean;
   nextCursor?: string;
   totalCount?: number;
+};
+
+export type DashboardProfileRecommendation = {
+  category?: string;
+  descriptor: string;
+  followersCount: number;
+  id: string;
+  isFollowing: boolean;
+  postsCount: number;
+  profileImage?: string;
+  username: string;
+};
+
+export type DashboardJourneyRecommendation = {
+  coverImage?: string;
+  createdAt: string;
+  creator: {
+    id: string;
+    username: string;
+  };
+  daysCount: number;
+  description?: string;
+  id: string;
+  placesCount: number;
+  title: string;
 };
 
 export type DashboardPostCreationJourneyOption = {

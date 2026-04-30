@@ -6,6 +6,7 @@ import { GoogleMarkerClusterer, MarkerF } from '@/modules/discover/infra';
 
 export type DiscoverMapPin = {
   id: string;
+  isHovered?: boolean;
   isSelected: boolean;
   position: google.maps.LatLngLiteral;
   title: string;
@@ -13,12 +14,47 @@ export type DiscoverMapPin = {
 
 type MapMarkersProps = {
   markers: DiscoverMapPin[];
+  onMarkerHover?: (markerId: string | null) => void;
+  onMarkerSelect?: (markerId: string) => void;
 };
 
 const CLUSTER_THRESHOLD = 30;
 
+function getMarkerIcon(marker: DiscoverMapPin): google.maps.Symbol {
+  if (marker.isSelected) {
+    return {
+      fillColor: '#160E53',
+      fillOpacity: 1,
+      path: google.maps.SymbolPath.CIRCLE,
+      scale: 11,
+      strokeColor: '#FFFFFF',
+      strokeWeight: 3,
+    };
+  }
+
+  if (marker.isHovered) {
+    return {
+      fillColor: '#0ea5b7',
+      fillOpacity: 0.95,
+      path: google.maps.SymbolPath.CIRCLE,
+      scale: 9.5,
+      strokeColor: '#FFFFFF',
+      strokeWeight: 3,
+    };
+  }
+
+  return {
+    fillColor: '#ffffff',
+    fillOpacity: 0.95,
+    path: google.maps.SymbolPath.CIRCLE,
+    scale: 8,
+    strokeColor: '#160E53',
+    strokeWeight: 2.5,
+  };
+}
+
 const MapMarkersComponent = (props: MapMarkersProps) => {
-  const { markers } = props;
+  const { markers, onMarkerHover, onMarkerSelect } = props;
   const shouldCluster = markers.length > CLUSTER_THRESHOLD;
   const clusterOptions = useMemo<MarkerClustererOptions>(() => ({
     renderer: {
@@ -50,7 +86,16 @@ const MapMarkersComponent = (props: MapMarkersProps) => {
     return (
       <>
         {markers.map(marker => (
-          <MarkerF key={marker.id} position={marker.position} title={marker.title} zIndex={marker.isSelected ? 1000 : 1} />
+          <MarkerF
+            key={marker.id}
+            icon={getMarkerIcon(marker)}
+            position={marker.position}
+            title={marker.title}
+            zIndex={marker.isSelected ? 1000 : marker.isHovered ? 900 : 1}
+            onClick={() => onMarkerSelect?.(marker.id)}
+            onMouseOut={() => onMarkerHover?.(null)}
+            onMouseOver={() => onMarkerHover?.(marker.id)}
+          />
         ))}
       </>
     );
@@ -64,9 +109,13 @@ const MapMarkersComponent = (props: MapMarkersProps) => {
             <MarkerF
               key={marker.id}
               clusterer={clusterer}
+              icon={getMarkerIcon(marker)}
               position={marker.position}
               title={marker.title}
-              zIndex={marker.isSelected ? 1000 : 1}
+              zIndex={marker.isSelected ? 1000 : marker.isHovered ? 900 : 1}
+              onClick={() => onMarkerSelect?.(marker.id)}
+              onMouseOut={() => onMarkerHover?.(null)}
+              onMouseOver={() => onMarkerHover?.(marker.id)}
             />
           ))}
         </>

@@ -5,6 +5,15 @@ export type DashboardQueryDto = {
   search?: string;
 };
 
+export type DashboardRecommendationsQueryDto = {
+  excludeUserIds?: string[];
+  limit?: number;
+};
+
+export type DashboardJourneyRecommendationsQueryDto = {
+  limit?: number;
+};
+
 export type DashboardPostUserDto = {
   id: string;
   username: string;
@@ -28,6 +37,7 @@ export type DashboardPostCommentDto = {
   content: string;
   createdAt: string;
   userId?: string;
+  user?: DashboardPostUserDto;
 };
 
 export type DashboardPostDto = {
@@ -51,6 +61,39 @@ export type DashboardFeedDto = {
   totalCount?: number;
 };
 
+export type DashboardProfileRecommendationDto = {
+  category?: string | null;
+  descriptor: string;
+  followersCount: number;
+  id: string;
+  isFollowing: boolean;
+  postsCount: number;
+  profileImage?: string | null;
+  username: string;
+};
+
+export type DashboardRecommendationsResponseDto = {
+  profiles: DashboardProfileRecommendationDto[];
+};
+
+export type DashboardJourneyRecommendationDto = {
+  coverImage?: string | null;
+  createdAt: string;
+  creator: {
+    id: string;
+    username: string;
+  };
+  daysCount: number;
+  description?: string | null;
+  id: string;
+  placesCount: number;
+  title: string;
+};
+
+export type DashboardJourneyRecommendationsResponseDto = {
+  journeys: DashboardJourneyRecommendationDto[];
+};
+
 export type DashboardLikeResponseDto = {
   success: boolean;
   likeCount: number;
@@ -71,6 +114,7 @@ export type DashboardCommentDto = {
   replyCount: number;
   createdAt: string;
   updatedAt: string;
+  user?: DashboardPostUserDto;
 };
 
 export type DashboardCreatePostRequestDto = {

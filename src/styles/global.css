@@ -1,26 +1,10 @@
 @import 'tailwindcss';
 
-@font-face {
-  font-family: 'ManropeLocal';
-  src: url('/fonts/manrope.woff2') format('woff2');
-  font-display: swap;
-  font-style: normal;
-  font-weight: 100 900;
-}
-
-@font-face {
-  font-family: 'OutfitLocal';
-  src: url('/fonts/outfit.woff2') format('woff2');
-  font-display: swap;
-  font-style: normal;
-  font-weight: 100 900;
-}
-
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --font-manrope: 'ManropeLocal';
-  --font-outfit: 'OutfitLocal';
+  --font-manrope: 'Manrope', Arial, Helvetica, sans-serif;
+  --font-outfit: 'Outfit', Arial, Helvetica, sans-serif;
 
   /* Design System Variables */
   --Gray-900: #181d27;
@@ -96,7 +80,7 @@
 }
 
 body {
-  background: var(--foreground);
+  background: var(--background);
   color: var(--foreground);
   font-family: var(--font-manrope), Arial, Helvetica, sans-serif;
 }
@@ -225,11 +209,11 @@ body {
   border-color: var(--Primary-Blue);
 }
 
-input:focus:not(.no-focus-ring) {
-  outline: 2px solid var(--Primary-Blue) !important;
-  outline-offset: 0px;
-  border-color: var(--Primary-Blue) !important;
-  box-shadow: 0 0 0 3px rgba(0, 26, 110, 0.1) !important;
+input:focus:not(.no-focus-ring),
+textarea:focus:not(.no-focus-ring),
+select:focus:not(.no-focus-ring) {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 /* Remove focus ring for inputs with no-focus-ring class */
@@ -369,4 +353,18 @@ input.no-focus-ring:focus {
 .animate-draw-dotted-path {
   animation: drawDottedPath var(--animation-speed, 2s) linear forwards;
   /* stroke-dasharray set via inline style to preserve dotted pattern */
+}
+
+/*
+ * Discover /map: Google InfoWindow adds its own padded white frame; our FloatingPreview
+ * is the real card. Strip default padding so inner and outer radii align (no double box).
+ */
+[data-parity='discover-map-container'] .gm-style-iw-c {
+  padding: 0 !important;
+  border-radius: 1rem !important;
+  box-shadow: none !important;
+}
+
+[data-parity='discover-map-container'] .gm-style-iw-d {
+  overflow: visible !important;
 }

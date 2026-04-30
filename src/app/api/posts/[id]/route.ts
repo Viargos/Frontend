@@ -14,6 +14,21 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
   }
 }
 
+export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await context.params;
+    const body = await request.text();
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: `/posts/${id}`,
+      body,
+      request,
+    });
+  } catch {
+    return backendConfigErrorResponse();
+  }
+}
+
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;

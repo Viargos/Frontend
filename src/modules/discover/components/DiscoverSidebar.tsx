@@ -1,49 +1,105 @@
 'use client';
 
 import type { JourneyFilterState } from '@/modules/discover/components/FilterPanel';
+import type { DiscoverFeedItem } from '@/modules/discover/types/discover-ui.types';
 import type { DiscoverCoordinates, DiscoverJourney } from '@/modules/discover/types/discover.types';
-import * as motion from 'framer-motion/client';
-import { CheckIcon, ChevronRightIcon, ExploreIcon, EyeIcon, MapPinIcon, RefreshCwIcon, XIcon } from '@/modules/common/icons';
+import { ExploreIcon, MapPinIcon, RefreshCwIcon, SearchIcon, XIcon } from '@/modules/common/icons';
+import { DiscoverFeed } from '@/modules/discover/components/DiscoverFeed';
+import { DiscoverFilterChips } from '@/modules/discover/components/DiscoverFilterChips';
 import { FilterPanel } from '@/modules/discover/components/FilterPanel';
+import { useDiscoverStore } from '@/modules/discover/store/discover.store';
 
 type DiscoverSidebarProps = {
   coordinates: DiscoverCoordinates | null;
   currentRadius: number;
   disableMotion?: boolean;
+  feedItems: DiscoverFeedItem[];
   filters: JourneyFilterState;
   isLoadingJourneys: boolean;
   isSidebarOpen: boolean;
   journeys: DiscoverJourney[];
   onCloseSidebar: () => void;
+  onClearDateRange: () => void;
+  onClearQuery: () => void;
   onFiltersChange: (filters: JourneyFilterState) => void;
-  onJourneyModalOpen: (journey: DiscoverJourney) => void;
   onJourneySelect: (journey: DiscoverJourney) => void;
+  onQueryChange: (value: string) => void;
+  onResetRadius: () => void;
   onRadiusChange: (radius: number) => void;
   onResetFilters: () => void;
+  onResetTimeFilter: () => void;
   onToggleFilters: () => void;
+  resultCount: number;
+  searchQuery: string;
   selectedJourney: DiscoverJourney | null;
   showFilters: boolean;
 };
+
+function getTimeChipLabel(createdWithin: JourneyFilterState['createdWithin']) {
+  if (createdWithin === 'week') {
+    return 'Past week';
+  }
+
+  if (createdWithin === 'month') {
+    return 'Past month';
+  }
+
+  if (createdWithin === 'year') {
+    return 'Past year';
+  }
+
+  return null;
+}
 
 export const DiscoverSidebar = (props: DiscoverSidebarProps) => {
   const {
     coordinates,
     currentRadius,
     disableMotion = false,
+    feedItems,
     filters,
     isLoadingJourneys,
     isSidebarOpen,
     journeys,
     onCloseSidebar,
+    onClearDateRange,
+    onClearQuery,
     onFiltersChange,
-    onJourneyModalOpen,
     onJourneySelect,
+    onQueryChange,
+    onResetRadius,
     onRadiusChange,
     onResetFilters,
+    onResetTimeFilter,
     onToggleFilters,
+    resultCount,
+    searchQuery,
     selectedJourney,
     showFilters,
   } = props;
+  const hoveredItemId = useDiscoverStore(state => state.hoveredItemId);
+  const selectedItemId = useDiscoverStore(state => state.selectedItemId);
+  const setHoveredItemId = useDiscoverStore(state => state.setHoveredItemId);
+  const setSelectedItemId = useDiscoverStore(state => state.setSelectedItemId);
+  const timeChipLabel = getTimeChipLabel(filters.createdWithin);
+  const chips = [
+    ...(searchQuery.trim()
+      ? [{ id: 'query', label: `Search: ${searchQuery.trim()}`, onRemove: onClearQuery }]
+      : []),
+    ...(timeChipLabel
+      ? [{ id: 'time', label: timeChipLabel, onRemove: onResetTimeFilter }]
+      : []),
+    ...(filters.dateRange.from || filters.dateRange.to
+      ? [{
+          id: 'date-range',
+          label: `${filters.dateRange.from || 'Any start'} - ${filters.dateRange.to || 'Any end'}`,
+          onRemove: onClearDateRange,
+        }]
+      : []),
+    ...(filters.radius !== 500
+      ? [{ id: 'radius', label: `${filters.radius} km`, onRemove: onResetRadius }]
+      : []),
+  ];
 
   if (!isSidebarOpen) {
     return null;
@@ -51,22 +107,19 @@ export const DiscoverSidebar = (props: DiscoverSidebarProps) => {
 
   return (
     <div
-      className="z-20 flex h-[calc(100vh-80px)] w-96 flex-col bg-white shadow-2xl"
+      className="z-20 flex h-full min-h-0 w-96 shrink-0 flex-col overflow-hidden bg-white shadow-2xl"
       data-parity="discover-sidebar"
     >
-      <div className="flex-shrink-0 border-b border-gray-200 p-6" data-parity="discover-sidebar-header">
+      <div className="shrink-0 border-b border-gray-200 p-6" data-parity="discover-sidebar-header">
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">Nearby Journeys</h2>
-            {coordinates
-              ? (
-                  <p className="mt-1 text-sm text-gray-500">
-                    Within
-                    {currentRadius}
-                    km radius
-                  </p>
-                )
-              : null}
+            <p className="mt-1 text-sm text-gray-500">
+              {resultCount}
+              {' '}
+              results
+              {coordinates ? ` within ${currentRadius} km` : ''}
+            </p>
           </div>
           <div className="flex items-center space-x-2">
             <button
@@ -93,9 +146,22 @@ export const DiscoverSidebar = (props: DiscoverSidebarProps) => {
           </div>
         </div>
 
+        <label className="relative mb-4 block">
+          <SearchIcon className="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <input
+            className="h-11 w-full rounded-full border border-black/5 bg-white pr-4 pl-11 text-sm text-gray-900 shadow-[0_8px_28px_rgba(15,23,42,0.06)] transition outline-none focus:border-[#160E53]/20 focus:ring-4 focus:ring-[#160E53]/8"
+            placeholder="Search places, journeys, creators, or tags"
+            type="search"
+            value={searchQuery}
+            onChange={event => onQueryChange(event.target.value)}
+          />
+        </label>
+
+        <DiscoverFilterChips chips={chips} />
+
         {coordinates
           ? (
-              <div className="mb-4">
+              <div className="mt-4">
                 <span className="mb-2 block text-xs font-semibold text-gray-700">Search Radius</span>
                 <div className="flex flex-wrap gap-2">
                   {[100, 500, 1000, 5000, 10000].map(radius => (
@@ -122,7 +188,7 @@ export const DiscoverSidebar = (props: DiscoverSidebarProps) => {
 
       {showFilters
         ? (
-            <div className="flex-shrink-0" data-parity="discover-filter-panel">
+            <div className="shrink-0" data-parity="discover-filter-panel">
               <FilterPanel
                 disableMotion={disableMotion}
                 filters={filters}
@@ -135,7 +201,7 @@ export const DiscoverSidebar = (props: DiscoverSidebarProps) => {
           )
         : null}
 
-      <div className="min-h-0 flex-1 overflow-y-auto" data-parity="discover-sidebar-content">
+      <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto" data-parity="discover-sidebar-content">
         {isLoadingJourneys
           ? (
               <div aria-busy="true" className="p-6 text-center" role="status">
@@ -159,130 +225,24 @@ export const DiscoverSidebar = (props: DiscoverSidebarProps) => {
                 </div>
               )
             : (
-                <div className="space-y-3 p-4" data-parity="discover-journey-list">
-                  {journeys.map((journey, index) => {
-                    const isSelected = selectedJourney?.id === journey.id;
+                <div data-parity="discover-journey-list">
+                  <DiscoverFeed
+                    emptyMessage={`No journeys found within ${currentRadius} km of your location`}
+                    hoveredItemId={hoveredItemId}
+                    items={feedItems}
+                    selectedItemId={selectedItemId ?? selectedJourney?.id ?? null}
+                    onItemHover={setHoveredItemId}
+                    onItemSelect={(itemId) => {
+                      const journey = journeys.find(candidate => candidate.id === itemId);
 
-                    return (
-                      <motion.div
-                        key={journey.id}
-                        animate={{ opacity: 1, y: 0 }}
-                        className={`group relative cursor-pointer overflow-hidden rounded-xl transition-all duration-300 ${
-                          isSelected
-                            ? 'ring-opacity-50 shadow-2xl ring-4 ring-blue-900'
-                            : 'hover:ring-opacity-20 shadow-md hover:shadow-xl hover:ring-2 hover:ring-blue-900'
-                        }`}
-                        initial={{ opacity: 0, y: 20 }}
-                        onKeyDown={(event) => {
-                          if (event.key === 'Enter' || event.key === ' ') {
-                            event.preventDefault();
-                            onJourneySelect(journey);
-                          }
-                        }}
-                        transition={disableMotion ? { duration: 0 } : { delay: index * 0.1 }}
-                        whileHover={disableMotion ? undefined : { y: -4, transition: { duration: 0.2 } }}
-                        onClick={() => onJourneySelect(journey)}
-                        role="button"
-                        tabIndex={0}
-                      >
-                        <div
-                          className={`absolute inset-0 bg-gradient-to-br transition-opacity duration-300 ${
-                            isSelected
-                              ? 'from-blue-900 via-blue-900 to-blue-800 opacity-100'
-                              : 'from-blue-900 via-blue-800 to-blue-700 opacity-0 group-hover:opacity-8'
-                          }`}
-                        />
+                      if (!journey) {
+                        return;
+                      }
 
-                        <div className={isSelected ? 'relative bg-white/95 backdrop-blur-sm' : 'relative bg-white'}>
-                          <div className="p-4">
-                            <div className="mb-3">
-                              <div className="mb-2 flex items-start justify-between gap-2">
-                                <h3 className={`line-clamp-2 flex-1 text-lg leading-tight font-bold ${isSelected ? 'text-blue-900' : 'text-gray-900 group-hover:text-blue-900'}`}>
-                                  {journey.title}
-                                </h3>
-                                {isSelected
-                                  ? (
-                                      <motion.div
-                                        animate={{ scale: 1 }}
-                                        className="flex-shrink-0"
-                                        initial={{ scale: 0 }}
-                                        transition={disableMotion ? { duration: 0 } : undefined}
-                                      >
-                                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-900 to-blue-950 shadow-lg">
-                                          <CheckIcon aria-hidden="true" className="h-4 w-4 text-white" />
-                                        </div>
-                                      </motion.div>
-                                    )
-                                  : null}
-                              </div>
-
-                              <div className="flex items-center gap-2 text-xs">
-                                <div className="flex items-center gap-1.5 text-gray-600">
-                                  <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-900 to-blue-950 shadow-sm">
-                                    <span className="text-xs font-bold text-white">{journey.title.charAt(0).toUpperCase()}</span>
-                                  </div>
-                                  <span className="font-medium">Journey Creator</span>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="mb-3 flex flex-wrap gap-1.5">
-                              <div className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-gradient-to-r from-blue-50 to-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700 shadow-sm">
-                                <EyeIcon aria-hidden="true" className="h-3 w-3" />
-                                <span>{journey.places.length}</span>
-                              </div>
-                            </div>
-
-                            <div className={`flex items-center gap-3 border-t pt-3 text-xs ${isSelected ? 'border-blue-900/20' : 'border-gray-100'}`}>
-                              <div className="flex items-center gap-1.5 text-gray-600">
-                                <MapPinIcon aria-hidden="true" className="h-3 w-3 text-[#160E53]" />
-                                <span className="font-semibold">{journey.places.length}</span>
-                                <span className="text-gray-500">places</span>
-                              </div>
-                              <span className="text-gray-300">•</span>
-                              <div className="flex items-center gap-1.5 text-gray-600">
-                                <MapPinIcon aria-hidden="true" className="h-3 w-3 text-[#160E53]" />
-                                <span className="font-semibold">1</span>
-                                <span className="text-gray-500">day</span>
-                              </div>
-                            </div>
-
-                            {isSelected
-                              ? (
-                                  <motion.button
-                                    animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
-                                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-900 to-blue-950 px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition-all duration-200 hover:from-blue-800 hover:to-blue-900 hover:shadow-xl"
-                                    exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                                    initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                                    transition={disableMotion ? { duration: 0 } : undefined}
-                                    onClick={(event) => {
-                                      event.stopPropagation();
-                                      onJourneyModalOpen(journey);
-                                    }}
-                                    type="button"
-                                  >
-                                    <EyeIcon aria-hidden="true" className="h-3 w-3" />
-                                    View Full Journey
-                                    <ChevronRightIcon aria-hidden="true" className="h-3 w-3" />
-                                  </motion.button>
-                                )
-                              : null}
-                          </div>
-                        </div>
-
-                        {isSelected
-                          ? (
-                              <motion.div
-                                animate={{ opacity: 1, scale: 1 }}
-                                className="absolute top-0 right-0 h-20 w-20 rounded-bl-full bg-gradient-to-bl from-blue-900/25 to-transparent"
-                                initial={{ opacity: 0, scale: 0 }}
-                                transition={disableMotion ? { duration: 0 } : undefined}
-                              />
-                            )
-                          : null}
-                      </motion.div>
-                    );
-                  })}
+                      setSelectedItemId(itemId);
+                      onJourneySelect(journey);
+                    }}
+                  />
                 </div>
               )}
       </div>

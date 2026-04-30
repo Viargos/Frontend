@@ -2,21 +2,26 @@ import type { PlaceType } from '@/modules/journey/enums/place-type.enum';
 
 export type JourneyMedia = {
   id: string;
+  order?: number;
+  thumbnailUrl?: string;
   type: 'image' | 'video';
   url: string;
 };
 
 export type JourneyPlace = {
-  id: string;
-  type: PlaceType;
-  name: string;
-  description?: string;
   address?: string;
+  bookingEndDayNumber?: number;
+  bookingGroupId?: string;
+  bookingStartDayNumber?: number;
+  description?: string;
+  endTime?: string;
+  id: string;
   latitude?: number;
   longitude?: number;
-  startTime?: string;
-  endTime?: string;
   media: JourneyMedia[];
+  name: string;
+  startTime?: string;
+  type: PlaceType;
 };
 
 export type JourneyDay = {

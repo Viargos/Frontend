@@ -9,12 +9,17 @@ import { journeyCreateSchema } from '@/modules/journey/validations/journey.valid
 function createPlace(type: PlaceType = PlaceType.ACTIVITY): JourneyPlaceInput {
   return {
     address: '',
+    bookingEndDayNumber: 1,
+    bookingGroupId: createClientId('booking'),
+    bookingStartDayNumber: 1,
     description: '',
     endTime: '',
     id: createClientId('place'),
     latitude: undefined,
     longitude: undefined,
+    media: [],
     name: '',
+    order: 0,
     startTime: '',
     type,
   };

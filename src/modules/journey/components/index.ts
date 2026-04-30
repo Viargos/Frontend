@@ -14,6 +14,7 @@ export * from './JourneyListPageView';
 export * from './JourneyListSkeleton';
 export * from './JourneyListView';
 export * from './JourneyMapPanel';
+export * from './JourneyPlannerForm';
 export * from './JourneyPostsSection';
 export * from './JourneyTabs';
 export * from './MediaGallery';

@@ -1,6 +1,19 @@
 import type { Metadata } from 'next';
+import { Manrope, Outfit } from 'next/font/google';
 import { AppProviders } from '@/app/providers';
 import '@/styles/global.css';
+
+const manrope = Manrope({
+  display: 'swap',
+  subsets: ['latin'],
+  variable: '--font-manrope',
+});
+
+const outfit = Outfit({
+  display: 'swap',
+  subsets: ['latin'],
+  variable: '--font-outfit',
+});
 
 export const metadata: Metadata = {
   title: 'Viargos',
@@ -15,7 +28,7 @@ export const metadata: Metadata = {
 export default function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="antialiased">
+      <body className={`${manrope.variable} ${outfit.variable} antialiased`}>
         <AppProviders>{props.children}</AppProviders>
       </body>
     </html>

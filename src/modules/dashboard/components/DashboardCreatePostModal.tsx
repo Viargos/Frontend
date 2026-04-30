@@ -17,6 +17,7 @@ import {
   XIcon,
 } from '@/modules/common/icons';
 import { useCreatePost, usePostCreationJourneys } from '@/modules/dashboard/hooks';
+import { JourneyDropdown } from './JourneyDropdown';
 
 type DashboardCreatePostModalProps = {
   isOpen: boolean;
@@ -343,20 +344,28 @@ export const DashboardCreatePostModal = (props: DashboardCreatePostModalProps) =
                               <label className="text-sm font-medium text-gray-700" htmlFor="create-post-journey">
                                 Journey
                               </label>
-                              <select
-                                id="create-post-journey"
-                                className="h-11 w-full rounded-lg border border-gray-300 px-3 text-sm text-gray-900 transition-colors outline-none focus:border-[#160E53] focus:ring-1 focus:ring-[#160E53]"
-                                disabled={isLoadingJourneys || isCreatingPost}
-                                value={selectedJourneyId}
-                                onChange={event => setSelectedJourneyId(event.target.value)}
-                              >
-                                <option value="">Select a journey</option>
-                                {journeys.map(journey => (
-                                  <option key={journey.id} value={journey.id}>{journey.title}</option>
-                                ))}
-                              </select>
-                              {isLoadingJourneys ? <p className="text-xs text-gray-500">Fetching journeys…</p> : null}
+                              {isLoadingJourneys
+                                ? (
+                                    <div className="flex h-11 w-full items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3">
+                                      <div className="h-7 w-7 animate-pulse rounded-md bg-gray-200" />
+                                      <div className="h-3.5 w-32 animate-pulse rounded bg-gray-200" />
+                                    </div>
+                                  )
+                                : (
+                                    <JourneyDropdown
+                                      disabled={isCreatingPost}
+                                      id="create-post-journey"
+                                      journeys={journeys}
+                                      value={selectedJourneyId}
+                                      onChange={setSelectedJourneyId}
+                                    />
+                                  )}
                               {journeyError ? <p className="text-xs text-red-600">{journeyError}</p> : null}
+                              {!isLoadingJourneys && journeys.length === 0 && !journeyError
+                                ? (
+                                    <p className="text-xs text-gray-400">No journeys yet. Create one first.</p>
+                                  )
+                                : null}
                             </div>
                           )
                         : (

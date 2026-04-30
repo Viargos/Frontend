@@ -10,15 +10,18 @@ export type JourneyMediaDto = {
 
 export type JourneyPlaceDto = {
   id: string;
-  type: PlaceType;
-  name: string;
-  description?: string;
   address?: string;
+  bookingEndDayNumber?: number;
+  bookingGroupId?: string;
+  bookingStartDayNumber?: number;
+  description?: string;
+  endTime?: string;
   latitude?: number | string;
   longitude?: number | string;
-  startTime?: string;
-  endTime?: string;
   media?: JourneyMediaDto[];
+  name: string;
+  startTime?: string;
+  type: PlaceType;
 };
 
 export type JourneyDayDto = {

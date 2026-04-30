@@ -94,7 +94,7 @@ export const DashboardHeader = () => {
 
   return (
     <header className="flex w-full items-center justify-between gap-2 bg-white px-4 py-4 sm:gap-4">
-      <div className="flex flex-shrink-0 items-center">
+      <div className="flex shrink-0 items-center">
         <button aria-label="Go to dashboard" className="flex cursor-pointer items-center justify-center text-lg font-bold text-white" type="button" onClick={() => router.push('/dashboard')}>
           <Image alt="viargos" className="block sm:hidden" height={40} src="/viargos.svg" width={40} />
           <Image alt="viargos" className="hidden sm:block" height={32} src="/viargos_full.svg" style={{ width: 'auto', height: 'auto' }} width={130} />

@@ -24,9 +24,12 @@ export const DashboardShell = (props: { children: React.ReactNode }) => {
             <DashboardSidebar collapsed={collapsed} onToggle={() => setCollapsed(previous => !previous)} />
           </AnimatedSidebar>
 
-          <div className="flex-1 overflow-y-auto transition-all duration-300" data-dashboard-scroll-container>
-            <div className="flex justify-center pb-20 sm:pb-0">
-              <div className="w-full">{children}</div>
+          <div
+            className="flex min-h-0 flex-1 flex-col overflow-y-auto transition-all duration-300"
+            data-dashboard-scroll-container
+          >
+            <div className="flex min-h-0 flex-1 flex-col justify-center pb-20 sm:pb-0">
+              <div className="flex min-h-0 w-full flex-1 flex-col">{children}</div>
             </div>
           </div>
         </div>

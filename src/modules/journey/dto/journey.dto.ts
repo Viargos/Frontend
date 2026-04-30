@@ -32,10 +32,20 @@ export type JourneyListItemDto = {
 
 export type CreateJourneyPlaceDto = {
   address?: string;
+  bookingEndDayNumber?: number;
+  bookingGroupId?: string;
+  bookingStartDayNumber?: number;
   description?: string;
   endTime?: string;
   latitude?: number;
   longitude?: number;
+  media?: Array<{
+    duration?: number;
+    order?: number;
+    thumbnailUrl?: string;
+    type: 'image' | 'video';
+    url: string;
+  }>;
   name: string;
   order?: number;
   startTime?: string;

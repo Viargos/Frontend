@@ -2,6 +2,7 @@
 
 import * as motion from 'framer-motion/client';
 import { useState } from 'react';
+import { DatePickerField } from '@/modules/common/components';
 import { ExploreIcon, XIcon } from '@/modules/common/icons';
 
 export type JourneyFilterState = {
@@ -132,7 +133,7 @@ export const FilterPanel = (props: FilterPanelProps) => {
 
   return (
     <div className="border-b border-gray-200 bg-white" data-parity="discover-filters">
-      <div className="border-b border-gray-200 bg-gradient-to-r from-[#160E53]/5 to-transparent p-4">
+      <div className="border-b border-gray-200 bg-linear-to-r from-[#160E53]/5 to-transparent p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <div className="rounded-lg bg-[#160E53] p-1.5">
@@ -230,31 +231,37 @@ export const FilterPanel = (props: FilterPanelProps) => {
                 Journey Date Range
               </label>
               <div className="space-y-2">
-                <input
+                <DatePickerField
+                  className="rounded-lg"
+                  description="Choose the first date travelers should be included in the results."
                   id="discover-date-from"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm font-medium text-black transition-colors hover:border-[#160E53]/50 focus:border-[#160E53] focus:ring-2 focus:ring-[#160E53] focus:outline-none"
-                  type="date"
+                  max={filters.dateRange.to || undefined}
+                  onChange={nextValue => updateFilters({
+                    ...filters,
+                    dateRange: {
+                      ...filters.dateRange,
+                      from: nextValue,
+                    },
+                  })}
+                  placeholder="Select start date"
+                  title="Filter from date"
                   value={filters.dateRange.from}
-                  onChange={event => updateFilters({
-                    ...filters,
-                    dateRange: {
-                      ...filters.dateRange,
-                      from: event.target.value,
-                    },
-                  })}
                 />
-                <input
+                <DatePickerField
+                  className="rounded-lg"
+                  description="Choose the latest journey date travelers should be included in the results."
                   id="discover-date-to"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm font-medium text-black transition-colors hover:border-[#160E53]/50 focus:border-[#160E53] focus:ring-2 focus:ring-[#160E53] focus:outline-none"
-                  type="date"
-                  value={filters.dateRange.to}
-                  onChange={event => updateFilters({
+                  min={filters.dateRange.from || undefined}
+                  onChange={nextValue => updateFilters({
                     ...filters,
                     dateRange: {
                       ...filters.dateRange,
-                      to: event.target.value,
+                      to: nextValue,
                     },
                   })}
+                  placeholder="Select end date"
+                  title="Filter to date"
+                  value={filters.dateRange.to}
                 />
               </div>
             </div>

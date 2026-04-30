@@ -21,6 +21,7 @@ export function mapUserProfile(dto: UserProfileResponseDto): UserProfile {
       createdAt: post.createdAt,
       description: post.description,
       id: post.id,
+      journey: post.journey ?? undefined,
       likeCount: post.likeCount,
       mediaUrls: post.mediaUrls,
     })),

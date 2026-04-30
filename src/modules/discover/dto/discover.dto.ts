@@ -18,6 +18,13 @@ export type DiscoverJourneyDayDto = {
   places: DiscoverJourneyPlaceDto[];
 };
 
+/** Creator on journey payloads from the API (nested `user` on Journey). */
+export type DiscoverJourneyUserDto = {
+  id: string;
+  username?: string;
+  profileImage?: string;
+};
+
 export type DiscoverJourneyDto = {
   id: string;
   title: string;
@@ -25,4 +32,5 @@ export type DiscoverJourneyDto = {
   createdAt: string;
   coverImage?: string;
   days?: DiscoverJourneyDayDto[];
+  user?: DiscoverJourneyUserDto;
 };

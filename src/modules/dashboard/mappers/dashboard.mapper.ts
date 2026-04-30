@@ -1,13 +1,17 @@
 import type {
   DashboardCreatePostResponseDto,
   DashboardFeedDto,
+  DashboardJourneyRecommendationDto,
   DashboardPostCreationJourneyOptionDto,
   DashboardPostDto,
+  DashboardProfileRecommendationDto,
 } from '@/modules/dashboard/dto/dashboard.dto';
 import type {
   DashboardFeedModel,
+  DashboardJourneyRecommendation,
   DashboardPost,
   DashboardPostCreationJourneyOption,
+  DashboardProfileRecommendation,
 } from '@/modules/dashboard/types/dashboard.types';
 
 function mapPost(dto: DashboardPostDto): DashboardPost {
@@ -22,6 +26,13 @@ function mapPost(dto: DashboardPostDto): DashboardPost {
       createdAt: comment.createdAt,
       id: comment.id,
       userId: comment.userId,
+      user: comment.user
+        ? {
+            id: comment.user.id,
+            profileImage: comment.user.profileImage ?? undefined,
+            username: comment.user.username,
+          }
+        : undefined,
     })),
     createdAt: dto.createdAt,
     description: dto.description,
@@ -56,6 +67,48 @@ export function mapDashboardFeed(dto: DashboardFeedDto): DashboardFeedModel {
     posts: (dto.posts ?? []).map(mapPost),
     totalCount: dto.totalCount,
   };
+}
+
+export function mapDashboardRecommendation(
+  dto: DashboardProfileRecommendationDto,
+): DashboardProfileRecommendation {
+  return {
+    category: dto.category ?? undefined,
+    descriptor: dto.descriptor,
+    followersCount: dto.followersCount,
+    id: dto.id,
+    isFollowing: dto.isFollowing,
+    postsCount: dto.postsCount,
+    profileImage: dto.profileImage ?? undefined,
+    username: dto.username,
+  };
+}
+
+export function mapDashboardRecommendations(
+  dtos: DashboardProfileRecommendationDto[],
+): DashboardProfileRecommendation[] {
+  return dtos.map(mapDashboardRecommendation);
+}
+
+export function mapDashboardJourneyRecommendation(
+  dto: DashboardJourneyRecommendationDto,
+): DashboardJourneyRecommendation {
+  return {
+    coverImage: dto.coverImage ?? undefined,
+    createdAt: dto.createdAt,
+    creator: dto.creator,
+    daysCount: dto.daysCount,
+    description: dto.description ?? undefined,
+    id: dto.id,
+    placesCount: dto.placesCount,
+    title: dto.title,
+  };
+}
+
+export function mapDashboardJourneyRecommendations(
+  dtos: DashboardJourneyRecommendationDto[],
+): DashboardJourneyRecommendation[] {
+  return dtos.map(mapDashboardJourneyRecommendation);
 }
 
 export function mapCreatePostToDashboardPost(

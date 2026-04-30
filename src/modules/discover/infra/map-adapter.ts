@@ -7,6 +7,7 @@ export {
   GoogleMap,
   GoogleMarkerClusterer,
   hasGoogleMapsApiKey,
+  InfoWindowF,
   MarkerF,
   useGoogleMapsLoader,
 } from '@/modules/common/infra';

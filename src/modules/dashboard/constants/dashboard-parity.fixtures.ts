@@ -1,5 +1,9 @@
 import type { DashboardParityState } from '@/modules/dashboard/constants/dashboard-parity.types';
-import type { DashboardFeedModel } from '@/modules/dashboard/types/dashboard.types';
+import type {
+  DashboardFeedModel,
+  DashboardJourneyRecommendation,
+  DashboardProfileRecommendation,
+} from '@/modules/dashboard/types/dashboard.types';
 
 const FIXTURE_POSTS: DashboardFeedModel['posts'] = [
   {
@@ -95,6 +99,93 @@ const FIXTURE_POSTS: DashboardFeedModel['posts'] = [
   },
 ];
 
+const FIXTURE_RECOMMENDATIONS: DashboardProfileRecommendation[] = [
+  {
+    id: 'r1',
+    username: 'maya.chen',
+    descriptor: 'Travel creator sharing slow living itineraries.',
+    followersCount: 24800,
+    postsCount: 42,
+    isFollowing: false,
+    category: 'Travel',
+  },
+  {
+    id: 'r2',
+    username: 'arjun.patel',
+    descriptor: 'AI builder shipping practical tools every week.',
+    followersCount: 12100,
+    postsCount: 31,
+    isFollowing: false,
+    category: 'AI / Tech',
+  },
+  {
+    id: 'r3',
+    username: 'sofia.hart',
+    descriptor: 'Fitness coach focused on habit-first wellness.',
+    followersCount: 9600,
+    postsCount: 27,
+    isFollowing: false,
+    category: 'Fitness',
+  },
+  {
+    id: 'r4',
+    username: 'nomad.alex',
+    descriptor: 'Documenting remote work, city guides, and route ideas.',
+    followersCount: 8100,
+    postsCount: 19,
+    isFollowing: false,
+    category: 'Travel',
+  },
+  {
+    id: 'r5',
+    username: 'lina.gomez',
+    descriptor: 'Tech operator writing about product systems and teams.',
+    followersCount: 6400,
+    postsCount: 15,
+    isFollowing: false,
+    category: 'AI / Tech',
+  },
+];
+
+const FIXTURE_POPULAR_JOURNEYS: DashboardJourneyRecommendation[] = [
+  {
+    id: 'dj1',
+    title: 'South India Temple Trail',
+    description: 'A compact cultural route through temple cities and local food stops.',
+    creator: {
+      id: 'u1',
+      username: 'maya.chen',
+    },
+    daysCount: 4,
+    placesCount: 11,
+    createdAt: '2026-01-14T14:00:00.000Z',
+  },
+  {
+    id: 'dj2',
+    title: 'Bali Workation Loop',
+    description: 'Remote-work-friendly cafes, surf mornings, and relaxed evenings.',
+    creator: {
+      id: 'u2',
+      username: 'arjun.patel',
+    },
+    daysCount: 6,
+    placesCount: 14,
+    createdAt: '2026-01-15T14:00:00.000Z',
+  },
+  {
+    id: 'dj3',
+    title: 'Tokyo Weekend Sprint',
+    description: 'Fast-paced neighborhoods, ramen spots, and late-night city views.',
+    creator: {
+      id: 'u3',
+      username: 'sofia.hart',
+    },
+    daysCount: 3,
+    placesCount: 9,
+    createdAt: '2026-01-16T14:00:00.000Z',
+  },
+];
+
 export function getDashboardParityFixture(state: DashboardParityState): DashboardFeedModel {
   if (state === 'empty' || state === 'loading' || state === 'error') {
     return {
@@ -110,4 +201,12 @@ export function getDashboardParityFixture(state: DashboardParityState): Dashboar
     nextCursor: state === 'pagination' ? 'cursor-1' : undefined,
     totalCount: FIXTURE_POSTS.length,
   };
+}
+
+export function getDashboardRecommendationParityFixture(): DashboardProfileRecommendation[] {
+  return FIXTURE_RECOMMENDATIONS;
+}
+
+export function getDashboardPopularJourneyParityFixture(): DashboardJourneyRecommendation[] {
+  return FIXTURE_POPULAR_JOURNEYS;
 }

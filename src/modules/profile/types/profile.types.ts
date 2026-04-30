@@ -21,6 +21,11 @@ export type ProfileRelationship = {
   isFollowedBy: boolean;
 };
 
+export type ProfilePostJourney = {
+  id: string;
+  title: string;
+};
+
 export type ProfilePost = {
   id: string;
   description: string;
@@ -28,6 +33,25 @@ export type ProfilePost = {
   commentCount: number;
   createdAt: string;
   mediaUrls: string[];
+  journey?: ProfilePostJourney | null;
+};
+
+export type PostMediaItem = {
+  id: string;
+  url: string;
+  type: string;
+  order: number;
+};
+
+export type PostDetail = {
+  id: string;
+  description: string;
+  journeyId?: string | null;
+  location?: string | null;
+  media: PostMediaItem[];
+  likeCount: number;
+  commentCount: number;
+  createdAt: string;
 };
 
 export type ProfileJourney = {

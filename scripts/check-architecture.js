@@ -139,8 +139,8 @@ for (const filePath of files) {
         const [, targetMod, subpath] = match;
         if (targetMod === 'common') continue; // common is allowed
         if (targetMod !== currentModule) {
-          // Cross-feature: only allow @/modules/<feature> (barrel), not deep paths
-          if (subpath && ![''].includes(subpath)) {
+          // Cross-feature: only allow feature root imports plus dedicated public api entrypoints.
+          if (subpath && subpath !== 'api') {
             violations.push(`[cross-feature deep import] ${relPath} imports @/modules/${targetMod}/${subpath}. Use @/modules/${targetMod} only.`);
           }
         }

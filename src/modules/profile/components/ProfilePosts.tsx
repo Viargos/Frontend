@@ -1,6 +1,8 @@
 import type { ProfilePost } from '@/modules/profile/types/profile.types';
 import * as motion from 'framer-motion/client';
-import Image from 'next/image';
+import Link from 'next/link';
+import { JourneyIcon } from '@/modules/common/icons';
+import { ProfilePostMediaCarousel } from '@/modules/profile/components/ProfilePostMediaCarousel';
 
 type ProfilePostsProps = {
   posts: ProfilePost[];
@@ -34,7 +36,20 @@ export const ProfilePosts = (props: ProfilePostsProps) => {
           {post.mediaUrls.length > 0
             ? (
                 <div className="relative mb-3 h-40 overflow-hidden rounded-md border border-gray-200 bg-gray-100">
-                  <Image alt={post.description.slice(0, 60)} className="h-full w-full object-cover" fill src={post.mediaUrls[0]!} unoptimized />
+                  <ProfilePostMediaCarousel fillContainer mediaUrls={post.mediaUrls} />
+                </div>
+              )
+            : null}
+          {post.journey
+            ? (
+                <div className="mb-2">
+                  <Link
+                    className="flex items-center gap-1.5 text-xs font-medium text-[#160E53] hover:underline"
+                    href={`/journey/${post.journey.id}`}
+                  >
+                    <JourneyIcon className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate" title={post.journey.title}>{post.journey.title}</span>
+                  </Link>
                 </div>
               )
             : null}

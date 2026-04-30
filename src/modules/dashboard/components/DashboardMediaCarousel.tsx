@@ -4,6 +4,7 @@ import type { DashboardPostMedia } from '@/modules/dashboard/types/dashboard.typ
 import * as motion from 'framer-motion/client';
 import Image from 'next/image';
 import { useState } from 'react';
+import { ChevronLeftIcon, ChevronRightIcon } from '@/modules/dashboard/components/dashboard-icons';
 
 type DashboardMediaCarouselProps = {
   media: DashboardPostMedia[];
@@ -62,37 +63,37 @@ export const DashboardMediaCarousel = (props: DashboardMediaCarouselProps) => {
 
         <button
           aria-label="Previous media"
-          className="absolute top-1/2 left-2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white transition-all duration-200 hover:bg-black/70"
+          className="absolute top-1/2 left-3 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white shadow-lg transition-all duration-200 hover:scale-105 hover:bg-black/70 active:scale-95"
           type="button"
           onClick={() => setCurrentIndex(previous => (previous - 1 + media.length) % media.length)}
         >
-          <span className="block h-4 w-4">‹</span>
+          <ChevronLeftIcon className="h-5 w-5 shrink-0" />
         </button>
         <button
           aria-label="Next media"
-          className="absolute top-1/2 right-2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white transition-all duration-200 hover:bg-black/70"
+          className="absolute top-1/2 right-3 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white shadow-lg transition-all duration-200 hover:scale-105 hover:bg-black/70 active:scale-95"
           type="button"
           onClick={() => setCurrentIndex(previous => (previous + 1) % media.length)}
         >
-          <span className="block h-4 w-4">›</span>
+          <ChevronRightIcon className="h-5 w-5 shrink-0" />
         </button>
 
-        <div className="absolute top-2 right-2 z-10 rounded-full bg-black/60 px-2 py-1 text-xs text-white">
+        <div className="absolute top-3 left-3 z-10 rounded-full bg-black/55 px-2.5 py-1 text-xs font-medium text-white tabular-nums backdrop-blur-sm">
           {currentIndex + 1}
-          {' '}
-          /
-          {' '}
+          <span className="text-white/80"> / </span>
           {media.length}
         </div>
 
         {media.length <= 5
           ? (
-              <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 space-x-1">
+              <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center justify-center gap-1.5">
                 {media.map((item, index) => (
                   <button
                     key={item.id}
                     aria-label={`Go to media ${index + 1}`}
-                    className={`h-2 w-2 rounded-full transition-all duration-200 ${index === currentIndex ? 'bg-white' : 'bg-white/50 hover:bg-white/70'}`}
+                    className={`rounded-full transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-1 focus-visible:ring-offset-black/30 ${
+                      index === currentIndex ? 'h-2.5 w-2.5 bg-white shadow-md' : 'h-2 w-2 bg-white/60 hover:bg-white/80'
+                    }`}
                     type="button"
                     onClick={() => setCurrentIndex(index)}
                   />
@@ -100,10 +101,6 @@ export const DashboardMediaCarousel = (props: DashboardMediaCarouselProps) => {
               </div>
             )
           : null}
-      </div>
-
-      <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 animate-pulse rounded bg-black px-2 py-1 text-xs text-white opacity-0">
-        Swipe or use arrows
       </div>
     </div>
   );

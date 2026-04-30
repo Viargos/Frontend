@@ -5,20 +5,29 @@ import type {
   DashboardCreatePostRequestDto,
   DashboardCreatePostResponseDto,
   DashboardFeedDto,
+  DashboardJourneyRecommendationDto,
+  DashboardJourneyRecommendationsQueryDto,
   DashboardLikeResponseDto,
   DashboardPostCreationJourneyOptionDto,
+  DashboardProfileRecommendationDto,
   DashboardQueryDto,
+  DashboardRecommendationsQueryDto,
   DashboardUploadPostMediaResponseDto,
 } from '@/modules/dashboard/dto/dashboard.dto';
 import type {
   DashboardFeedModel,
+  DashboardJourneyRecommendation,
+  DashboardPostComment,
   DashboardPostCreationJourneyOption,
+  DashboardProfileRecommendation,
 } from '@/modules/dashboard/types/dashboard.types';
 import { httpClient } from '@/lib/api/http-client';
 import { unwrapEnvelope } from '@/modules/common/mappers';
 import { DASHBOARD_DEFAULT_LIMIT } from '@/modules/dashboard/constants/dashboard.constants';
 import {
   mapDashboardFeed,
+  mapDashboardJourneyRecommendations,
+  mapDashboardRecommendations,
   mapJourneyCreationOption,
 } from '@/modules/dashboard/mappers/dashboard.mapper';
 
@@ -50,6 +59,49 @@ function toQueryString(query: DashboardPostsPageParams): string {
 async function fetchDashboardEnvelope(query: DashboardQueryDto): Promise<DashboardFeedDto> {
   const payload = await httpClient.get<unknown>(`/dashboard${toQueryString(query)}`);
   return unwrapEnvelope<DashboardFeedDto>(payload).data;
+}
+
+function isDashboardRecommendationDto(value: unknown): value is DashboardProfileRecommendationDto {
+  return (
+    typeof value === 'object'
+    && value !== null
+    && 'id' in value
+    && typeof value.id === 'string'
+    && 'username' in value
+    && typeof value.username === 'string'
+    && 'descriptor' in value
+    && typeof value.descriptor === 'string'
+    && 'followersCount' in value
+    && typeof value.followersCount === 'number'
+    && 'postsCount' in value
+    && typeof value.postsCount === 'number'
+    && 'isFollowing' in value
+    && typeof value.isFollowing === 'boolean'
+  );
+}
+
+function isDashboardJourneyRecommendationDto(value: unknown): value is DashboardJourneyRecommendationDto {
+  return (
+    typeof value === 'object'
+    && value !== null
+    && 'id' in value
+    && typeof value.id === 'string'
+    && 'title' in value
+    && typeof value.title === 'string'
+    && 'createdAt' in value
+    && typeof value.createdAt === 'string'
+    && 'daysCount' in value
+    && typeof value.daysCount === 'number'
+    && 'placesCount' in value
+    && typeof value.placesCount === 'number'
+    && 'creator' in value
+    && typeof value.creator === 'object'
+    && value.creator !== null
+    && 'id' in value.creator
+    && typeof value.creator.id === 'string'
+    && 'username' in value.creator
+    && typeof value.creator.username === 'string'
+  );
 }
 
 function unwrapData<TData>(payload: unknown): TData {
@@ -117,7 +169,87 @@ function parseJourneyCreationOptions(payload: unknown): DashboardPostCreationJou
   return [];
 }
 
-function isUploadPostMediaResponse(payload: unknown): payload is DashboardUploadPostMediaResponseDto {
+function parseDashboardRecommendationsResponse(
+  payload: unknown,
+): DashboardProfileRecommendationDto[] {
+  const data = unwrapData<unknown>(payload);
+
+  if (Array.isArray(data)) {
+    return data.filter(isDashboardRecommendationDto);
+  }
+
+  if (
+    typeof data === 'object'
+    && data !== null
+    && 'profiles' in data
+    && Array.isArray(data.profiles)
+  ) {
+    return data.profiles.filter(isDashboardRecommendationDto);
+  }
+
+  return [];
+}
+
+function parseDashboardJourneyRecommendationsResponse(
+  payload: unknown,
+): DashboardJourneyRecommendationDto[] {
+  const data = unwrapData<unknown>(payload);
+
+  if (Array.isArray(data)) {
+    return data.filter(isDashboardJourneyRecommendationDto);
+  }
+
+  if (
+    typeof data === 'object'
+    && data !== null
+    && 'journeys' in data
+    && Array.isArray(data.journeys)
+  ) {
+    return data.journeys.filter(isDashboardJourneyRecommendationDto);
+  }
+
+  return [];
+}
+
+function mapCommentDtoToModel(comment: DashboardCommentDto): DashboardPostComment {
+  return {
+    content: comment.content,
+    createdAt: comment.createdAt,
+    id: comment.id,
+    user: comment.user
+      ? {
+          id: comment.user.id,
+          profileImage: comment.user.profileImage ?? undefined,
+          username: comment.user.username,
+        }
+      : undefined,
+    userId: comment.userId,
+  };
+}
+
+function parseCommentsResponse(payload: unknown): DashboardPostComment[] {
+  const data = unwrapData<unknown>(payload);
+
+  if (Array.isArray(data)) {
+    return data.filter(isDashboardCommentDto).map(mapCommentDtoToModel);
+  }
+
+  if (typeof data === 'object' && data !== null) {
+    if ('comments' in data && Array.isArray(data.comments)) {
+      return data.comments.filter(isDashboardCommentDto).map(mapCommentDtoToModel);
+    }
+
+    if ('items' in data && Array.isArray(data.items)) {
+      return data.items.filter(isDashboardCommentDto).map(mapCommentDtoToModel);
+    }
+  }
+
+  return [];
+}
+
+function isUploadPostMediaResponse(
+  payload: unknown,
+): payload is DashboardUploadPostMediaResponseDto {
   return (
     typeof payload === 'object'
     && payload !== null
@@ -129,8 +261,14 @@ function isUploadPostMediaResponse(payload: unknown): payload is DashboardUpload
 }
 
 export const dashboardService = {
-  async addComment(postId: string, payload: DashboardAddCommentRequestDto): Promise<DashboardCommentDto> {
-    const response = await httpClient.post<unknown>(`/posts/${postId}/comments`, JSON.stringify(payload));
+  async addComment(
+    postId: string,
+    payload: DashboardAddCommentRequestDto,
+  ): Promise<DashboardCommentDto> {
+    const response = await httpClient.post<unknown>(
+      `/posts/${postId}/comments`,
+      JSON.stringify(payload),
+    );
     return parseAddCommentResponse(response);
   },
 
@@ -138,7 +276,9 @@ export const dashboardService = {
     await httpClient.post<unknown>(`/posts/${postId}/media`, JSON.stringify(payload));
   },
 
-  async createPost(payload: DashboardCreatePostRequestDto): Promise<DashboardCreatePostResponseDto> {
+  async createPost(
+    payload: DashboardCreatePostRequestDto,
+  ): Promise<DashboardCreatePostResponseDto> {
     const response = await httpClient.post<unknown>('/posts', JSON.stringify(payload));
     return unwrapData<DashboardCreatePostResponseDto>(response);
   },
@@ -152,8 +292,34 @@ export const dashboardService = {
     return dashboardService.getPostsPage(query);
   },
 
+  async fetchPostComments(postId: string): Promise<DashboardPostComment[]> {
+    const response = await httpClient.get<unknown>(`/posts/${postId}/comments`);
+    return parseCommentsResponse(response);
+  },
+
+  async getRecommendedProfiles(
+    query: DashboardRecommendationsQueryDto = {},
+  ): Promise<DashboardProfileRecommendation[]> {
+    const payload = await httpClient.get<unknown>('/dashboard/recommendations', {
+      excludeUserIds: query.excludeUserIds?.join(','),
+      limit: query.limit,
+    });
+
+    return mapDashboardRecommendations(parseDashboardRecommendationsResponse(payload));
+  },
+
+  async getPopularJourneys(
+    query: DashboardJourneyRecommendationsQueryDto = {},
+  ): Promise<DashboardJourneyRecommendation[]> {
+    const payload = await httpClient.get<unknown>('/dashboard/popular-journeys', {
+      limit: query.limit,
+    });
+
+    return mapDashboardJourneyRecommendations(parseDashboardJourneyRecommendationsResponse(payload));
+  },
+
   async listJourneysForPostCreation(): Promise<DashboardPostCreationJourneyOption[]> {
-    const payload = await httpClient.get<unknown>('/journeys');
+    const payload = await httpClient.get<unknown>('/journeys/my-journeys');
     const options = parseJourneyCreationOptions(payload);
     return options.map(mapJourneyCreationOption);
   },

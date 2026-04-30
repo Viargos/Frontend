@@ -1,4 +1,4 @@
-import { UserProfileSkeleton } from '@/modules/profile';
+import { UserProfileSkeleton } from '@/modules/profile/components';
 
 export default function RouteLoading() {
   return <UserProfileSkeleton />;

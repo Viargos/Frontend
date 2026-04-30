@@ -20,7 +20,9 @@ async function fetchServerProfile(path: string): Promise<UserProfile> {
   });
 
   if (!response.ok) {
-    throw new Error('Failed to load profile');
+    const body = await response.text();
+    const msg = body ? `${response.status}: ${body.slice(0, 200)}` : String(response.status);
+    throw new Error(`Failed to load profile (${msg})`);
   }
 
   const payload: unknown = await response.json().catch(() => null);

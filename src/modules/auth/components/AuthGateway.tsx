@@ -2,10 +2,14 @@
 
 import type { AuthSigninResult, AuthUser } from '@/modules/auth/types/auth.types';
 import * as motion from 'framer-motion/client';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { AuthStep } from '@/modules/auth/enums/auth-step.enum';
-import { clearAuthRedirectPath, readAuthRedirectPath } from '@/modules/auth/helpers/redirect.helper';
+import {
+  clearAuthRedirectPath,
+  readAuthRedirectPath,
+} from '@/modules/auth/helpers/redirect.helper';
 import { useAuthModal } from '@/modules/auth/hooks/use-auth-modal';
 import { useAuthSession } from '@/modules/auth/hooks/use-auth-session';
 import { AppLogo } from '@/modules/common';
@@ -84,7 +88,9 @@ export const AuthGateway = () => {
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#160E53]">
               <div className="origin-center scale-[1.018] text-center md:scale-100">
                 <div className="mb-8">
-                  <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-white text-3xl font-bold text-[#160E53] shadow-2xl">V</div>
+                  <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-white text-3xl font-bold text-[#160E53] shadow-2xl">
+                    V
+                  </div>
                 </div>
                 <h1 className="mb-4 text-4xl font-bold text-white">Viargos</h1>
                 <motion.p
@@ -101,7 +107,7 @@ export const AuthGateway = () => {
         : (
             <motion.div
               animate={{ opacity: 1 }}
-              className="min-h-screen bg-gray-50"
+              className="min-h-screen bg-linear-to-b from-slate-50 via-white to-slate-100"
               initial={{ opacity: 0 }}
               transition={{ duration: 0.8 }}
             >
@@ -131,18 +137,22 @@ export const AuthGateway = () => {
               </motion.div>
 
               <div className="relative min-h-[700px] w-full overflow-hidden sm:min-h-[800px]">
-                <div
-                  className="relative z-10 mx-auto flex min-h-[700px] w-full max-w-7xl flex-col items-center justify-start px-4 pt-8 text-center sm:min-h-[800px] sm:pt-12"
-                  style={{
-                    backgroundImage: 'url(/hero.svg)',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundSize: 'cover',
-                  }}
-                >
+                <div className="absolute inset-0 bg-linear-to-b from-white via-[#F7F8FD] to-[#EEF1FF]" />
+                <div className="pointer-events-none absolute inset-x-0 top-12 bottom-0 opacity-95">
+                  <Image
+                    alt="Viargos travel illustration"
+                    className="object-contain object-bottom"
+                    fill
+                    priority
+                    sizes="100vw"
+                    src="/hero.svg"
+                    unoptimized
+                  />
+                </div>
+                <div className="relative z-10 mx-auto flex min-h-[700px] w-full max-w-7xl flex-col items-center justify-start px-4 pt-10 text-center sm:min-h-[800px] sm:pt-16">
                   <motion.h1
                     animate={showContent ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
-                    className="mb-6 text-3xl font-bold text-gray-900 sm:text-6xl"
+                    className="mb-6 max-w-4xl font-outfit text-4xl font-semibold tracking-tight text-slate-950 sm:text-6xl"
                     transition={{ duration: 0.6, ease: 'easeOut' }}
                   >
                     Welcome to
@@ -152,10 +162,11 @@ export const AuthGateway = () => {
 
                   <motion.p
                     animate={showContent ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
-                    className="mx-auto mb-8 max-w-4xl text-xl leading-relaxed text-gray-600 sm:text-2xl"
+                    className="mx-auto mb-8 max-w-3xl text-base leading-8 text-slate-600 sm:text-xl"
                     transition={{ duration: 0.6, ease: 'easeOut' }}
                   >
-                    The ultimate travel companion for planning journeys, sharing experiences, and discovering amazing destinations with a global community of travelers.
+                    The ultimate travel companion for planning journeys, sharing experiences, and
+                    discovering amazing destinations with a global community of travelers.
                   </motion.p>
 
                   <motion.div

@@ -91,7 +91,7 @@ export const DashboardFeed = (props: DashboardFeedProps) => {
     <div className="w-full">
       <motion.div
         animate={{ opacity: 1 }}
-        className="mx-auto max-w-[680px] space-y-5"
+        className="mx-auto max-w-[680px] space-y-5 xl:mx-0 xl:max-w-[760px] 2xl:max-w-[780px]"
         initial={{ opacity: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
       >

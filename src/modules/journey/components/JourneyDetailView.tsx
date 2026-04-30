@@ -4,6 +4,15 @@ import type { JourneyDetail, JourneyMedia, JourneyPlace } from '@/modules/journe
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
+import {
+  Badge,
+  CalendarIcon,
+  ClipboardListIcon,
+  EditIcon,
+  FileTextIcon,
+  ImageIcon,
+  MapPinIcon,
+} from '@/modules/common';
 import { JourneyHeader } from '@/modules/journey/components/JourneyHeader';
 import { JourneyMapPanel } from '@/modules/journey/components/JourneyMapPanel';
 import { JourneyPostsSection } from '@/modules/journey/components/JourneyPostsSection';
@@ -72,6 +81,13 @@ function formatDayDate(value: string): string {
   });
 }
 
+function getTotalMediaCount(days: JourneyDetail['days']): number {
+  return days.reduce(
+    (sum, day) => sum + day.places.reduce((placeSum, place) => placeSum + place.media.length, 0),
+    0,
+  );
+}
+
 export const JourneyDetailView = (props: JourneyDetailViewProps) => {
   const { journey } = props;
   const router = useRouter();
@@ -93,11 +109,29 @@ export const JourneyDetailView = (props: JourneyDetailViewProps) => {
     () => journey.days.flatMap(day => day.places),
     [journey.days],
   );
+  const totalMediaCount = useMemo(() => getTotalMediaCount(journey.days), [journey.days]);
+  const daysWithNotes = useMemo(
+    () => journey.days.filter(day => Boolean(day.notes?.trim())).length,
+    [journey.days],
+  );
+  const daySections = useMemo(
+    () => [
+      { places: groupedPlaces.stay, title: 'Place to stay' },
+      { places: groupedPlaces.activities, title: 'Places to go' },
+      { places: groupedPlaces.food, title: 'Food' },
+      { places: groupedPlaces.transport, title: 'Transport' },
+      { places: groupedPlaces.notes, title: 'Notes' },
+    ],
+    [groupedPlaces],
+  );
 
   const isMediaViewerOpen = selectedMedia.length > 0;
+  const hasDayNotes = Boolean(currentDay?.notes?.trim());
+  const hasCurrentDayPlaces = (currentDay?.places.length ?? 0) > 0;
+  const hasCurrentDayContent = hasCurrentDayPlaces || hasDayNotes;
 
   return (
-    <div className="max-w-none flex-1 bg-gray-50 p-4 sm:p-6">
+    <div className="max-w-none flex-1 bg-linear-to-b from-slate-50 via-white to-slate-100 p-4 sm:p-6">
       <JourneyHeader
         journey={journey}
         onBack={() => {
@@ -105,133 +139,194 @@ export const JourneyDetailView = (props: JourneyDetailViewProps) => {
         }}
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
-          <div className="rounded-lg bg-white p-4 shadow-sm sm:p-6">
-            <div className="mb-4 flex flex-col items-start justify-between gap-4 sm:mb-6 sm:flex-row sm:items-center">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 sm:text-xl">Journey Details</h2>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.75fr)_minmax(320px,1fr)]">
+        <div className="space-y-6">
+          <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <div className="flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-center">
+              <div className="max-w-2xl">
+                <p className="text-xs font-semibold tracking-[0.22em] text-slate-400 uppercase">Itinerary overview</p>
+                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">Plan at a glance</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                  Review the structure of the trip before diving into each day and stop.
+                </p>
               </div>
 
-              <div className="flex items-center gap-2">
-                <Link
-                  className="rounded-md border border-[#160E53] px-3 py-1.5 text-sm font-medium text-[#160E53] transition-colors hover:bg-[#160E53] hover:text-white"
-                  href={`/edit-journey/${journey.id}`}
-                >
-                  Edit Journey
-                </Link>
-              </div>
+              <Link
+                className="inline-flex items-center gap-2 rounded-full border border-[#160E53]/15 bg-[#160E53]/5 px-4 py-2 text-sm font-medium text-[#160E53] transition-colors hover:bg-[#160E53] hover:text-white"
+                href={`/edit-journey/${journey.id}`}
+              >
+                <EditIcon size={16} />
+                Edit journey
+              </Link>
             </div>
 
-            <JourneyTabs activeDayNumber={activeDayNumber} days={journey.days} onSelectDay={setActiveDayNumber} />
+            <div className="mt-6 grid gap-4 md:grid-cols-3">
+              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex items-center gap-2 text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                  <CalendarIcon size={14} />
+                  Trip length
+                </div>
+                <p className="mt-3 text-2xl font-semibold tracking-tight text-slate-900">{journey.days.length}</p>
+                <p className="mt-1 text-sm text-slate-500">Planned travel days</p>
+              </div>
 
-            {currentDay
-              ? (
-                  <div>
-                    <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
-                      <h2 className="text-base font-semibold text-gray-900 sm:text-lg md:text-xl">
+              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex items-center gap-2 text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                  <MapPinIcon size={14} />
+                  Stops
+                </div>
+                <p className="mt-3 text-2xl font-semibold tracking-tight text-slate-900">{allPlaces.length}</p>
+                <p className="mt-1 text-sm text-slate-500">Locations across the itinerary</p>
+              </div>
+
+              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex items-center gap-2 text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                  <ImageIcon size={14} />
+                  Media and notes
+                </div>
+                <p className="mt-3 text-2xl font-semibold tracking-tight text-slate-900">
+                  {totalMediaCount}
+                  <span className="mx-2 text-slate-300">/</span>
+                  {daysWithNotes}
+                </p>
+                <p className="mt-1 text-sm text-slate-500">Photos and days with notes</p>
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-[28px] border border-slate-200 bg-white shadow-sm">
+            <div className="border-b border-slate-200 px-5 py-5 sm:px-6">
+              <p className="text-xs font-semibold tracking-[0.22em] text-slate-400 uppercase">Daily schedule</p>
+              <div className="mt-2 flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                  <h2 className="text-2xl font-semibold tracking-tight text-slate-900">Day-by-day itinerary</h2>
+                  <p className="mt-1 text-sm text-slate-500">Browse each day to review the planned route, places, and notes.</p>
+                </div>
+                {currentDay
+                  ? (
+                      <Badge className="border-[#160E53]/10 bg-[#160E53]/5 text-[#160E53]" variant="muted">
                         Day
                         {' '}
                         {currentDay.dayNumber + 1}
-                      </h2>
-                      <span className="hidden text-gray-400 sm:inline">-</span>
-                      <p className="text-sm text-gray-600 sm:text-base sm:font-semibold sm:text-gray-900">{formatDayDate(currentDay.date)}</p>
-                    </div>
+                        {' '}
+                        selected
+                      </Badge>
+                    )
+                  : null}
+              </div>
+            </div>
 
-                    {currentDay.places.length > 0
-                      ? (
-                          <div className="relative">
-                            <div className="absolute top-0 bottom-0 left-5 hidden w-0.5 bg-gray-200 sm:block md:left-6" />
+            <div className="p-5 sm:p-6">
+              <JourneyTabs activeDayNumber={activeDayNumber} days={journey.days} onSelectDay={setActiveDayNumber} />
 
-                            <div className="space-y-6">
-                              <PlaceGroup
-                                places={groupedPlaces.stay}
-                                title="Place to Stay"
-                                onOpenMedia={(media, index) => {
-                                  setSelectedMedia(media);
-                                  setSelectedMediaIndex(index);
-                                }}
-                              />
-                              <PlaceGroup
-                                places={groupedPlaces.activities}
-                                title="Places to Go"
-                                onOpenMedia={(media, index) => {
-                                  setSelectedMedia(media);
-                                  setSelectedMediaIndex(index);
-                                }}
-                              />
-                              <PlaceGroup
-                                places={groupedPlaces.food}
-                                title="Food"
-                                onOpenMedia={(media, index) => {
-                                  setSelectedMedia(media);
-                                  setSelectedMediaIndex(index);
-                                }}
-                              />
-                              <PlaceGroup
-                                places={groupedPlaces.transport}
-                                title="Transport"
-                                onOpenMedia={(media, index) => {
-                                  setSelectedMedia(media);
-                                  setSelectedMediaIndex(index);
-                                }}
-                              />
-                              <PlaceGroup
-                                places={groupedPlaces.notes}
-                                title="Notes"
-                                onOpenMedia={(media, index) => {
-                                  setSelectedMedia(media);
-                                  setSelectedMediaIndex(index);
-                                }}
-                              />
-
-                              {currentDay.notes
-                                ? (
-                                    <div className="relative flex items-start">
-                                      <div className="relative z-10 hidden h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#160E53] bg-white sm:flex md:h-12 md:w-12">
-                                        <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#160E53] md:h-6 md:w-6">
-                                          <span className="text-[10px] font-semibold text-white md:text-xs">N</span>
-                                        </div>
-                                      </div>
-
-                                      <div className="w-full flex-1 sm:ml-4 md:ml-6">
-                                        <div className="rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-3 sm:p-4">
-                                          <div className="flex items-start gap-2 sm:gap-3">
-                                            <div className="flex-shrink-0 text-[#160E53]">
-                                              <span className="text-xs font-semibold">N</span>
-                                            </div>
-                                            <div className="min-w-0 flex-1">
-                                              <h4 className="mb-1 text-sm font-medium text-[#160E53] sm:text-base">Notes</h4>
-                                              <p className="text-xs break-words text-gray-700 sm:text-sm">{currentDay.notes}</p>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )
-                                : null}
-                            </div>
-                          </div>
-                        )
-                      : (
-                          <div className="rounded-xl border border-gray-200 bg-gradient-to-br from-gray-50 to-blue-50 p-4 text-center sm:p-6">
-                            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#160E53]/10 p-0 sm:h-14 sm:w-14">
-                              <span className="text-2xl text-[#160E53] sm:text-3xl">•</span>
-                            </div>
-                            <h3 className="mb-1 text-sm font-medium text-gray-900 sm:text-base">No places added yet</h3>
-                            <p className="mx-auto mb-4 max-w-xs text-xs text-gray-500 sm:text-sm">
-                              Start planning your day by adding places to visit, restaurants, or accommodations.
+              {currentDay
+                ? (
+                    <div className="mt-6">
+                      <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-4 sm:p-5">
+                        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                          <div>
+                            <Badge className="border-slate-200 bg-white text-slate-700" variant="muted">
+                              Day
+                              {' '}
+                              {currentDay.dayNumber + 1}
+                            </Badge>
+                            <h3 className="mt-3 text-xl font-semibold tracking-tight text-slate-900">{formatDayDate(currentDay.date)}</h3>
+                            <p className="mt-1 text-sm text-slate-500">
+                              {currentDay.places.length}
+                              {' '}
+                              planned stop
+                              {currentDay.places.length === 1 ? '' : 's'}
+                              {hasDayNotes ? ' with supporting notes for the day.' : '.'}
                             </p>
                           </div>
-                        )}
-                  </div>
-                )
-              : null}
-          </div>
 
-          <div className="rounded-lg bg-white p-4 shadow-sm sm:p-6">
+                          <div className="grid grid-cols-2 gap-3 sm:min-w-[280px]">
+                            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                              <p className="text-xs font-medium tracking-wide text-slate-400 uppercase">Places</p>
+                              <p className="mt-1 text-lg font-semibold text-slate-900">{currentDay.places.length}</p>
+                            </div>
+                            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                              <p className="text-xs font-medium tracking-wide text-slate-400 uppercase">Media</p>
+                              <p className="mt-1 text-lg font-semibold text-slate-900">
+                                {currentDay.places.reduce((sum, place) => sum + place.media.length, 0)}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-6 space-y-6">
+                        {hasCurrentDayPlaces
+                          ? (
+                              <div className="relative">
+                                <div className="absolute top-14 bottom-4 left-[21.5px] hidden w-px bg-slate-200 sm:block" />
+
+                                <div className="space-y-6">
+                                  {daySections.map(section => (
+                                    <PlaceGroup
+                                      key={section.title}
+                                      places={section.places}
+                                      title={section.title}
+                                      onOpenMedia={(media, index) => {
+                                        setSelectedMedia(media);
+                                        setSelectedMediaIndex(index);
+                                      }}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                            )
+                          : null}
+
+                        {hasDayNotes
+                          ? (
+                              <div className="relative flex items-start">
+                                <div className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-sm sm:flex">
+                                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#160E53] text-white">
+                                    <FileTextIcon size={16} />
+                                  </div>
+                                </div>
+
+                                <div className="w-full min-w-0 flex-1 sm:ml-4 md:ml-5">
+                                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                                    <div className="flex items-start gap-3">
+                                      <div className="mt-0.5 hidden text-[#160E53] sm:block">
+                                        <FileTextIcon size={16} />
+                                      </div>
+                                      <div>
+                                        <h4 className="text-base font-semibold text-slate-900">Day notes</h4>
+                                        <p className="mt-2 text-sm leading-6 whitespace-pre-wrap text-slate-600">{currentDay.notes}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            )
+                          : null}
+
+                        {!hasCurrentDayContent
+                          ? (
+                              <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+                                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-[#160E53] shadow-sm">
+                                  <ClipboardListIcon size={22} />
+                                </div>
+                                <h3 className="mt-4 text-lg font-semibold text-slate-900">This day is still empty</h3>
+                                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+                                  Add places, transport, or notes to turn this into a complete daily plan.
+                                </p>
+                              </div>
+                            )
+                          : null}
+                      </div>
+                    </div>
+                  )
+                : null}
+            </div>
+          </section>
+
+          <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
             <JourneyPostsSection journeyTitle={journey.title} mode="list" />
-          </div>
+          </section>
         </div>
 
         <JourneyMapPanel places={allPlaces} />

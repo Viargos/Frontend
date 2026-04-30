@@ -25,6 +25,7 @@ export const OtpVerificationForm = (props: OtpVerificationFormProps) => {
   const { resendOtp, resendVerification, verifyEmail, verifyOtp } = useAuthActions();
   const [resendTimer, setResendTimer] = useState(0);
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
+  const lastAutoSubmittedOtpRef = useRef<string | null>(null);
   const otpInputClassName = 'h-11 w-11 rounded-lg border border-gray-300 bg-white text-center text-lg text-gray-900 placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500';
 
   const {
@@ -53,9 +54,17 @@ export const OtpVerificationForm = (props: OtpVerificationFormProps) => {
   }, [email, isPasswordReset, onErrorChange, onSuccess, verifyEmail, verifyOtp]);
 
   useEffect(() => {
-    if (otp.length === OTP_LENGTH && !isSubmitting) {
-      void handleSubmit(onSubmit)();
+    if (otp.length < OTP_LENGTH) {
+      lastAutoSubmittedOtpRef.current = null;
+      return;
     }
+
+    if (isSubmitting || lastAutoSubmittedOtpRef.current === otp) {
+      return;
+    }
+
+    lastAutoSubmittedOtpRef.current = otp;
+    void handleSubmit(onSubmit)();
   }, [handleSubmit, onSubmit, isSubmitting, otp]);
 
   useEffect(() => {

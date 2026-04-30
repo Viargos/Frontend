@@ -1,3 +1,4 @@
+export * from './PostEditModal';
 export * from './ProfileContent';
 export * from './ProfileHeader';
 export * from './ProfileJourneyCard';

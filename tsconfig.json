@@ -48,7 +48,7 @@
     // Build & Performance
     // Settings that affect compilation output and build performance
     // ======================================================================
-    "skipLibCheck": false,
+    "skipLibCheck": true,
     "removeComments": true,
     "preserveConstEnums": true,
     "forceConsistentCasingInFileNames": true,
@@ -92,7 +92,6 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
     "**/*.mts"
   ]
 }

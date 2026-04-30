@@ -1,6 +1,7 @@
 export * from './ChangePasswordForm';
 export * from './ChangePasswordPageView';
 export * from './ChangePasswordSkeleton';
+export * from './EditProfileModal';
 export * from './SettingsHeader';
 export * from './SettingsItem';
 export * from './SettingsPageClient';

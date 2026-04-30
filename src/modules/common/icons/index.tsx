@@ -26,6 +26,7 @@ import {
   RefreshCw,
   Search,
   Ship,
+  SquarePen,
   Train,
   Trash2,
   Trees,
@@ -77,8 +78,14 @@ export const CompassIcon = ({ size = 24, ...props }: IconProps) => (
 export const ExploreIcon = ({ size = 24, ...props }: IconProps) => (
   <Search height={size} width={size} {...props} />
 );
+export const SearchIcon = ({ size = 24, ...props }: IconProps) => (
+  <Search height={size} width={size} {...props} />
+);
 export const EyeIcon = ({ size = 24, ...props }: IconProps) => (
   <Eye height={size} width={size} {...props} />
+);
+export const EditIcon = ({ size = 24, ...props }: IconProps) => (
+  <SquarePen height={size} width={size} {...props} />
 );
 export const FileTextIcon = ({ size = 24, ...props }: IconProps) => (
   <FileText height={size} width={size} {...props} />

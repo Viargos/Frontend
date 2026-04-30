@@ -21,6 +21,9 @@ export function mapJourneyDetail(dto: JourneyDetailDto): JourneyDetail {
       notes: day.notes,
       places: day.places.map(place => ({
         address: place.address,
+        bookingEndDayNumber: place.bookingEndDayNumber,
+        bookingGroupId: place.bookingGroupId,
+        bookingStartDayNumber: place.bookingStartDayNumber,
         description: place.description,
         endTime: place.endTime,
         id: place.id,
@@ -28,6 +31,8 @@ export function mapJourneyDetail(dto: JourneyDetailDto): JourneyDetail {
         longitude: toNumber(place.longitude),
         media: (place.media ?? []).map(media => ({
           id: media.id,
+          order: media.order,
+          thumbnailUrl: media.thumbnailUrl,
           type: media.type.toLowerCase() === 'video' ? 'video' : 'image',
           url: media.url,
         })),

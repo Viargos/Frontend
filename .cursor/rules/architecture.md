@@ -1,3 +1,8 @@
+---
+name: architecture-viargos
+description: This is System architecture of viargos how application should be used.
+-----
+
 # Architecture Rules
 
 ## Three-Layer Structure

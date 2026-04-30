@@ -6,7 +6,11 @@ import type {
   DashboardCommentDto,
   DashboardLikeResponseDto,
 } from '@/modules/dashboard/dto/dashboard.dto';
-import type { DashboardFeedModel, DashboardPost, DashboardPostComment } from '@/modules/dashboard/types/dashboard.types';
+import type {
+  DashboardFeedModel,
+  DashboardPost,
+  DashboardPostComment,
+} from '@/modules/dashboard/types/dashboard.types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useRef, useState } from 'react';
 import { dashboardKeys } from '@/modules/dashboard/query-keys';
@@ -20,12 +24,22 @@ type ToggleLikeMutationVariables = {
 };
 
 type AddCommentMutationVariables = {
+  currentUser?: {
+    id: string;
+    profileImage?: string;
+    username: string;
+  };
   payload: DashboardAddCommentRequestDto;
   postId: string;
   tempCommentId: string;
 };
 
 type AddCommentInput = {
+  currentUser?: {
+    id: string;
+    profileImage?: string;
+    username: string;
+  };
   payload: DashboardAddCommentRequestDto;
   postId: string;
 };
@@ -39,12 +53,28 @@ type MutationContext = {
   previousEntries: CachedDashboardPostsEntry[];
 };
 
-function mapCommentFromDto(dto: DashboardCommentDto): DashboardPostComment {
+function mapCommentFromDto(
+  dto: DashboardCommentDto,
+  fallbackUser?: AddCommentMutationVariables['currentUser'],
+): DashboardPostComment {
   return {
     content: dto.content,
     createdAt: dto.createdAt,
     id: dto.id,
     isPending: false,
+    user: dto.user
+      ? {
+          id: dto.user.id,
+          profileImage: dto.user.profileImage ?? undefined,
+          username: dto.user.username,
+        }
+      : fallbackUser
+        ? {
+            id: dto.userId,
+            profileImage: fallbackUser.profileImage,
+            username: fallbackUser.username,
+          }
+        : undefined,
     userId: dto.userId,
   };
 }
@@ -104,7 +134,9 @@ function updatePostInInfiniteData(
   };
 }
 
-function captureDashboardPostEntries(queryClient: ReturnType<typeof useQueryClient>): CachedDashboardPostsEntry[] {
+function captureDashboardPostEntries(
+  queryClient: ReturnType<typeof useQueryClient>,
+): CachedDashboardPostsEntry[] {
   return queryClient
     .getQueriesData<DashboardInfiniteData>({ queryKey: dashboardKeys.all })
     .filter(([queryKey]) => isDashboardPostsKey(queryKey))
@@ -122,10 +154,8 @@ function updateDashboardPostEntries(
   const entries = captureDashboardPostEntries(queryClient);
 
   for (const entry of entries) {
-    queryClient.setQueryData<DashboardInfiniteData>(
-      entry.queryKey,
-      previous => updatePostInInfiniteData(previous, postId, updater),
-    );
+    queryClient.setQueryData<DashboardInfiniteData>(entry.queryKey, previous =>
+      updatePostInInfiniteData(previous, postId, updater));
   }
 }
 
@@ -140,7 +170,9 @@ function restoreDashboardPostEntries(
 
 export function usePostActions() {
   const queryClient = useQueryClient();
-  const [inFlightAddCommentPostIds, setInFlightAddCommentPostIds] = useState<Record<string, true>>({});
+  const [inFlightAddCommentPostIds, setInFlightAddCommentPostIds] = useState<Record<string, true>>(
+    {},
+  );
   const [inFlightLikePostIds, setInFlightLikePostIds] = useState<Record<string, true>>({});
   const inFlightAddCommentPostIdsRef = useRef(new Set<string>());
   const inFlightLikePostIdsRef = useRef(new Set<string>());
@@ -199,6 +231,13 @@ export function usePostActions() {
         createdAt: new Date().toISOString(),
         id: variables.tempCommentId,
         isPending: true,
+        user: variables.currentUser
+          ? {
+              id: variables.currentUser.id,
+              profileImage: variables.currentUser.profileImage,
+              username: variables.currentUser.username,
+            }
+          : undefined,
       };
 
       updateDashboardPostEntries(queryClient, variables.postId, post => ({
@@ -212,11 +251,13 @@ export function usePostActions() {
       };
     },
     onSuccess: (response, variables) => {
-      const serverComment = mapCommentFromDto(response);
+      const serverComment = mapCommentFromDto(response, variables.currentUser);
 
       updateDashboardPostEntries(queryClient, variables.postId, (post) => {
         const comments = [...(post.comments ?? [])];
-        const tempCommentIndex = comments.findIndex(comment => comment.id === variables.tempCommentId);
+        const tempCommentIndex = comments.findIndex(
+          comment => comment.id === variables.tempCommentId,
+        );
 
         if (tempCommentIndex >= 0) {
           comments[tempCommentIndex] = serverComment;
@@ -292,7 +333,8 @@ export function usePostActions() {
         unmarkCommentInFlight(variables.postId);
       }
     },
-    addCommentError: addCommentMutation.error instanceof Error ? addCommentMutation.error.message : null,
+    addCommentError:
+      addCommentMutation.error instanceof Error ? addCommentMutation.error.message : null,
     isAddingComment: addCommentMutation.isPending,
     isCommentPendingForPost,
     isLikePendingForPost,
@@ -312,6 +354,7 @@ export function usePostActions() {
         unmarkLikeInFlight(variables.postId);
       }
     },
-    toggleLikeError: toggleLikeMutation.error instanceof Error ? toggleLikeMutation.error.message : null,
+    toggleLikeError:
+      toggleLikeMutation.error instanceof Error ? toggleLikeMutation.error.message : null,
   };
 }

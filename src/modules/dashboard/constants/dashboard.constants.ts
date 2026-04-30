@@ -1,6 +1,9 @@
 import { DashboardRoute } from '@/modules/dashboard/enums/dashboard.enum';
 
 export const DASHBOARD_DEFAULT_LIMIT = 10;
+export const DASHBOARD_RECOMMENDATIONS_INITIAL_LIMIT = 5;
+export const DASHBOARD_RECOMMENDATIONS_LOAD_MORE_LIMIT = 3;
+export const DASHBOARD_POPULAR_JOURNEYS_LIMIT = 3;
 
 export const DASHBOARD_NAV_ITEMS = [
   { label: 'Home', href: DashboardRoute.DASHBOARD, icon: 'home' },

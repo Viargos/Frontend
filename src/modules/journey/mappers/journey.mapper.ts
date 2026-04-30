@@ -1,6 +1,11 @@
 import type { CreateJourneyRequestDto, JourneyListItemDto } from '@/modules/journey/dto/journey.dto';
 import type { JourneyCreateInput, JourneyListItem } from '@/modules/journey/types/journey.types';
 
+function normalizeOptionalText(value?: string): string | undefined {
+  const trimmedValue = value?.trim();
+  return trimmedValue || undefined;
+}
+
 export function mapJourneyListItem(dto: JourneyListItemDto): JourneyListItem {
   return {
     coverImage: dto.coverImage ?? undefined,
@@ -35,19 +40,29 @@ export function mapJourneyList(dtos: JourneyListItemDto[]): JourneyListItem[] {
 
 export function mapCreateJourneyInputToDto(input: JourneyCreateInput): CreateJourneyRequestDto {
   return {
+    coverImage: input.coverImage,
     days: input.days.map(day => ({
       date: day.date,
       dayNumber: day.dayNumber,
       notes: day.notes,
       places: day.places.map((place, index) => ({
         address: place.address,
-        description: place.description,
-        endTime: place.endTime,
+        bookingEndDayNumber: place.bookingEndDayNumber,
+        bookingGroupId: place.bookingGroupId,
+        bookingStartDayNumber: place.bookingStartDayNumber,
+        description: normalizeOptionalText(place.description),
+        endTime: normalizeOptionalText(place.endTime),
         latitude: place.latitude,
         longitude: place.longitude,
+        media: place.media.map((media, mediaIndex) => ({
+          order: media.order ?? mediaIndex,
+          thumbnailUrl: media.thumbnailUrl,
+          type: media.type,
+          url: media.url ?? media.previewUrl,
+        })),
         name: place.name,
-        order: index,
-        startTime: place.startTime,
+        order: place.order ?? index,
+        startTime: normalizeOptionalText(place.startTime),
         type: place.type,
       })),
     })),

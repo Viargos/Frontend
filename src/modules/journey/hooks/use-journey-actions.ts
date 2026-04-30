@@ -6,6 +6,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { journeyQueryKeys } from '@/modules/journey/query-keys';
 import { journeyService } from '@/modules/journey/services/journey.service';
 
+type JourneyUpdatePayload = {
+  coverImage?: string;
+  days?: JourneyCreateInput['days'];
+  description?: string;
+  title?: string;
+};
+
 export function useJourneyActions() {
   const queryClient = useQueryClient();
 
@@ -17,7 +24,7 @@ export function useJourneyActions() {
   });
 
   const updateJourneyMutation = useMutation({
-    mutationFn: ({ journeyId, payload }: { journeyId: string; payload: { description?: string; title?: string } }) =>
+    mutationFn: ({ journeyId, payload }: { journeyId: string; payload: JourneyUpdatePayload }) =>
       journeyService.update(journeyId, payload),
     onSuccess: async (updatedJourney) => {
       queryClient.setQueryData<JourneyDetail>(
@@ -35,11 +42,19 @@ export function useJourneyActions() {
     },
   });
 
+  const uploadCoverImageMutation = useMutation({
+    mutationFn: (file: File) => journeyService.uploadCoverImage(file),
+  });
+
+  const uploadPlaceMediaMutation = useMutation({
+    mutationFn: (file: File) => journeyService.uploadPlaceMedia(file),
+  });
+
   const createJourney = (input: JourneyCreateInput): Promise<JourneyListItem> => {
     return createJourneyMutation.mutateAsync(input);
   };
 
-  const updateJourney = (journeyId: string, payload: { description?: string; title?: string }): Promise<JourneyDetail> => {
+  const updateJourney = (journeyId: string, payload: JourneyUpdatePayload): Promise<JourneyDetail> => {
     return updateJourneyMutation.mutateAsync({ journeyId, payload });
   };
 
@@ -47,10 +62,22 @@ export function useJourneyActions() {
     return deleteJourneyMutation.mutateAsync(journeyId);
   };
 
+  const uploadJourneyCoverImage = (file: File): Promise<string> => {
+    return uploadCoverImageMutation.mutateAsync(file);
+  };
+
+  const uploadJourneyPlaceMedia = (file: File): Promise<string> => {
+    return uploadPlaceMediaMutation.mutateAsync(file);
+  };
+
   return {
     createJourney,
     deleteJourney,
     isCreatingJourney: createJourneyMutation.isPending,
+    isUploadingJourneyCoverImage: uploadCoverImageMutation.isPending,
+    isUploadingJourneyPlaceMedia: uploadPlaceMediaMutation.isPending,
     updateJourney,
+    uploadJourneyCoverImage,
+    uploadJourneyPlaceMedia,
   };
 }

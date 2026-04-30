@@ -207,7 +207,7 @@ export default antfu(
             message: 'Modules layer cannot import from app layer.',
           },
           {
-            group: ['@/modules/*/*', '!@/modules/auth/**', '!@/modules/common/**'],
+            group: ['@/modules/*/*', '!@/modules/*/api', '!@/modules/auth/**', '!@/modules/common/**'],
             message: 'Cross-feature deep imports are blocked. Import other features from @/modules/<feature>.',
           },
         ],
@@ -224,7 +224,7 @@ export default antfu(
             message: 'Modules layer cannot import from app layer.',
           },
           {
-            group: ['@/modules/*/*', '!@/modules/chat/**', '!@/modules/common/**'],
+            group: ['@/modules/*/*', '!@/modules/*/api', '!@/modules/chat/**', '!@/modules/common/**'],
             message: 'Cross-feature deep imports are blocked. Import other features from @/modules/<feature>.',
           },
         ],
@@ -241,7 +241,7 @@ export default antfu(
             message: 'Modules layer cannot import from app layer.',
           },
           {
-            group: ['@/modules/*/*', '!@/modules/dashboard/**', '!@/modules/common/**'],
+            group: ['@/modules/*/*', '!@/modules/*/api', '!@/modules/dashboard/**', '!@/modules/common/**'],
             message: 'Cross-feature deep imports are blocked. Import other features from @/modules/<feature>.',
           },
         ],
@@ -258,7 +258,7 @@ export default antfu(
             message: 'Modules layer cannot import from app layer.',
           },
           {
-            group: ['@/modules/*/*', '!@/modules/discover/**', '!@/modules/common/**'],
+            group: ['@/modules/*/*', '!@/modules/*/api', '!@/modules/discover/**', '!@/modules/common/**'],
             message: 'Cross-feature deep imports are blocked. Import other features from @/modules/<feature>.',
           },
         ],
@@ -275,7 +275,7 @@ export default antfu(
             message: 'Modules layer cannot import from app layer.',
           },
           {
-            group: ['@/modules/*/*', '!@/modules/journey/**', '!@/modules/common/**'],
+            group: ['@/modules/*/*', '!@/modules/*/api', '!@/modules/journey/**', '!@/modules/common/**'],
             message: 'Cross-feature deep imports are blocked. Import other features from @/modules/<feature>.',
           },
         ],
@@ -292,7 +292,7 @@ export default antfu(
             message: 'Modules layer cannot import from app layer.',
           },
           {
-            group: ['@/modules/*/*', '!@/modules/products/**', '!@/modules/common/**'],
+            group: ['@/modules/*/*', '!@/modules/*/api', '!@/modules/products/**', '!@/modules/common/**'],
             message: 'Cross-feature deep imports are blocked. Import other features from @/modules/<feature>.',
           },
         ],
@@ -309,7 +309,7 @@ export default antfu(
             message: 'Modules layer cannot import from app layer.',
           },
           {
-            group: ['@/modules/*/*', '!@/modules/profile/**', '!@/modules/common/**'],
+            group: ['@/modules/*/*', '!@/modules/*/api', '!@/modules/profile/**', '!@/modules/common/**'],
             message: 'Cross-feature deep imports are blocked. Import other features from @/modules/<feature>.',
           },
         ],
@@ -326,7 +326,7 @@ export default antfu(
             message: 'Modules layer cannot import from app layer.',
           },
           {
-            group: ['@/modules/*/*', '!@/modules/settings/**', '!@/modules/common/**'],
+            group: ['@/modules/*/*', '!@/modules/*/api', '!@/modules/settings/**', '!@/modules/common/**'],
             message: 'Cross-feature deep imports are blocked. Import other features from @/modules/<feature>.',
           },
         ],
@@ -343,7 +343,7 @@ export default antfu(
             message: 'Modules layer cannot import from app layer.',
           },
           {
-            group: ['@/modules/*/*', '!@/modules/common/**'],
+            group: ['@/modules/*/*', '!@/modules/*/api', '!@/modules/common/**'],
             message: 'Common module cannot deep import feature internals.',
           },
         ],

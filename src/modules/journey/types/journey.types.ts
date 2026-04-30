@@ -32,14 +32,29 @@ export type JourneyListItem = {
 
 export type JourneyPlaceInput = {
   address?: string;
+  bookingEndDayNumber?: number;
+  bookingGroupId?: string;
+  bookingStartDayNumber?: number;
   description?: string;
   endTime?: string;
   id: string;
   latitude?: number;
   longitude?: number;
+  media: JourneyPlaceMediaInput[];
   name: string;
+  order?: number;
   startTime?: string;
   type: PlaceType;
+};
+
+export type JourneyPlaceMediaInput = {
+  file?: File;
+  id: string;
+  order?: number;
+  previewUrl: string;
+  thumbnailUrl?: string;
+  type: 'image' | 'video';
+  url?: string;
 };
 
 export type JourneyDayInput = {
@@ -51,6 +66,7 @@ export type JourneyDayInput = {
 };
 
 export type JourneyCreateInput = {
+  coverImage?: string;
   days: JourneyDayInput[];
   description?: string;
   title: string;

@@ -45,6 +45,12 @@ export const ChevronLeftIcon = (props: IconProps) => (
   </svg>
 );
 
+export const ChevronRightIcon = (props: IconProps) => (
+  <svg fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} viewBox="0 0 24 24" {...props}>
+    <polyline points="9 18 15 12 9 6" />
+  </svg>
+);
+
 export const SearchIcon = (props: IconProps) => (
   <svg fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} viewBox="0 0 24 24" {...props}>
     <circle cx="11" cy="11" r="8" />
@@ -89,5 +95,12 @@ export const JourneyIcon = (props: IconProps) => (
   <svg fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} viewBox="0 0 24 24" {...props}>
     <path d="M3 17l6-6 4 4 8-8" />
     <path d="M14 7h7v7" />
+  </svg>
+);
+
+export const SendIcon = (props: IconProps) => (
+  <svg fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} viewBox="0 0 24 24" {...props}>
+    <line x1="22" x2="11" y1="2" y2="13" />
+    <polygon points="22 2 15 22 11 13 2 9 22 2" />
   </svg>
 );

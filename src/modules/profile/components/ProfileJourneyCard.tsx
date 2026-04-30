@@ -32,6 +32,10 @@ export const ProfileJourneyCard = (props: ProfileJourneyCardProps) => {
       return journey.coverImage;
     }
 
+    if (journey.coverImage.startsWith('/')) {
+      return journey.coverImage;
+    }
+
     return `https://viargos-sandbox.s3.us-east-2.amazonaws.com/${journey.coverImage}`;
   };
 
@@ -65,6 +69,7 @@ export const ProfileJourneyCard = (props: ProfileJourneyCardProps) => {
                   onError={() => setImageError(true)}
                   sizes="(max-width: 640px) 100vw, 400px"
                   src={journeyImage}
+                  unoptimized
                 />
               )
             : (

@@ -1,5 +1,7 @@
 'use client';
 
+import { Badge, ChatBubbleIcon, HeartIcon, ImageIcon } from '@/modules/common';
+
 type JourneyPostsSectionProps = {
   journeyTitle: string;
   mode?: 'loading' | 'error' | 'empty' | 'list';
@@ -41,19 +43,23 @@ export const JourneyPostsSection = (props: JourneyPostsSectionProps) => {
 
   if (mode === 'loading') {
     return (
-      <div className="space-y-4 sm:space-y-6">
-        <div className="text-center">
-          <div className="mx-auto mb-2 h-6 w-40 animate-pulse rounded bg-gray-200 sm:h-8 sm:w-48" />
-          <div className="mx-auto h-4 w-24 animate-pulse rounded bg-gray-200 sm:w-32" />
+      <div className="space-y-5">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="h-6 w-40 animate-pulse rounded bg-gray-200" />
+            <div className="mt-2 h-4 w-56 animate-pulse rounded bg-gray-200" />
+          </div>
+          <div className="h-7 w-24 animate-pulse rounded-full bg-gray-200" />
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 md:gap-6 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {[1, 2, 3, 4].map(item => (
-            <div key={item} className="animate-pulse rounded-sm bg-white p-2 shadow-md sm:p-3">
-              <div className="mb-2 aspect-[4/3] rounded-sm bg-gray-200 sm:mb-3 sm:aspect-square" />
-              <div className="space-y-2">
-                <div className="h-3 w-full rounded bg-gray-200 sm:h-4" />
-                <div className="h-3 w-3/4 rounded bg-gray-200 sm:h-4" />
+            <div key={item} className="animate-pulse rounded-3xl border border-gray-200 bg-white p-4 shadow-sm">
+              <div className="mb-4 h-48 rounded-2xl bg-gray-200" />
+              <div className="space-y-3">
+                <div className="h-4 w-4/5 rounded bg-gray-200" />
+                <div className="h-4 w-full rounded bg-gray-200" />
+                <div className="h-4 w-2/3 rounded bg-gray-200" />
               </div>
             </div>
           ))}
@@ -64,13 +70,10 @@ export const JourneyPostsSection = (props: JourneyPostsSectionProps) => {
 
   if (mode === 'error') {
     return (
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="py-8 text-center">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-            <span className="text-lg text-red-600">!</span>
-          </div>
-          <h3 className="mb-1 text-lg font-medium text-gray-900">Failed to load posts</h3>
-          <p className="text-sm text-gray-500">Please try again.</p>
+      <div className="rounded-3xl border border-red-200 bg-red-50 p-6">
+        <div className="py-4 text-center">
+          <h3 className="text-lg font-semibold text-red-900">Failed to load memories</h3>
+          <p className="mt-1 text-sm text-red-700">Please try again in a moment.</p>
         </div>
       </div>
     );
@@ -78,116 +81,82 @@ export const JourneyPostsSection = (props: JourneyPostsSectionProps) => {
 
   if (mode === 'empty') {
     return (
-      <div className="rounded-xl border border-blue-100 bg-gradient-to-br from-blue-50 to-indigo-50 p-4 shadow-sm sm:p-6 md:p-8">
-        <div className="text-center">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-md sm:mb-4 sm:h-14 sm:w-14 md:h-16 md:w-16">
-            <span className="text-lg text-blue-600 sm:text-xl md:text-2xl">◉</span>
-          </div>
-          <h3 className="mb-2 text-lg font-semibold text-gray-900 sm:text-xl">No Posts Yet</h3>
-          <p className="mx-auto mb-4 max-w-md px-2 text-sm text-gray-600 sm:text-base">
-            No posts have been shared for
-            {' '}
-            {journeyTitle}
-            {' '}
-            yet.
-          </p>
+      <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-[#160E53] shadow-sm">
+          <ImageIcon size={22} />
         </div>
+        <h3 className="mt-4 text-lg font-semibold text-slate-900">No memories shared yet</h3>
+        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+          Posts connected to
+          {' '}
+          {journeyTitle}
+          {' '}
+          will appear here once travelers start sharing moments from the trip.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="relative">
-      <div className="pointer-events-none absolute inset-0 opacity-[0.03]">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(0,0,0,.05) 35px, rgba(0,0,0,.05) 70px)',
-          }}
-        />
-      </div>
-
-      <div className="relative mb-6 sm:mb-8 md:mb-10 lg:mb-12">
-        <div className="text-center">
-          <h2 className="mb-2 text-2xl font-bold tracking-tight text-gray-800 sm:text-3xl md:text-4xl">Journey Memories</h2>
-          <div className="flex items-center justify-center space-x-2">
-            <div className="h-px w-8 bg-gradient-to-r from-transparent to-gray-300 sm:w-12 md:w-16" />
-            <p className="text-xs text-gray-500 italic sm:text-sm">
-              {MOCK_POSTS.length}
-              {' '}
-              memories captured
-            </p>
-            <div className="h-px w-8 bg-gradient-to-l from-transparent to-gray-300 sm:w-12 md:w-16" />
-          </div>
+    <div>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold tracking-[0.22em] text-slate-400 uppercase">Social highlights</p>
+          <h2 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">Journey memories</h2>
+          <p className="mt-1 text-sm text-slate-500">Recent posts and shared moments connected to this journey.</p>
         </div>
+        <Badge className="border-slate-200 bg-slate-100 text-slate-700" variant="muted">
+          {MOCK_POSTS.length}
+          {' '}
+          memories
+        </Badge>
       </div>
 
-      <div className="relative grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 md:gap-6 lg:grid-cols-3 lg:gap-8 xl:grid-cols-4 2xl:grid-cols-4">
-        {MOCK_POSTS.map((post, index) => (
-          <div key={post.id} className="group relative" style={{ animation: `floatIn 0.6s ease-out ${index * 0.1}s both` }}>
-            <div className="cursor-pointer rounded-sm bg-white p-2 pb-4 shadow-lg transition-all duration-300 hover:shadow-2xl sm:p-3 sm:pb-6 md:pb-8">
-              <div className="relative mb-2 aspect-[4/3] overflow-hidden rounded-sm bg-gray-100 sm:mb-3 sm:aspect-square">
-                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-                  <span className="text-gray-300">MEDIA</span>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {MOCK_POSTS.map(post => (
+          <article key={post.id} className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg">
+            <div className="h-52 bg-linear-to-br from-slate-100 via-slate-50 to-slate-200 p-4">
+              <div className="flex h-full items-end justify-between rounded-[20px] border border-white/60 bg-white/50 p-4 backdrop-blur-sm">
+                <div>
+                  <p className="text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase">Memory</p>
+                  <p className="mt-1 text-sm font-medium text-slate-600">{journeyTitle}</p>
                 </div>
-
-                {post.mediaCount > 1
-                  ? (
-                      <div className="absolute top-1.5 right-1.5 rounded-full px-1.5 py-0.5 text-[10px] text-white backdrop-blur-sm sm:top-2 sm:right-2 sm:px-2 sm:py-1 sm:text-xs">
-                        +
-                        {post.mediaCount - 1}
-                      </div>
-                    )
-                  : null}
+                <Badge className="border-white/60 bg-white/70 text-slate-700" variant="muted">
+                  <ImageIcon size={12} />
+                  {post.mediaCount}
+                  {' '}
+                  media
+                </Badge>
               </div>
-
-              <div className="space-y-1.5 sm:space-y-2">
-                <p className="line-clamp-2 text-xs leading-relaxed text-gray-700 sm:text-sm">{post.description}</p>
-
-                <div className="flex items-center space-x-1.5 pt-1 sm:space-x-2 sm:pt-2">
-                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-300 sm:h-6 sm:w-6">
-                    <span className="text-[10px] text-gray-600 sm:text-xs">{post.author.charAt(0)}</span>
-                  </div>
-                  <span className="truncate text-[10px] text-gray-500 italic sm:text-xs">
-                    by
-                    {post.author}
-                  </span>
-                </div>
-
-                <div className="flex items-center space-x-3 pt-1 text-[10px] text-gray-500 sm:space-x-4 sm:pt-2 sm:text-xs">
-                  <div className="flex items-center space-x-1">
-                    <span></span>
-                    <span>{post.likeCount}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <span></span>
-                    <span>{post.commentCount}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="absolute right-0 bottom-0 hidden h-0 w-0 border-b-[15px] border-l-[15px] border-b-gray-100 border-l-transparent opacity-0 transition-opacity group-hover:opacity-100 md:block lg:border-b-[20px] lg:border-l-[20px]" />
             </div>
 
-            <div className="absolute top-[-6px] right-6 hidden h-2.5 w-2.5 rounded-full bg-[#160E53] opacity-0 transition-opacity group-hover:opacity-100 sm:block md:top-[-8px] md:right-8 md:h-3 md:w-3" />
-          </div>
+            <div className="p-5">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-700">
+                  {post.author.charAt(0)}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">{post.author}</p>
+                  <p className="text-xs text-slate-500">Shared with this journey</p>
+                </div>
+              </div>
+
+              <p className="mt-4 text-sm leading-6 text-slate-600">{post.description}</p>
+
+              <div className="mt-5 flex items-center gap-4 border-t border-slate-100 pt-4 text-sm text-slate-500">
+                <div className="inline-flex items-center gap-2">
+                  <HeartIcon size={14} />
+                  {post.likeCount}
+                </div>
+                <div className="inline-flex items-center gap-2">
+                  <ChatBubbleIcon size={14} />
+                  {post.commentCount}
+                </div>
+              </div>
+            </div>
+          </article>
         ))}
       </div>
-
-      <style jsx>
-        {`
-        @keyframes floatIn {
-          from {
-            opacity: 0;
-            transform: translateY(30px) scale(0.95);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-        }
-      `}
-      </style>
     </div>
   );
 };

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useAuthSession } from '@/modules/auth';
 import { MODAL_SURFACE_BASE_CLASS, MODAL_TRANSITION_DURATION_SECONDS, OVERLAY_BASE_CLASS } from '@/modules/common/constants';
+import { EditProfileModal } from '@/modules/settings/components/EditProfileModal';
 import { SettingsHeader } from '@/modules/settings/components/SettingsHeader';
 import { SettingsItem } from '@/modules/settings/components/SettingsItem';
 import { SettingsSection } from '@/modules/settings/components/SettingsSection';
@@ -29,6 +30,7 @@ export const SettingsPageClient = () => {
   const { session, signOut } = useAuthSession();
   const { setToggle, toggles } = useSettings();
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const emailLabel = session.user?.email ?? 'Not set';
   const emailVerificationLabel = session.user?.email ? 'Verified' : '';
   const handleLogout = async () => {
@@ -109,7 +111,7 @@ export const SettingsPageClient = () => {
               icon={buildIcon('U')}
               label="Edit Profile"
               description="Update your profile information and photo"
-              href="/profile"
+              onClick={() => setIsEditProfileOpen(true)}
             />
             <SettingsItem
               icon={buildIcon('K')}
@@ -296,6 +298,12 @@ export const SettingsPageClient = () => {
       </div>
 
       {logoutModal}
+
+      {isEditProfileOpen
+        ? (
+            <EditProfileModal onClose={() => setIsEditProfileOpen(false)} />
+          )
+        : null}
     </motion.div>
   );
 };

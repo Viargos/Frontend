@@ -13,22 +13,51 @@ function isPublicPath(pathname: string): boolean {
   });
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const accessToken = request.cookies.get(AUTH_COOKIE_NAMES.ACCESS_TOKEN)?.value;
+  const refreshToken = request.cookies.get(AUTH_COOKIE_NAMES.REFRESH_TOKEN)?.value;
 
   if (isPublicPath(pathname)) {
     return NextResponse.next();
   }
 
-  if (!accessToken) {
+  if (accessToken) {
+    return NextResponse.next();
+  }
+
+  if (!refreshToken) {
     const loginUrl = new URL('/', request.url);
     return NextResponse.redirect(loginUrl);
   }
 
-  return NextResponse.next();
+  const refreshUrl = new URL('/api/auth/refresh', request.url);
+
+  return fetch(refreshUrl, {
+    headers: {
+      cookie: request.headers.get('cookie') ?? '',
+    },
+    method: 'POST',
+  }).then((refreshResponse) => {
+    if (!refreshResponse.ok) {
+      const loginUrl = new URL('/', request.url);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    const redirectResponse = NextResponse.redirect(request.nextUrl);
+    const setCookieHeader = refreshResponse.headers.get('set-cookie');
+
+    if (setCookieHeader) {
+      redirectResponse.headers.append('set-cookie', setCookieHeader);
+    }
+
+    return redirectResponse;
+  }).catch(() => {
+    const loginUrl = new URL('/', request.url);
+    return NextResponse.redirect(loginUrl);
+  });
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)'],
 };

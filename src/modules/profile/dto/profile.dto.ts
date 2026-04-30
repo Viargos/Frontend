@@ -28,6 +28,7 @@ export type PostSummaryDto = {
   commentCount: number;
   createdAt: string;
   mediaUrls: string[];
+  journey?: { id: string; title: string } | null;
 };
 
 export type JourneySummaryDto = {

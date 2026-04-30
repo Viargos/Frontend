@@ -1,7 +1,7 @@
 'use client';
 
 import type { Libraries } from '@react-google-maps/api';
-import { GoogleMap, GoogleMarkerClusterer, MarkerF, PolylineF, useJsApiLoader } from '@react-google-maps/api';
+import { GoogleMap, GoogleMarkerClusterer, InfoWindowF, MarkerF, PolylineF, useJsApiLoader } from '@react-google-maps/api';
 
 const GOOGLE_MAPS_LOADER_ID = 'viargos-google-maps-loader';
 
@@ -43,4 +43,4 @@ export function useGoogleMapsLoader(_loaderId?: string) {
   };
 }
 
-export { GoogleMap, GoogleMarkerClusterer, MarkerF, PolylineF, useJsApiLoader };
+export { GoogleMap, GoogleMarkerClusterer, InfoWindowF, MarkerF, PolylineF, useJsApiLoader };

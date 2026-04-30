@@ -1,14 +1,18 @@
 'use client';
 
 import type { JourneyFilterState } from '@/modules/discover/components/FilterPanel';
+import type { DiscoverFeedItem } from '@/modules/discover/types/discover-ui.types';
 import type { DiscoverJourney } from '@/modules/discover/types/discover.types';
 import * as motion from 'framer-motion/client';
-import { useCallback, useMemo, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { RefreshCwIcon, XIcon } from '@/modules/common/icons';
+import { DiscoverShell } from '@/modules/discover/components/DiscoverShell';
 import { DiscoverSidebar } from '@/modules/discover/components/DiscoverSidebar';
 import { JourneyDetailsModal } from '@/modules/discover/components/JourneyDetailsModal';
 import { MapPanel } from '@/modules/discover/components/MapPanel';
 import { useDiscover } from '@/modules/discover/hooks/use-discover';
+import { mapDiscoverFeedItems } from '@/modules/discover/mappers/discover-feed.mapper';
+import { useDiscoverStore } from '@/modules/discover/store/discover.store';
 
 type DiscoverParityState = 'default' | 'empty' | 'error' | 'loading';
 
@@ -47,6 +51,27 @@ function getServerSidebarSnapshot() {
   return false;
 }
 
+function matchesSearchQuery(item: DiscoverFeedItem, query: string) {
+  const normalizedQuery = query.trim().toLowerCase();
+
+  if (!normalizedQuery) {
+    return true;
+  }
+
+  const haystack = [
+    item.title,
+    item.subtitle,
+    item.locationLabel,
+    item.creator.name,
+    ...item.tags,
+  ]
+    .filter((value): value is string => Boolean(value))
+    .join(' ')
+    .toLowerCase();
+
+  return haystack.includes(normalizedQuery);
+}
+
 export const DiscoverPageClient = (props: DiscoverPageClientProps) => {
   const parityConfig = props.parityConfig ?? DEFAULT_PARITY_CONFIG;
   const {
@@ -67,6 +92,10 @@ export const DiscoverPageClient = (props: DiscoverPageClientProps) => {
   const [manualSidebarOpen, setManualSidebarOpen] = useState<boolean | null>(null);
   const [showFilters, setShowFilters] = useState(() => parityConfig.forceFilters ?? false);
   const [autoSearch, setAutoSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const selectedItemId = useDiscoverStore(state => state.selectedItemId);
+  const setHoveredItemId = useDiscoverStore(state => state.setHoveredItemId);
+  const setSelectedItemId = useDiscoverStore(state => state.setSelectedItemId);
   const isDesktopViewport = useSyncExternalStore(
     subscribeToViewportWidth,
     getClientSidebarSnapshot,
@@ -135,15 +164,43 @@ export const DiscoverPageClient = (props: DiscoverPageClientProps) => {
   const discoverJourneys = useMemo(() => (parityConfig.state === 'empty'
     ? []
     : filteredJourneys), [filteredJourneys, parityConfig.state]);
+  const discoverFeedItems = useMemo(
+    () => mapDiscoverFeedItems(discoverJourneys),
+    [discoverJourneys],
+  );
+  const visibleFeedItems = useMemo(
+    () => discoverFeedItems.filter(item => matchesSearchQuery(item, searchQuery)),
+    [discoverFeedItems, searchQuery],
+  );
+  const visibleJourneyIds = useMemo(
+    () => new Set(visibleFeedItems.map(item => item.journeyId ?? item.id)),
+    [visibleFeedItems],
+  );
+  const visibleJourneys = useMemo(
+    () => discoverJourneys.filter(journey => visibleJourneyIds.has(journey.id)),
+    [discoverJourneys, visibleJourneyIds],
+  );
+  const selectedJourneyStillVisible = selectedJourney
+    ? visibleJourneyIds.has(selectedJourney.id)
+    : false;
   const forcedJourney = parityConfig.enabled && parityConfig.forceModal && discoverJourneys.length > 0
-    ? discoverJourneys[0]
+    ? visibleJourneys[0] ?? discoverJourneys[0]
     : null;
   const sidebarOpen = parityConfig.forceSidebar ?? manualSidebarOpen ?? isDesktopViewport;
   const filtersVisible = parityConfig.forceFilters ?? showFilters;
-  const activeSelectedJourney = forcedJourney ?? selectedJourney;
+  const activeSelectedJourney = forcedJourney ?? (selectedJourneyStillVisible ? selectedJourney : null);
   const activeModalJourney = forcedJourney ?? modalJourney;
   const activeModalOpen = forcedJourney !== null || isJourneyModalOpen;
   const autoSearchEnabled = parityConfig.enabled ? false : autoSearch;
+
+  useEffect(() => {
+    const nextSelectedItemId = forcedJourney?.id ?? activeSelectedJourney?.id ?? null;
+    setSelectedItemId(nextSelectedItemId);
+  }, [activeSelectedJourney?.id, forcedJourney?.id, setSelectedItemId]);
+
+  useEffect(() => {
+    setHoveredItemId(null);
+  }, [setHoveredItemId]);
 
   const toggleSidebar = useCallback(() => {
     if (parityConfig.forceSidebar !== null) {
@@ -187,6 +244,29 @@ export const DiscoverPageClient = (props: DiscoverPageClientProps) => {
     }
     setAutoSearch(previous => !previous);
   }, [parityConfig.enabled]);
+  const handleClearDateRange = useCallback(() => {
+    setFilters(previous => ({
+      ...previous,
+      dateRange: { from: '', to: '' },
+    }));
+  }, []);
+  const handleClearQuery = useCallback(() => {
+    setSearchQuery('');
+  }, []);
+  const handleResetRadius = useCallback(() => {
+    const nextRadius = 500;
+    setFilters(previous => ({
+      ...previous,
+      radius: nextRadius,
+    }));
+    void updateRadius(nextRadius);
+  }, [updateRadius]);
+  const handleResetTimeFilter = useCallback(() => {
+    setFilters(previous => ({
+      ...previous,
+      createdWithin: 'all',
+    }));
+  }, []);
 
   if (parityConfig.enabled && parityConfig.state === 'loading') {
     return (
@@ -223,14 +303,19 @@ export const DiscoverPageClient = (props: DiscoverPageClientProps) => {
   }
 
   return (
-    <div className="w-full bg-gray-50" data-parity-page="discover">
-      <main className="flex h-[calc(100vh-80px)] overflow-hidden" data-parity="discover-main-layout">
+    <DiscoverShell hasSelection={selectedItemId !== null} itemCount={visibleFeedItems.length}>
+      <main className="flex min-h-0 flex-1 overflow-hidden" data-parity="discover-main-layout">
         <MapPanel
           autoSearch={autoSearchEnabled}
           coordinates={coordinates}
+          feedItems={visibleFeedItems}
           isLoadingLocation={isLoadingLocation}
           isSidebarOpen={sidebarOpen}
-          journeys={discoverJourneys}
+          journeys={visibleJourneys}
+          onOpenJourneyDetails={(journey) => {
+            setModalJourney(journey);
+            setIsJourneyModalOpen(true);
+          }}
           selectedJourney={activeSelectedJourney}
           onRefreshLocation={handleRefreshLocation}
           onSearchGlobal={handleSearchGlobal}
@@ -243,22 +328,26 @@ export const DiscoverPageClient = (props: DiscoverPageClientProps) => {
           coordinates={coordinates}
           disableMotion={disableMotion}
           currentRadius={radius}
+          feedItems={visibleFeedItems}
           filters={filters}
           isLoadingJourneys={isLoadingJourneys}
           isSidebarOpen={sidebarOpen}
-          journeys={discoverJourneys}
+          journeys={visibleJourneys}
+          onClearDateRange={handleClearDateRange}
+          onClearQuery={handleClearQuery}
           selectedJourney={activeSelectedJourney}
           showFilters={filtersVisible}
           onCloseSidebar={closeSidebar}
           onFiltersChange={handleFiltersChange}
-          onJourneyModalOpen={(journey) => {
-            setModalJourney(journey);
-            setIsJourneyModalOpen(true);
-          }}
           onJourneySelect={setSelectedJourney}
+          onQueryChange={setSearchQuery}
+          onResetRadius={handleResetRadius}
           onRadiusChange={handleRadiusChange}
           onResetFilters={handleResetFilters}
+          onResetTimeFilter={handleResetTimeFilter}
           onToggleFilters={toggleFilters}
+          resultCount={visibleFeedItems.length}
+          searchQuery={searchQuery}
         />
       </main>
 
@@ -287,6 +376,6 @@ export const DiscoverPageClient = (props: DiscoverPageClientProps) => {
           setModalJourney(null);
         }}
       />
-    </div>
+    </DiscoverShell>
   );
 };

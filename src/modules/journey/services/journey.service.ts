@@ -15,6 +15,13 @@ async function parseResponse<T>(path: string, options?: { body?: string; method?
   return unwrapEnvelope<T>(payload).data;
 }
 
+type JourneyUpdatePayload = {
+  coverImage?: string;
+  days?: JourneyCreateInput['days'];
+  description?: string;
+  title?: string;
+};
+
 export const journeyService = {
   async create(input: JourneyCreateInput): Promise<JourneyListItem> {
     const dto: CreateJourneyRequestDto = mapCreateJourneyInputToDto(input);
@@ -47,11 +54,46 @@ export const journeyService = {
     return mapJourneyList(items);
   },
 
-  async update(journeyId: string, payload: { title?: string; description?: string }): Promise<JourneyDetail> {
+  async update(journeyId: string, payload: JourneyUpdatePayload): Promise<JourneyDetail> {
+    const body = payload.days
+      ? JSON.stringify(mapCreateJourneyInputToDto({
+          coverImage: payload.coverImage,
+          days: payload.days,
+          description: payload.description,
+          title: payload.title ?? '',
+        }))
+      : JSON.stringify(payload);
+
     const dto = await parseResponse<JourneyDetailDto>(`/journeys/${journeyId}`, {
-      body: JSON.stringify(payload),
+      body,
       method: 'PATCH',
     });
     return mapJourneyDetail(dto);
+  },
+
+  async uploadCoverImage(file: File): Promise<string> {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const response = await httpClient.request<unknown>('/journeys/cover-image', {
+      body: formData,
+      method: 'POST',
+    });
+
+    const raw = unwrapEnvelope<{ imageUrl: string }>(response).data;
+    return raw.imageUrl;
+  },
+
+  async uploadPlaceMedia(file: File): Promise<string> {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const response = await httpClient.request<unknown>('/journeys/place-media', {
+      body: formData,
+      method: 'POST',
+    });
+
+    const raw = unwrapEnvelope<{ imageUrl: string }>(response).data;
+    return raw.imageUrl;
   },
 };
