@@ -20,8 +20,8 @@ export const metadata: Metadata = {
   title: 'Viargos',
   description: 'Discover and share amazing journeys and travel experiences',
   icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
+    icon: '/viargos-favicon.png',
+    shortcut: '/viargos-favicon.png',
     apple: '/apple-touch-icon.png',
   },
 };
