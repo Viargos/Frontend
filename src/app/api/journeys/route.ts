@@ -1,40 +1,30 @@
-import { NextRequest } from 'next/server';
-import { backendFetch } from '@/lib/api/utils';
-import { HttpMethod } from '@/enums';
-import {
-  handleBackendResponse,
-  parseRequestBody,
-  createErrorResponse,
-} from '@/lib/api/utils';
+import { backendConfigErrorResponse, getBackendBaseUrl } from '@/app/api/_shared/backend-url';
+import { proxyToBackend } from '@/app/api/_shared/proxy';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   try {
-    const res = await backendFetch('/api/journeys', {
-      method: HttpMethod.GET,
-      forwardCookies: true,
-      searchParams: request.nextUrl.searchParams,
+    const requestUrl = new URL(request.url);
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: `/journeys${requestUrl.search}`,
+      request,
     });
-
-    return handleBackendResponse(res, 'Failed to fetch journeys');
-  } catch (error) {
-    console.error('[GET /api/journeys] Error:', error);
-    return createErrorResponse('Internal server error', 500);
+  } catch {
+    return backendConfigErrorResponse();
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    const body = await parseRequestBody(request);
+    const body = await request.text();
 
-    const res = await backendFetch('/api/journeys', {
-      method: HttpMethod.POST,
-      body: JSON.stringify(body),
-      forwardCookies: true,
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: '/journeys',
+      body,
+      request,
     });
-
-    return handleBackendResponse(res, 'Failed to create journey');
-  } catch (error) {
-    console.error('[POST /api/journeys] Error:', error);
-    return createErrorResponse('Internal server error', 500);
+  } catch {
+    return backendConfigErrorResponse();
   }
 }

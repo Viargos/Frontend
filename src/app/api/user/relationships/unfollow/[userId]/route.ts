@@ -1,31 +1,16 @@
-import { NextRequest } from 'next/server';
-import { backendFetch } from '@/lib/api/utils';
-import { HttpMethod } from '@/enums';
-import {
-  handleBackendResponse,
-  createErrorResponse,
-  extractParams,
-} from '@/lib/api/utils';
+import { backendConfigErrorResponse, getBackendBaseUrl } from '@/app/api/_shared/backend-url';
+import { proxyToBackend } from '@/app/api/_shared/proxy';
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ userId: string }> }
-) {
+export async function DELETE(request: Request, context: { params: Promise<{ userId: string }> }) {
   try {
-    const { userId } = await extractParams(params);
-    const res = await backendFetch(
-      `/api/users/relationships/unfollow/${userId}`,
-      {
-        method: HttpMethod.DELETE,
-        forwardCookies: true,
-      }
-    );
-    return handleBackendResponse(res, 'Failed to unfollow user');
-  } catch (error) {
-    console.error(
-      '[DELETE /api/user/relationships/unfollow/[userId]] Error:',
-      error
-    );
-    return createErrorResponse('Internal server error', 500);
+    const { userId } = await context.params;
+
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: `/users/relationships/unfollow/${userId}`,
+      request,
+    });
+  } catch {
+    return backendConfigErrorResponse();
   }
 }

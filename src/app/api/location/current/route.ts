@@ -1,21 +1,14 @@
-import { NextRequest } from 'next/server';
-import { backendFetch } from '@/lib/api/utils';
-import { HttpMethod } from '@/enums';
-import {
-  handleBackendResponse,
-  createErrorResponse,
-} from '@/lib/api/utils';
+import { backendConfigErrorResponse, getBackendBaseUrl } from '@/app/api/_shared/backend-url';
+import { proxyToBackend } from '@/app/api/_shared/proxy';
 
-export async function GET(_request: NextRequest) {
+export async function GET(request: Request) {
   try {
-    const res = await backendFetch('/api/location/current', {
-      method: HttpMethod.GET,
-      forwardCookies: false, // Public endpoint, no auth needed
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: '/location/current',
+      request,
     });
-
-    return handleBackendResponse(res, 'Failed to get location');
-  } catch (error) {
-    console.error('[GET /api/location/current] Error:', error);
-    return createErrorResponse('Internal server error', 500);
+  } catch {
+    return backendConfigErrorResponse();
   }
 }

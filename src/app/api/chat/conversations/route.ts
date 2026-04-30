@@ -1,39 +1,28 @@
-import { NextRequest } from 'next/server';
-import { backendFetch } from '@/lib/api/utils';
-import { HttpMethod } from '@/enums';
-import {
-  handleBackendResponse,
-  parseRequestBody,
-  createErrorResponse,
-} from '@/lib/api/utils';
+import { backendConfigErrorResponse, getBackendBaseUrl } from '@/app/api/_shared/backend-url';
+import { proxyToBackend } from '@/app/api/_shared/proxy';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   try {
-    const res = await backendFetch('/api/chat/conversations', {
-      method: HttpMethod.GET,
-      forwardCookies: true,
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: '/chat/conversations',
+      request,
     });
-
-    return handleBackendResponse(res, 'Failed to fetch conversations');
-  } catch (error) {
-    console.error('[GET /api/chat/conversations] Error:', error);
-    return createErrorResponse('Internal server error', 500);
+  } catch {
+    return backendConfigErrorResponse();
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    const body = await parseRequestBody(request);
-
-    const res = await backendFetch('/api/chat/conversations', {
-      method: HttpMethod.POST,
-      body: JSON.stringify(body),
-      forwardCookies: true,
+    const body = await request.text();
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: '/chat/conversations',
+      body,
+      request,
     });
-
-    return handleBackendResponse(res, 'Failed to create conversation');
-  } catch (error) {
-    console.error('[POST /api/chat/conversations] Error:', error);
-    return createErrorResponse('Internal server error', 500);
+  } catch {
+    return backendConfigErrorResponse();
   }
 }

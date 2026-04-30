@@ -1,38 +1,29 @@
-import { NextRequest } from 'next/server';
-import { backendFetch } from '@/lib/api/utils';
-import { HttpMethod } from '@/enums';
-import {
-  handleBackendResponse,
-  createErrorResponse,
-} from '@/lib/api/utils';
+import { backendConfigErrorResponse, getBackendBaseUrl } from '@/app/api/_shared/backend-url';
+import { proxyToBackend } from '@/app/api/_shared/proxy';
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    const formData = await request.formData();
+    const body = await request.arrayBuffer();
 
-    const res = await backendFetch('/api/users/profile/image', {
-      method: HttpMethod.POST,
-      body: formData,
-      forwardCookies: true,
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: '/users/profile-image',
+      body,
+      request,
     });
-
-    return handleBackendResponse(res, 'Failed to upload profile image');
-  } catch (error) {
-    console.error('[POST /api/user/profile-image] Error:', error);
-    return createErrorResponse('Internal server error', 500);
+  } catch {
+    return backendConfigErrorResponse();
   }
 }
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE(request: Request) {
   try {
-    const res = await backendFetch('/api/users/profile/image', {
-      method: HttpMethod.DELETE,
-      forwardCookies: true,
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: '/users/profile-image',
+      request,
     });
-
-    return handleBackendResponse(res, 'Failed to delete profile image');
-  } catch (error) {
-    console.error('[DELETE /api/user/profile-image] Error:', error);
-    return createErrorResponse('Internal server error', 500);
+  } catch {
+    return backendConfigErrorResponse();
   }
 }

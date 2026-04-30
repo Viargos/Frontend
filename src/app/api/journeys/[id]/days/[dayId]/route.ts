@@ -1,28 +1,16 @@
-import { NextRequest } from 'next/server';
-import { backendFetch } from '@/lib/api/utils';
-import { HttpMethod } from '@/enums';
-import {
-  handleBackendResponse,
-  createErrorResponse,
-  parseRequestBody,
-  extractParams,
-} from '@/lib/api/utils';
+import { backendConfigErrorResponse, getBackendBaseUrl } from '@/app/api/_shared/backend-url';
+import { proxyToBackend } from '@/app/api/_shared/proxy';
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string; dayId: string }> }
-) {
+export async function DELETE(request: Request, context: { params: Promise<{ id: string; dayId: string }> }) {
   try {
-    const { id, dayId } = await extractParams(params);
+    const { id, dayId } = await context.params;
 
-    const res = await backendFetch(`/journeys/${id}/days/${dayId}`, {
-      method: HttpMethod.DELETE,
-      forwardCookies: true,
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: `/journeys/${id}/days/${dayId}`,
+      request,
     });
-
-    return handleBackendResponse(res, 'Request failed');
-  } catch (error) {
-    console.error('[DELETE /api/journeys/[id]/days/[dayId]] Error:', error);
-    return createErrorResponse('Internal server error', 500);
+  } catch {
+    return backendConfigErrorResponse();
   }
 }

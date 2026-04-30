@@ -1,26 +1,17 @@
-import { NextRequest } from 'next/server';
-import { backendFetch } from '@/lib/api/utils';
-import { HttpMethod } from '@/enums';
-import {
-  handleBackendResponse,
-  createErrorResponse,
-  extractParams,
-} from '@/lib/api/utils';
+import { backendConfigErrorResponse, getBackendBaseUrl } from '@/app/api/_shared/backend-url';
+import { proxyToBackend } from '@/app/api/_shared/proxy';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ journeyId: string }> }
-) {
+export async function GET(request: Request, context: { params: Promise<{ journeyId: string }> }) {
   try {
-    const { journeyId } = await extractParams(params);
-    const res = await backendFetch(`/api/posts/journey/${journeyId}`, {
-      method: HttpMethod.GET,
-      forwardCookies: true,
-    });
+    const requestUrl = new URL(request.url);
+    const { journeyId } = await context.params;
 
-    return handleBackendResponse(res, 'Request failed');
-  } catch (error) {
-    console.error('[GET /api/posts/journey/[journeyId]] Error:', error);
-    return createErrorResponse('Internal server error', 500);
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: `/posts/journey/${journeyId}${requestUrl.search}`,
+      request,
+    });
+  } catch {
+    return backendConfigErrorResponse();
   }
 }

@@ -1,0 +1,370 @@
+@import 'tailwindcss';
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --font-manrope: 'Manrope', Arial, Helvetica, sans-serif;
+  --font-outfit: 'Outfit', Arial, Helvetica, sans-serif;
+
+  /* Design System Variables */
+  --Gray-900: #181d27;
+  --Gray-800: #1f2937;
+  --Gray-700: #414651;
+  --Gray-600: #535862;
+  --Gray-500: #717680;
+  --Gray-400: #a4a7ae;
+  --Gray-300: #d5d7da;
+  --Gray-200: #e9eaeb;
+  --Gray-100: #f3f4f6;
+  --Gray-50: #f9fafb;
+  --White: #fff;
+  --Black: #000;
+  --Primary-Blue: #160e53;
+  --Blue-600: #160e53;
+  --Blue-700: #001456;
+  --Yellow-Banner: #ffcf56;
+  --sds-size-depth-0: 0px;
+  --sds-size-depth-025: 1px;
+  --sds-size-depth-100: 4px;
+  --sds-color-black-200: rgba(12, 12, 13, 0.10000000149011612);
+  --sds-color-black-100: rgba(12, 12, 13, 0.05000000074505806);
+
+  /* Profile Page Colors */
+  --Light-Solid-Color-Extra-Card-Background: #fff;
+  --Light-Solid-Color-Primary-Primary-400: #856ef7;
+  --Light-Typography-Color-Heading-Text: #4b465c;
+  --Text-Primary: #182779;
+  --Success-50: #ecfdf3;
+  --Success-700: #027a48;
+  --Indigo-50: #eef4ff;
+  --Indigo-700: #3538cd;
+
+  /* Frozen layout/typography tokens */
+  --token-container-content-max: 680px;
+  --token-container-page-max: 1280px;
+  --token-container-sidebar: 384px;
+  --token-spacing-xs: 4px;
+  --token-spacing-sm: 8px;
+  --token-spacing-md: 16px;
+  --token-spacing-lg: 24px;
+  --token-spacing-xl: 32px;
+  --token-radius-sm: 6px;
+  --token-radius-md: 8px;
+  --token-radius-lg: 12px;
+  --token-radius-xl: 16px;
+  --token-shadow-button: 0px 1px 2px 0px rgba(10, 13, 18, 0.05);
+  /* prettier-ignore */
+  --token-shadow-card: 0px 1px 4px 0px rgba(12, 12, 13, 0.10000000149011612), 0px 1px 4px 0px rgba(12, 12, 13, 0.05000000074505806);
+  --token-font-size-body: 16px;
+  --token-line-height-body: 24px;
+  --token-font-size-heading: 20px;
+  --token-line-height-heading: 28px;
+  --token-zindex-sticky: 30;
+  --token-zindex-floating: 40;
+  --token-zindex-overlay: 50;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-manrope: var(--font-manrope);
+  --font-century-gothic: Century Gothic, sans-serif;
+  --font-outfit: var(--font-outfit);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-manrope), Arial, Helvetica, sans-serif;
+}
+
+/* Placeholder styling */
+.login-input::placeholder {
+  color: #160e53;
+  font-family: var(--font-century-gothic);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+}
+
+/* Custom utility classes */
+.shadow-card {
+  box-shadow:
+    0px 1px 4px 0px rgba(12, 12, 13, 0.10000000149011612),
+    0px 1px 4px 0px rgba(12, 12, 13, 0.05000000074505806);
+}
+
+.shadow-button {
+  box-shadow: 0px 1px 2px 0px rgba(10, 13, 18, 0.05);
+}
+
+.text-gray-900 {
+  color: var(--Gray-900);
+}
+
+.text-gray-700 {
+  color: var(--Gray-700);
+}
+
+.text-gray-600 {
+  color: var(--Gray-600);
+}
+
+.text-gray-500 {
+  color: var(--Gray-500);
+}
+
+.text-gray-400 {
+  color: var(--Gray-400);
+}
+
+.bg-gray-200 {
+  background-color: var(--Gray-200);
+}
+
+.bg-gray-300 {
+  background-color: var(--Gray-300);
+}
+
+.bg-gray-100 {
+  background-color: var(--Gray-100);
+}
+
+.bg-gray-50 {
+  background-color: var(--Gray-50);
+}
+
+.border-gray-300 {
+  border-color: var(--Gray-300);
+}
+
+.border-gray-200 {
+  border-color: var(--Gray-200);
+}
+
+.bg-primary-blue {
+  background-color: var(--Primary-Blue);
+}
+
+.text-primary-blue {
+  color: var(--Primary-Blue);
+}
+
+.text-blue-600 {
+  color: var(--Blue-600);
+}
+
+.bg-blue-700 {
+  background-color: var(--Blue-700);
+}
+
+.text-blue-700 {
+  color: var(--Blue-700);
+}
+
+.bg-yellow-banner {
+  background-color: var(--Yellow-Banner);
+}
+
+/* Profile Page Utilities */
+.bg-primary-purple {
+  background-color: var(--Light-Solid-Color-Primary-Primary-400);
+}
+
+.text-heading {
+  color: var(--Light-Typography-Color-Heading-Text);
+}
+
+.text-primary-dark {
+  color: var(--Text-Primary);
+}
+
+.bg-success-50 {
+  background-color: var(--Success-50);
+}
+
+.text-success-700 {
+  color: var(--Success-700);
+}
+
+.bg-indigo-50 {
+  background-color: var(--Indigo-50);
+}
+
+.text-indigo-700 {
+  color: var(--Indigo-700);
+}
+
+/* Focus ring utilities for inputs */
+.focus-ring-primary {
+  outline: 2px solid var(--Primary-Blue);
+  outline-offset: 2px;
+  border-color: var(--Primary-Blue);
+}
+
+input:focus:not(.no-focus-ring),
+textarea:focus:not(.no-focus-ring),
+select:focus:not(.no-focus-ring) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Remove focus ring for inputs with no-focus-ring class */
+input.no-focus-ring:focus {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  ring: 0 !important;
+}
+
+/* Scrollbar hide utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  /* Internet Explorer 10+ */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+  /* Safari and Chrome */
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Shimmer animation for skeleton loading */
+@keyframes shimmer {
+  0% {
+    background-position: -400% 0;
+  }
+
+  100% {
+    background-position: 400% 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* Animated curved route path animation */
+@keyframes dash {
+  to {
+    stroke-dashoffset: -100;
+  }
+}
+
+.animate-dotted-path {
+  animation: dash var(--animation-speed, 2s) linear infinite;
+  /* Use CSS variable for dynamic path length if available */
+  stroke-dashoffset: 0;
+}
+
+/* Legacy UI parity overrides for neutral utility usage in migrated modules */
+.bg-neutral-950 {
+  background-color: var(--Gray-50) !important;
+}
+
+.bg-neutral-900 {
+  background-color: var(--White) !important;
+}
+
+.bg-neutral-800 {
+  background-color: var(--Gray-100) !important;
+}
+
+.bg-neutral-700 {
+  background-color: var(--Gray-200) !important;
+}
+
+.border-neutral-900,
+.border-neutral-800,
+.border-neutral-700 {
+  border-color: var(--Gray-200) !important;
+}
+
+.divide-neutral-800 {
+  --tw-divide-opacity: 1;
+  border-color: rgb(233 234 235 / var(--tw-divide-opacity, 1)) !important;
+}
+
+.text-neutral-100,
+.text-neutral-200 {
+  color: var(--Gray-900) !important;
+}
+
+.text-neutral-300 {
+  color: var(--Gray-700) !important;
+}
+
+.text-neutral-400,
+.text-neutral-500 {
+  color: var(--Gray-500) !important;
+}
+
+/* Draw path animation (for sequential mode) */
+@keyframes drawPath {
+  from {
+    stroke-dashoffset: var(--path-length, 1000);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-draw-path {
+  animation: drawPath var(--animation-speed, 2s) ease-out forwards;
+  stroke-dasharray: var(--path-length, 1000);
+  stroke-dashoffset: var(--path-length, 1000);
+}
+
+/* Draw dotted path animation (for sequential mode with dotted lines) */
+@keyframes drawDottedPath {
+  from {
+    opacity: 0;
+    stroke-dashoffset: var(--total-dash-length, 100);
+  }
+  to {
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-draw-dotted-path {
+  animation: drawDottedPath var(--animation-speed, 2s) linear forwards;
+  /* stroke-dasharray set via inline style to preserve dotted pattern */
+}
+
+/*
+ * Discover /map: Google InfoWindow adds its own padded white frame; our FloatingPreview
+ * is the real card. Strip default padding so inner and outer radii align (no double box).
+ */
+[data-parity='discover-map-container'] .gm-style-iw-c {
+  padding: 0 !important;
+  border-radius: 1rem !important;
+  box-shadow: none !important;
+}
+
+[data-parity='discover-map-container'] .gm-style-iw-d {
+  overflow: visible !important;
+}

@@ -1,27 +1,14 @@
-import { NextRequest } from 'next/server';
-import { backendFetch } from '@/lib/api/utils';
-import { HttpMethod } from '@/enums';
-import {
-  handleBackendResponse,
-  createErrorResponse,
-} from '@/lib/api/utils';
+import { backendConfigErrorResponse, getBackendBaseUrl } from '@/app/api/_shared/backend-url';
+import { proxyToBackend } from '@/app/api/_shared/proxy';
 
-/**
- * GET /api/chat/me
- *
- * Get current user's chat profile.
- *
- * Backend contract: { data: ChatUser }
- */
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   try {
-    const res = await backendFetch('/api/chat/me', {
-      method: HttpMethod.GET,
-      forwardCookies: true,
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: '/chat/me',
+      request,
     });
-    return handleBackendResponse(res, 'Failed to fetch chat user');
-  } catch (error) {
-    console.error('[GET /api/chat/me] Error:', error);
-    return createErrorResponse('Internal server error', 500);
+  } catch {
+    return backendConfigErrorResponse();
   }
 }

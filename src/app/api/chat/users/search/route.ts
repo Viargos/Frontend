@@ -1,28 +1,16 @@
-import { NextRequest } from 'next/server';
-import { backendFetch } from '@/lib/api/utils';
-import { HttpMethod } from '@/enums';
-import {
-  handleBackendResponse,
-  createErrorResponse,
-} from '@/lib/api/utils';
+import { backendConfigErrorResponse, getBackendBaseUrl } from '@/app/api/_shared/backend-url';
+import { proxyToBackend } from '@/app/api/_shared/proxy';
 
-/**
- * GET /api/chat/users/search
- *
- * Search for chat users by query.
- *
- * Backend contract: { data: ChatUser[] }
- */
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   try {
-    const res = await backendFetch('/api/chat/users/search', {
-      method: HttpMethod.GET,
-      forwardCookies: true,
-      searchParams: request.nextUrl.searchParams,
+    const requestUrl = new URL(request.url);
+
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: `/chat/users/search${requestUrl.search}`,
+      request,
     });
-    return handleBackendResponse(res, 'Failed to search users');
-  } catch (error) {
-    console.error('[GET /api/chat/users/search] Error:', error);
-    return createErrorResponse('Internal server error', 500);
+  } catch {
+    return backendConfigErrorResponse();
   }
 }

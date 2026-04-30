@@ -1,47 +1,35 @@
 import type { Metadata } from 'next';
 import { Manrope, Outfit } from 'next/font/google';
-import './globals.css';
-import AuthInitializer from '@/components/auth/AuthInitializer';
-import { Providers } from './providers';
-import { SpeedInsights } from '@vercel/speed-insights/next';
-import { Analytics } from '@vercel/analytics/next';
+import { AppProviders } from '@/app/providers';
+import '@/styles/global.css';
 
-// Primary font - Used for body text, buttons, inputs, and most UI elements
 const manrope = Manrope({
-  variable: '--font-manrope',
+  display: 'swap',
   subsets: ['latin'],
-  display: 'swap', // Better performance - shows fallback font until custom font loads
-  weight: ['400', '500', '600', '700'], // Only load needed weights
+  variable: '--font-manrope',
 });
 
-// Secondary font - Used for headings and titles
 const outfit = Outfit({
-  variable: '--font-outfit',
-  subsets: ['latin'],
   display: 'swap',
-  weight: ['400', '500', '600', '700'],
+  subsets: ['latin'],
+  variable: '--font-outfit',
 });
 
 export const metadata: Metadata = {
   title: 'Viargos',
   description: 'Discover and share amazing journeys and travel experiences',
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={`${manrope.variable} ${outfit.variable} antialiased`}>
-        <Providers>
-          <AuthInitializer>
-            {children}
-            <SpeedInsights />
-            <Analytics />
-          </AuthInitializer>
-        </Providers>
+        <AppProviders>{props.children}</AppProviders>
       </body>
     </html>
   );

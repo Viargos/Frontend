@@ -1,28 +1,17 @@
-import { NextRequest } from 'next/server';
-import { backendFetch } from '@/lib/api/utils';
-import { HttpMethod } from '@/enums';
-import {
-  handleBackendResponse,
-  extractParams,
-  createErrorResponse,
-} from '@/lib/api/utils';
+import { backendConfigErrorResponse, getBackendBaseUrl } from '@/app/api/_shared/backend-url';
+import { proxyToBackend } from '@/app/api/_shared/proxy';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await extractParams(params);
+    const requestUrl = new URL(request.url);
+    const { id } = await context.params;
 
-    const res = await backendFetch(`/api/chat/conversations/${id}/messages`, {
-      method: HttpMethod.GET,
-      forwardCookies: true,
-      searchParams: request.nextUrl.searchParams,
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: `/chat/conversations/${id}/messages${requestUrl.search}`,
+      request,
     });
-
-    return handleBackendResponse(res, 'Failed to fetch messages');
-  } catch (error) {
-    console.error('[GET /api/chat/conversations/[id]/messages] Error:', error);
-    return createErrorResponse('Internal server error', 500);
+  } catch {
+    return backendConfigErrorResponse();
   }
 }

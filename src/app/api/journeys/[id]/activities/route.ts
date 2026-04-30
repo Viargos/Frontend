@@ -1,30 +1,18 @@
-import { NextRequest } from 'next/server';
-import { backendFetch } from '@/lib/api/utils';
-import { HttpMethod } from '@/enums';
-import {
-  handleBackendResponse,
-  createErrorResponse,
-  parseRequestBody,
-  extractParams,
-} from '@/lib/api/utils';
+import { backendConfigErrorResponse, getBackendBaseUrl } from '@/app/api/_shared/backend-url';
+import { proxyToBackend } from '@/app/api/_shared/proxy';
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await extractParams(params);
-    const body = await parseRequestBody(request);
+    const { id } = await context.params;
+    const body = await request.text();
 
-    const res = await backendFetch(`/journeys/${id}/activities`, {
-      method: HttpMethod.POST,
-      body: JSON.stringify(body),
-      forwardCookies: true,
+    return proxyToBackend({
+      backendBaseUrl: getBackendBaseUrl(),
+      backendPath: `/journeys/${id}/activities`,
+      body,
+      request,
     });
-
-    return handleBackendResponse(res, 'Request failed');
-  } catch (error) {
-    console.error('[POST /api/journeys/[id]/activities] Error:', error);
-    return createErrorResponse('Internal server error', 500);
+  } catch {
+    return backendConfigErrorResponse();
   }
 }
