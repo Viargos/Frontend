@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Manrope, Outfit } from 'next/font/google';
+import Script from 'next/script';
 import { AppProviders } from '@/app/providers';
 import '@/styles/global.css';
 
@@ -27,8 +28,24 @@ export const metadata: Metadata = {
 
 export default function RootLayout(props: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${manrope.variable} ${outfit.variable} antialiased`}>
+        <Script id="theme-bootstrap" strategy="beforeInteractive">
+          {`
+            (function() {
+              var theme = 'light';
+              try {
+                var storedTheme = window.localStorage.getItem('viargos-theme');
+                if (storedTheme === 'dark' || storedTheme === 'light') {
+                  theme = storedTheme;
+                }
+              } catch (error) {}
+
+              document.documentElement.dataset.theme = theme;
+              document.documentElement.style.colorScheme = theme;
+            })();
+          `}
+        </Script>
         <AppProviders>{props.children}</AppProviders>
       </body>
     </html>

@@ -4,7 +4,8 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { useAuthSession } from '@/modules/auth';
-import { AddPostIcon, CreateJourneyIcon } from '@/modules/common/icons';
+import { useTheme } from '@/modules/common';
+import { AddPostIcon, CreateJourneyIcon, MoonIcon, SunIcon } from '@/modules/common/icons';
 import { useUserSearch } from '@/modules/search';
 import { BellIcon, SearchIcon, UserProfileIcon } from './dashboard-icons';
 import { DashboardCreatePostModal } from './DashboardCreatePostModal';
@@ -14,6 +15,7 @@ const notifications: Array<{ id: string; message: string; read: boolean; time: s
 export const DashboardHeader = () => {
   const router = useRouter();
   const { session, signOut } = useAuthSession();
+  const { isDark, toggleTheme } = useTheme();
   const searchRef = useRef<HTMLDivElement | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -96,8 +98,8 @@ export const DashboardHeader = () => {
     <header className="flex w-full items-center justify-between gap-2 bg-white px-4 py-4 sm:gap-4">
       <div className="flex shrink-0 items-center">
         <button aria-label="Go to dashboard" className="flex cursor-pointer items-center justify-center text-lg font-bold text-white" type="button" onClick={() => router.push('/dashboard')}>
-          <Image alt="viargos" className="block sm:hidden" height={40} src="/viargos.svg" width={40} />
-          <Image alt="viargos" className="hidden sm:block" height={32} src="/viargos_full.svg" style={{ width: 'auto', height: 'auto' }} width={130} />
+          <Image alt="viargos" className="theme-logo block sm:hidden" height={40} src="/viargos.svg" width={40} />
+          <Image alt="viargos" className="theme-logo hidden sm:block" height={32} src="/viargos_full.svg" style={{ width: 'auto', height: 'auto' }} width={130} />
         </button>
       </div>
 
@@ -107,7 +109,7 @@ export const DashboardHeader = () => {
             ? (
                 <button
                   aria-label="Search"
-                  className="shadow-button flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-[#160E53] p-2 text-[#160E53] transition-all duration-200 hover:border-[#160E53] hover:bg-gray-100 hover:text-[#160E53]"
+                  className="shadow-button flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-gray-300 p-2 text-gray-900 transition-all duration-200 hover:bg-gray-100"
                   type="button"
                   onClick={handleSearchToggle}
                 >
@@ -185,7 +187,7 @@ export const DashboardHeader = () => {
                                       </div>
                                     )}
                                 <div className="min-w-0 flex-1">
-                                  <p className="truncate text-sm font-medium text-[#160E53]">
+                                  <p className="truncate text-sm font-medium text-gray-900">
                                     {result.username}
                                   </p>
                                   <p className="truncate text-xs text-gray-500">
@@ -204,31 +206,53 @@ export const DashboardHeader = () => {
 
         <div className={`flex items-center gap-2 transition-all duration-300 ${isSearchExpanded ? 'max-[639px]:pointer-events-none max-[639px]:hidden max-[639px]:scale-95 max-[639px]:opacity-0 sm:pointer-events-auto sm:scale-100 sm:opacity-100' : 'pointer-events-auto scale-100 opacity-100'}`}>
           <button
+            aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+            aria-pressed={isDark}
+            className="shadow-button inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3.5 py-2 font-manrope text-sm leading-5 font-semibold text-gray-900 transition-colors hover:bg-gray-50"
+            type="button"
+            onClick={toggleTheme}
+          >
+            {isDark
+              ? (
+                  <>
+                    <SunIcon className="h-4 w-4" size={18} />
+                    <span className="hidden lg:inline">Light</span>
+                  </>
+                )
+              : (
+                  <>
+                    <MoonIcon className="h-4 w-4" size={18} />
+                    <span className="hidden lg:inline">Dark</span>
+                  </>
+                )}
+          </button>
+
+          <button
             aria-label="Create Post"
-            className="shadow-button border-primary-blue text-primary-blue inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border bg-white px-3.5 py-2 font-manrope text-sm leading-5 font-semibold transition-colors hover:bg-gray-50"
+            className="shadow-button inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3.5 py-2 font-manrope text-sm leading-5 font-semibold text-gray-900 transition-colors hover:bg-gray-50"
             type="button"
             onClick={handleCreatePost}
           >
             <span className="flex h-5 w-5 shrink-0 items-center justify-center">
-              <AddPostIcon size={20} className="text-primary-blue h-5 w-5" />
+              <AddPostIcon size={20} className="h-5 w-5" />
             </span>
-            <span className="text-primary-blue hidden lg:inline">Add Post</span>
+            <span className="hidden lg:inline">Add Post</span>
           </button>
 
           <button
             aria-label="Create Journey"
-            className="shadow-button border-primary-blue text-primary-blue inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border bg-white px-3.5 py-2 font-manrope text-sm leading-5 font-semibold transition-colors hover:bg-gray-50"
+            className="shadow-button inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3.5 py-2 font-manrope text-sm leading-5 font-semibold text-gray-900 transition-colors hover:bg-gray-50"
             type="button"
             onClick={handleCreateJourney}
           >
             <span className="flex h-5 w-5 shrink-0 items-center justify-center">
-              <CreateJourneyIcon size={20} className="text-primary-blue h-5 w-5" />
+              <CreateJourneyIcon size={20} className="h-5 w-5" />
             </span>
-            <span className="text-primary-blue hidden lg:inline">Create Journey</span>
+            <span className="hidden lg:inline">Create Journey</span>
           </button>
 
           <div className="relative">
-            <button aria-label="Open notifications" className="relative cursor-pointer p-2 text-[#160E53] transition-colors hover:text-[#160E53]" type="button" onClick={() => setShowNotifications(previous => !previous)}>
+            <button aria-label="Open notifications" className="relative cursor-pointer p-2 text-gray-900 transition-colors hover:text-gray-700" type="button" onClick={() => setShowNotifications(previous => !previous)}>
               <BellIcon className="h-6 w-6" />
             </button>
 

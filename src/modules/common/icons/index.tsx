@@ -20,6 +20,7 @@ import {
   Hotel,
   Map,
   MapPin,
+  Moon,
   Mountain,
   Navigation,
   Plus,
@@ -27,6 +28,7 @@ import {
   Search,
   Ship,
   SquarePen,
+  SunMedium,
   Train,
   Trash2,
   Trees,
@@ -123,6 +125,9 @@ export const MapPinIcon = ({ size = 24, ...props }: IconProps) => (
 export const MountainIcon = ({ size = 24, ...props }: IconProps) => (
   <Mountain height={size} width={size} {...props} />
 );
+export const MoonIcon = ({ size = 24, ...props }: IconProps) => (
+  <Moon height={size} width={size} {...props} />
+);
 export const PinIcon = ({ size = 24, ...props }: IconProps) => (
   <MapPin height={size} width={size} {...props} />
 );
@@ -137,6 +142,9 @@ export const RefreshCwIcon = ({ size = 24, ...props }: IconProps) => (
 );
 export const ShipIcon = ({ size = 24, ...props }: IconProps) => (
   <Ship height={size} width={size} {...props} />
+);
+export const SunIcon = ({ size = 24, ...props }: IconProps) => (
+  <SunMedium height={size} width={size} {...props} />
 );
 export const TreeIcon = ({ size = 24, ...props }: IconProps) => (
   <Trees height={size} width={size} {...props} />

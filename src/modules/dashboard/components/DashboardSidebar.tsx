@@ -47,7 +47,7 @@ export const DashboardSidebar = (props: DashboardSidebarProps) => {
   const showTooltips = collapsed;
 
   return (
-    <div className="relative flex h-full flex-col bg-white shadow-[4px_0_12px_-2px_rgba(0,0,0,0.08)]">
+    <div className="dashboard-sidebar relative flex h-full flex-col bg-white shadow-[4px_0_12px_-2px_rgba(0,0,0,0.08)]">
       <button
         aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         className="absolute top-6 -right-3 z-50 hidden h-6 w-6 items-center justify-center rounded-full border border-gray-300 bg-white shadow-md transition-colors hover:bg-gray-100 lg:flex"
@@ -65,8 +65,8 @@ export const DashboardSidebar = (props: DashboardSidebarProps) => {
             return (
               <li key={item.href}>
                 <Link
-                  className={`group relative flex items-center ${collapsed ? 'justify-center' : 'justify-center lg:justify-start'} rounded-md px-2 py-3 text-sm font-medium transition-colors lg:px-3 lg:py-2 ${
-                    active ? 'bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200 hover:text-gray-900'
+                  className={`dashboard-sidebar-item group relative flex items-center ${collapsed ? 'justify-center' : 'justify-center lg:justify-start'} rounded-md px-2 py-3 text-sm font-medium transition-colors lg:px-3 lg:py-2 ${
+                    active ? 'dashboard-sidebar-item-active bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200 hover:text-gray-900'
                   }`}
                   href={item.href}
                   title={item.label}
@@ -100,8 +100,8 @@ export const DashboardSidebar = (props: DashboardSidebarProps) => {
         ? (
             <div className="border-t border-gray-200 p-2 lg:p-4">
               <Link
-                className={`group relative flex items-center ${collapsed ? 'justify-center' : 'justify-center lg:justify-start'} rounded-md px-2 py-3 text-sm font-medium transition-colors lg:px-3 lg:py-2 ${
-                  pathname === settingsItem.href ? 'bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200 hover:text-gray-900'
+                className={`dashboard-sidebar-item group relative flex items-center ${collapsed ? 'justify-center' : 'justify-center lg:justify-start'} rounded-md px-2 py-3 text-sm font-medium transition-colors lg:px-3 lg:py-2 ${
+                  pathname === settingsItem.href ? 'dashboard-sidebar-item-active bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200 hover:text-gray-900'
                 }`}
                 href={settingsItem.href}
                 title={settingsItem.label}

@@ -44,7 +44,7 @@ function RecommendationAvatar(props: Pick<DashboardProfileRecommendation, 'profi
   }
 
   return (
-    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#160E53] text-sm font-semibold text-white">
+    <div className="dashboard-recommendation-avatar flex h-10 w-10 items-center justify-center rounded-full bg-[#160E53] text-sm font-semibold text-white">
       {username.charAt(0).toUpperCase()}
     </div>
   );
@@ -59,7 +59,7 @@ export const ProfileItem = (props: ProfileItemProps) => {
 
   return (
     <div className={cn(
-      'group flex items-start gap-3 rounded-2xl px-3 py-3 transition-colors duration-200 hover:bg-gray-50/90',
+      'dashboard-recommendation-item group flex items-start gap-3 rounded-2xl px-3 py-3 transition-colors duration-200 hover:bg-gray-50/90',
       profile.isFollowing ? 'bg-gray-50/60' : undefined,
     )}
     >
@@ -69,7 +69,7 @@ export const ProfileItem = (props: ProfileItemProps) => {
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <span className="truncate text-sm font-semibold text-gray-950 transition-colors group-hover:text-[#160E53]">
+              <span className="dashboard-recommendation-title truncate text-sm font-semibold text-gray-950 transition-colors group-hover:text-[#160E53]">
                 {profile.username}
               </span>
               {profile.category

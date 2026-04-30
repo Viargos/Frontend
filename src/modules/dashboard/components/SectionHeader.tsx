@@ -19,7 +19,7 @@ export const SectionHeader = (props: SectionHeaderProps) => {
           <div className="flex items-center gap-2">
             {icon
               ? (
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-[#160E53]/8 text-[#160E53] ring-1 ring-[#160E53]/10">
+                  <div className="dashboard-section-icon flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-[#160E53]/8 text-[#160E53] ring-1 ring-[#160E53]/10">
                     {icon}
                   </div>
                 )

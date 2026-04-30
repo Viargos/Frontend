@@ -5,6 +5,7 @@ import * as motion from 'framer-motion/client';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useAuthSession } from '@/modules/auth';
+import { useTheme } from '@/modules/common';
 import { MODAL_SURFACE_BASE_CLASS, MODAL_TRANSITION_DURATION_SECONDS, OVERLAY_BASE_CLASS } from '@/modules/common/constants';
 import { EditProfileModal } from '@/modules/settings/components/EditProfileModal';
 import { SettingsHeader } from '@/modules/settings/components/SettingsHeader';
@@ -28,6 +29,7 @@ const SettingsGlyphIcon = (props: { label: string }) => {
 export const SettingsPageClient = () => {
   const router = useRouter();
   const { session, signOut } = useAuthSession();
+  const { isDark, setTheme } = useTheme();
   const { setToggle, toggles } = useSettings();
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
@@ -199,13 +201,12 @@ export const SettingsPageClient = () => {
           </SettingsSection>
 
           <SettingsSection title="Preferences">
-            <SettingsItem
+            <SettingsToggle
               icon={buildIcon('T')}
               label="Theme"
-              description="Coming soon"
-              disabled={!SETTINGS_LINK_AVAILABILITY.theme}
-              href={SETTINGS_LINK_AVAILABILITY.theme ? '/settings/theme' : undefined}
-              rightContent={comingSoonNode}
+              description={isDark ? 'Dark mode enabled' : 'Light mode enabled'}
+              checked={isDark}
+              onChange={checked => setTheme(checked ? 'dark' : 'light')}
             />
             <SettingsItem
               icon={buildIcon('L')}
