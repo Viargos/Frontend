@@ -1,33 +1,15 @@
 'use client';
 
-import type { AuthSigninResult, AuthUser } from '@/modules/auth/types/auth.types';
 import * as motion from 'framer-motion/client';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { AuthStep } from '@/modules/auth/enums/auth-step.enum';
-import {
-  clearAuthRedirectPath,
-  readAuthRedirectPath,
-} from '@/modules/auth/helpers/redirect.helper';
-import { useAuthModal } from '@/modules/auth/hooks/use-auth-modal';
 import { useAuthSession } from '@/modules/auth/hooks/use-auth-session';
 import { AppLogo } from '@/modules/common';
-import { AuthModal } from './AuthModal';
 
 export const AuthGateway = () => {
   const router = useRouter();
-  const { session, setAuthenticatedUser, signOut } = useAuthSession();
-  const {
-    close,
-    open,
-    setError,
-    setStep,
-    showResetPassword,
-    startPasswordResetOtp,
-    startSignupOtp,
-    state,
-  } = useAuthModal();
+  const { session, signOut } = useAuthSession();
   const [isLoading, setIsLoading] = useState(true);
   const [showContent, setShowContent] = useState(false);
 
@@ -47,39 +29,6 @@ export const AuthGateway = () => {
       }
     };
   }, []);
-
-  const navigateAfterAuth = () => {
-    const redirectPath = readAuthRedirectPath();
-    clearAuthRedirectPath();
-    router.replace(redirectPath);
-  };
-
-  const handleLoginSuccess = (result: AuthSigninResult) => {
-    if (result.requiresVerification || !result.verified || !result.user.isActive) {
-      startSignupOtp(result.user.email);
-      return;
-    }
-
-    setAuthenticatedUser(result.user);
-    close();
-    navigateAfterAuth();
-  };
-
-  const handleOtpSuccess = (user: AuthUser | null) => {
-    if (state.isPasswordResetFlow) {
-      showResetPassword();
-      return;
-    }
-
-    if (!user) {
-      setError('Unable to complete verification. Please try again.');
-      return;
-    }
-
-    setAuthenticatedUser(user);
-    close();
-    navigateAfterAuth();
-  };
 
   return (
     <>
@@ -189,14 +138,14 @@ export const AuthGateway = () => {
                             <button
                               className="cursor-pointer rounded-xl bg-[#160E53] px-4 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:bg-[#001456] sm:px-8 sm:py-4 sm:text-lg"
                               type="button"
-                              onClick={() => open(AuthStep.SIGNUP)}
+                              onClick={() => router.push('/register')}
                             >
                               Start Your Journey
                             </button>
                             <button
                               className="cursor-pointer rounded-xl border-2 border-gray-300 px-4 py-3 text-sm font-semibold text-gray-700 transition-all hover:border-gray-400 hover:bg-gray-50 sm:px-8 sm:py-4 sm:text-lg"
                               type="button"
-                              onClick={() => open(AuthStep.LOGIN)}
+                              onClick={() => router.push('/login')}
                             >
                               Sign In
                             </button>
@@ -207,22 +156,6 @@ export const AuthGateway = () => {
               </div>
             </motion.div>
           )}
-
-      <AuthModal
-        error={state.error}
-        isOpen={state.isOpen}
-        isPasswordResetFlow={state.isPasswordResetFlow}
-        passwordResetEmail={state.passwordResetEmail}
-        signupEmail={state.signupEmail}
-        step={state.step}
-        onClose={close}
-        onErrorChange={setError}
-        onForgotPasswordSuccess={startPasswordResetOtp}
-        onLoginSuccess={handleLoginSuccess}
-        onOtpSuccess={handleOtpSuccess}
-        onSignupSuccess={startSignupOtp}
-        onSwitchStep={setStep}
-      />
     </>
   );
 };

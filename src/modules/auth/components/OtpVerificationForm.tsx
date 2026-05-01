@@ -151,7 +151,7 @@ export const OtpVerificationForm = (props: OtpVerificationFormProps) => {
               </span>
             )
           : (
-              <button className="text-[#160E53] hover:text-blue-700" type="button" onClick={handleResendOtp}>
+              <button className="text-[#160E53] hover:text-[#0D0A3D]" type="button" onClick={handleResendOtp}>
                 Resend code
               </button>
             )}

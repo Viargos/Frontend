@@ -2,16 +2,24 @@ import { redirect } from 'next/navigation';
 import { getAccessTokenClaimsFromCookies } from '@/lib/auth/server-session';
 import { VerifyEmailPageView } from '@/modules/auth';
 
-export default async function VerifyEmailPage() {
-  const claims = await getAccessTokenClaimsFromCookies();
+type VerifyEmailPageProps = {
+  searchParams: Promise<{
+    email?: string;
+  }>;
+};
 
-  if (!claims?.email) {
-    redirect('/');
+export default async function VerifyEmailPage(props: VerifyEmailPageProps) {
+  const searchParams = await props.searchParams;
+  const claims = await getAccessTokenClaimsFromCookies();
+  const email = claims?.email ?? searchParams.email?.trim();
+
+  if (!email) {
+    redirect('/register');
   }
 
-  if (claims.emailVerified === true) {
+  if (claims?.emailVerified === true) {
     redirect('/dashboard');
   }
 
-  return <VerifyEmailPageView email={claims.email} />;
+  return <VerifyEmailPageView email={email} />;
 }

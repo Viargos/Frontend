@@ -84,10 +84,10 @@ export const LoginForm = (props: LoginFormProps) => {
       </div>
 
       <div className="flex justify-between text-sm">
-        <button className="text-[#160E53] hover:text-blue-700" type="button" onClick={onForgotPassword}>
+        <button className="text-[#160E53] hover:text-[#0D0A3D]" type="button" onClick={onForgotPassword}>
           Forgot password?
         </button>
-        <button className="text-[#160E53] hover:text-blue-700" type="button" onClick={onSwitchToSignup}>
+        <button className="text-[#160E53] hover:text-[#0D0A3D]" type="button" onClick={onSwitchToSignup}>
           Create account
         </button>
       </div>

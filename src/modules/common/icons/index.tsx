@@ -1,6 +1,6 @@
 import type { SVGProps } from 'react';
 import {
-  Airplay as Airplane,
+  Plane as Airplane,
   Backpack,
   Calendar,
   Camera,

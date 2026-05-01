@@ -56,7 +56,7 @@ export const ForgotPasswordForm = (props: ForgotPasswordFormProps) => {
       <p className="text-center text-sm text-gray-500">
         Remember your password?
         {' '}
-        <button className="text-[#160E53] hover:text-blue-700" type="button" onClick={onSwitchToLogin}>
+        <button className="text-[#160E53] hover:text-[#0D0A3D]" type="button" onClick={onSwitchToLogin}>
           Sign in
         </button>
       </p>

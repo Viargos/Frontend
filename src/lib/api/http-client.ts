@@ -82,7 +82,12 @@ export class HttpClient {
     const isPublicRoute
       = pathname === '/'
         || pathname.startsWith('/login')
+        || pathname.startsWith('/signin')
         || pathname.startsWith('/register')
+        || pathname.startsWith('/signup')
+        || pathname.startsWith('/forgot-password')
+        || pathname.startsWith('/reset-password')
+        || pathname.startsWith('/verify-otp')
         || pathname.startsWith('/verify-email');
 
     if (verificationRequired) {

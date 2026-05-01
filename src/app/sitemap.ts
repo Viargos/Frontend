@@ -4,6 +4,7 @@ import { getAppUrl } from '@/lib/app-config';
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = getAppUrl();
   const routes = [
+    '/',
     '/dashboard',
     '/products',
     '/categories',
@@ -16,6 +17,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/ai-logs',
     '/settings',
     '/login',
+    '/register',
+    '/forgot-password',
+    '/verify-email',
+    '/verify-otp',
+    '/reset-password',
   ];
 
   return routes.map(route => ({
