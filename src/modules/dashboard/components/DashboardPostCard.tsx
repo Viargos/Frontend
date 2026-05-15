@@ -88,7 +88,7 @@ function JourneyPillLink(props: { journeyId: string }) {
   const { journeyId } = props;
   return (
     <Link
-      className="group inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#160E53] px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#0d0938] hover:shadow-md active:scale-[0.98]"
+      className="dashboard-post-journey-pill group inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm transition-all duration-200 hover:shadow-md active:scale-[0.98]"
       href={`/journey/${journeyId}`}
     >
       <span>See full journey</span>
@@ -120,12 +120,12 @@ function ActionBar(
   } = props;
 
   return (
-    <div className="flex items-center gap-2 border-t border-gray-100 bg-gray-50/50 px-4 py-2.5">
+    <div className="dashboard-post-action-bar flex items-center gap-2 border-t px-4 py-2.5">
       <motion.button
-        className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-colors duration-200 ${
+        className={`dashboard-post-action-button flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-colors duration-200 ${
           isLiked
-            ? 'bg-rose-50 text-rose-600 hover:bg-rose-100'
-            : 'text-gray-500 hover:bg-rose-50 hover:text-rose-500'
+            ? 'dashboard-post-action-button-liked'
+            : ''
         }`}
         transition={{ duration: 0.2 }}
         type="button"
@@ -145,10 +145,10 @@ function ActionBar(
       </motion.button>
 
       <button
-        className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-colors duration-200 ${
+        className={`dashboard-post-action-button flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-colors duration-200 ${
           isCommentSectionOpen
-            ? 'bg-indigo-50 text-blue-600 hover:bg-indigo-100'
-            : 'text-gray-500 hover:bg-indigo-50 hover:text-blue-600'
+            ? 'dashboard-post-action-button-active'
+            : ''
         }`}
         type="button"
         onClick={onCommentClick}
@@ -181,7 +181,7 @@ function MediaPost(props: PostLayoutProps) {
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-24 bg-linear-to-t from-black/70 to-transparent" />
 
         {post.location && !post.journey && (
-          <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1.5 text-xs text-white shadow-lg backdrop-blur-sm">
+          <div className="dashboard-post-floating-chip absolute top-3 left-3 z-20 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs text-white">
             <MapPinIcon className="h-3.5 w-3.5 shrink-0 text-white" />
             <span className="max-w-[140px] truncate">{post.location}</span>
           </div>
@@ -203,20 +203,20 @@ function MediaPost(props: PostLayoutProps) {
         </button>
       </div>
 
-      <div className="px-4 pt-4 pb-1">
+      <div className="dashboard-post-body px-4 pt-4 pb-1">
         {post.journey && (
           <div className="mb-2.5">
             <div className="flex items-center justify-between gap-3">
               <span
-                className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-[#160E53]"
+                className="dashboard-post-accent flex min-w-0 items-center gap-1.5 text-xs font-medium"
                 title={post.journey.title}
               >
-                <MapPinIcon className="h-3.5 w-3.5 shrink-0 text-[#160E53]/80" />
+                <MapPinIcon className="h-3.5 w-3.5 shrink-0" />
                 <span className="truncate">{post.journey.title}</span>
               </span>
               <JourneyPillLink journeyId={post.journey.id} />
             </div>
-            <p className="mt-1.5 flex items-center gap-1.5 text-xs text-blue-900">
+            <p className="dashboard-post-muted mt-1.5 flex items-center gap-1.5 text-xs">
               <ClockIcon className="h-3.5 w-3.5 shrink-0" />
               {timeAgo}
             </p>
@@ -224,14 +224,14 @@ function MediaPost(props: PostLayoutProps) {
         )}
         {post.location && !post.journey && (
           <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
-            <p className="flex items-center gap-1.5 text-xs text-blue-900" title={`${post.location} - ${timeAgo}`}>
-              <MapPinIcon className="h-3.5 w-3.5 shrink-0 text-blue-900" />
+            <p className="dashboard-post-accent flex items-center gap-1.5 text-xs" title={`${post.location} - ${timeAgo}`}>
+              <MapPinIcon className="h-3.5 w-3.5 shrink-0" />
               <span className="max-w-[180px] truncate" title={`${post.location} - ${timeAgo}`}>{post.location}</span>
             </p>
           </div>
         )}
 
-        <p className="text-sm leading-relaxed text-gray-800">{post.description}</p>
+        <p className="dashboard-post-text text-sm leading-relaxed">{post.description}</p>
       </div>
 
       <ActionBar
@@ -262,7 +262,7 @@ function TextPost(props: PostLayoutProps) {
 
   return (
     <>
-      <div className="flex items-start">
+      <div className="dashboard-post-body flex items-start">
         <div className="w-1 shrink-0 rounded-l-2xl bg-blue-900" />
 
         <div className="min-w-0 flex-1 px-4 pt-4 pb-2">
@@ -278,8 +278,8 @@ function TextPost(props: PostLayoutProps) {
                 username={post.user.username}
               />
               <div className="min-w-0 text-left">
-                <p className="truncate text-sm font-semibold text-gray-900" title={post.user.username}>{post.user.username}</p>
-                <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-400" title={timeAgo}>
+                <p className="dashboard-post-title truncate text-sm font-semibold" title={post.user.username}>{post.user.username}</p>
+                <p className="dashboard-post-muted mt-0.5 flex items-center gap-1 text-xs" title={timeAgo}>
                   <ClockIcon className="h-3 w-3 shrink-0" />
                   <span title={timeAgo}>{timeAgo}</span>
                 </p>
@@ -295,22 +295,22 @@ function TextPost(props: PostLayoutProps) {
 
           {(post.location || post.journey) && (
             <div className="mb-2.5 flex items-center gap-1.5">
-              <MapPinIcon className="h-3.5 w-3.5 shrink-0 text-blue-900" />
+              <MapPinIcon className="dashboard-post-accent h-3.5 w-3.5 shrink-0" />
               {post.journey && (
                 <button
-                  className="truncate text-xs font-semibold text-blue-900 underline-offset-2 hover:underline"
+                  className="dashboard-post-accent truncate text-xs font-semibold underline-offset-2 hover:underline"
                   type="button"
                 >
                   {post.journey.title}
                 </button>
               )}
               {post.location && (
-                <span className="truncate text-xs text-gray-500">{post.location}</span>
+                <span className="dashboard-post-muted truncate text-xs">{post.location}</span>
               )}
             </div>
           )}
 
-          <p className="text-sm leading-relaxed text-gray-800">{post.description}</p>
+          <p className="dashboard-post-text text-sm leading-relaxed">{post.description}</p>
         </div>
       </div>
 
@@ -376,7 +376,7 @@ function CommentComposer(props: CommentComposerProps) {
   return (
     <motion.div
       animate={{ opacity: 1, height: 'auto' }}
-      className="border-t border-gray-100"
+      className="dashboard-post-divider border-t"
       exit={{ opacity: 0, height: 0 }}
       initial={{ opacity: 0, height: 0 }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
@@ -391,12 +391,12 @@ function CommentComposer(props: CommentComposerProps) {
           ? (
               <div className="flex items-center justify-center py-6">
                 <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-400 border-t-transparent" />
-                <span className="ml-2 text-xs text-gray-400">Loading comments...</span>
+                <span className="dashboard-post-muted ml-2 text-xs">Loading comments...</span>
               </div>
             )
           : allComments.length === 0
             ? (
-                <p className="py-4 text-center text-xs text-gray-400">No comments yet. Be the first!</p>
+                <p className="dashboard-post-muted py-4 text-center text-xs">No comments yet. Be the first!</p>
               )
             : (
                 allComments.map((comment) => {
@@ -410,14 +410,14 @@ function CommentComposer(props: CommentComposerProps) {
                         username={commentUsername}
                       />
                       <div className="min-w-0 flex-1">
-                        <div className="inline-block max-w-full rounded-2xl rounded-tl-sm bg-gray-50 px-3 py-2">
-                          <span className="mr-1.5 text-xs font-semibold text-[#160E53]">
+                        <div className="dashboard-post-comment-bubble inline-block max-w-full rounded-2xl rounded-tl-sm px-3 py-2">
+                          <span className="dashboard-post-accent mr-1.5 text-xs font-semibold">
                             {commentUsername}
                           </span>
-                          <span className="text-sm wrap-break-word text-gray-800">{comment.content}</span>
+                          <span className="dashboard-post-text text-sm wrap-break-word">{comment.content}</span>
                         </div>
                         <div className="mt-0.5 flex items-center gap-2 px-1">
-                          <span className="text-[10px] text-gray-400">
+                          <span className="dashboard-post-muted text-[10px]">
                             <span title={formatPostTimestamp(comment.createdAt)}>{formatPostTimestamp(comment.createdAt)}</span>
                           </span>
                         </div>
@@ -429,12 +429,12 @@ function CommentComposer(props: CommentComposerProps) {
       </div>
 
       {/* Input row */}
-      <div className="border-t border-gray-50 px-4 pt-2 pb-3">
+      <div className="dashboard-post-divider border-t px-4 pt-2 pb-3">
         <form className="flex items-center gap-2" onSubmit={event => void handleSubmit(event)}>
           <UserAvatar profileImage={displayImage} size="sm" username={displayName} />
           <input
             ref={inputRef}
-            className="h-9 flex-1 rounded-full border border-gray-200 bg-gray-50 px-4 text-sm text-gray-800 transition-all outline-none focus:border-indigo-300 focus:bg-white focus:ring-1 focus:ring-indigo-200 disabled:opacity-60"
+            className="dashboard-post-input h-9 flex-1 rounded-full border px-4 text-sm transition-all outline-none disabled:opacity-60"
             disabled={isPending}
             maxLength={500}
             placeholder="Add a comment..."
@@ -443,7 +443,7 @@ function CommentComposer(props: CommentComposerProps) {
             onChange={event => setCommentText(event.target.value)}
           />
           <motion.button
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#160E53] text-white shadow-sm transition-colors hover:bg-blue-950 disabled:cursor-not-allowed disabled:opacity-50"
+            className="dashboard-post-send-button flex h-9 w-9 shrink-0 items-center justify-center rounded-full shadow-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
             disabled={isPending || commentText.trim().length === 0}
             transition={{ duration: 0.15 }}
             type="submit"
@@ -545,7 +545,7 @@ const DashboardPostCardComponent = (props: DashboardPostCardProps) => {
   return (
     <motion.article
       animate={{ opacity: 1, y: 0 }}
-      className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-md transition-all duration-50 hover:shadow-xl"
+      className="dashboard-post-card overflow-hidden rounded-xl border transition-all duration-50 hover:shadow-xl"
       initial={{ opacity: 0, y: 20 }}
       transition={{ duration: 0.35, ease: 'easeOut' }}
     >

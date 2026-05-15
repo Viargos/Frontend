@@ -6,7 +6,7 @@
   },
   "scripts": {
     "dev:spotlight": "npx @spotlightjs/spotlight",
-    "dev:next": "next dev",
+    "dev:next": "next dev -p 3001",
     "dev": "npm run dev:next",
     "build:next": "next build --webpack",
     "build": "npm run build:next",

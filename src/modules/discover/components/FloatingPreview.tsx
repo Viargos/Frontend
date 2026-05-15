@@ -3,6 +3,7 @@
 import type { MouseEvent, PointerEvent } from 'react';
 import type { DiscoverFeedItem } from '@/modules/discover/types/discover-ui.types';
 import Image from 'next/image';
+import Link from 'next/link';
 import { cn } from '@/modules/common/components/ui/cn';
 import { MapPinIcon } from '@/modules/common/icons';
 
@@ -110,7 +111,7 @@ export const FloatingPreview = (props: FloatingPreviewProps) => {
 
         <div className="mt-4 border-t border-neutral-100 pt-3">
           <div className="grid grid-cols-2 gap-2">
-            <a
+            <Link
               className={cn(
                 'inline-flex min-h-10 items-center justify-center rounded-xl px-3 text-center text-[0.8125rem] font-semibold text-white',
                 'bg-[#160E53] shadow-sm transition-colors hover:bg-[#120a45] active:bg-[#0f0838]',
@@ -120,7 +121,7 @@ export const FloatingPreview = (props: FloatingPreviewProps) => {
               onPointerDown={stopMapCapture}
             >
               Go to journey
-            </a>
+            </Link>
             <button
               className={cn(
                 'inline-flex min-h-10 items-center justify-center rounded-xl border border-neutral-200 bg-white px-3 text-center text-[0.8125rem] font-semibold text-neutral-800',

@@ -21,14 +21,14 @@ type DashboardRecommendationsPanelProps = {
 
 function RecommendationRowSkeleton() {
   return (
-    <div className="flex items-start gap-3 rounded-2xl px-3 py-3">
-      <Skeleton className="h-10 w-10 rounded-full" />
+    <div className="flex items-start gap-3 rounded-2xl border border-white/6 px-3 py-3">
+      <Skeleton className="h-10 w-10 rounded-full bg-white/10" />
       <div className="min-w-0 flex-1 space-y-2 pt-0.5">
-        <Skeleton className="h-3.5 w-28" />
-        <Skeleton className="h-3 w-full max-w-[180px]" />
-        <Skeleton className="h-3 w-20" />
+        <Skeleton className="h-3.5 w-28 bg-white/10" />
+        <Skeleton className="h-3 w-full max-w-[180px] bg-white/10" />
+        <Skeleton className="h-3 w-20 bg-white/10" />
       </div>
-      <Skeleton className="h-8 w-[78px] rounded-full" />
+      <Skeleton className="h-8 w-[78px] rounded-full bg-white/10" />
     </div>
   );
 }
@@ -70,7 +70,7 @@ export const DashboardRecommendationsPanel = (props: DashboardRecommendationsPan
   return (
     <div className="space-y-4">
       <RightPanelContainer contentClassName="xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto">
-        <section className="rounded-[24px] bg-white px-2 py-3">
+        <section className="dashboard-right-section rounded-[24px] border px-2 py-3">
           <SectionHeader
             actionLabel={isRefreshing ? 'Refreshing' : 'Refresh'}
             description="Popular profiles worth following without pulling focus from your feed."
@@ -101,23 +101,23 @@ export const DashboardRecommendationsPanel = (props: DashboardRecommendationsPan
                   </div>
                 )
               : (
-                  <div className="rounded-2xl bg-gray-50/80 px-4 py-6 text-center">
-                    <p className="text-sm font-medium text-gray-700">No suggestions right now</p>
-                    <p className="mt-1 text-xs leading-5 text-gray-500">
+                  <div className="dashboard-right-empty-state rounded-2xl border border-dashed px-4 py-6 text-center">
+                    <p className="dashboard-section-title text-sm font-medium">No suggestions right now</p>
+                    <p className="dashboard-section-description mt-1 text-xs leading-5">
                       Try refreshing to pull a fresh set of profiles.
                     </p>
                   </div>
                 )}
 
           {error
-            ? <p className="mt-3 px-3 text-xs text-rose-600">{error}</p>
+            ? <p className="mt-3 px-3 text-xs text-rose-400">{error}</p>
             : null}
 
           {canShowMore && profiles.length > 0
             ? (
                 <div className="mt-3 px-2">
                   <button
-                    className="w-full rounded-2xl px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="dashboard-right-button w-full rounded-2xl border px-3 py-2.5 text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50"
                     disabled={isLoadingMore}
                     onClick={() => void loadMoreRecommendations()}
                     type="button"
@@ -154,7 +154,7 @@ export const DashboardRecommendationsPanel = (props: DashboardRecommendationsPan
       {initialJourneys.length > 0
         ? (
             <RightPanelContainer contentClassName="xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto">
-              <section className="rounded-[24px] bg-white px-2 py-3">
+              <section className="dashboard-right-section rounded-[24px] border px-2 py-3">
                 <SectionHeader
                   description="High-signal itineraries people are opening right now."
                   icon={<JourneyIcon className="h-4 w-4" />}

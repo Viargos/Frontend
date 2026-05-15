@@ -92,7 +92,7 @@ export const ProfileJourneyCard = (props: ProfileJourneyCardProps) => {
                 event.stopPropagation();
                 router.push(`/edit-journey/${journey.id}`);
               }}
-              className="rounded-full bg-white/90 p-1.5 text-[#160E53] shadow-md backdrop-blur-sm hover:bg-white sm:p-2"
+              className="rounded-full border border-white/12 bg-slate-950/70 p-1.5 text-slate-100 shadow-[0_14px_30px_-20px_rgba(0,0,0,0.95)] backdrop-blur-md transition-all hover:border-[#f8d775]/30 hover:bg-slate-950/85 hover:text-[#f8d775] sm:p-2"
               title="Edit journey"
               type="button"
             >
@@ -104,7 +104,7 @@ export const ProfileJourneyCard = (props: ProfileJourneyCardProps) => {
                 event.stopPropagation();
                 setShowDeleteConfirm(true);
               }}
-              className="rounded-full bg-white/90 p-1.5 text-red-500 shadow-md backdrop-blur-sm hover:bg-white hover:text-red-600 sm:p-2"
+              className="rounded-full border border-white/12 bg-slate-950/70 p-1.5 text-rose-300 shadow-[0_14px_30px_-20px_rgba(0,0,0,0.95)] backdrop-blur-md transition-all hover:border-rose-400/30 hover:bg-slate-950/85 hover:text-rose-200 sm:p-2"
               title="Delete journey"
               type="button"
             >

@@ -53,16 +53,16 @@ export function TimePickerModal(props: TimePickerModalProps) {
   const previewValue = formatTimeValue(draftTime.hour, draftTime.minute);
 
   return (
-    <OverlayModal ariaLabel={title} className="max-w-5xl overflow-hidden rounded-[32px]" onClose={onClose}>
+    <OverlayModal ariaLabel={title} className="date-time-picker-modal max-w-5xl overflow-hidden rounded-[32px]" onClose={onClose}>
       <div className="grid gap-0 md:grid-cols-[300px_minmax(0,1fr)]">
-        <aside className="bg-linear-to-br from-slate-950 via-slate-900 to-[#160E53] p-6 text-white">
+        <aside className="date-time-picker-rail p-6">
           <div className="flex items-start justify-between gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/12 text-white backdrop-blur-sm">
+            <div className="date-time-picker-rail-icon flex h-12 w-12 items-center justify-center rounded-2xl backdrop-blur-sm">
               <ClockIcon className="h-5 w-5" />
             </div>
             <button
               aria-label="Close time picker"
-              className="rounded-full bg-white/10 p-2 text-white/80 transition-colors hover:bg-white/15 hover:text-white"
+              className="date-time-picker-close rounded-full p-2 transition-colors"
               onClick={onClose}
               type="button"
             >
@@ -70,30 +70,28 @@ export function TimePickerModal(props: TimePickerModalProps) {
             </button>
           </div>
 
-          <p className="mt-8 text-xs font-semibold tracking-[0.22em] text-white/60 uppercase">Time picker</p>
+          <p className="date-time-picker-rail-muted mt-8 text-xs font-semibold tracking-[0.22em] uppercase">Time picker</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight">{title}</h2>
-          <p className="mt-3 text-sm leading-6 text-white/72">
+          <p className="date-time-picker-rail-muted mt-3 text-sm leading-6">
             {description ?? 'Pick the exact time with an easier, more polished selection flow.'}
           </p>
 
-          <div className="mt-8 rounded-[28px] border border-white/10 bg-white/10 p-5 backdrop-blur-sm">
-            <p className="text-xs font-semibold tracking-[0.18em] text-white/60 uppercase">Selected</p>
+          <div className="date-time-picker-selection-card mt-8 rounded-[28px] border p-5 backdrop-blur-sm">
+            <p className="date-time-picker-rail-muted text-xs font-semibold tracking-[0.18em] uppercase">Selected</p>
             <p className="mt-3 text-3xl font-semibold tracking-tight">{formatTimeLabel(previewValue)}</p>
-            <p className="mt-2 text-sm text-white/65">Adjust the hour and minute columns, then apply.</p>
+            <p className="date-time-picker-rail-muted mt-2 text-sm">Adjust the hour and minute columns, then apply.</p>
           </div>
         </aside>
 
-        <section className="bg-white p-5 sm:p-6">
-          <div className="border-b border-slate-200 pb-5">
-            <p className="text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase">Quick picks</p>
+        <section className="date-time-picker-panel p-5 sm:p-6">
+          <div className="date-time-picker-divider border-b pb-5">
+            <p className="date-time-picker-overline text-xs font-semibold tracking-[0.18em] uppercase">Quick picks</p>
             <div className="mt-4 flex flex-wrap gap-2">
               {QUICK_TIME_PRESETS.map(preset => (
                 <button
                   className={cn(
-                    'rounded-full border px-4 py-2 text-sm font-medium transition-colors',
-                    previewValue === preset.value
-                      ? 'border-[#160E53] bg-[#160E53] text-white'
-                      : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50',
+                    'date-time-picker-option rounded-full border px-4 py-2 text-sm font-medium transition-colors',
+                    previewValue === preset.value && 'date-time-picker-option-selected',
                   )}
                   key={preset.value}
                   onClick={() => {
@@ -111,13 +109,13 @@ export function TimePickerModal(props: TimePickerModalProps) {
           </div>
 
           <div className="mt-6 grid gap-4 lg:grid-cols-2">
-            <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-4">
+            <div className="date-time-picker-subpanel rounded-[28px] border p-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase">Hour</p>
-                  <h3 className="mt-1 text-xl font-semibold text-slate-900">{formatHourLabel(draftTime.hour)}</h3>
+                  <p className="date-time-picker-overline text-xs font-semibold tracking-[0.18em] uppercase">Hour</p>
+                  <h3 className="date-time-picker-heading mt-1 text-xl font-semibold">{formatHourLabel(draftTime.hour)}</h3>
                 </div>
-                <div className="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-500 shadow-sm">
+                <div className="date-time-picker-pill rounded-full px-3 py-1 text-xs font-medium shadow-sm">
                   24-hour
                 </div>
               </div>
@@ -130,17 +128,15 @@ export function TimePickerModal(props: TimePickerModalProps) {
                     <button
                       aria-pressed={isSelected}
                       className={cn(
-                        'rounded-2xl border px-4 py-3 text-left transition-colors',
-                        isSelected
-                          ? 'border-[#160E53] bg-[#160E53] text-white'
-                          : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100',
+                        'date-time-picker-option rounded-2xl border px-4 py-3 text-left transition-colors',
+                        isSelected && 'date-time-picker-option-selected',
                       )}
                       key={hour}
                       onClick={() => setDraftTime(current => ({ ...current, hour }))}
                       type="button"
                     >
                       <span className="block text-sm font-semibold">{String(hour).padStart(2, '0')}</span>
-                      <span className={cn('mt-1 block text-xs', isSelected ? 'text-white/72' : 'text-slate-400')}>
+                      <span className="date-time-picker-option-muted mt-1 block text-xs">
                         {formatHourLabel(hour)}
                       </span>
                     </button>
@@ -149,13 +145,13 @@ export function TimePickerModal(props: TimePickerModalProps) {
               </div>
             </div>
 
-            <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-4">
+            <div className="date-time-picker-subpanel rounded-[28px] border p-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase">Minute</p>
-                  <h3 className="mt-1 text-xl font-semibold text-slate-900">{String(draftTime.minute).padStart(2, '0')}</h3>
+                  <p className="date-time-picker-overline text-xs font-semibold tracking-[0.18em] uppercase">Minute</p>
+                  <h3 className="date-time-picker-heading mt-1 text-xl font-semibold">{String(draftTime.minute).padStart(2, '0')}</h3>
                 </div>
-                <div className="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-500 shadow-sm">
+                <div className="date-time-picker-pill rounded-full px-3 py-1 text-xs font-medium shadow-sm">
                   precise
                 </div>
               </div>
@@ -168,17 +164,15 @@ export function TimePickerModal(props: TimePickerModalProps) {
                     <button
                       aria-pressed={isSelected}
                       className={cn(
-                        'rounded-2xl border px-3 py-3 text-left transition-colors',
-                        isSelected
-                          ? 'border-[#160E53] bg-[#160E53] text-white'
-                          : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100',
+                        'date-time-picker-option rounded-2xl border px-3 py-3 text-left transition-colors',
+                        isSelected && 'date-time-picker-option-selected',
                       )}
                       key={minute}
                       onClick={() => setDraftTime(current => ({ ...current, minute }))}
                       type="button"
                     >
                       <span className="block text-sm font-semibold">{String(minute).padStart(2, '0')}</span>
-                      <span className={cn('mt-1 block text-[11px]', isSelected ? 'text-white/72' : 'text-slate-400')}>
+                      <span className="date-time-picker-option-muted mt-1 block text-[11px]">
                         {formatMinuteLabel(minute)}
                       </span>
                     </button>
@@ -188,12 +182,12 @@ export function TimePickerModal(props: TimePickerModalProps) {
             </div>
           </div>
 
-          <div className="mt-6 flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="date-time-picker-divider mt-6 flex flex-col gap-3 border-t pt-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-wrap gap-2">
               {allowClear
                 ? (
                     <button
-                      className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
+                      className="date-time-picker-action-button inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors"
                       onClick={() => {
                         onSelect('');
                         onClose();
@@ -209,14 +203,14 @@ export function TimePickerModal(props: TimePickerModalProps) {
 
             <div className="flex flex-wrap justify-end gap-2">
               <button
-                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+                className="date-time-picker-action-button rounded-full border px-4 py-2 text-sm font-medium transition-colors"
                 onClick={onClose}
                 type="button"
               >
                 Cancel
               </button>
               <button
-                className="inline-flex items-center gap-2 rounded-full bg-[#160E53] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#241A7A]"
+                className="date-time-picker-primary-button inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors"
                 onClick={() => {
                   onSelect(previewValue);
                   onClose();

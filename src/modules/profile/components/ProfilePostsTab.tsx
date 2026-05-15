@@ -92,7 +92,7 @@ export const ProfilePostsTab = (props: ProfilePostsTabProps) => {
                                 <div className="absolute top-2 right-2 z-10 flex items-center justify-end gap-1.5 sm:top-3 sm:right-3 sm:gap-2">
                                   <button
                                     aria-label="Edit post"
-                                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/90 text-[#160E53] shadow-md ring-1 ring-black/5 transition-all hover:scale-105 hover:bg-white hover:shadow-lg active:scale-95 sm:h-10 sm:w-10"
+                                    className="profile-post-action-button flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all hover:scale-105 hover:shadow-lg active:scale-95 sm:h-10 sm:w-10"
                                     type="button"
                                     onClick={() => setEditingPost(post)}
                                   >
@@ -105,12 +105,12 @@ export const ProfilePostsTab = (props: ProfilePostsTabProps) => {
 
                         {post.journey
                           ? (
-                              <div className="border-b border-gray-100 bg-gray-50/80 px-3 py-2">
+                              <div className="profile-post-journey-strip border-b px-3 py-2">
                                 <Link
-                                  className="flex items-center gap-2 text-xs text-[#160E53] transition-colors hover:text-[#0d0938]"
+                                  className="profile-post-journey-link flex items-center gap-2 text-xs transition-colors"
                                   href={`/journey/${post.journey.id}`}
                                 >
-                                  <JourneyIcon className="h-3.5 w-3.5 shrink-0 text-[#160E53]/80 sm:h-4 sm:w-4" />
+                                  <JourneyIcon className="profile-post-journey-icon h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
                                   <span className="truncate font-medium" title={post.journey.title}>
                                     {post.journey.title}
                                   </span>

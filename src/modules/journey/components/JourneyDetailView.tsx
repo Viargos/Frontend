@@ -131,7 +131,7 @@ export const JourneyDetailView = (props: JourneyDetailViewProps) => {
   const hasCurrentDayContent = hasCurrentDayPlaces || hasDayNotes;
 
   return (
-    <div className="max-w-none flex-1 bg-linear-to-b from-slate-50 via-white to-slate-100 p-4 sm:p-6">
+    <div className="max-w-none flex-1 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.08),transparent_30%),linear-gradient(180deg,#0f172a_0%,#111827_45%,#020617_100%)] p-4 sm:p-6">
       <JourneyHeader
         journey={journey}
         onBack={() => {
@@ -141,18 +141,18 @@ export const JourneyDetailView = (props: JourneyDetailViewProps) => {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.75fr)_minmax(320px,1fr)]">
         <div className="space-y-6">
-          <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <section className="rounded-[28px] border border-white/10 bg-white/[0.04] p-5 shadow-[0_24px_60px_-36px_rgba(0,0,0,0.9)] ring-1 ring-white/5 backdrop-blur-xl sm:p-6">
             <div className="flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-center">
               <div className="max-w-2xl">
-                <p className="text-xs font-semibold tracking-[0.22em] text-slate-400 uppercase">Itinerary overview</p>
-                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">Plan at a glance</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-500">
+                <p className="text-xs font-semibold tracking-[0.22em] text-slate-500 uppercase">Itinerary overview</p>
+                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-100">Plan at a glance</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-400">
                   Review the structure of the trip before diving into each day and stop.
                 </p>
               </div>
 
               <Link
-                className="inline-flex items-center gap-2 rounded-full border border-[#160E53]/15 bg-[#160E53]/5 px-4 py-2 text-sm font-medium text-[#160E53] transition-colors hover:bg-[#160E53] hover:text-white"
+                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-sm font-medium text-slate-200 transition-all hover:border-[#f8d775]/30 hover:bg-[#f8d775]/10 hover:text-[#f8d775]"
                 href={`/edit-journey/${journey.id}`}
               >
                 <EditIcon size={16} />
@@ -161,50 +161,50 @@ export const JourneyDetailView = (props: JourneyDetailViewProps) => {
             </div>
 
             <div className="mt-6 grid gap-4 md:grid-cols-3">
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-                <div className="flex items-center gap-2 text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase">
+              <div className="rounded-3xl border border-white/10 bg-white/[0.05] p-4">
+                <div className="flex items-center gap-2 text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
                   <CalendarIcon size={14} />
                   Trip length
                 </div>
-                <p className="mt-3 text-2xl font-semibold tracking-tight text-slate-900">{journey.days.length}</p>
-                <p className="mt-1 text-sm text-slate-500">Planned travel days</p>
+                <p className="mt-3 text-2xl font-semibold tracking-tight text-slate-100">{journey.days.length}</p>
+                <p className="mt-1 text-sm text-slate-400">Planned travel days</p>
               </div>
 
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-                <div className="flex items-center gap-2 text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase">
+              <div className="rounded-3xl border border-white/10 bg-white/[0.05] p-4">
+                <div className="flex items-center gap-2 text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
                   <MapPinIcon size={14} />
                   Stops
                 </div>
-                <p className="mt-3 text-2xl font-semibold tracking-tight text-slate-900">{allPlaces.length}</p>
-                <p className="mt-1 text-sm text-slate-500">Locations across the itinerary</p>
+                <p className="mt-3 text-2xl font-semibold tracking-tight text-slate-100">{allPlaces.length}</p>
+                <p className="mt-1 text-sm text-slate-400">Locations across the itinerary</p>
               </div>
 
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-                <div className="flex items-center gap-2 text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase">
+              <div className="rounded-3xl border border-white/10 bg-white/[0.05] p-4">
+                <div className="flex items-center gap-2 text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
                   <ImageIcon size={14} />
                   Media and notes
                 </div>
-                <p className="mt-3 text-2xl font-semibold tracking-tight text-slate-900">
+                <p className="mt-3 text-2xl font-semibold tracking-tight text-slate-100">
                   {totalMediaCount}
-                  <span className="mx-2 text-slate-300">/</span>
+                  <span className="mx-2 text-slate-600">/</span>
                   {daysWithNotes}
                 </p>
-                <p className="mt-1 text-sm text-slate-500">Photos and days with notes</p>
+                <p className="mt-1 text-sm text-slate-400">Photos and days with notes</p>
               </div>
             </div>
           </section>
 
-          <section className="rounded-[28px] border border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-slate-200 px-5 py-5 sm:px-6">
-              <p className="text-xs font-semibold tracking-[0.22em] text-slate-400 uppercase">Daily schedule</p>
+          <section className="rounded-[28px] border border-white/10 bg-white/[0.04] shadow-[0_24px_60px_-36px_rgba(0,0,0,0.9)] ring-1 ring-white/5 backdrop-blur-xl">
+            <div className="border-b border-white/10 px-5 py-5 sm:px-6">
+              <p className="text-xs font-semibold tracking-[0.22em] text-slate-500 uppercase">Daily schedule</p>
               <div className="mt-2 flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
                 <div>
-                  <h2 className="text-2xl font-semibold tracking-tight text-slate-900">Day-by-day itinerary</h2>
-                  <p className="mt-1 text-sm text-slate-500">Browse each day to review the planned route, places, and notes.</p>
+                  <h2 className="text-2xl font-semibold tracking-tight text-slate-100">Day-by-day itinerary</h2>
+                  <p className="mt-1 text-sm text-slate-400">Browse each day to review the planned route, places, and notes.</p>
                 </div>
                 {currentDay
                   ? (
-                      <Badge className="border-[#160E53]/10 bg-[#160E53]/5 text-[#160E53]" variant="muted">
+                      <Badge className="border-[#f8d775]/20 bg-[#f8d775]/10 text-[#f8d775]" variant="muted">
                         Day
                         {' '}
                         {currentDay.dayNumber + 1}
@@ -222,16 +222,16 @@ export const JourneyDetailView = (props: JourneyDetailViewProps) => {
               {currentDay
                 ? (
                     <div className="mt-6">
-                      <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-4 sm:p-5">
+                      <div className="rounded-[24px] border border-white/10 bg-white/[0.05] p-4 sm:p-5">
                         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                           <div>
-                            <Badge className="border-slate-200 bg-white text-slate-700" variant="muted">
+                            <Badge className="border-white/10 bg-white/[0.06] text-slate-200" variant="muted">
                               Day
                               {' '}
                               {currentDay.dayNumber + 1}
                             </Badge>
-                            <h3 className="mt-3 text-xl font-semibold tracking-tight text-slate-900">{formatDayDate(currentDay.date)}</h3>
-                            <p className="mt-1 text-sm text-slate-500">
+                            <h3 className="mt-3 text-xl font-semibold tracking-tight text-slate-100">{formatDayDate(currentDay.date)}</h3>
+                            <p className="mt-1 text-sm text-slate-400">
                               {currentDay.places.length}
                               {' '}
                               planned stop
@@ -241,13 +241,13 @@ export const JourneyDetailView = (props: JourneyDetailViewProps) => {
                           </div>
 
                           <div className="grid grid-cols-2 gap-3 sm:min-w-[280px]">
-                            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                              <p className="text-xs font-medium tracking-wide text-slate-400 uppercase">Places</p>
-                              <p className="mt-1 text-lg font-semibold text-slate-900">{currentDay.places.length}</p>
+                            <div className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3">
+                              <p className="text-xs font-medium tracking-wide text-slate-500 uppercase">Places</p>
+                              <p className="mt-1 text-lg font-semibold text-slate-100">{currentDay.places.length}</p>
                             </div>
-                            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                              <p className="text-xs font-medium tracking-wide text-slate-400 uppercase">Media</p>
-                              <p className="mt-1 text-lg font-semibold text-slate-900">
+                            <div className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3">
+                              <p className="text-xs font-medium tracking-wide text-slate-500 uppercase">Media</p>
+                              <p className="mt-1 text-lg font-semibold text-slate-100">
                                 {currentDay.places.reduce((sum, place) => sum + place.media.length, 0)}
                               </p>
                             </div>
@@ -259,7 +259,7 @@ export const JourneyDetailView = (props: JourneyDetailViewProps) => {
                         {hasCurrentDayPlaces
                           ? (
                               <div className="relative">
-                                <div className="absolute top-14 bottom-4 left-[21.5px] hidden w-px bg-slate-200 sm:block" />
+                                <div className="absolute top-14 bottom-4 left-[21.5px] hidden w-px bg-white/10 sm:block" />
 
                                 <div className="space-y-6">
                                   {daySections.map(section => (
@@ -281,21 +281,21 @@ export const JourneyDetailView = (props: JourneyDetailViewProps) => {
                         {hasDayNotes
                           ? (
                               <div className="relative flex items-start">
-                                <div className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-sm sm:flex">
-                                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#160E53] text-white">
+                                <div className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] shadow-[0_12px_30px_-20px_rgba(0,0,0,0.85)] sm:flex">
+                                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#f8d775] text-slate-950">
                                     <FileTextIcon size={16} />
                                   </div>
                                 </div>
 
                                 <div className="w-full min-w-0 flex-1 sm:ml-4 md:ml-5">
-                                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                                  <div className="rounded-3xl border border-white/10 bg-white/[0.05] p-5">
                                     <div className="flex items-start gap-3">
-                                      <div className="mt-0.5 hidden text-[#160E53] sm:block">
+                                      <div className="mt-0.5 hidden text-[#f8d775] sm:block">
                                         <FileTextIcon size={16} />
                                       </div>
                                       <div>
-                                        <h4 className="text-base font-semibold text-slate-900">Day notes</h4>
-                                        <p className="mt-2 text-sm leading-6 whitespace-pre-wrap text-slate-600">{currentDay.notes}</p>
+                                        <h4 className="text-base font-semibold text-slate-100">Day notes</h4>
+                                        <p className="mt-2 text-sm leading-6 whitespace-pre-wrap text-slate-400">{currentDay.notes}</p>
                                       </div>
                                     </div>
                                   </div>
@@ -306,12 +306,12 @@ export const JourneyDetailView = (props: JourneyDetailViewProps) => {
 
                         {!hasCurrentDayContent
                           ? (
-                              <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-                                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-[#160E53] shadow-sm">
+                              <div className="rounded-3xl border border-dashed border-white/12 bg-white/[0.04] p-8 text-center">
+                                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white/[0.07] text-[#f8d775] shadow-[0_12px_30px_-20px_rgba(0,0,0,0.85)]">
                                   <ClipboardListIcon size={22} />
                                 </div>
-                                <h3 className="mt-4 text-lg font-semibold text-slate-900">This day is still empty</h3>
-                                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+                                <h3 className="mt-4 text-lg font-semibold text-slate-100">This day is still empty</h3>
+                                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-400">
                                   Add places, transport, or notes to turn this into a complete daily plan.
                                 </p>
                               </div>
@@ -324,7 +324,7 @@ export const JourneyDetailView = (props: JourneyDetailViewProps) => {
             </div>
           </section>
 
-          <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <section className="rounded-[28px] border border-white/10 bg-white/[0.04] p-5 shadow-[0_24px_60px_-36px_rgba(0,0,0,0.9)] ring-1 ring-white/5 backdrop-blur-xl sm:p-6">
             <JourneyPostsSection journeyTitle={journey.title} mode="list" />
           </section>
         </div>

@@ -75,7 +75,7 @@ export const DashboardSidebar = (props: DashboardSidebarProps) => {
                   <span className={`${collapsed ? 'hidden' : 'hidden lg:inline'} flex-1`}>{item.label}</span>
 
                   {'badge' in item && item.badge && !collapsed
-                    ? <span className="ml-2 hidden animate-pulse rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-600 lg:inline">{item.badge}</span>
+                    ? <span className="ml-2 hidden rounded-full border border-[#f8d775]/20 bg-[#f8d775]/12 px-2 py-0.5 text-[10px] font-semibold text-[#f8d775] shadow-[0_10px_24px_-18px_rgba(248,215,117,0.9)] lg:inline">{item.badge}</span>
                     : null}
 
                   {showTooltips

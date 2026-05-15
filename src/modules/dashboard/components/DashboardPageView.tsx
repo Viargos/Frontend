@@ -76,8 +76,8 @@ export async function DashboardPageView(props: DashboardPageViewProps) {
 
   return (
     <div className="min-h-[calc(100vh-200px)] w-full flex-1 p-4 sm:p-6">
-      <div className="mx-auto w-full max-w-[1320px]">
-        <div className="xl:grid xl:grid-cols-[minmax(0,760px)_300px] xl:items-start xl:justify-between xl:gap-10 2xl:grid-cols-[minmax(0,780px)_300px]">
+      <div className="mx-auto w-full max-w-[1440px]">
+        <div className="xl:grid xl:grid-cols-[minmax(0,760px)_340px] xl:items-start xl:justify-between xl:gap-10 2xl:grid-cols-[minmax(0,820px)_380px]">
           <DashboardFeed initialFeed={initialFeed} parityState={parityEnabled ? parityState : undefined} />
           <div className="hidden xl:sticky xl:top-6 xl:block xl:h-fit xl:self-start">
             <DashboardRecommendationsPanel initialJourneys={initialJourneys} initialProfiles={initialRecommendations} />

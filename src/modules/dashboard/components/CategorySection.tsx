@@ -23,7 +23,7 @@ export const CategorySection = (props: CategorySectionProps) => {
   }
 
   return (
-    <section className="rounded-[24px] bg-gray-50/70 px-2 py-3">
+    <section className="dashboard-right-section rounded-[24px] border px-2 py-3">
       <SectionHeader
         description="Browse a few focused creator clusters."
         title="By category"
@@ -32,7 +32,7 @@ export const CategorySection = (props: CategorySectionProps) => {
       <div className="mt-3 space-y-4">
         {groups.map(group => (
           <div key={group.label}>
-            <p className="px-3 text-[11px] font-semibold tracking-[0.14em] text-gray-400 uppercase">
+            <p className="dashboard-category-label px-3 text-[11px] font-semibold tracking-[0.14em] uppercase">
               {group.label}
             </p>
             <div className="mt-1.5 space-y-1">

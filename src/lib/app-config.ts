@@ -4,10 +4,10 @@ export const appConfig = {
     timeoutMs: 15000,
   },
   reactQuery: {
-    gcTimeMs: 5 * 60 * 1000,
+    gcTimeMs: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
     retry: 1,
-    staleTimeMs: 30 * 1000,
+    staleTimeMs: 2 * 60 * 1000,
   },
 } as const;
 

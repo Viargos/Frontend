@@ -182,12 +182,12 @@ function ReviewModal(props: ReviewModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
-      <div className="max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-2xl">
+      <div className="journey-planner-card max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-[28px] border shadow-2xl">
         <div className="relative h-56">
           <Image alt="Journey cover preview" className="object-cover" fill sizes="1200px" src={coverImageSrc} unoptimized />
           <div className="absolute inset-0 bg-linear-to-t from-slate-950 via-slate-950/40 to-transparent" />
           <button
-            className="absolute top-4 right-4 rounded-full bg-white/90 p-2 text-slate-700 transition-colors hover:bg-white"
+            className="journey-planner-ghost-button absolute top-4 right-4 rounded-full border p-2 transition-colors"
             onClick={onClose}
             type="button"
           >
@@ -205,19 +205,19 @@ function ReviewModal(props: ReviewModalProps) {
           </div>
         </div>
 
-        <div className="grid gap-6 overflow-y-auto bg-slate-50 p-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="journey-planner-shell grid gap-6 overflow-y-auto p-6 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div className="space-y-4">
             {days.map(day => (
-              <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm" key={day.id}>
+              <div className="journey-planner-card rounded-3xl border p-5" key={day.id}>
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                    <p className="journey-planner-label text-xs font-semibold tracking-[0.18em] uppercase">
                       Day
                       {day.dayNumber}
                     </p>
-                    <h3 className="mt-1 text-lg font-semibold text-slate-900">{formatDisplayDate(day.date)}</h3>
+                    <h3 className="journey-planner-title mt-1 text-lg font-semibold">{formatDisplayDate(day.date)}</h3>
                   </div>
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+                  <span className="journey-planner-subcard rounded-full border px-3 py-1 text-xs font-medium">
                     {day.places.length}
                     {' '}
                     items
@@ -227,13 +227,13 @@ function ReviewModal(props: ReviewModalProps) {
                 <div className="mt-4 space-y-3">
                   {day.places.length > 0
                     ? day.places.map(place => (
-                        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3" key={place.id}>
+                        <div className="journey-planner-subcard rounded-2xl border px-4 py-3" key={place.id}>
                           <div className="flex items-center justify-between gap-3">
                             <div>
-                              <p className="text-sm font-semibold text-slate-900">{place.name || 'Untitled item'}</p>
-                              <p className="mt-1 text-xs text-slate-500">{place.address || 'No location added'}</p>
+                              <p className="journey-planner-title text-sm font-semibold">{place.name || 'Untitled item'}</p>
+                              <p className="journey-planner-copy mt-1 text-xs">{place.address || 'No location added'}</p>
                             </div>
-                            <span className="text-xs text-slate-400">
+                            <span className="journey-planner-muted text-xs">
                               {place.media.length}
                               {' '}
                               photos
@@ -241,13 +241,13 @@ function ReviewModal(props: ReviewModalProps) {
                           </div>
                         </div>
                       ))
-                    : <p className="text-sm text-slate-500">No items planned for this day yet.</p>}
+                    : <p className="journey-planner-copy text-sm">No items planned for this day yet.</p>}
 
                   {day.notes
                     ? (
-                        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                          <p className="text-sm font-medium text-slate-700">Notes</p>
-                          <p className="mt-2 text-sm text-slate-600">{day.notes}</p>
+                        <div className="journey-planner-subcard rounded-2xl border px-4 py-3">
+                          <p className="journey-planner-title text-sm font-medium">Notes</p>
+                          <p className="journey-planner-copy mt-2 text-sm">{day.notes}</p>
                         </div>
                       )
                     : null}
@@ -257,30 +257,30 @@ function ReviewModal(props: ReviewModalProps) {
           </div>
 
           <aside className="space-y-4">
-            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-              <p className="text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase">Trip range</p>
-              <p className="mt-2 text-lg font-semibold text-slate-900">{formatRange(startDate, endDate)}</p>
+            <div className="journey-planner-card rounded-3xl border p-5">
+              <p className="journey-planner-label text-xs font-semibold tracking-[0.18em] uppercase">Trip range</p>
+              <p className="journey-planner-title mt-2 text-lg font-semibold">{formatRange(startDate, endDate)}</p>
             </div>
-            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-              <p className="text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase">Summary</p>
+            <div className="journey-planner-card rounded-3xl border p-5">
+              <p className="journey-planner-label text-xs font-semibold tracking-[0.18em] uppercase">Summary</p>
               <div className="mt-4 grid grid-cols-3 gap-3">
-                <div className="rounded-2xl bg-slate-50 p-3 text-center">
-                  <p className="text-2xl font-semibold text-slate-900">{days.length}</p>
-                  <p className="text-xs text-slate-500">Days</p>
+                <div className="journey-planner-subcard rounded-2xl p-3 text-center">
+                  <p className="journey-planner-title text-2xl font-semibold">{days.length}</p>
+                  <p className="journey-planner-copy text-xs">Days</p>
                 </div>
-                <div className="rounded-2xl bg-slate-50 p-3 text-center">
-                  <p className="text-2xl font-semibold text-slate-900">{totalPlaces}</p>
-                  <p className="text-xs text-slate-500">Items</p>
+                <div className="journey-planner-subcard rounded-2xl p-3 text-center">
+                  <p className="journey-planner-title text-2xl font-semibold">{totalPlaces}</p>
+                  <p className="journey-planner-copy text-xs">Items</p>
                 </div>
-                <div className="rounded-2xl bg-slate-50 p-3 text-center">
-                  <p className="text-2xl font-semibold text-slate-900">{totalPhotos}</p>
-                  <p className="text-xs text-slate-500">Photos</p>
+                <div className="journey-planner-subcard rounded-2xl p-3 text-center">
+                  <p className="journey-planner-title text-2xl font-semibold">{totalPhotos}</p>
+                  <p className="journey-planner-copy text-xs">Photos</p>
                 </div>
               </div>
             </div>
-            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="journey-planner-card rounded-3xl border p-5">
               <button
-                className="w-full rounded-2xl bg-[#160E53] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#241A7A] disabled:cursor-not-allowed disabled:opacity-60"
+                className="journey-planner-primary-button w-full rounded-2xl px-4 py-3 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={isSubmitting}
                 onClick={onConfirm}
                 type="button"
@@ -349,14 +349,14 @@ function PlaceLocationField(props: PlaceLocationFieldProps) {
     <div className="relative">
       <input
         autoComplete="off"
-        className="w-full rounded-2xl border border-slate-200 px-4 py-3 pr-12 text-sm text-slate-900 transition outline-none focus:border-[#160E53] focus:ring-2 focus:ring-[#160E53]/15"
+        className="journey-planner-field w-full rounded-2xl border px-4 py-3 pr-12 text-sm transition outline-none"
         onChange={event => onAddressChange(event.target.value)}
         placeholder="Search or type the place address"
         ref={inputRef}
         type="text"
         value={place.address ?? ''}
       />
-      <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400">
+      <span className="journey-planner-muted pointer-events-none absolute inset-y-0 right-4 flex items-center">
         <MapPinIcon className="h-4 w-4" />
       </span>
     </div>
@@ -652,19 +652,19 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
     const typeConfig = PLACE_TYPE_CONFIG.find(config => config.type === place.type);
 
     return (
-      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm" key={place.id}>
-        <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
+      <div className="journey-planner-card rounded-3xl border" key={place.id}>
+        <div className="flex items-center justify-between gap-3 border-b px-5 py-4">
           <button
             className="flex min-w-0 flex-1 items-center gap-3 text-left"
             onClick={() => setExpandedPlaces(prev => ({ ...prev, [place.id]: !isExpanded }))}
             type="button"
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#160E53]/10 text-[#160E53]">
+            <div className="journey-planner-icon-tile flex h-10 w-10 items-center justify-center rounded-2xl">
               {typeConfig?.icon}
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase">{typeConfig?.title}</p>
-              <p className="truncate text-base font-semibold text-slate-900">{place.name || `Untitled ${typeConfig?.title.toLowerCase()}`}</p>
+              <p className="journey-planner-label text-xs font-semibold tracking-[0.16em] uppercase">{typeConfig?.title}</p>
+              <p className="journey-planner-title truncate text-base font-semibold">{place.name || `Untitled ${typeConfig?.title.toLowerCase()}`}</p>
             </div>
           </button>
 
@@ -683,9 +683,9 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
           ? (
               <div className="grid gap-4 px-5 py-5 md:grid-cols-2">
                 <div className="md:col-span-2">
-                  <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor={`${place.id}-name`}>Name</label>
+                  <label className="journey-planner-copy mb-2 block text-sm font-medium" htmlFor={`${place.id}-name`}>Name</label>
                   <input
-                    className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 transition outline-none focus:border-[#160E53] focus:ring-2 focus:ring-[#160E53]/15"
+                    className="journey-planner-field w-full rounded-2xl border px-4 py-3 text-sm transition outline-none"
                     id={`${place.id}-name`}
                     onChange={event => updatePlaceField(activeDay!.id, place.id, 'name', event.target.value)}
                     placeholder={`Enter ${typeConfig?.title.toLowerCase()} name`}
@@ -695,9 +695,9 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor={`${place.id}-description`}>Description</label>
+                  <label className="journey-planner-copy mb-2 block text-sm font-medium" htmlFor={`${place.id}-description`}>Description</label>
                   <textarea
-                    className="min-h-24 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 transition outline-none focus:border-[#160E53] focus:ring-2 focus:ring-[#160E53]/15"
+                    className="journey-planner-field min-h-24 w-full rounded-2xl border px-4 py-3 text-sm transition outline-none"
                     id={`${place.id}-description`}
                     onChange={event => updatePlaceField(activeDay!.id, place.id, 'description', event.target.value)}
                     placeholder={`Describe this ${typeConfig?.title.toLowerCase()} stop`}
@@ -706,9 +706,9 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor={`${place.id}-start-time`}>{timeLabels.start}</label>
+                  <label className="journey-planner-copy mb-2 block text-sm font-medium" htmlFor={`${place.id}-start-time`}>{timeLabels.start}</label>
                   <TimePickerField
-                    className="rounded-2xl"
+                    className="journey-planner-field rounded-2xl"
                     description={`Set the ${timeLabels.start.toLowerCase()} for this ${typeConfig?.title.toLowerCase()}.`}
                     id={`${place.id}-start-time`}
                     onChange={nextValue => updatePlaceField(activeDay!.id, place.id, 'startTime', nextValue)}
@@ -719,9 +719,9 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor={`${place.id}-end-time`}>{timeLabels.end}</label>
+                  <label className="journey-planner-copy mb-2 block text-sm font-medium" htmlFor={`${place.id}-end-time`}>{timeLabels.end}</label>
                   <TimePickerField
-                    className="rounded-2xl"
+                    className="journey-planner-field rounded-2xl"
                     description={`Set the ${timeLabels.end.toLowerCase()} for this ${typeConfig?.title.toLowerCase()}.`}
                     id={`${place.id}-end-time`}
                     onChange={nextValue => updatePlaceField(activeDay!.id, place.id, 'endTime', nextValue)}
@@ -732,7 +732,7 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor={`${place.id}-address`}>Location</label>
+                  <label className="journey-planner-copy mb-2 block text-sm font-medium" htmlFor={`${place.id}-address`}>Location</label>
                   <PlaceLocationField
                     isPlacesReady={isPlacesReady}
                     onAddressChange={value => updatePlaceField(activeDay!.id, place.id, 'address', value)}
@@ -756,9 +756,9 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor={`${place.id}-booking-start`}>Booked from day</label>
+                  <label className="journey-planner-copy mb-2 block text-sm font-medium" htmlFor={`${place.id}-booking-start`}>Booked from day</label>
                   <select
-                    className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 transition outline-none focus:border-[#160E53] focus:ring-2 focus:ring-[#160E53]/15"
+                    className="journey-planner-field w-full rounded-2xl border px-4 py-3 text-sm transition outline-none"
                     id={`${place.id}-booking-start`}
                     onChange={event => updateBookingRange(activeDay!.id, place.id, Number(event.target.value), bookingEnd)}
                     value={bookingStart}
@@ -770,9 +770,9 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor={`${place.id}-booking-end`}>Booked until day</label>
+                  <label className="journey-planner-copy mb-2 block text-sm font-medium" htmlFor={`${place.id}-booking-end`}>Booked until day</label>
                   <select
-                    className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 transition outline-none focus:border-[#160E53] focus:ring-2 focus:ring-[#160E53]/15"
+                    className="journey-planner-field w-full rounded-2xl border px-4 py-3 text-sm transition outline-none"
                     id={`${place.id}-booking-end`}
                     onChange={event => updateBookingRange(activeDay!.id, place.id, bookingStart, Number(event.target.value))}
                     value={bookingEnd}
@@ -784,13 +784,13 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
                 </div>
 
                 <div className="md:col-span-2">
-                  <div className="flex flex-col gap-3 rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-4">
+                  <div className="journey-planner-empty-state flex flex-col gap-3 rounded-3xl border border-dashed p-4">
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                       <div>
-                        <p className="text-sm font-semibold text-slate-900">Photos</p>
-                        <p className="text-sm text-slate-500">Add multiple photos for this stop.</p>
+                        <p className="journey-planner-title text-sm font-semibold">Photos</p>
+                        <p className="journey-planner-copy text-sm">Add multiple photos for this stop.</p>
                       </div>
-                      <label className="inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-white px-4 py-2.5 text-sm font-medium text-[#160E53] shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50">
+                      <label className="journey-planner-ghost-button inline-flex cursor-pointer items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-medium transition">
                         <ImageIcon className="h-4 w-4" />
                         Add photos
                         <input
@@ -807,7 +807,7 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
                       ? (
                           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                             {place.media.map(mediaItem => (
-                              <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white" key={mediaItem.id}>
+                              <div className="journey-planner-card group relative overflow-hidden rounded-2xl border" key={mediaItem.id}>
                                 <div className="relative h-28">
                                   <Image alt="Place media preview" className="object-cover" fill sizes="200px" src={mediaItem.previewUrl} unoptimized />
                                 </div>
@@ -822,7 +822,7 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
                             ))}
                           </div>
                         )
-                      : <p className="text-sm text-slate-500">No photos added yet.</p>}
+                      : <p className="journey-planner-copy text-sm">No photos added yet.</p>}
                   </div>
                 </div>
               </div>
@@ -833,9 +833,9 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
   };
 
   return (
-    <div className="max-w-none flex-1 bg-linear-to-b from-slate-50 via-white to-slate-100 p-4 sm:p-6">
+    <div className="journey-planner-shell max-w-none flex-1 p-4 sm:p-6">
       <div className="space-y-6">
-        <section className="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-sm">
+        <section className="journey-planner-card overflow-hidden rounded-[32px] border">
           <div className="grid gap-0 lg:grid-cols-[minmax(0,1.3fr)_420px]">
             <div className="relative min-h-[360px] overflow-hidden bg-slate-950">
               <Image
@@ -888,18 +888,18 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
               </div>
             </div>
 
-            <div className="border-t border-slate-200 bg-white p-6 lg:border-t-0 lg:border-l">
-              <p className="text-xs font-semibold tracking-[0.22em] text-slate-400 uppercase">Journey setup</p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">Choose the travel window first</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-500">
+            <div className="journey-planner-card border-t p-6 lg:border-t-0 lg:border-l">
+              <p className="journey-planner-label text-xs font-semibold tracking-[0.22em] uppercase">Journey setup</p>
+              <h2 className="journey-planner-title mt-2 text-2xl font-semibold tracking-tight">Choose the travel window first</h2>
+              <p className="journey-planner-copy mt-2 text-sm leading-6">
                 Start with the trip dates, then plan each day with stays, food, transport, activities, notes, and photos.
               </p>
 
               <div className="mt-6 grid gap-4">
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="journey-start-date">Start date</label>
+                  <label className="journey-planner-copy mb-2 block text-sm font-medium" htmlFor="journey-start-date">Start date</label>
                   <DatePickerField
-                    className="rounded-2xl"
+                    className="journey-planner-field rounded-2xl"
                     description="Choose when this journey begins."
                     id="journey-start-date"
                     max={values.endDate || undefined}
@@ -910,9 +910,9 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="journey-end-date">End date</label>
+                  <label className="journey-planner-copy mb-2 block text-sm font-medium" htmlFor="journey-end-date">End date</label>
                   <DatePickerField
-                    className="rounded-2xl"
+                    className="journey-planner-field rounded-2xl"
                     description="Choose when this journey wraps up."
                     id="journey-end-date"
                     min={values.startDate || undefined}
@@ -922,10 +922,10 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
                   />
                 </div>
 
-                <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-                  <p className="text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase">Current range</p>
-                  <p className="mt-2 text-lg font-semibold text-slate-900">{formatRange(values.startDate, values.endDate)}</p>
-                  <p className="mt-1 text-sm text-slate-500">
+                <div className="journey-planner-subcard rounded-3xl border p-4">
+                  <p className="journey-planner-label text-xs font-semibold tracking-[0.18em] uppercase">Current range</p>
+                  <p className="journey-planner-title mt-2 text-lg font-semibold">{formatRange(values.startDate, values.endDate)}</p>
+                  <p className="journey-planner-copy mt-1 text-sm">
                     {values.days.length}
                     {' '}
                     generated day
@@ -941,7 +941,7 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
 
         {error
           ? (
-              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="journey-planner-danger rounded-2xl border px-4 py-3 text-sm">
                 {error}
               </div>
             )
@@ -949,15 +949,15 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(340px,1fr)]">
           <div className="space-y-6">
-            <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <section className="journey-planner-card rounded-[28px] border p-5 sm:p-6">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div>
-                  <p className="text-xs font-semibold tracking-[0.22em] text-slate-400 uppercase">Day navigator</p>
-                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">Build the trip day by day</h2>
-                  <p className="mt-2 text-sm text-slate-500">Select a day, add the places, and keep multi-day bookings linked automatically.</p>
+                  <p className="journey-planner-label text-xs font-semibold tracking-[0.22em] uppercase">Day navigator</p>
+                  <h2 className="journey-planner-title mt-2 text-2xl font-semibold tracking-tight">Build the trip day by day</h2>
+                  <p className="journey-planner-copy mt-2 text-sm">Select a day, add the places, and keep multi-day bookings linked automatically.</p>
                 </div>
                 <button
-                  className="inline-flex items-center gap-2 rounded-full bg-[#160E53] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#241A7A]"
+                  className="journey-planner-primary-button inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors"
                   onClick={handleOpenReview}
                   type="button"
                 >
@@ -968,7 +968,7 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
               <div className="mt-6 flex items-center gap-3">
                 <button
                   aria-label="Scroll days left"
-                  className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-50 lg:inline-flex"
+                  className="journey-planner-ghost-button hidden h-11 w-11 shrink-0 items-center justify-center rounded-full border transition-colors lg:inline-flex"
                   onClick={() => scrollDayNavigator('left')}
                   type="button"
                 >
@@ -979,18 +979,18 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
                   <div className="scrollbar-hide flex gap-3 overflow-x-auto pb-2" ref={dayNavigatorRef}>
                     {values.days.map(day => (
                       <button
-                        className={`min-w-[180px] shrink-0 rounded-3xl border px-4 py-3 text-left transition-all ${day.id === activeDay?.id ? 'border-[#160E53] bg-[#160E53] text-white shadow-lg shadow-[#160E53]/20' : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-[#160E53]/35 hover:bg-white'}`}
+                        className={`journey-day-chip min-w-[180px] shrink-0 rounded-3xl border px-4 py-3 text-left transition-all ${day.id === activeDay?.id ? 'journey-day-chip-active' : ''}`}
                         data-day-id={day.id}
                         key={day.id}
                         onClick={() => setActiveDayId(day.id)}
                         type="button"
                       >
-                        <p className={`text-xs font-semibold tracking-[0.18em] uppercase ${day.id === activeDay?.id ? 'text-white/70' : 'text-slate-400'}`}>
+                        <p className="journey-planner-label text-xs font-semibold tracking-[0.18em] uppercase">
                           Day
                           {day.dayNumber}
                         </p>
                         <p className="mt-2 text-sm font-semibold">{formatDisplayDate(day.date)}</p>
-                        <p className={`mt-1 text-xs ${day.id === activeDay?.id ? 'text-white/75' : 'text-slate-500'}`}>
+                        <p className="journey-planner-copy mt-1 text-xs">
                           {day.places.length}
                           {' '}
                           items
@@ -1002,7 +1002,7 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
 
                 <button
                   aria-label="Scroll days right"
-                  className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-50 lg:inline-flex"
+                  className="journey-planner-ghost-button hidden h-11 w-11 shrink-0 items-center justify-center rounded-full border transition-colors lg:inline-flex"
                   onClick={() => scrollDayNavigator('right')}
                   type="button"
                 >
@@ -1014,28 +1014,28 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
             {activeDay
               ? (
                   <>
-                    <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                    <section className="journey-planner-card rounded-[28px] border p-5 sm:p-6">
                       <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                         <div>
-                          <p className="text-xs font-semibold tracking-[0.22em] text-slate-400 uppercase">Active day</p>
-                          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">{formatDisplayDate(activeDay.date)}</h2>
-                          <p className="mt-2 text-sm text-slate-500">Add each part of the day as the trip unfolded.</p>
+                          <p className="journey-planner-label text-xs font-semibold tracking-[0.22em] uppercase">Active day</p>
+                          <h2 className="journey-planner-title mt-2 text-2xl font-semibold tracking-tight">{formatDisplayDate(activeDay.date)}</h2>
+                          <p className="journey-planner-copy mt-2 text-sm">Add each part of the day as the trip unfolded.</p>
                         </div>
 
                         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                            <p className="text-xs font-medium tracking-wide text-slate-400 uppercase">Items</p>
-                            <p className="mt-1 text-lg font-semibold text-slate-900">{activeDay.places.length}</p>
+                          <div className="journey-planner-subcard rounded-2xl border px-4 py-3">
+                            <p className="journey-planner-label text-xs font-medium tracking-wide uppercase">Items</p>
+                            <p className="journey-planner-title mt-1 text-lg font-semibold">{activeDay.places.length}</p>
                           </div>
-                          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                            <p className="text-xs font-medium tracking-wide text-slate-400 uppercase">Photos</p>
-                            <p className="mt-1 text-lg font-semibold text-slate-900">
+                          <div className="journey-planner-subcard rounded-2xl border px-4 py-3">
+                            <p className="journey-planner-label text-xs font-medium tracking-wide uppercase">Photos</p>
+                            <p className="journey-planner-title mt-1 text-lg font-semibold">
                               {activeDay.places.reduce((sum, place) => sum + place.media.length, 0)}
                             </p>
                           </div>
-                          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                            <p className="text-xs font-medium tracking-wide text-slate-400 uppercase">Linked stays</p>
-                            <p className="mt-1 text-lg font-semibold text-slate-900">
+                          <div className="journey-planner-subcard rounded-2xl border px-4 py-3">
+                            <p className="journey-planner-label text-xs font-medium tracking-wide uppercase">Linked stays</p>
+                            <p className="journey-planner-title mt-1 text-lg font-semibold">
                               {activeDay.places.filter(place => (place.bookingEndDayNumber ?? activeDay.dayNumber) > activeDay.dayNumber || (place.bookingStartDayNumber ?? activeDay.dayNumber) < activeDay.dayNumber).length}
                             </p>
                           </div>
@@ -1045,17 +1045,17 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
                       <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
                         {PLACE_TYPE_CONFIG.map(item => (
                           <button
-                            className="rounded-3xl border border-slate-200 bg-slate-50 p-4 text-left transition-all hover:-translate-y-0.5 hover:border-[#160E53]/30 hover:bg-white hover:shadow-sm"
+                            className="journey-planner-subcard rounded-3xl border p-4 text-left transition-all hover:-translate-y-0.5"
                             key={item.title}
                             onClick={() => handleAddCategory(item.type)}
                             type="button"
                           >
-                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-[#160E53] shadow-sm">
+                            <div className="journey-planner-icon-tile flex h-11 w-11 items-center justify-center rounded-2xl">
                               {item.icon}
                             </div>
-                            <h3 className="mt-4 text-base font-semibold text-slate-900">{item.title}</h3>
-                            <p className="mt-1 text-sm leading-6 text-slate-500">{item.description}</p>
-                            <div className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-[#160E53]">
+                            <h3 className="journey-planner-title mt-4 text-base font-semibold">{item.title}</h3>
+                            <p className="journey-planner-copy mt-1 text-sm leading-6">{item.description}</p>
+                            <div className="journey-planner-accent-link mt-4 inline-flex items-center gap-2 text-sm font-medium">
                               <PlusIcon className="h-4 w-4" />
                               {item.type === 'NOTES' ? 'Open notes' : 'Add item'}
                             </div>
@@ -1070,16 +1070,16 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
                       { items: groupedPlaces[PlaceType.FOOD], title: 'Food' },
                       { items: groupedPlaces[PlaceType.TRANSPORT], title: 'Transport' },
                     ].map(section => (
-                      <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6" key={section.title}>
+                      <section className="journey-planner-card rounded-[28px] border p-5 sm:p-6" key={section.title}>
                         <div className="flex items-center justify-between gap-4">
                           <div>
-                            <p className="text-xs font-semibold tracking-[0.22em] text-slate-400 uppercase">{section.title}</p>
-                            <h3 className="mt-2 text-xl font-semibold tracking-tight text-slate-900">
+                            <p className="journey-planner-label text-xs font-semibold tracking-[0.22em] uppercase">{section.title}</p>
+                            <h3 className="journey-planner-title mt-2 text-xl font-semibold tracking-tight">
                               {section.items.length > 0 ? `${section.items.length} planned` : `No ${section.title.toLowerCase()} added yet`}
                             </h3>
                           </div>
                           <button
-                            className="inline-flex items-center gap-2 rounded-full border border-[#160E53]/15 bg-[#160E53]/5 px-4 py-2 text-sm font-medium text-[#160E53] transition-colors hover:bg-[#160E53] hover:text-white"
+                            className="journey-planner-soft-button inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors"
                             onClick={() => handleAddCategory(section.items[0]?.type ?? (section.title === 'Stay' ? PlaceType.STAY : section.title === 'Food' ? PlaceType.FOOD : section.title === 'Transport' ? PlaceType.TRANSPORT : PlaceType.ACTIVITY))}
                             type="button"
                           >
@@ -1094,7 +1094,7 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
                           {section.items.length > 0
                             ? section.items.map(renderPlaceEditor)
                             : (
-                                <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-5 py-6 text-sm text-slate-500">
+                                <div className="journey-planner-empty-state rounded-3xl border border-dashed px-5 py-6 text-sm">
                                   No
                                   {' '}
                                   {section.title.toLowerCase()}
@@ -1106,12 +1106,12 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
                       </section>
                     ))}
 
-                    <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                      <p className="text-xs font-semibold tracking-[0.22em] text-slate-400 uppercase">Notes</p>
-                      <h3 className="mt-2 text-xl font-semibold tracking-tight text-slate-900">Day notes and context</h3>
+                    <section className="journey-planner-card rounded-[28px] border p-5 sm:p-6">
+                      <p className="journey-planner-label text-xs font-semibold tracking-[0.22em] uppercase">Notes</p>
+                      <h3 className="journey-planner-title mt-2 text-xl font-semibold tracking-tight">Day notes and context</h3>
                       <textarea
                         ref={notesRef}
-                        className="mt-5 min-h-40 w-full rounded-3xl border border-slate-200 px-4 py-4 text-sm leading-6 text-slate-900 transition outline-none focus:border-[#160E53] focus:ring-2 focus:ring-[#160E53]/15"
+                        className="journey-planner-field mt-5 min-h-40 w-full rounded-3xl border px-4 py-4 text-sm leading-6 transition outline-none"
                         onChange={event => updateDayNotes(activeDay.id, event.target.value)}
                         placeholder="Capture what happened, what worked well, and what future travelers should know."
                         value={activeDay.notes ?? ''}
@@ -1123,12 +1123,12 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
           </div>
 
           <aside className="space-y-6 xl:sticky xl:top-6 xl:self-start">
-            <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-              <p className="text-xs font-semibold tracking-[0.22em] text-slate-400 uppercase">Map preview</p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">Journey route builds live</h2>
-              <p className="mt-2 text-sm text-slate-500">Every stop with coordinates appears on the map while the itinerary is being built.</p>
+            <section className="journey-planner-card rounded-[28px] border p-5 sm:p-6">
+              <p className="journey-planner-label text-xs font-semibold tracking-[0.22em] uppercase">Map preview</p>
+              <h2 className="journey-planner-title mt-2 text-2xl font-semibold tracking-tight">Journey route builds live</h2>
+              <p className="journey-planner-copy mt-2 text-sm">Every stop with coordinates appears on the map while the itinerary is being built.</p>
 
-              <div className="mt-5 overflow-hidden rounded-[24px] border border-slate-200 bg-slate-100">
+              <div className="journey-planner-subcard mt-5 overflow-hidden rounded-[24px] border">
                 <div className="h-[420px]">
                   <JourneyCreateMapPanel
                     days={values.days}
@@ -1140,21 +1140,21 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
               </div>
             </section>
 
-            <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-              <p className="text-xs font-semibold tracking-[0.22em] text-slate-400 uppercase">Journey health</p>
+            <section className="journey-planner-card rounded-[28px] border p-5 sm:p-6">
+              <p className="journey-planner-label text-xs font-semibold tracking-[0.22em] uppercase">Journey health</p>
               <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <p className="text-xs font-medium tracking-wide text-slate-400 uppercase">Days</p>
-                  <p className="mt-2 text-2xl font-semibold text-slate-900">{values.days.length}</p>
+                <div className="journey-planner-subcard rounded-2xl border p-4">
+                  <p className="journey-planner-label text-xs font-medium tracking-wide uppercase">Days</p>
+                  <p className="journey-planner-title mt-2 text-2xl font-semibold">{values.days.length}</p>
                 </div>
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <p className="text-xs font-medium tracking-wide text-slate-400 uppercase">Photos</p>
-                  <p className="mt-2 text-2xl font-semibold text-slate-900">{totalPhotos}</p>
+                <div className="journey-planner-subcard rounded-2xl border p-4">
+                  <p className="journey-planner-label text-xs font-medium tracking-wide uppercase">Photos</p>
+                  <p className="journey-planner-title mt-2 text-2xl font-semibold">{totalPhotos}</p>
                 </div>
               </div>
 
               <button
-                className="mt-5 w-full rounded-2xl bg-[#160E53] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#241A7A] disabled:cursor-not-allowed disabled:opacity-60"
+                className="journey-planner-primary-button mt-5 w-full rounded-2xl px-4 py-3 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={isSubmitting}
                 onClick={handleOpenReview}
                 type="button"

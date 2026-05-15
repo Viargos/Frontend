@@ -44,7 +44,7 @@ function RecommendationAvatar(props: Pick<DashboardProfileRecommendation, 'profi
   }
 
   return (
-    <div className="dashboard-recommendation-avatar flex h-10 w-10 items-center justify-center rounded-full bg-[#160E53] text-sm font-semibold text-white">
+    <div className="dashboard-recommendation-avatar flex h-10 w-10 items-center justify-center rounded-full border bg-[#160E53] text-sm font-semibold text-white">
       {username.charAt(0).toUpperCase()}
     </div>
   );
@@ -59,8 +59,8 @@ export const ProfileItem = (props: ProfileItemProps) => {
 
   return (
     <div className={cn(
-      'dashboard-recommendation-item group flex items-start gap-3 rounded-2xl px-3 py-3 transition-colors duration-200 hover:bg-gray-50/90',
-      profile.isFollowing ? 'bg-gray-50/60' : undefined,
+      'dashboard-recommendation-item group flex items-start gap-3 rounded-2xl border border-transparent px-3 py-3 transition-all duration-200 hover:border-white/8 hover:bg-white/[0.04]',
+      profile.isFollowing ? 'dashboard-recommendation-item-active bg-white/[0.05]' : undefined,
     )}
     >
       <Link className="min-w-0 flex-1" href={`/profile/${profile.username}`}>
@@ -69,22 +69,22 @@ export const ProfileItem = (props: ProfileItemProps) => {
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <span className="dashboard-recommendation-title truncate text-sm font-semibold text-gray-950 transition-colors group-hover:text-[#160E53]">
+              <span className="dashboard-recommendation-title truncate text-sm font-semibold text-slate-100 transition-colors group-hover:text-[#f8d775]">
                 {profile.username}
               </span>
               {profile.category
                 ? (
-                    <span className="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-500">
+                    <span className="dashboard-recommendation-badge shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium">
                       {profile.category}
                     </span>
                   )
                 : null}
             </div>
 
-            <p className="mt-1 line-clamp-2 text-xs leading-5 text-gray-500">
+            <p className="dashboard-recommendation-description mt-1 line-clamp-2 text-xs leading-5">
               {profile.descriptor}
             </p>
-            <p className="mt-1 text-[11px] font-medium text-gray-400">
+            <p className="dashboard-recommendation-muted mt-1 text-[11px] font-medium">
               {formatFollowers(profile.followersCount)}
             </p>
           </div>

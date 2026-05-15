@@ -122,21 +122,21 @@ export const PlaceCard = (props: PlaceCardProps) => {
 
   return (
     <div className="relative flex items-start">
-      <div className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-sm sm:flex">
-        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#160E53] text-white">
+      <div className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] shadow-[0_12px_30px_-20px_rgba(0,0,0,0.85)] sm:flex">
+        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#f8d775] text-slate-950">
           <PlaceTypeIcon size={16} type={place.type} />
         </div>
       </div>
 
       <div className="w-full min-w-0 flex-1 sm:ml-4 md:ml-5">
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg">
+        <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-[0_24px_60px_-36px_rgba(0,0,0,0.9)] transition-all hover:-translate-y-0.5 hover:border-white/15 hover:bg-white/[0.06]">
           <div className="flex flex-col lg:flex-row">
-            <div className="relative h-48 w-full shrink-0 bg-slate-100 lg:h-auto lg:w-[220px]">
+            <div className="relative h-48 w-full shrink-0 bg-slate-900 lg:h-auto lg:w-[220px]">
               {place.media.length > 0 && place.media[0]
                 ? <Image alt={place.name} className="object-cover" fill sizes="(max-width: 1024px) 100vw, 220px" src={place.media[0].url} />
                 : (
-                    <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-slate-100 via-white to-slate-200">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#160E53] text-white shadow-lg">
+                    <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(180deg,rgba(15,23,42,0.95)_0%,rgba(30,41,59,0.82)_100%)]">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f8d775] text-slate-950 shadow-[0_18px_38px_-24px_rgba(248,215,117,0.8)]">
                         <PlaceTypeIcon size={22} type={place.type} />
                       </div>
                     </div>
@@ -164,13 +164,13 @@ export const PlaceCard = (props: PlaceCardProps) => {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="hidden sm:flex">
-                    <Badge className="border-[#160E53]/10 bg-[#160E53]/5 text-[#160E53]" variant="muted">
+                    <Badge className="border-[#f8d775]/20 bg-[#f8d775]/10 text-[#f8d775]" variant="muted">
                       <PlaceTypeIcon size={12} type={place.type} />
                       {getTypeLabel(place.type)}
                     </Badge>
                   </div>
 
-                  <h3 className="mt-2 line-clamp-2 text-lg font-semibold tracking-tight text-slate-900">
+                  <h3 className="mt-2 line-clamp-2 text-lg font-semibold tracking-tight text-slate-100">
                     {place.name}
                   </h3>
                 </div>
@@ -178,7 +178,7 @@ export const PlaceCard = (props: PlaceCardProps) => {
                 {place.media.length > 0
                   ? (
                       <button
-                        className="hidden shrink-0 items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:border-[#160E53]/30 hover:text-[#160E53] sm:inline-flex"
+                        className="hidden shrink-0 items-center gap-1 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-sm font-medium text-slate-200 transition-all hover:border-[#f8d775]/30 hover:bg-[#f8d775]/10 hover:text-[#f8d775] sm:inline-flex"
                         onClick={() => onOpenMedia(place.media, 0)}
                         type="button"
                       >
@@ -192,7 +192,7 @@ export const PlaceCard = (props: PlaceCardProps) => {
               <div className="mt-4 flex flex-wrap gap-2">
                 {bookingRange
                   ? (
-                      <div className="inline-flex items-center gap-2 rounded-full bg-[#160E53]/5 px-3 py-1.5 text-xs text-[#160E53]">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-[#f8d775]/15 bg-[#f8d775]/10 px-3 py-1.5 text-xs text-[#f8d775]">
                         <HotelIcon size={12} />
                         <span>{bookingRange}</span>
                       </div>
@@ -201,7 +201,7 @@ export const PlaceCard = (props: PlaceCardProps) => {
 
                 {place.address
                   ? (
-                      <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-xs text-slate-600">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.05] px-3 py-1.5 text-xs text-slate-400">
                         <MapPinIcon size={12} />
                         <span className="line-clamp-1">{place.address}</span>
                       </div>
@@ -210,7 +210,7 @@ export const PlaceCard = (props: PlaceCardProps) => {
 
                 {timeRange
                   ? (
-                      <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-xs text-slate-600">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.05] px-3 py-1.5 text-xs text-slate-400">
                         <ClockIcon size={12} />
                         <span>{timeRange}</span>
                       </div>
@@ -219,13 +219,13 @@ export const PlaceCard = (props: PlaceCardProps) => {
               </div>
 
               {place.description
-                ? <p className="mt-4 text-sm leading-6 text-slate-600">{place.description}</p>
+                ? <p className="mt-4 text-sm leading-6 text-slate-400">{place.description}</p>
                 : null}
 
               {place.media.length > 0
                 ? (
                     <button
-                      className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#160E53] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#241A7A] sm:hidden"
+                      className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#f8d775] px-4 py-3 text-sm font-medium text-slate-950 transition-colors hover:bg-[#f5cf54] sm:hidden"
                       onClick={() => onOpenMedia(place.media, 0)}
                       type="button"
                     >

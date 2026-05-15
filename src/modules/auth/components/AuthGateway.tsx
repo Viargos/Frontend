@@ -5,13 +5,50 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuthSession } from '@/modules/auth/hooks/use-auth-session';
-import { AppLogo } from '@/modules/common';
+import { AppLogo, useTheme } from '@/modules/common';
 
 export const AuthGateway = () => {
   const router = useRouter();
   const { session, signOut } = useAuthSession();
+  const { isDark } = useTheme();
   const [isLoading, setIsLoading] = useState(true);
   const [showContent, setShowContent] = useState(false);
+
+  const themeStyles = {
+    header: {
+      background: isDark ? 'rgba(25, 31, 39, 0.94)' : 'rgba(255, 255, 255, 0.92)',
+      borderColor: isDark ? '#2f3744' : '#e5e7eb',
+    },
+    hero: {
+      background: isDark
+        ? 'linear-gradient(180deg, #161b23 0%, #1b2230 48%, #131821 100%)'
+        : 'linear-gradient(180deg, #ffffff 0%, #f7f8fd 48%, #eef1ff 100%)',
+    },
+    illustration: {
+      filter: 'none',
+      opacity: isDark ? 0.9 : 0.95,
+    },
+    primaryButton: {
+      background: isDark ? '#eef2ff' : '#160e53',
+      boxShadow: isDark
+        ? '0 18px 36px -22px rgba(0, 0, 0, 0.85)'
+        : '0 14px 30px -18px rgba(22, 14, 83, 0.55)',
+      color: isDark ? '#111827' : '#ffffff',
+    },
+    secondaryButton: {
+      background: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(255, 255, 255, 0.76)',
+      borderColor: isDark ? '#596273' : '#d1d5db',
+      color: isDark ? '#edf2f7' : '#374151',
+    },
+    shell: {
+      background: isDark
+        ? 'linear-gradient(180deg, #11151b 0%, #171c24 48%, #12161d 100%)'
+        : 'linear-gradient(180deg, #f8fafc 0%, #ffffff 48%, #f1f5f9 100%)',
+    },
+    titleAccent: {
+      color: isDark ? '#b8c7ff' : '#160e53',
+    },
+  };
 
   useEffect(() => {
     let contentTimer: ReturnType<typeof setTimeout> | undefined;
@@ -56,14 +93,16 @@ export const AuthGateway = () => {
         : (
             <motion.div
               animate={{ opacity: 1 }}
-              className="min-h-screen bg-linear-to-b from-slate-50 via-white to-slate-100"
+              className="auth-gateway-shell flex min-h-screen flex-col"
               initial={{ opacity: 0 }}
+              style={themeStyles.shell}
               transition={{ duration: 0.8 }}
             >
               <motion.div
                 animate={{ y: 0, opacity: 1 }}
-                className="w-full border-b border-gray-200 bg-white px-4"
+                className="auth-gateway-header w-full border-b px-4"
                 initial={{ y: -20, opacity: 0 }}
+                style={themeStyles.header}
                 transition={{ duration: 0.6, delay: 0.1 }}
               >
                 <div className="mx-auto flex max-w-7xl items-center justify-between py-4">
@@ -71,7 +110,8 @@ export const AuthGateway = () => {
                   {session.isAuthenticated
                     ? (
                         <button
-                          className="rounded-xl border-2 border-gray-300 px-4 py-3 text-sm font-semibold text-gray-700 transition-all hover:border-gray-400 hover:bg-gray-50 sm:text-lg"
+                          className="auth-gateway-secondary-button rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-all sm:text-lg"
+                          style={themeStyles.secondaryButton}
                           type="button"
                           onClick={async () => {
                             await signOut();
@@ -85,16 +125,17 @@ export const AuthGateway = () => {
                 </div>
               </motion.div>
 
-              <div className="relative min-h-[700px] w-full overflow-hidden sm:min-h-[800px]">
-                <div className="absolute inset-0 bg-linear-to-b from-white via-[#F7F8FD] to-[#EEF1FF]" />
-                <div className="pointer-events-none absolute inset-x-0 top-12 bottom-0 opacity-95">
+              <div className="relative min-h-[700px] w-full flex-1 overflow-hidden sm:min-h-[800px]">
+                <div className="auth-gateway-hero-bg absolute inset-0" style={themeStyles.hero} />
+                <div className="pointer-events-none absolute inset-x-0 top-12 bottom-0 xl:top-0">
                   <Image
                     alt="Viargos travel illustration"
-                    className="object-contain object-bottom"
+                    className="auth-gateway-illustration object-contain object-bottom xl:object-cover xl:object-[center_86%]"
                     fill
                     priority
                     sizes="100vw"
-                    src="/hero.svg"
+                    src={isDark ? '/hero-dark.svg' : '/hero.svg'}
+                    style={themeStyles.illustration}
                     unoptimized
                   />
                 </div>
@@ -106,7 +147,7 @@ export const AuthGateway = () => {
                   >
                     Welcome to
                     {' '}
-                    <span className="text-blue-600">Viargos</span>
+                    <span className="auth-gateway-title-accent" style={themeStyles.titleAccent}>Viargos</span>
                   </motion.h1>
 
                   <motion.p
@@ -126,7 +167,8 @@ export const AuthGateway = () => {
                     {session.isAuthenticated
                       ? (
                           <button
-                            className="cursor-pointer rounded-xl bg-[#160E53] px-4 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:bg-[#001456] sm:px-8 sm:py-4 sm:text-lg"
+                            className="auth-gateway-primary-button cursor-pointer rounded-xl px-4 py-3 text-sm font-semibold shadow-lg transition-all sm:px-8 sm:py-4 sm:text-lg"
+                            style={themeStyles.primaryButton}
                             type="button"
                             onClick={() => router.push('/dashboard')}
                           >
@@ -136,14 +178,16 @@ export const AuthGateway = () => {
                       : (
                           <>
                             <button
-                              className="cursor-pointer rounded-xl bg-[#160E53] px-4 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:bg-[#001456] sm:px-8 sm:py-4 sm:text-lg"
+                              className="auth-gateway-primary-button cursor-pointer rounded-xl px-4 py-3 text-sm font-semibold shadow-lg transition-all sm:px-8 sm:py-4 sm:text-lg"
+                              style={themeStyles.primaryButton}
                               type="button"
                               onClick={() => router.push('/register')}
                             >
                               Start Your Journey
                             </button>
                             <button
-                              className="cursor-pointer rounded-xl border-2 border-gray-300 px-4 py-3 text-sm font-semibold text-gray-700 transition-all hover:border-gray-400 hover:bg-gray-50 sm:px-8 sm:py-4 sm:text-lg"
+                              className="auth-gateway-secondary-button cursor-pointer rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-all sm:px-8 sm:py-4 sm:text-lg"
+                              style={themeStyles.secondaryButton}
                               type="button"
                               onClick={() => router.push('/login')}
                             >

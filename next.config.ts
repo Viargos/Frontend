@@ -14,8 +14,13 @@ const baseConfig: NextConfig = {
     ],
   },
   experimental: {
+    dynamicOnHover: true,
     fetchCacheKeyPrefix: 'v1',
     optimizePackageImports: ['@/modules/common', '@/modules/admin'],
+    staleTimes: {
+      dynamic: 120,
+      static: 300,
+    },
   },
   async headers() {
     return [

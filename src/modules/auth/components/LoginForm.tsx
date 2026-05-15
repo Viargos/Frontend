@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { useAuthActions } from '@/modules/auth/hooks/use-auth-actions';
 import { toAuthServiceError } from '@/modules/auth/services/auth.errors';
 import { loginSchema } from '@/modules/auth/validations/auth.validation';
-import { Button } from '@/modules/common';
+import { Button, useTheme } from '@/modules/common';
 
 type LoginFormProps = {
   onSuccess: (result: AuthSigninResult) => void;
@@ -19,6 +19,7 @@ type LoginFormProps = {
 export const LoginForm = (props: LoginFormProps) => {
   const { onErrorChange, onForgotPassword, onSuccess, onSwitchToSignup } = props;
   const { signin } = useAuthActions();
+  const { isDark } = useTheme();
 
   const {
     formState: { errors, isSubmitting },
@@ -33,7 +34,16 @@ export const LoginForm = (props: LoginFormProps) => {
   const email = watch('email') ?? '';
   const password = watch('password') ?? '';
 
-  const inputClassName = 'h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50';
+  const inputClassName = isDark
+    ? 'h-10 w-full rounded-lg border border-[#465060] bg-[#20262f] px-3 text-sm text-[#f6f7fb] placeholder:text-[#8a95a6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b8c7ff] disabled:cursor-not-allowed disabled:opacity-50'
+    : 'h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50';
+  const labelClassName = isDark ? 'mb-1 block text-sm text-[#d8deea]' : 'mb-1 block text-sm text-gray-700';
+  const linkClassName = isDark
+    ? 'text-[#c7d2fe] transition hover:text-white'
+    : 'text-[#160E53] transition hover:text-[#0D0A3D]';
+  const submitClassName = isDark
+    ? 'w-full bg-[#eef2ff] text-[#111827] hover:bg-[#dbe4ff]'
+    : 'w-full';
 
   const onSubmit = async (values: LoginSchemaValues) => {
     onErrorChange(null);
@@ -56,7 +66,7 @@ export const LoginForm = (props: LoginFormProps) => {
   return (
     <form className="space-y-4" noValidate onSubmit={handleSubmit(onSubmit)}>
       <div>
-        <label className="mb-1 block text-sm text-gray-700" htmlFor="login-email">Email</label>
+        <label className={labelClassName} htmlFor="login-email">Email</label>
         <input
           autoComplete="email"
           className={inputClassName}
@@ -70,7 +80,7 @@ export const LoginForm = (props: LoginFormProps) => {
       </div>
 
       <div>
-        <label className="mb-1 block text-sm text-gray-700" htmlFor="login-password">Password</label>
+        <label className={labelClassName} htmlFor="login-password">Password</label>
         <input
           autoComplete="current-password"
           className={inputClassName}
@@ -84,15 +94,15 @@ export const LoginForm = (props: LoginFormProps) => {
       </div>
 
       <div className="flex justify-between text-sm">
-        <button className="text-[#160E53] hover:text-[#0D0A3D]" type="button" onClick={onForgotPassword}>
+        <button className={linkClassName} type="button" onClick={onForgotPassword}>
           Forgot password?
         </button>
-        <button className="text-[#160E53] hover:text-[#0D0A3D]" type="button" onClick={onSwitchToSignup}>
+        <button className={linkClassName} type="button" onClick={onSwitchToSignup}>
           Create account
         </button>
       </div>
 
-      <Button className="w-full" disabled={isSubmitting || !email || !password} type="submit" variant="default">
+      <Button className={submitClassName} disabled={isSubmitting || !email || !password} type="submit" variant="default">
         {isSubmitting ? 'Signing in...' : 'Sign in'}
       </Button>
     </form>

@@ -6,6 +6,8 @@ export function createQueryClient(): QueryClient {
     defaultOptions: {
       queries: {
         gcTime: appConfig.reactQuery.gcTimeMs,
+        refetchOnMount: false,
+        refetchOnReconnect: false,
         refetchOnWindowFocus: appConfig.reactQuery.refetchOnWindowFocus,
         retry: appConfig.reactQuery.retry,
         staleTime: appConfig.reactQuery.staleTimeMs,

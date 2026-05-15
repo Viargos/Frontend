@@ -76,7 +76,7 @@ export function JourneyCreateMapPanel(props: JourneyCreateMapPanelProps) {
 
   if (!hasApiKey) {
     return (
-      <div className="flex h-full items-center justify-center bg-gray-100 px-4 text-center text-sm text-gray-600">
+      <div className="journey-planner-subcard journey-planner-copy flex h-full items-center justify-center px-4 text-center text-sm">
         Google Maps key is missing. Add `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` to `.env.local`.
       </div>
     );
@@ -92,8 +92,8 @@ export function JourneyCreateMapPanel(props: JourneyCreateMapPanelProps) {
 
   if (!isLoaded) {
     return (
-      <div className="flex h-full items-center justify-center bg-gray-100">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-[#160E53]" />
+      <div className="journey-planner-subcard flex h-full items-center justify-center">
+        <div className="journey-planner-spinner h-8 w-8 animate-spin rounded-full border-4" />
       </div>
     );
   }

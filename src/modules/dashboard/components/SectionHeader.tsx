@@ -19,22 +19,22 @@ export const SectionHeader = (props: SectionHeaderProps) => {
           <div className="flex items-center gap-2">
             {icon
               ? (
-                  <div className="dashboard-section-icon flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-[#160E53]/8 text-[#160E53] ring-1 ring-[#160E53]/10">
+                  <div className="dashboard-section-icon flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl border border-[#f8d775]/20 bg-[#f8d775]/10 text-[#f8d775] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
                     {icon}
                   </div>
                 )
               : null}
-            <h2 className="text-[15px] font-semibold tracking-tight text-gray-950">{title}</h2>
+            <h2 className="dashboard-section-title text-[15px] font-semibold tracking-tight text-slate-100">{title}</h2>
           </div>
           {description
-            ? <p className="mt-1 text-xs leading-5 text-gray-500">{description}</p>
+            ? <p className="dashboard-section-description mt-1 text-xs leading-5 text-slate-400">{description}</p>
             : null}
         </div>
 
         {actionLabel && onAction
           ? (
               <button
-                className="shrink-0 rounded-full px-2.5 py-1 text-xs font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+                className="dashboard-section-action shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={disabled}
                 onClick={onAction}
                 type="button"
