@@ -9,11 +9,12 @@ import { ChevronRightIcon, FileTextIcon, JourneyIcon, TrashIcon } from '@/module
 
 type ProfileJourneyCardProps = {
   index: number;
+  isOwnProfile?: boolean;
   journey: ProfileJourney;
 };
 
 export const ProfileJourneyCard = (props: ProfileJourneyCardProps) => {
-  const { index, journey } = props;
+  const { index, isOwnProfile = false, journey } = props;
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -85,32 +86,36 @@ export const ProfileJourneyCard = (props: ProfileJourneyCardProps) => {
 
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-          <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5 opacity-100 transition-opacity duration-200 sm:top-3 sm:right-3 sm:gap-2 sm:opacity-0 sm:group-hover:opacity-100">
-            <button
-              aria-label="Edit journey"
-              onClick={(event) => {
-                event.stopPropagation();
-                router.push(`/edit-journey/${journey.id}`);
-              }}
-              className="rounded-full border border-white/12 bg-slate-950/70 p-1.5 text-slate-100 shadow-[0_14px_30px_-20px_rgba(0,0,0,0.95)] backdrop-blur-md transition-all hover:border-[#f8d775]/30 hover:bg-slate-950/85 hover:text-[#f8d775] sm:p-2"
-              title="Edit journey"
-              type="button"
-            >
-              <FileTextIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            </button>
-            <button
-              aria-label="Delete journey"
-              onClick={(event) => {
-                event.stopPropagation();
-                setShowDeleteConfirm(true);
-              }}
-              className="rounded-full border border-white/12 bg-slate-950/70 p-1.5 text-rose-300 shadow-[0_14px_30px_-20px_rgba(0,0,0,0.95)] backdrop-blur-md transition-all hover:border-rose-400/30 hover:bg-slate-950/85 hover:text-rose-200 sm:p-2"
-              title="Delete journey"
-              type="button"
-            >
-              <TrashIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            </button>
-          </div>
+          {isOwnProfile
+            ? (
+                <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5 opacity-100 transition-opacity duration-200 sm:top-3 sm:right-3 sm:gap-2 sm:opacity-0 sm:group-hover:opacity-100">
+                  <button
+                    aria-label="Edit journey"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      router.push(`/edit-journey/${journey.id}`);
+                    }}
+                    className="rounded-full border border-white/12 bg-slate-950/70 p-1.5 text-slate-100 shadow-[0_14px_30px_-20px_rgba(0,0,0,0.95)] backdrop-blur-md transition-all hover:border-[#f8d775]/30 hover:bg-slate-950/85 hover:text-[#f8d775] sm:p-2"
+                    title="Edit journey"
+                    type="button"
+                  >
+                    <FileTextIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  </button>
+                  <button
+                    aria-label="Delete journey"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setShowDeleteConfirm(true);
+                    }}
+                    className="rounded-full border border-white/12 bg-slate-950/70 p-1.5 text-rose-300 shadow-[0_14px_30px_-20px_rgba(0,0,0,0.95)] backdrop-blur-md transition-all hover:border-rose-400/30 hover:bg-slate-950/85 hover:text-rose-200 sm:p-2"
+                    title="Delete journey"
+                    type="button"
+                  >
+                    <TrashIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  </button>
+                </div>
+              )
+            : null}
         </div>
 
         <div className="flex flex-1 flex-col justify-between">
@@ -170,7 +175,7 @@ export const ProfileJourneyCard = (props: ProfileJourneyCardProps) => {
         </div>
       </div>
 
-      {showDeleteConfirm
+      {isOwnProfile && showDeleteConfirm
         ? (
             <div
               className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"

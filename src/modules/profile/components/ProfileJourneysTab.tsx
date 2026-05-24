@@ -54,8 +54,9 @@ export const ProfileJourneysTab = (props: ProfileJourneysTabProps) => {
                   {journeys.map((journey, index) => (
                     <ProfileJourneyCard
                       key={journey.id}
-                      journey={journey}
                       index={index}
+                      isOwnProfile={isOwnProfile}
+                      journey={journey}
                     />
                   ))}
                 </div>

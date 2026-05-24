@@ -97,6 +97,20 @@ function JourneyPillLink(props: { journeyId: string }) {
   );
 }
 
+function PostLocationLabel(props: { location: string; title?: string }) {
+  const { location, title } = props;
+
+  return (
+    <p
+      className="dashboard-post-accent flex max-w-[45%] shrink-0 items-center gap-1.5 text-xs sm:max-w-[50%]"
+      title={title ?? location}
+    >
+      <MapPinIcon className="h-3.5 w-3.5 shrink-0" />
+      <span className="truncate">{location}</span>
+    </p>
+  );
+}
+
 function ActionBar(
   props: Pick<
     PostLayoutProps,
@@ -180,27 +194,34 @@ function MediaPost(props: PostLayoutProps) {
 
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-24 bg-linear-to-t from-black/70 to-transparent" />
 
-        {post.location && !post.journey && (
-          <div className="dashboard-post-floating-chip absolute top-3 left-3 z-20 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs text-white">
-            <MapPinIcon className="h-3.5 w-3.5 shrink-0 text-white" />
-            <span className="max-w-[140px] truncate">{post.location}</span>
-          </div>
-        )}
+        <div className="absolute inset-x-3 bottom-3 z-20 flex items-center justify-between gap-3">
+          <Link
+            className="group/avatar flex min-w-0 items-center gap-2.5"
+            href={`/profile/${post.user.username}`}
+          >
+            <UserAvatar
+              profileImage={post.user.profileImage}
+              ring="white"
+              size="sm"
+              username={post.user.username}
+            />
+            <span className="truncate text-sm font-semibold text-white drop-shadow-md transition-all group-hover/avatar:underline">
+              {post.user.username}
+            </span>
+          </Link>
 
-        <button
-          className="group/avatar absolute bottom-3 left-3 z-20 flex items-center gap-2.5"
-          type="button"
-        >
-          <UserAvatar
-            profileImage={post.user.profileImage}
-            ring="white"
-            size="sm"
-            username={post.user.username}
-          />
-          <span className="text-sm font-semibold text-white drop-shadow-md transition-all group-hover/avatar:underline">
-            {post.user.username}
-          </span>
-        </button>
+          {post.location
+            ? (
+                <div
+                  className="dashboard-post-floating-chip flex max-w-[45%] shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs text-white"
+                  title={post.location}
+                >
+                  <MapPinIcon className="h-3.5 w-3.5 shrink-0 text-white" />
+                  <span className="truncate">{post.location}</span>
+                </div>
+              )
+            : null}
+        </div>
       </div>
 
       <div className="dashboard-post-body px-4 pt-4 pb-1">
@@ -222,15 +243,6 @@ function MediaPost(props: PostLayoutProps) {
             </p>
           </div>
         )}
-        {post.location && !post.journey && (
-          <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
-            <p className="dashboard-post-accent flex items-center gap-1.5 text-xs" title={`${post.location} - ${timeAgo}`}>
-              <MapPinIcon className="h-3.5 w-3.5 shrink-0" />
-              <span className="max-w-[180px] truncate" title={`${post.location} - ${timeAgo}`}>{post.location}</span>
-            </p>
-          </div>
-        )}
-
         <p className="dashboard-post-text text-sm leading-relaxed">{post.description}</p>
       </div>
 
@@ -267,9 +279,9 @@ function TextPost(props: PostLayoutProps) {
 
         <div className="min-w-0 flex-1 px-4 pt-4 pb-2">
           <div className="mb-3 flex items-start justify-between gap-3">
-            <button
-              className="flex w-[178px] min-w-0 items-center gap-3 transition-opacity hover:opacity-80"
-              type="button"
+            <Link
+              className="flex min-w-0 flex-1 items-center gap-3 transition-opacity hover:opacity-80"
+              href={`/profile/${post.user.username}`}
             >
               <UserAvatar
                 profileImage={post.user.profileImage}
@@ -284,31 +296,17 @@ function TextPost(props: PostLayoutProps) {
                   <span title={timeAgo}>{timeAgo}</span>
                 </p>
               </div>
-            </button>
+            </Link>
 
-            {post.journey && (
-              <div className="shrink-0">
-                <JourneyPillLink journeyId={post.journey.id} />
-              </div>
-            )}
-          </div>
-
-          {(post.location || post.journey) && (
-            <div className="mb-2.5 flex items-center gap-1.5">
-              <MapPinIcon className="dashboard-post-accent h-3.5 w-3.5 shrink-0" />
-              {post.journey && (
-                <button
-                  className="dashboard-post-accent truncate text-xs font-semibold underline-offset-2 hover:underline"
-                  type="button"
-                >
-                  {post.journey.title}
-                </button>
-              )}
-              {post.location && (
-                <span className="dashboard-post-muted truncate text-xs">{post.location}</span>
-              )}
+            <div className="flex shrink-0 flex-col items-end gap-2">
+              {post.location
+                ? <PostLocationLabel location={post.location} title={`${post.location} - ${timeAgo}`} />
+                : null}
+              {post.journey
+                ? <JourneyPillLink journeyId={post.journey.id} />
+                : null}
             </div>
-          )}
+          </div>
 
           <p className="dashboard-post-text text-sm leading-relaxed">{post.description}</p>
         </div>

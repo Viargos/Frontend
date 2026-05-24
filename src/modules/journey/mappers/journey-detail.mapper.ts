@@ -45,5 +45,12 @@ export function mapJourneyDetail(dto: JourneyDetailDto): JourneyDetail {
     id: dto.id,
     title: dto.title,
     updatedAt: dto.updatedAt,
+    user: dto.user?.id
+      ? {
+          email: dto.user.email,
+          id: dto.user.id,
+          username: dto.user.username,
+        }
+      : undefined,
   };
 }

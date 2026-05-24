@@ -5,6 +5,7 @@ import * as motion from 'framer-motion/client';
 import { JourneyCard } from '@/modules/journey/components/JourneyCard';
 
 type JourneyListProps = {
+  currentUserId?: string;
   isLoading?: boolean;
   journeys: JourneyListItem[];
   onCreateJourney?: () => void;
@@ -15,6 +16,7 @@ type JourneyListProps = {
 
 export const JourneyList = (props: JourneyListProps) => {
   const {
+    currentUserId,
     isLoading = false,
     journeys,
     onCreateJourney,
@@ -119,6 +121,7 @@ export const JourneyList = (props: JourneyListProps) => {
       {journeys.map((journey, index) => (
         <JourneyCard
           key={journey.id}
+          currentUserId={currentUserId}
           journey={journey}
           index={index}
           onDelete={onDeleteJourney}

@@ -39,5 +39,10 @@ export type JourneyDetailDto = {
   coverImage?: string;
   createdAt: string;
   updatedAt?: string;
+  user?: {
+    email?: string;
+    id?: string;
+    username?: string;
+  };
   days: JourneyDayDto[];
 };

@@ -9,6 +9,7 @@ import { getAppUrl } from '@/lib/app-config';
 
 type JourneyCardProps = {
   index: number;
+  currentUserId?: string;
   journey: JourneyListItem;
   onDelete?: (journeyId: string) => void;
   onDuplicate?: (journeyId: string) => void;
@@ -50,11 +51,13 @@ function getLocationFromJourney(journey: JourneyListItem): string {
 }
 
 export const JourneyCard = (props: JourneyCardProps) => {
-  const { index, journey, onDelete, onDuplicate, onEdit } = props;
+  const { currentUserId, index, journey, onDelete, onDuplicate, onEdit } = props;
   const [showDropdown, setShowDropdown] = useState(false);
   const router = useRouter();
 
   const placesCount = journey.days?.reduce((total, day) => total + (day.places?.length ?? 0), 0) ?? 0;
+  const ownerId = journey.user?.id;
+  const isOwner = Boolean(currentUserId && ownerId && String(currentUserId) === String(ownerId));
 
   const handleCardClick = () => {
     router.push(`/journey/${journey.id}`);
@@ -116,16 +119,20 @@ export const JourneyCard = (props: JourneyCardProps) => {
           </h3>
 
           <div className="flex items-center gap-1 opacity-100 transition-opacity duration-200 sm:opacity-0 sm:group-hover:opacity-100">
-            <motion.button
-              whileHover={{ scale: 1.06 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleEdit}
-              className="rounded-full border border-gray-200 bg-white p-1.5 text-gray-600 transition-colors hover:border-[#160E53]/30 hover:text-[#160E53]"
-              title="Edit journey"
-              type="button"
-            >
-              <span className="text-xs leading-none sm:text-sm" aria-hidden="true"></span>
-            </motion.button>
+            {isOwner
+              ? (
+                  <motion.button
+                    whileHover={{ scale: 1.06 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleEdit}
+                    className="rounded-full border border-gray-200 bg-white p-1.5 text-gray-600 transition-colors hover:border-[#160E53]/30 hover:text-[#160E53]"
+                    title="Edit journey"
+                    type="button"
+                  >
+                    <span className="text-xs leading-none sm:text-sm" aria-hidden="true"></span>
+                  </motion.button>
+                )
+              : null}
 
             <div className="relative">
               <motion.button
@@ -151,14 +158,18 @@ export const JourneyCard = (props: JourneyCardProps) => {
                       onMouseLeave={() => setShowDropdown(false)}
                     >
                       <div className="py-1">
-                        <button
-                          onClick={handleEdit}
-                          className="flex w-full items-center px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
-                          type="button"
-                        >
-                          <span className="mr-3 text-xs leading-none" aria-hidden="true"></span>
-                          Edit Journey
-                        </button>
+                        {isOwner
+                          ? (
+                              <button
+                                onClick={handleEdit}
+                                className="flex w-full items-center px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+                                type="button"
+                              >
+                                <span className="mr-3 text-xs leading-none" aria-hidden="true"></span>
+                                Edit Journey
+                              </button>
+                            )
+                          : null}
                         <button
                           onClick={handleDuplicate}
                           className="flex w-full items-center px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
@@ -175,15 +186,21 @@ export const JourneyCard = (props: JourneyCardProps) => {
                           <span className="mr-3 text-xs leading-none" aria-hidden="true"></span>
                           Share Journey
                         </button>
-                        <div className="my-1 border-t border-gray-100" />
-                        <button
-                          onClick={handleDelete}
-                          className="flex w-full items-center px-4 py-2 text-sm text-red-600 transition-colors hover:bg-red-50"
-                          type="button"
-                        >
-                          <span className="mr-3 text-xs leading-none" aria-hidden="true"></span>
-                          Delete Journey
-                        </button>
+                        {isOwner
+                          ? (
+                              <>
+                                <div className="my-1 border-t border-gray-100" />
+                                <button
+                                  onClick={handleDelete}
+                                  className="flex w-full items-center px-4 py-2 text-sm text-red-600 transition-colors hover:bg-red-50"
+                                  type="button"
+                                >
+                                  <span className="mr-3 text-xs leading-none" aria-hidden="true"></span>
+                                  Delete Journey
+                                </button>
+                              </>
+                            )
+                          : null}
                       </div>
                     </motion.div>
                   )

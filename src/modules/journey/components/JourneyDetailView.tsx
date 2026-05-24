@@ -4,6 +4,7 @@ import type { JourneyDetail, JourneyMedia, JourneyPlace } from '@/modules/journe
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
+import { useAuthSession } from '@/modules/auth';
 import {
   Badge,
   CalendarIcon,
@@ -91,6 +92,7 @@ function getTotalMediaCount(days: JourneyDetail['days']): number {
 export const JourneyDetailView = (props: JourneyDetailViewProps) => {
   const { journey } = props;
   const router = useRouter();
+  const { session } = useAuthSession();
   const [activeDayNumber, setActiveDayNumber] = useState<number>(journey.days[0]?.dayNumber ?? 0);
   const [selectedMedia, setSelectedMedia] = useState<JourneyMedia[]>([]);
   const [selectedMediaIndex, setSelectedMediaIndex] = useState<number>(0);
@@ -126,6 +128,9 @@ export const JourneyDetailView = (props: JourneyDetailViewProps) => {
   );
 
   const isMediaViewerOpen = selectedMedia.length > 0;
+  const currentUserId = session.user?.id;
+  const ownerId = journey.user?.id;
+  const isOwner = Boolean(currentUserId && ownerId && String(currentUserId) === String(ownerId));
   const hasDayNotes = Boolean(currentDay?.notes?.trim());
   const hasCurrentDayPlaces = (currentDay?.places.length ?? 0) > 0;
   const hasCurrentDayContent = hasCurrentDayPlaces || hasDayNotes;
@@ -151,13 +156,17 @@ export const JourneyDetailView = (props: JourneyDetailViewProps) => {
                 </p>
               </div>
 
-              <Link
-                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-sm font-medium text-slate-200 transition-all hover:border-[#f8d775]/30 hover:bg-[#f8d775]/10 hover:text-[#f8d775]"
-                href={`/edit-journey/${journey.id}`}
-              >
-                <EditIcon size={16} />
-                Edit journey
-              </Link>
+              {isOwner
+                ? (
+                    <Link
+                      className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-sm font-medium text-slate-200 transition-all hover:border-[#f8d775]/30 hover:bg-[#f8d775]/10 hover:text-[#f8d775]"
+                      href={`/edit-journey/${journey.id}`}
+                    >
+                      <EditIcon size={16} />
+                      Edit journey
+                    </Link>
+                  )
+                : null}
             </div>
 
             <div className="mt-6 grid gap-4 md:grid-cols-3">

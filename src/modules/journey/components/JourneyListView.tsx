@@ -3,6 +3,7 @@
 import type { JourneyListItem } from '@/modules/journey/types/journey.types';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useAuthSession } from '@/modules/auth';
 import { JourneyList } from '@/modules/journey/components/JourneyList';
 import { JourneyListHeader } from '@/modules/journey/components/JourneyListHeader';
 import { useJourneyList } from '@/modules/journey/hooks';
@@ -14,6 +15,7 @@ type JourneyListViewProps = {
 export const JourneyListView = (props: JourneyListViewProps) => {
   const { initialJourneys } = props;
   const { deleteJourney, error: queryError, isLoading, journeys } = useJourneyList(initialJourneys);
+  const { session } = useAuthSession();
   const [mutationError, setMutationError] = useState<string | null>(null);
   const router = useRouter();
 
@@ -60,6 +62,7 @@ export const JourneyListView = (props: JourneyListViewProps) => {
       <JourneyListHeader onCreateJourney={handleCreateJourney} />
 
       <JourneyList
+        currentUserId={session.user?.id}
         journeys={journeys}
         isLoading={isLoading}
         onCreateJourney={handleCreateJourney}
