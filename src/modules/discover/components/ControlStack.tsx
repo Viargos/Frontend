@@ -7,8 +7,8 @@ type ControlStackProps = {
   autoSearch: boolean;
   isLoadingLocation: boolean;
   isSidebarOpen: boolean;
+  onExpandSearchRadius: () => void;
   onRefreshLocation: () => void;
-  onSearchGlobal: () => void;
   onToggleAutoSearch: () => void;
   onToggleSidebar: () => void;
 };
@@ -18,8 +18,8 @@ export const ControlStack = (props: ControlStackProps) => {
     autoSearch,
     isLoadingLocation,
     isSidebarOpen,
+    onExpandSearchRadius,
     onRefreshLocation,
-    onSearchGlobal,
     onToggleAutoSearch,
     onToggleSidebar,
   } = props;
@@ -71,8 +71,8 @@ export const ControlStack = (props: ControlStackProps) => {
         className="rounded-lg bg-green-600 p-3 text-white shadow-lg transition-all duration-200 hover:shadow-xl"
         initial={{ opacity: 0, x: 20 }}
         transition={{ delay: 0.3 }}
-        onClick={onSearchGlobal}
-        title="Search Worldwide"
+        onClick={onExpandSearchRadius}
+        title="Expand to 1000km"
         type="button"
       >
         <GlobeIcon aria-hidden="true" className="h-5 w-5" />

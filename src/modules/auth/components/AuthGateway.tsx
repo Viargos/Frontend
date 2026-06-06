@@ -125,7 +125,7 @@ export const AuthGateway = () => {
                 </div>
               </motion.div>
 
-              <div className="relative min-h-[700px] w-full flex-1 overflow-hidden sm:min-h-[800px]">
+              <div className="relative min-h-175 w-full flex-1 overflow-hidden sm:min-h-200">
                 <div className="auth-gateway-hero-bg absolute inset-0" style={themeStyles.hero} />
                 <div className="pointer-events-none absolute inset-x-0 top-12 bottom-0 xl:top-0">
                   <Image

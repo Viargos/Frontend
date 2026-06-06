@@ -81,7 +81,7 @@ export const FloatingPreview = (props: FloatingPreviewProps) => {
               {item.title}
             </h3>
             <p className="mt-1.5 flex items-start gap-1.5 text-[0.8125rem] leading-snug text-neutral-500">
-              <MapPinIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#160E53]/55" />
+              <MapPinIcon className="floating-preview-location-icon mt-0.5 h-3.5 w-3.5 shrink-0" />
               <span className="line-clamp-2">{item.locationLabel}</span>
             </p>
             {item.subtitle
@@ -124,8 +124,8 @@ export const FloatingPreview = (props: FloatingPreviewProps) => {
             </Link>
             <button
               className={cn(
-                'inline-flex min-h-10 items-center justify-center rounded-xl border border-neutral-200 bg-white px-3 text-center text-[0.8125rem] font-semibold text-neutral-800',
-                'transition-colors hover:border-neutral-300 hover:bg-neutral-50 active:bg-neutral-100',
+                'floating-preview-secondary-button inline-flex min-h-10 items-center justify-center rounded-xl border px-3 text-center text-[0.8125rem] font-semibold',
+                'transition-colors',
               )}
               type="button"
               onClick={(event) => {

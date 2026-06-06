@@ -20,7 +20,7 @@ function CreatorAvatar(props: { imageUrl?: string; name: string }) {
     return (
       <Image
         alt={name}
-        className="h-9 w-9 rounded-full object-cover ring-1 ring-black/5"
+        className="discover-card-avatar h-9 w-9 rounded-full object-cover ring-1"
         height={36}
         src={imageUrl}
         unoptimized
@@ -30,28 +30,22 @@ function CreatorAvatar(props: { imageUrl?: string; name: string }) {
   }
 
   return (
-    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#160E53] text-xs font-semibold text-white ring-1 ring-black/5">
+    <div className="discover-card-avatar flex h-9 w-9 items-center justify-center rounded-full text-xs font-semibold ring-1">
       {name.charAt(0).toUpperCase()}
     </div>
   );
 }
 
 export const DiscoveryCard = (props: DiscoveryCardProps) => {
-  const {
-    isHovered = false,
-    isSelected = false,
-    item,
-    onHover,
-    onSelect,
-  } = props;
+  const { isHovered = false, isSelected = false, item, onHover, onSelect } = props;
 
   return (
     <button
       className={cn(
-        'group w-full overflow-hidden rounded-[28px] border border-white/70 bg-white/96 text-left shadow-[0_20px_45px_rgba(15,23,42,0.08)] transition-all duration-200',
-        'hover:-translate-y-0.5 hover:shadow-[0_22px_48px_rgba(15,23,42,0.12)]',
-        isSelected && 'border-[#160E53]/10 ring-2 ring-[#160E53]/12 shadow-[0_24px_56px_rgba(22,14,83,0.16)]',
-        isHovered && !isSelected && 'border-[#160E53]/8 ring-1 ring-[#160E53]/8',
+        'discover-card group w-full overflow-hidden rounded-[28px] border text-left transition-all duration-200',
+        'hover:-translate-y-0.5',
+        isSelected && 'discover-card-selected',
+        isHovered && !isSelected && 'discover-card-hovered',
       )}
       type="button"
       onBlur={() => onHover?.(null)}
@@ -59,7 +53,7 @@ export const DiscoveryCard = (props: DiscoveryCardProps) => {
       onMouseEnter={() => onHover?.(item.id)}
       onMouseLeave={() => onHover?.(null)}
     >
-      <div className="relative aspect-[1.18/1] overflow-hidden bg-linear-to-br from-[#160E53]/15 via-[#a5d8e4]/20 to-white">
+      <div className="discover-card-media relative aspect-[1.18/1] overflow-hidden">
         {item.imageUrl
           ? (
               <Image
@@ -72,11 +66,11 @@ export const DiscoveryCard = (props: DiscoveryCardProps) => {
               />
             )
           : (
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(22,14,83,0.22),transparent_38%),linear-gradient(135deg,rgba(22,14,83,0.12),rgba(8,145,178,0.18),rgba(255,255,255,0.65))]" />
+              <div className="discover-card-empty-media absolute inset-0" />
             )}
 
         <div className="absolute inset-x-0 bottom-0 h-28 bg-linear-to-t from-black/60 via-black/10 to-transparent" />
-        <div className="absolute top-3 left-3 inline-flex items-center rounded-full bg-white/90 px-3 py-1 text-[10px] font-semibold tracking-[0.14em] text-[#160E53] uppercase backdrop-blur-md">
+        <div className="discover-card-type-badge absolute top-3 left-3 inline-flex items-center rounded-full px-3 py-1 text-[10px] font-semibold tracking-[0.14em] uppercase backdrop-blur-md">
           {item.type === 'journey' ? 'Journey' : 'Post'}
         </div>
         <div className="absolute right-3 bottom-3 left-3">
@@ -98,15 +92,19 @@ export const DiscoveryCard = (props: DiscoveryCardProps) => {
       <div className="space-y-4 px-4 pt-4 pb-4">
         <div className="space-y-1">
           {item.subtitle
-            ? <p className="line-clamp-2 text-sm leading-5 text-gray-500">{item.subtitle}</p>
+            ? (
+                <p className="discover-card-muted line-clamp-2 text-sm leading-5">{item.subtitle}</p>
+              )
             : null}
         </div>
 
-        <div className="flex items-start gap-3 border-t border-black/5 pt-4">
+        <div className="discover-card-divider flex items-start gap-3 border-t pt-4">
           <CreatorAvatar imageUrl={item.creator.avatarUrl} name={item.creator.name} />
           <div className="min-w-0 flex-1 pt-0.5">
-            <p className="truncate text-sm font-semibold text-gray-900">{item.creator.name}</p>
-            <p className="truncate text-xs text-gray-500">
+            <p className="discover-card-title truncate text-sm font-semibold">
+              {item.creator.name}
+            </p>
+            <p className="discover-card-muted truncate text-xs">
               Shared a real-world
               {' '}
               {item.type}
@@ -116,7 +114,7 @@ export const DiscoveryCard = (props: DiscoveryCardProps) => {
               {item.locationLabel}
             </p>
           </div>
-          <div className="ml-auto shrink-0 self-center rounded-full bg-[#160E53]/6 px-2.5 py-1.5 text-[10px] font-semibold tracking-[0.12em] text-[#160E53] uppercase">
+          <div className="discover-card-action-badge ml-auto shrink-0 self-center rounded-full px-2.5 py-1.5 text-[10px] font-semibold tracking-[0.12em] uppercase">
             Explore
           </div>
         </div>
@@ -127,7 +125,7 @@ export const DiscoveryCard = (props: DiscoveryCardProps) => {
                 {item.tags.map(tag => (
                   <span
                     key={tag}
-                    className="rounded-full border border-[#160E53]/8 bg-[#160E53]/4 px-2.5 py-1 text-[11px] font-medium text-[#160E53]"
+                    className="discover-card-tag rounded-full border px-2.5 py-1 text-[11px] font-medium"
                   >
                     {tag}
                   </span>
@@ -136,21 +134,23 @@ export const DiscoveryCard = (props: DiscoveryCardProps) => {
             )
           : (
               <div className="flex flex-wrap gap-2">
-                <span className="rounded-full border border-black/6 bg-black/2 px-2.5 py-1 text-[11px] font-medium text-gray-500">
+                <span className="discover-card-tag rounded-full border px-2.5 py-1 text-[11px] font-medium">
                   Real experience
                 </span>
-                <span className="rounded-full border border-black/6 bg-black/2 px-2.5 py-1 text-[11px] font-medium text-gray-500">
+                <span className="discover-card-tag rounded-full border px-2.5 py-1 text-[11px] font-medium">
                   Map discovery
                 </span>
               </div>
             )}
 
-        <div className="flex items-center justify-between gap-3 border-t border-black/5 pt-3">
+        <div className="discover-card-divider flex items-center justify-between gap-3 border-t pt-3">
           <div className="min-w-0">
-            <p className="text-[11px] font-medium tracking-[0.12em] text-gray-400 uppercase">Open journey</p>
-            <p className="mt-0.5 text-sm font-semibold text-gray-900">See route and places</p>
+            <p className="discover-card-overline text-[11px] font-medium tracking-[0.12em] uppercase">
+              Open journey
+            </p>
+            <p className="discover-card-title mt-0.5 text-sm font-semibold">See route and places</p>
           </div>
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#160E53] text-white shadow-[0_10px_24px_rgba(22,14,83,0.22)] transition-transform duration-200 group-hover:translate-x-0.5">
+          <div className="discover-card-cta flex h-10 w-10 shrink-0 items-center justify-center rounded-full shadow-[0_10px_24px_rgba(22,14,83,0.22)] transition-transform duration-200 group-hover:translate-x-0.5">
             <PlusIcon aria-hidden className="text-white" size={20} strokeWidth={2.5} />
           </div>
         </div>

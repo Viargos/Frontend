@@ -5,7 +5,14 @@ import * as motion from 'framer-motion/client';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { MODAL_TRANSITION_DURATION_SECONDS, OVERLAY_BASE_CLASS } from '@/modules/common/constants';
-import { CalendarIcon, ChevronRightIcon, GlobeIcon, MapPinIcon, UsersIcon, XIcon } from '@/modules/common/icons';
+import {
+  CalendarIcon,
+  ChevronRightIcon,
+  GlobeIcon,
+  MapPinIcon,
+  UsersIcon,
+  XIcon,
+} from '@/modules/common/icons';
 
 type JourneyDetailsModalProps = {
   disableMotion?: boolean;
@@ -15,12 +22,7 @@ type JourneyDetailsModalProps = {
 };
 
 export const JourneyDetailsModal = (props: JourneyDetailsModalProps) => {
-  const {
-    disableMotion = false,
-    isOpen,
-    journey,
-    onClose,
-  } = props;
+  const { disableMotion = false, isOpen, journey, onClose } = props;
   const router = useRouter();
 
   if (!isOpen || !journey) {
@@ -45,15 +47,15 @@ export const JourneyDetailsModal = (props: JourneyDetailsModalProps) => {
         animate={{ opacity: 1, scale: 1 }}
         aria-modal="true"
         aria-label="Journey details"
-        className="relative mx-4 max-h-[90vh] w-full max-w-md overflow-y-auto rounded-xl bg-white shadow-2xl"
+        className="journey-details-modal relative mx-4 flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-2xl shadow-2xl"
         data-parity="discover-modal-panel"
         initial={{ opacity: 0, scale: 0.95 }}
         role="dialog"
         transition={{ duration: disableMotion ? 0 : MODAL_TRANSITION_DURATION_SECONDS }}
         onClick={event => event.stopPropagation()}
       >
-        <div className="h-auto max-h-[90vh] w-full overflow-hidden rounded-xl bg-white shadow-xl md:h-[710px]" data-parity="discover-modal-card">
-          <div className="relative h-48 bg-gradient-to-br from-[#160E53] via-[#001456] to-[#0891b2]">
+        <div className="flex min-h-0 flex-1 flex-col" data-parity="discover-modal-card">
+          <div className="journey-details-hero relative min-h-48 overflow-hidden px-6 py-10">
             {journey.coverImage
               ? (
                   <Image
@@ -65,36 +67,40 @@ export const JourneyDetailsModal = (props: JourneyDetailsModalProps) => {
                   />
                 )
               : null}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-black/50" />
+            <div className="journey-details-hero-overlay absolute inset-0" />
 
             <button
               aria-label="Close journey details"
-              className="absolute top-4 right-4 z-10 rounded-full bg-white/20 p-2 text-white backdrop-blur-sm transition-colors hover:bg-white/30"
+              className="journey-details-close-button absolute top-4 right-4 z-10 rounded-full p-2 transition-colors"
               onClick={onClose}
               type="button"
             >
               <XIcon aria-hidden="true" className="h-5 w-5" />
             </button>
 
-            <div className="absolute inset-0 flex items-center justify-center px-6 text-center">
-              <div>
-                <h1 className="mb-2 text-3xl font-bold text-white drop-shadow-lg">{journey.title}</h1>
+            <div className="relative z-10 flex min-h-28 items-center justify-center text-center">
+              <div className="max-w-sm">
+                <h1 className="text-3xl leading-tight font-bold text-white">{journey.title}</h1>
                 {journey.description
-                  ? <p className="max-w-2xl text-lg text-white/90 drop-shadow-md">{journey.description}</p>
+                  ? (
+                      <p className="mt-3 text-base leading-relaxed text-white/86">
+                        {journey.description}
+                      </p>
+                    )
                   : null}
               </div>
             </div>
           </div>
 
-          <div className="border-b border-gray-200 bg-white px-6 py-4">
-            <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600">
-              <div className="flex items-center gap-2">
+          <div className="journey-details-meta border-b px-6 py-4">
+            <div className="grid grid-cols-3 gap-3 text-sm">
+              <div className="journey-details-meta-item flex items-center gap-2">
                 <UsersIcon aria-hidden="true" className="h-4 w-4" />
-                <span className="font-medium">Journey Owner</span>
+                <span className="truncate font-medium">Owner</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="journey-details-meta-item flex items-center gap-2">
                 <CalendarIcon aria-hidden="true" className="h-4 w-4" />
-                <span>
+                <span className="truncate">
                   {new Date(journey.createdAt).toLocaleDateString('en-US', {
                     day: 'numeric',
                     month: 'short',
@@ -102,9 +108,9 @@ export const JourneyDetailsModal = (props: JourneyDetailsModalProps) => {
                   })}
                 </span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="journey-details-meta-item flex items-center gap-2">
                 <MapPinIcon aria-hidden="true" className="h-4 w-4" />
-                <span>
+                <span className="truncate">
                   {journey.places.length}
                   {' '}
                   places
@@ -113,30 +119,30 @@ export const JourneyDetailsModal = (props: JourneyDetailsModalProps) => {
             </div>
           </div>
 
-          <div className="max-h-[60vh] overflow-y-auto p-6">
+          <div className="journey-details-body min-h-0 flex-1 overflow-y-auto p-6">
             {journey.places.length > 0
               ? (
-                  <div className="space-y-6">
-                    <div className="mb-6 flex items-center gap-3">
-                      <div className="h-0.5 w-8 rounded bg-gradient-to-r from-[#160E53] to-[#0891b2]" />
-                      <h2 className="text-xl font-bold text-[#160E53]">Journey Itinerary</h2>
-                      <div className="h-0.5 flex-1 rounded bg-gradient-to-r from-[#0891b2] to-transparent" />
+                  <div className="space-y-5">
+                    <div className="journey-details-section-heading flex items-center gap-3">
+                      <div className="h-px w-8 rounded" />
+                      <h2 className="text-lg font-bold">Journey Itinerary</h2>
+                      <div className="h-px flex-1 rounded" />
                     </div>
 
                     <motion.div
                       animate={{ opacity: 1, y: 0 }}
-                      className="rounded-xl border border-gray-200 bg-gradient-to-br from-gray-50 to-[#160E53]/5 p-5 transition-colors hover:border-[#160E53]/30"
+                      className="journey-details-day-card rounded-2xl border p-4"
                       initial={{ opacity: 0, y: 20 }}
                       transition={{ duration: disableMotion ? 0 : 0.2 }}
                     >
                       <div className="mb-4 flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#160E53] to-[#001456] text-sm font-bold text-white shadow-md">
+                          <div className="journey-details-day-index flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold">
                             1
                           </div>
-                          <h3 className="text-lg font-bold text-[#160E53]">Day 1</h3>
+                          <h3 className="journey-details-day-title text-lg font-bold">Day 1</h3>
                         </div>
-                        <span className="rounded-full bg-white px-3 py-1 text-sm font-medium text-gray-500">
+                        <span className="journey-details-date-pill rounded-full px-3 py-1 text-sm font-medium">
                           {new Date(journey.createdAt).toLocaleDateString('en-US', {
                             day: 'numeric',
                             month: 'short',
@@ -148,14 +154,14 @@ export const JourneyDetailsModal = (props: JourneyDetailsModalProps) => {
                         {journey.places.map(place => (
                           <div
                             key={place.id}
-                            className="rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-[#160E53]/40 hover:shadow-md"
+                            className="journey-details-place-row rounded-xl border p-4 transition-colors"
                           >
-                            <div className="flex items-start gap-3">
-                              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#160E53] to-[#0891b2] text-lg shadow-sm">
-
-                              </div>
+                            <div className="flex items-center gap-3">
+                              <div className="journey-details-place-marker h-9 w-9 flex-shrink-0 rounded-lg" />
                               <div className="flex-1">
-                                <h4 className="font-medium text-gray-900">{place.name}</h4>
+                                <h4 className="journey-details-place-title font-semibold">
+                                  {place.name}
+                                </h4>
                               </div>
                             </div>
                           </div>
@@ -166,25 +172,29 @@ export const JourneyDetailsModal = (props: JourneyDetailsModalProps) => {
                 )
               : (
                   <div className="py-8 text-center">
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-                      <GlobeIcon aria-hidden="true" className="h-8 w-8 text-gray-400" />
+                    <div className="journey-details-empty-icon mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+                      <GlobeIcon aria-hidden="true" className="h-8 w-8" />
                     </div>
-                    <h3 className="mb-2 text-lg font-medium text-gray-900">No itinerary available</h3>
-                    <p className="text-gray-600">This journey does not have detailed itinerary information yet.</p>
+                    <h3 className="journey-details-place-title mb-2 text-lg font-medium">
+                      No itinerary available
+                    </h3>
+                    <p className="journey-details-muted">
+                      This journey does not have detailed itinerary information yet.
+                    </p>
                   </div>
                 )}
           </div>
 
-          <div className="flex items-center justify-between rounded-b-xl border-t border-gray-200 bg-gradient-to-r from-gray-50 to-[#160E53]/5 px-6 py-4">
+          <div className="journey-details-footer flex items-center justify-between border-t px-6 py-4">
             <button
-              className="rounded-lg border border-gray-300 bg-white px-5 py-2.5 font-medium text-gray-700 transition-colors hover:border-[#160E53] hover:bg-gray-50"
+              className="journey-details-secondary-button rounded-lg border px-5 py-2.5 font-medium transition-colors"
               onClick={onClose}
               type="button"
             >
               Close
             </button>
             <button
-              className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#160E53] to-[#001456] px-5 py-2.5 font-medium text-white shadow-lg transition-all duration-200 hover:from-[#001456] hover:to-[#160E53] hover:shadow-xl"
+              className="journey-details-primary-button flex items-center gap-2 rounded-lg px-5 py-2.5 font-medium shadow-lg transition-all duration-200"
               onClick={() => {
                 router.push(`/journey/${journey.id}`);
                 onClose();

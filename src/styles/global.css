@@ -149,6 +149,37 @@
   --date-time-picker-accent-soft: rgba(22, 14, 83, 0.08);
   --date-time-picker-accent-text: #ffffff;
   --date-time-picker-selected-muted: rgba(255, 255, 255, 0.72);
+  --discover-card-bg: rgba(255, 255, 255, 0.96);
+  --discover-card-border: rgba(255, 255, 255, 0.7);
+  --discover-card-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+  --discover-card-hover-border: rgba(22, 14, 83, 0.08);
+  --discover-card-hover-ring: rgba(22, 14, 83, 0.08);
+  --discover-card-hover-shadow: 0 22px 48px rgba(15, 23, 42, 0.12);
+  --discover-card-selected-border: rgba(22, 14, 83, 0.1);
+  --discover-card-selected-ring: rgba(22, 14, 83, 0.12);
+  --discover-card-selected-shadow: 0 24px 56px rgba(22, 14, 83, 0.16);
+  --discover-card-media-bg: linear-gradient(135deg, rgba(22, 14, 83, 0.15), rgba(165, 216, 228, 0.2), #ffffff);
+  --discover-card-empty-media-bg:
+    radial-gradient(circle at top left, rgba(22, 14, 83, 0.22), transparent 38%),
+    linear-gradient(135deg, rgba(22, 14, 83, 0.12), rgba(8, 145, 178, 0.18), rgba(255, 255, 255, 0.65));
+  --discover-card-type-bg: rgba(255, 255, 255, 0.9);
+  --discover-card-type-fg: #160e53;
+  --discover-card-title: #111827;
+  --discover-card-muted: #6b7280;
+  --discover-card-overline: #9ca3af;
+  --discover-card-divider: rgba(0, 0, 0, 0.05);
+  --discover-card-badge-bg: rgba(22, 14, 83, 0.06);
+  --discover-card-badge-fg: #160e53;
+  --discover-card-tag-bg: rgba(22, 14, 83, 0.04);
+  --discover-card-tag-border: rgba(22, 14, 83, 0.08);
+  --discover-card-tag-fg: #160e53;
+  --discover-card-avatar-bg: #160e53;
+  --discover-card-avatar-fg: #ffffff;
+  --discover-card-avatar-border: rgba(0, 0, 0, 0.05);
+  --discover-card-cta-bg: #160e53;
+  --discover-card-cta-fg: #ffffff;
+  --journey-details-hero-bg: linear-gradient(135deg, #160e53 0%, #123466 56%, #0f7892 100%);
+  --journey-details-hero-overlay: linear-gradient(180deg, rgba(5, 8, 20, 0.18) 0%, rgba(5, 8, 20, 0.62) 100%);
 
   /* Design System Variables */
   --Gray-900: #181d27;
@@ -355,6 +386,42 @@ html[data-theme='dark'] {
   --date-time-picker-accent-soft: rgba(248, 215, 117, 0.12);
   --date-time-picker-accent-text: #111827;
   --date-time-picker-selected-muted: rgba(17, 24, 39, 0.72);
+  --discover-card-bg: rgba(32, 37, 45, 0.96);
+  --discover-card-border: rgba(255, 255, 255, 0.1);
+  --discover-card-shadow: 0 24px 58px -34px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --discover-card-hover-border: rgba(248, 215, 117, 0.2);
+  --discover-card-hover-ring: rgba(248, 215, 117, 0.16);
+  --discover-card-hover-shadow: 0 28px 66px -34px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --discover-card-selected-border: rgba(248, 215, 117, 0.32);
+  --discover-card-selected-ring: rgba(248, 215, 117, 0.2);
+  --discover-card-selected-shadow: 0 30px 70px -36px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.09);
+  --discover-card-media-bg: linear-gradient(
+    135deg,
+    rgba(248, 215, 117, 0.12),
+    rgba(56, 189, 248, 0.1),
+    rgba(32, 37, 45, 0.96)
+  );
+  --discover-card-empty-media-bg:
+    radial-gradient(circle at top left, rgba(248, 215, 117, 0.18), transparent 40%),
+    linear-gradient(135deg, rgba(39, 45, 54, 0.94), rgba(22, 26, 32, 0.88), rgba(56, 189, 248, 0.1));
+  --discover-card-type-bg: rgba(248, 215, 117, 0.14);
+  --discover-card-type-fg: #f8d775;
+  --discover-card-title: #f6f7fb;
+  --discover-card-muted: #aab4c3;
+  --discover-card-overline: #8a95a6;
+  --discover-card-divider: rgba(255, 255, 255, 0.08);
+  --discover-card-badge-bg: rgba(248, 215, 117, 0.12);
+  --discover-card-badge-fg: #f8d775;
+  --discover-card-tag-bg: rgba(255, 255, 255, 0.05);
+  --discover-card-tag-border: rgba(255, 255, 255, 0.1);
+  --discover-card-tag-fg: #d8deea;
+  --discover-card-avatar-bg: rgba(248, 215, 117, 0.12);
+  --discover-card-avatar-fg: #f8d775;
+  --discover-card-avatar-border: rgba(248, 215, 117, 0.16);
+  --discover-card-cta-bg: #f8d775;
+  --discover-card-cta-fg: #111827;
+  --journey-details-hero-bg: linear-gradient(135deg, #111827 0%, #18202b 54%, #143748 100%);
+  --journey-details-hero-overlay: linear-gradient(180deg, rgba(6, 10, 18, 0.12) 0%, rgba(6, 10, 18, 0.74) 100%);
 
   --Gray-900: #f6f7fb;
   --Gray-800: #edf2f7;
@@ -1444,6 +1511,265 @@ html[data-theme='dark'] input,
 html[data-theme='dark'] textarea,
 html[data-theme='dark'] select {
   color: var(--text-primary);
+}
+
+.discover-card {
+  background: var(--discover-card-bg);
+  border-color: var(--discover-card-border);
+  box-shadow: var(--discover-card-shadow);
+  color: var(--discover-card-title);
+  backdrop-filter: blur(18px) saturate(1.08);
+  -webkit-backdrop-filter: blur(18px) saturate(1.08);
+}
+
+.discover-card:hover {
+  border-color: var(--discover-card-hover-border);
+  box-shadow: var(--discover-card-hover-shadow);
+}
+
+.discover-card-hovered {
+  border-color: var(--discover-card-hover-border);
+  box-shadow:
+    0 0 0 1px var(--discover-card-hover-ring),
+    var(--discover-card-hover-shadow);
+}
+
+.discover-card-selected {
+  border-color: var(--discover-card-selected-border);
+  box-shadow:
+    0 0 0 2px var(--discover-card-selected-ring),
+    var(--discover-card-selected-shadow);
+}
+
+.discover-card-media {
+  background: var(--discover-card-media-bg);
+}
+
+.discover-card-empty-media {
+  background: var(--discover-card-empty-media-bg);
+}
+
+.discover-card-type-badge {
+  background-color: var(--discover-card-type-bg);
+  color: var(--discover-card-type-fg);
+}
+
+.discover-card-title {
+  color: var(--discover-card-title);
+}
+
+.discover-card-muted {
+  color: var(--discover-card-muted);
+}
+
+.discover-card-overline {
+  color: var(--discover-card-overline);
+}
+
+.discover-card-divider {
+  border-color: var(--discover-card-divider);
+}
+
+.discover-card-action-badge {
+  background-color: var(--discover-card-badge-bg);
+  color: var(--discover-card-badge-fg);
+}
+
+.discover-card-tag {
+  background-color: var(--discover-card-tag-bg);
+  border-color: var(--discover-card-tag-border);
+  color: var(--discover-card-tag-fg);
+}
+
+.discover-card-avatar {
+  background-color: var(--discover-card-avatar-bg);
+  box-shadow: 0 0 0 1px var(--discover-card-avatar-border);
+  color: var(--discover-card-avatar-fg);
+}
+
+.discover-card-cta {
+  background-color: var(--discover-card-cta-bg);
+  color: var(--discover-card-cta-fg);
+}
+
+.discover-card-cta svg {
+  color: var(--discover-card-cta-fg) !important;
+}
+
+.floating-preview-location-icon {
+  color: var(--discover-card-badge-fg);
+}
+
+.floating-preview-secondary-button {
+  background-color: var(--surface-0);
+  border-color: var(--discover-card-hover-border);
+  color: var(--text-primary);
+}
+
+.floating-preview-secondary-button:hover {
+  background-color: var(--surface-hover);
+  border-color: var(--discover-card-selected-border);
+  color: var(--text-primary);
+  box-shadow: 0 0 0 1px var(--discover-card-hover-ring);
+}
+
+.floating-preview-secondary-button:active {
+  background-color: var(--surface-2);
+}
+
+.discover-radius-button {
+  background-color: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  box-shadow: inset 0 0 0 1px transparent;
+}
+
+.discover-radius-button:hover:not(:disabled) {
+  background-color: var(--surface-hover);
+  border-color: var(--discover-card-hover-border);
+  color: var(--text-primary);
+  box-shadow: 0 0 0 1px var(--discover-card-hover-ring);
+}
+
+.discover-radius-button-active,
+.discover-radius-button-active:hover:not(:disabled) {
+  background-color: var(--surface-2);
+  border-color: var(--discover-card-selected-border);
+  color: var(--text-primary);
+  box-shadow:
+    0 0 0 2px var(--discover-card-selected-ring),
+    inset 0 0 0 1px var(--discover-card-hover-ring);
+}
+
+.discover-radius-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.journey-details-modal {
+  background-color: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.journey-details-hero {
+  background: var(--journey-details-hero-bg);
+}
+
+.journey-details-hero-overlay {
+  background: var(--journey-details-hero-overlay);
+}
+
+.journey-details-close-button {
+  background-color: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.journey-details-close-button:hover {
+  background-color: rgba(255, 255, 255, 0.22);
+}
+
+.journey-details-meta,
+.journey-details-footer {
+  background-color: var(--surface-1);
+  border-color: var(--border-subtle);
+}
+
+.journey-details-meta-item {
+  min-width: 0;
+  color: var(--text-secondary);
+}
+
+.journey-details-meta-item svg {
+  color: var(--discover-card-badge-fg);
+}
+
+.journey-details-body {
+  background-color: var(--surface-0);
+}
+
+.journey-details-section-heading {
+  color: var(--text-primary);
+}
+
+.journey-details-section-heading > div {
+  background-color: var(--discover-card-selected-border);
+}
+
+.journey-details-day-card {
+  background-color: var(--surface-1);
+  border-color: var(--border-subtle);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.journey-details-day-index {
+  background-color: var(--discover-card-cta-bg);
+  color: var(--discover-card-cta-fg);
+  box-shadow: 0 10px 24px -18px var(--discover-card-cta-bg);
+}
+
+.journey-details-day-title,
+.journey-details-place-title {
+  color: var(--text-primary);
+}
+
+.journey-details-date-pill,
+.journey-details-empty-icon {
+  background-color: var(--surface-2);
+  color: var(--text-secondary);
+}
+
+.journey-details-empty-icon svg {
+  color: var(--text-muted);
+}
+
+.journey-details-place-row {
+  background-color: var(--surface-2);
+  border-color: var(--border-subtle);
+}
+
+.journey-details-place-row:hover {
+  border-color: var(--discover-card-hover-border);
+  background-color: var(--surface-hover);
+}
+
+.journey-details-place-marker {
+  background: linear-gradient(135deg, var(--discover-card-badge-bg) 0%, var(--discover-card-cta-bg) 100%);
+  box-shadow: inset 0 0 0 1px var(--discover-card-hover-ring);
+}
+
+.journey-details-muted {
+  color: var(--text-secondary);
+}
+
+.journey-details-secondary-button {
+  background-color: var(--surface-2);
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.journey-details-secondary-button:hover {
+  background-color: var(--surface-hover);
+  border-color: var(--discover-card-hover-border);
+}
+
+.journey-details-primary-button {
+  background-color: var(--discover-card-cta-bg);
+  color: var(--discover-card-cta-fg);
+}
+
+.journey-details-primary-button:hover {
+  box-shadow:
+    0 14px 30px -20px var(--discover-card-cta-bg),
+    0 0 0 1px var(--discover-card-selected-ring);
+  transform: translateY(-1px);
+}
+
+.journey-details-primary-button svg {
+  color: var(--discover-card-cta-fg);
 }
 
 /*

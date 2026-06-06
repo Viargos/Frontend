@@ -4,6 +4,7 @@ import * as motion from 'framer-motion/client';
 import { useState } from 'react';
 import { DatePickerField } from '@/modules/common/components';
 import { ExploreIcon, XIcon } from '@/modules/common/icons';
+import { DISCOVER_MAX_RADIUS_KM, DISCOVER_MIN_RADIUS_KM } from '@/modules/discover/constants/discover.constants';
 
 export type JourneyFilterState = {
   createdWithin: 'all' | 'month' | 'week' | 'year';
@@ -180,8 +181,8 @@ export const FilterPanel = (props: FilterPanelProps) => {
               </label>
               <input
                 className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 accent-[#160E53]"
-                max={10000}
-                min={10}
+                max={DISCOVER_MAX_RADIUS_KM}
+                min={DISCOVER_MIN_RADIUS_KM}
                 step={50}
                 type="range"
                 value={filters.radius}
@@ -191,8 +192,14 @@ export const FilterPanel = (props: FilterPanelProps) => {
                 })}
               />
               <div className="mt-2 flex justify-between text-xs text-black">
-                <span className="font-semibold">10km (local)</span>
-                <span className="font-semibold">10,000km (global)</span>
+                <span className="font-semibold">
+                  {DISCOVER_MIN_RADIUS_KM}
+                  km local
+                </span>
+                <span className="font-semibold">
+                  {DISCOVER_MAX_RADIUS_KM}
+                  km regional
+                </span>
               </div>
             </div>
           </div>
