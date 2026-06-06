@@ -2,6 +2,7 @@
 
 import type { UserProfile } from '@/modules/profile/types/profile.types';
 import * as motion from 'framer-motion/client';
+import { useState } from 'react';
 import { ProfileHeader } from '@/modules/profile/components/ProfileHeader';
 import { ProfileJourneysTab } from '@/modules/profile/components/ProfileJourneysTab';
 import { ProfileMapPanel } from '@/modules/profile/components/ProfileMapPanel';
@@ -19,6 +20,16 @@ type ProfileContentProps = {
 export const ProfileContent = (props: ProfileContentProps) => {
   const { heading, isOwnProfile = true, profile } = props;
   const { activeTab, setActiveTab } = useProfileTabs();
+  const [mountedTabs, setMountedTabs] = useState<Set<ProfileTab>>(
+    () => new Set([ProfileTab.JOURNEY]),
+  );
+
+  const handleTabChange = (tab: ProfileTab) => {
+    setMountedTabs(previous => (previous.has(tab)
+      ? previous
+      : new Set(previous).add(tab)));
+    setActiveTab(tab);
+  };
 
   return (
     <motion.div
@@ -29,25 +40,35 @@ export const ProfileContent = (props: ProfileContentProps) => {
     >
       <ProfileHeader heading={heading} isOwnProfile={isOwnProfile} profile={profile} />
 
-      <ProfileTabs activeTab={activeTab} onTabChange={setActiveTab} />
+      <ProfileTabs activeTab={activeTab} onTabChange={handleTabChange} />
 
-      {activeTab === ProfileTab.JOURNEY
+      {mountedTabs.has(ProfileTab.JOURNEY)
         ? (
-            <ProfileJourneysTab
-              isOwnProfile={isOwnProfile}
-              journeys={profile.recentJourneys}
-              ownerName={profile.user.username}
-            />
+            <div
+              aria-hidden={activeTab !== ProfileTab.JOURNEY}
+              className={activeTab === ProfileTab.JOURNEY ? 'contents' : 'hidden'}
+            >
+              <ProfileJourneysTab
+                isOwnProfile={isOwnProfile}
+                journeys={profile.recentJourneys}
+                ownerName={profile.user.username}
+              />
+            </div>
           )
         : null}
 
-      {activeTab === ProfileTab.POST
+      {mountedTabs.has(ProfileTab.POST)
         ? (
-            <ProfilePostsTab
-              isOwnProfile={isOwnProfile}
-              ownerName={profile.user.username}
-              posts={profile.recentPosts}
-            />
+            <div
+              aria-hidden={activeTab !== ProfileTab.POST}
+              className={activeTab === ProfileTab.POST ? 'contents' : 'hidden'}
+            >
+              <ProfilePostsTab
+                isOwnProfile={isOwnProfile}
+                ownerName={profile.user.username}
+                posts={profile.recentPosts}
+              />
+            </div>
           )
         : null}
 

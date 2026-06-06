@@ -36,6 +36,21 @@ export type ProfilePost = {
   journey?: ProfilePostJourney | null;
 };
 
+export type ProfilePostCommentUser = {
+  id: string;
+  username: string;
+  profileImage?: string;
+};
+
+export type ProfilePostComment = {
+  id: string;
+  content: string;
+  createdAt: string;
+  userId?: string;
+  user?: ProfilePostCommentUser;
+  isPending?: boolean;
+};
+
 export type PostMediaItem = {
   id: string;
   url: string;

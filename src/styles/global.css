@@ -511,6 +511,20 @@ body {
   border-color: var(--auth-gateway-secondary-border-hover);
 }
 
+.auth-password-toggle {
+  color: var(--auth-gateway-title-accent);
+}
+
+.auth-password-toggle:hover {
+  background-color: color-mix(in srgb, var(--auth-gateway-title-accent) 12%, transparent);
+  color: var(--auth-gateway-title-accent);
+}
+
+.auth-password-toggle:focus-visible {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--auth-gateway-title-accent) 48%, transparent);
+  outline: none;
+}
+
 /* Placeholder styling */
 .login-input::placeholder {
   color: #160e53;

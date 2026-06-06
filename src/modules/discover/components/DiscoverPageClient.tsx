@@ -336,6 +336,7 @@ export const DiscoverPageClient = (props: DiscoverPageClientProps) => {
           feedItems={visibleFeedItems}
           filters={filters}
           isLoadingJourneys={isLoadingJourneys}
+          isLoadingLocation={isLoadingLocation}
           isSidebarOpen={sidebarOpen}
           journeys={visibleJourneys}
           onClearDateRange={handleClearDateRange}
@@ -351,6 +352,7 @@ export const DiscoverPageClient = (props: DiscoverPageClientProps) => {
           onResetFilters={handleResetFilters}
           onResetTimeFilter={handleResetTimeFilter}
           onToggleFilters={toggleFilters}
+          onUseCurrentLocation={handleRefreshLocation}
           resultCount={visibleFeedItems.length}
           searchQuery={searchQuery}
         />

@@ -3,7 +3,7 @@
 import type { JourneyFilterState } from '@/modules/discover/components/FilterPanel';
 import type { DiscoverFeedItem } from '@/modules/discover/types/discover-ui.types';
 import type { DiscoverCoordinates, DiscoverJourney } from '@/modules/discover/types/discover.types';
-import { ExploreIcon, MapPinIcon, RefreshCwIcon, SearchIcon, XIcon } from '@/modules/common/icons';
+import { ExploreIcon, MapPinIcon, NavigationIcon, RefreshCwIcon, SearchIcon, XIcon } from '@/modules/common/icons';
 import { DiscoverFeed } from '@/modules/discover/components/DiscoverFeed';
 import { DiscoverFilterChips } from '@/modules/discover/components/DiscoverFilterChips';
 import { FilterPanel } from '@/modules/discover/components/FilterPanel';
@@ -17,6 +17,7 @@ type DiscoverSidebarProps = {
   feedItems: DiscoverFeedItem[];
   filters: JourneyFilterState;
   isLoadingJourneys: boolean;
+  isLoadingLocation: boolean;
   isSidebarOpen: boolean;
   journeys: DiscoverJourney[];
   onCloseSidebar: () => void;
@@ -30,6 +31,7 @@ type DiscoverSidebarProps = {
   onResetFilters: () => void;
   onResetTimeFilter: () => void;
   onToggleFilters: () => void;
+  onUseCurrentLocation: () => void;
   resultCount: number;
   searchQuery: string;
   selectedJourney: DiscoverJourney | null;
@@ -60,6 +62,7 @@ export const DiscoverSidebar = (props: DiscoverSidebarProps) => {
     feedItems,
     filters,
     isLoadingJourneys,
+    isLoadingLocation,
     isSidebarOpen,
     journeys,
     onCloseSidebar,
@@ -73,6 +76,7 @@ export const DiscoverSidebar = (props: DiscoverSidebarProps) => {
     onResetFilters,
     onResetTimeFilter,
     onToggleFilters,
+    onUseCurrentLocation,
     resultCount,
     searchQuery,
     selectedJourney,
@@ -157,6 +161,18 @@ export const DiscoverSidebar = (props: DiscoverSidebarProps) => {
         </label>
 
         <DiscoverFilterChips chips={chips} />
+
+        <button
+          className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-[#160E53]/15 bg-[#160E53] px-4 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(22,14,83,0.18)] transition hover:bg-[#241a7a] disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={isLoadingLocation}
+          onClick={onUseCurrentLocation}
+          type="button"
+        >
+          {isLoadingLocation
+            ? <RefreshCwIcon aria-hidden="true" className="h-4 w-4 animate-spin" />
+            : <NavigationIcon aria-hidden="true" className="h-4 w-4" />}
+          <span>{coordinates ? 'Update current location' : 'Use current location'}</span>
+        </button>
 
         {coordinates
           ? (

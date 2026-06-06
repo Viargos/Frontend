@@ -37,6 +37,23 @@ async function canUseBrowserGeolocation(): Promise<boolean> {
   }
 }
 
+async function requestBrowserCoordinates(): Promise<DiscoverCoordinates | null> {
+  if (!(await canUseBrowserGeolocation())) {
+    return null;
+  }
+
+  return new Promise<DiscoverCoordinates>((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(
+      position => resolve({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      }),
+      reject,
+      { enableHighAccuracy: true, timeout: 8000 },
+    );
+  });
+}
+
 export function useDiscover() {
   const [coordinates, setCoordinates] = useState<DiscoverCoordinates | null>(null);
   const [radius, setRadius] = useState(DISCOVER_DEFAULT_RADIUS_KM);
@@ -54,33 +71,38 @@ export function useDiscover() {
     staleTime: appConfig.reactQuery.staleTimeMs,
   });
 
-  const resolveCoordinates = useCallback(async () => {
+  const resolveCoordinates = useCallback(async (preferDeviceLocation = false) => {
     setIsLoadingLocation(true);
     setLocationError(null);
 
     try {
-      const fallback = await discoverService.getCurrentLocation();
-      setCoordinates(fallback);
-    } catch {
-      try {
-        if (await canUseBrowserGeolocation()) {
-          const geoCoordinates = await new Promise<DiscoverCoordinates>((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(
-              position => resolve({
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-              }),
-              reject,
-              { enableHighAccuracy: true, timeout: 8000 },
-            );
-          });
+      if (preferDeviceLocation) {
+        const browserCoordinates = await requestBrowserCoordinates();
 
-          setCoordinates(geoCoordinates);
+        if (browserCoordinates) {
+          setCoordinates(browserCoordinates);
+          return;
+        }
+      }
+
+      try {
+        const fallback = await discoverService.getCurrentLocation();
+        setCoordinates(fallback);
+      } catch {
+        const browserCoordinates = await requestBrowserCoordinates();
+
+        if (browserCoordinates) {
+          setCoordinates(browserCoordinates);
           return;
         }
 
         setLocationError('Unable to determine location');
-      } catch (caught) {
+      }
+    } catch (caught) {
+      try {
+        const fallback = await discoverService.getCurrentLocation();
+        setCoordinates(fallback);
+      } catch {
         setLocationError(caught instanceof Error ? caught.message : 'Unable to determine location');
       }
     } finally {
@@ -104,7 +126,7 @@ export function useDiscover() {
     journeys: journeysQuery.data ?? [],
     radius,
     refresh: async () => {
-      await resolveCoordinates();
+      await resolveCoordinates(true);
       await journeysQuery.refetch();
     },
     updateRadius,
