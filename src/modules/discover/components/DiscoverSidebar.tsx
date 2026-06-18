@@ -3,10 +3,11 @@
 import type { JourneyFilterState } from '@/modules/discover/components/FilterPanel';
 import type { DiscoverFeedItem } from '@/modules/discover/types/discover-ui.types';
 import type { DiscoverCoordinates, DiscoverJourney } from '@/modules/discover/types/discover.types';
-import { ExploreIcon, MapPinIcon, RefreshCwIcon, SearchIcon, XIcon } from '@/modules/common/icons';
+import { ExploreIcon, MapPinIcon, NavigationIcon, RefreshCwIcon, SearchIcon, XIcon } from '@/modules/common/icons';
 import { DiscoverFeed } from '@/modules/discover/components/DiscoverFeed';
 import { DiscoverFilterChips } from '@/modules/discover/components/DiscoverFilterChips';
 import { FilterPanel } from '@/modules/discover/components/FilterPanel';
+import { DISCOVER_DEFAULT_RADIUS_KM, DISCOVER_RADIUS_OPTIONS_KM } from '@/modules/discover/constants/discover.constants';
 import { useDiscoverStore } from '@/modules/discover/store/discover.store';
 
 type DiscoverSidebarProps = {
@@ -16,6 +17,7 @@ type DiscoverSidebarProps = {
   feedItems: DiscoverFeedItem[];
   filters: JourneyFilterState;
   isLoadingJourneys: boolean;
+  isLoadingLocation: boolean;
   isSidebarOpen: boolean;
   journeys: DiscoverJourney[];
   onCloseSidebar: () => void;
@@ -29,6 +31,7 @@ type DiscoverSidebarProps = {
   onResetFilters: () => void;
   onResetTimeFilter: () => void;
   onToggleFilters: () => void;
+  onUseCurrentLocation: () => void;
   resultCount: number;
   searchQuery: string;
   selectedJourney: DiscoverJourney | null;
@@ -59,6 +62,7 @@ export const DiscoverSidebar = (props: DiscoverSidebarProps) => {
     feedItems,
     filters,
     isLoadingJourneys,
+    isLoadingLocation,
     isSidebarOpen,
     journeys,
     onCloseSidebar,
@@ -72,6 +76,7 @@ export const DiscoverSidebar = (props: DiscoverSidebarProps) => {
     onResetFilters,
     onResetTimeFilter,
     onToggleFilters,
+    onUseCurrentLocation,
     resultCount,
     searchQuery,
     selectedJourney,
@@ -86,17 +91,17 @@ export const DiscoverSidebar = (props: DiscoverSidebarProps) => {
     ...(searchQuery.trim()
       ? [{ id: 'query', label: `Search: ${searchQuery.trim()}`, onRemove: onClearQuery }]
       : []),
-    ...(timeChipLabel
-      ? [{ id: 'time', label: timeChipLabel, onRemove: onResetTimeFilter }]
-      : []),
+    ...(timeChipLabel ? [{ id: 'time', label: timeChipLabel, onRemove: onResetTimeFilter }] : []),
     ...(filters.dateRange.from || filters.dateRange.to
-      ? [{
-          id: 'date-range',
-          label: `${filters.dateRange.from || 'Any start'} - ${filters.dateRange.to || 'Any end'}`,
-          onRemove: onClearDateRange,
-        }]
+      ? [
+          {
+            id: 'date-range',
+            label: `${filters.dateRange.from || 'Any start'} - ${filters.dateRange.to || 'Any end'}`,
+            onRemove: onClearDateRange,
+          },
+        ]
       : []),
-    ...(filters.radius !== 500
+    ...(filters.radius !== DISCOVER_DEFAULT_RADIUS_KM
       ? [{ id: 'radius', label: `${filters.radius} km`, onRemove: onResetRadius }]
       : []),
   ];
@@ -125,9 +130,7 @@ export const DiscoverSidebar = (props: DiscoverSidebarProps) => {
             <button
               aria-label={showFilters ? 'Hide filters' : 'Show filters'}
               className={`rounded-full p-2 transition-colors ${
-                showFilters
-                  ? 'bg-blue-100 text-blue-600'
-                  : 'text-gray-400 hover:bg-gray-100'
+                showFilters ? 'bg-blue-100 text-blue-600' : 'text-gray-400 hover:bg-gray-100'
               }`}
               onClick={onToggleFilters}
               title="Toggle Filters"
@@ -159,18 +162,30 @@ export const DiscoverSidebar = (props: DiscoverSidebarProps) => {
 
         <DiscoverFilterChips chips={chips} />
 
+        <button
+          className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-[#160E53]/15 bg-[#160E53] px-4 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(22,14,83,0.18)] transition hover:bg-[#241a7a] disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={isLoadingLocation}
+          onClick={onUseCurrentLocation}
+          type="button"
+        >
+          {isLoadingLocation
+            ? <RefreshCwIcon aria-hidden="true" className="h-4 w-4 animate-spin" />
+            : <NavigationIcon aria-hidden="true" className="h-4 w-4" />}
+          <span>{coordinates ? 'Update current location' : 'Use current location'}</span>
+        </button>
+
         {coordinates
           ? (
               <div className="mt-4">
                 <span className="mb-2 block text-xs font-semibold text-gray-700">Search Radius</span>
                 <div className="flex flex-wrap gap-2">
-                  {[100, 500, 1000, 5000, 10000].map(radius => (
+                  {DISCOVER_RADIUS_OPTIONS_KM.map(radius => (
                     <button
                       key={radius}
                       className={`rounded-lg px-3.5 py-2 text-xs font-medium transition-all duration-200 ${
                         currentRadius === radius
-                          ? 'ring-opacity-20 bg-[#160E53] text-white shadow-md ring-2 ring-[#160E53]'
-                          : 'border border-gray-300 bg-white text-gray-700 hover:border-[#160E53] hover:text-[#160E53] hover:shadow-sm'
+                          ? 'discover-radius-button discover-radius-button-active'
+                          : 'discover-radius-button'
                       }`}
                       disabled={isLoadingJourneys}
                       onClick={() => onRadiusChange(radius)}
@@ -201,11 +216,17 @@ export const DiscoverSidebar = (props: DiscoverSidebarProps) => {
           )
         : null}
 
-      <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto" data-parity="discover-sidebar-content">
+      <div
+        className="scrollbar-hide min-h-0 flex-1 overflow-y-auto"
+        data-parity="discover-sidebar-content"
+      >
         {isLoadingJourneys
           ? (
               <div aria-busy="true" className="p-6 text-center" role="status">
-                <RefreshCwIcon aria-hidden="true" className="mx-auto mb-4 h-8 w-8 animate-spin text-gray-400" />
+                <RefreshCwIcon
+                  aria-hidden="true"
+                  className="mx-auto mb-4 h-8 w-8 animate-spin text-gray-400"
+                />
                 <div className="space-y-2">
                   <div className="mx-auto h-3 w-40 animate-pulse rounded bg-gray-200" />
                   <div className="mx-auto h-3 w-32 animate-pulse rounded bg-gray-200" />

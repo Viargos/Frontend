@@ -10,6 +10,7 @@ import { DiscoverShell } from '@/modules/discover/components/DiscoverShell';
 import { DiscoverSidebar } from '@/modules/discover/components/DiscoverSidebar';
 import { JourneyDetailsModal } from '@/modules/discover/components/JourneyDetailsModal';
 import { MapPanel } from '@/modules/discover/components/MapPanel';
+import { DISCOVER_DEFAULT_RADIUS_KM, DISCOVER_MAX_RADIUS_KM } from '@/modules/discover/constants/discover.constants';
 import { useDiscover } from '@/modules/discover/hooks/use-discover';
 import { mapDiscoverFeedItems } from '@/modules/discover/mappers/discover-feed.mapper';
 import { useDiscoverStore } from '@/modules/discover/store/discover.store';
@@ -131,12 +132,12 @@ export const DiscoverPageClient = (props: DiscoverPageClientProps) => {
     const nextFilters: JourneyFilterState = {
       createdWithin: 'all',
       dateRange: { from: '', to: '' },
-      radius: 500,
+      radius: DISCOVER_DEFAULT_RADIUS_KM,
       tags: [],
     };
 
     setFilters(nextFilters);
-    void updateRadius(500);
+    void updateRadius(DISCOVER_DEFAULT_RADIUS_KM);
   }, [updateRadius]);
 
   const filteredJourneys = useMemo(() => journeys.filter((journey) => {
@@ -236,8 +237,12 @@ export const DiscoverPageClient = (props: DiscoverPageClientProps) => {
     void refresh();
   }, [refresh]);
 
-  const handleSearchGlobal = useCallback(() => {
-    void updateRadius(10000);
+  const handleExpandSearchRadius = useCallback(() => {
+    setFilters(previous => ({
+      ...previous,
+      radius: DISCOVER_MAX_RADIUS_KM,
+    }));
+    void updateRadius(DISCOVER_MAX_RADIUS_KM);
   }, [updateRadius]);
 
   const handleToggleAutoSearch = useCallback(() => {
@@ -256,7 +261,7 @@ export const DiscoverPageClient = (props: DiscoverPageClientProps) => {
     setSearchQuery('');
   }, []);
   const handleResetRadius = useCallback(() => {
-    const nextRadius = 500;
+    const nextRadius = DISCOVER_DEFAULT_RADIUS_KM;
     setFilters(previous => ({
       ...previous,
       radius: nextRadius,
@@ -320,7 +325,7 @@ export const DiscoverPageClient = (props: DiscoverPageClientProps) => {
           }}
           selectedJourney={activeSelectedJourney}
           onRefreshLocation={handleRefreshLocation}
-          onSearchGlobal={handleSearchGlobal}
+          onExpandSearchRadius={handleExpandSearchRadius}
           onSelectJourney={handleMapJourneySelect}
           onToggleAutoSearch={handleToggleAutoSearch}
           onToggleSidebar={toggleSidebar}
@@ -333,6 +338,7 @@ export const DiscoverPageClient = (props: DiscoverPageClientProps) => {
           feedItems={visibleFeedItems}
           filters={filters}
           isLoadingJourneys={isLoadingJourneys}
+          isLoadingLocation={isLoadingLocation}
           isSidebarOpen={sidebarOpen}
           journeys={visibleJourneys}
           onClearDateRange={handleClearDateRange}
@@ -348,6 +354,7 @@ export const DiscoverPageClient = (props: DiscoverPageClientProps) => {
           onResetFilters={handleResetFilters}
           onResetTimeFilter={handleResetTimeFilter}
           onToggleFilters={toggleFilters}
+          onUseCurrentLocation={handleRefreshLocation}
           resultCount={visibleFeedItems.length}
           searchQuery={searchQuery}
         />

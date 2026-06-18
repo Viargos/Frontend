@@ -7,6 +7,7 @@ import './src/libs/Env';
 const baseConfig: NextConfig = {
   compress: true,
   images: {
+    minimumCacheTTL: 60 * 60 * 24 * 30,
     remotePatterns: [
       { protocol: 'https', hostname: '**', pathname: '/**' },
       { protocol: 'http', hostname: 'localhost', pathname: '/**' },

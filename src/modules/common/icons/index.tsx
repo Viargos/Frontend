@@ -125,6 +125,9 @@ export const MapPinIcon = ({ size = 24, ...props }: IconProps) => (
 export const MountainIcon = ({ size = 24, ...props }: IconProps) => (
   <Mountain height={size} width={size} {...props} />
 );
+export const NavigationIcon = ({ size = 24, ...props }: IconProps) => (
+  <Navigation height={size} width={size} {...props} />
+);
 export const MoonIcon = ({ size = 24, ...props }: IconProps) => (
   <Moon height={size} width={size} {...props} />
 );

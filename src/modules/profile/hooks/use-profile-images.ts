@@ -1,8 +1,8 @@
 'use client';
 
-import { useMutation } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
+import { profileQueryKeys } from '@/modules/profile/query-keys';
 import { profileService } from '@/modules/profile/services/profile.service';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -19,26 +19,29 @@ function validateImageFile(file: File): string | null {
 }
 
 export function useProfileImages() {
-  const router = useRouter();
+  const queryClient = useQueryClient();
+  const invalidateCurrentProfile = () => {
+    void queryClient.invalidateQueries({ queryKey: profileQueryKeys.current() });
+  };
 
   const profileImageMutation = useMutation({
     mutationFn: (file: File) => profileService.uploadProfileImage(file),
-    onSuccess: () => router.refresh(),
+    onSuccess: invalidateCurrentProfile,
   });
 
   const bannerImageMutation = useMutation({
     mutationFn: (file: File) => profileService.uploadBannerImage(file),
-    onSuccess: () => router.refresh(),
+    onSuccess: invalidateCurrentProfile,
   });
 
   const deleteProfileImageMutation = useMutation({
     mutationFn: () => profileService.deleteProfileImage(),
-    onSuccess: () => router.refresh(),
+    onSuccess: invalidateCurrentProfile,
   });
 
   const deleteBannerImageMutation = useMutation({
     mutationFn: () => profileService.deleteBannerImage(),
-    onSuccess: () => router.refresh(),
+    onSuccess: invalidateCurrentProfile,
   });
 
   const handleProfileImageChange = useCallback(

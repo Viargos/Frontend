@@ -4,6 +4,7 @@ import type { JourneyFilterState } from '@/modules/discover/components/FilterPan
 import type { DiscoverCoordinates } from '@/modules/discover/types/discover.types';
 import { ExploreIcon, MapPinIcon, SearchIcon } from '@/modules/common/icons';
 import { DiscoverFilterChips } from '@/modules/discover/components/DiscoverFilterChips';
+import { DISCOVER_DEFAULT_RADIUS_KM } from '@/modules/discover/constants/discover.constants';
 
 type DiscoverTopBarProps = {
   coordinates: DiscoverCoordinates | null;
@@ -65,7 +66,7 @@ export const DiscoverTopBar = (props: DiscoverTopBarProps) => {
           onRemove: onClearDateRange,
         }]
       : []),
-    ...(filters.radius !== 500
+    ...(filters.radius !== DISCOVER_DEFAULT_RADIUS_KM
       ? [{ id: 'radius', label: `${filters.radius} km`, onRemove: onResetRadius }]
       : []),
   ];

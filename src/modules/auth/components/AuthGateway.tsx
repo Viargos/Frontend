@@ -125,7 +125,7 @@ export const AuthGateway = () => {
                 </div>
               </motion.div>
 
-              <div className="relative min-h-[700px] w-full flex-1 overflow-hidden sm:min-h-[800px]">
+              <div className="relative min-h-175 w-full flex-1 overflow-hidden sm:min-h-200">
                 <div className="auth-gateway-hero-bg absolute inset-0" style={themeStyles.hero} />
                 <div className="pointer-events-none absolute inset-x-0 top-12 bottom-0 xl:top-0">
                   <Image
@@ -139,7 +139,7 @@ export const AuthGateway = () => {
                     unoptimized
                   />
                 </div>
-                <div className="relative z-10 mx-auto flex min-h-[700px] w-full max-w-7xl flex-col items-center justify-start px-4 pt-10 text-center sm:min-h-[800px] sm:pt-16">
+                <div className="relative z-10 mx-auto flex min-h-175 w-full max-w-7xl flex-col items-center justify-start px-4 pt-10 text-center sm:min-h-200 sm:pt-16">
                   <motion.h1
                     animate={showContent ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
                     className="mb-6 max-w-4xl font-outfit text-4xl font-semibold tracking-tight text-slate-950 sm:text-6xl"

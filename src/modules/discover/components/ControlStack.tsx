@@ -1,14 +1,14 @@
 'use client';
 
 import * as motion from 'framer-motion/client';
-import { ChevronRightIcon, ExploreIcon, GlobeIcon, RefreshCwIcon } from '@/modules/common/icons';
+import { ChevronRightIcon, ExploreIcon, GlobeIcon, NavigationIcon, RefreshCwIcon } from '@/modules/common/icons';
 
 type ControlStackProps = {
   autoSearch: boolean;
   isLoadingLocation: boolean;
   isSidebarOpen: boolean;
+  onExpandSearchRadius: () => void;
   onRefreshLocation: () => void;
-  onSearchGlobal: () => void;
   onToggleAutoSearch: () => void;
   onToggleSidebar: () => void;
 };
@@ -18,8 +18,8 @@ export const ControlStack = (props: ControlStackProps) => {
     autoSearch,
     isLoadingLocation,
     isSidebarOpen,
+    onExpandSearchRadius,
     onRefreshLocation,
-    onSearchGlobal,
     onToggleAutoSearch,
     onToggleSidebar,
   } = props;
@@ -48,10 +48,12 @@ export const ControlStack = (props: ControlStackProps) => {
         transition={{ delay: 0.1 }}
         disabled={isLoadingLocation}
         onClick={onRefreshLocation}
-        title="Refresh location"
+        title="Use current location"
         type="button"
       >
-        <RefreshCwIcon aria-hidden="true" className={`h-5 w-5 text-gray-600 ${isLoadingLocation ? 'animate-spin' : ''}`} />
+        {isLoadingLocation
+          ? <RefreshCwIcon aria-hidden="true" className="h-5 w-5 animate-spin text-gray-600" />
+          : <NavigationIcon aria-hidden="true" className="h-5 w-5 text-gray-600" />}
       </motion.button>
 
       <motion.button
@@ -71,8 +73,8 @@ export const ControlStack = (props: ControlStackProps) => {
         className="rounded-lg bg-green-600 p-3 text-white shadow-lg transition-all duration-200 hover:shadow-xl"
         initial={{ opacity: 0, x: 20 }}
         transition={{ delay: 0.3 }}
-        onClick={onSearchGlobal}
-        title="Search Worldwide"
+        onClick={onExpandSearchRadius}
+        title="Expand to 1000km"
         type="button"
       >
         <GlobeIcon aria-hidden="true" className="h-5 w-5" />

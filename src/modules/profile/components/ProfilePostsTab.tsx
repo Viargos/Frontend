@@ -1,10 +1,12 @@
 'use client';
 
+import type { KeyboardEvent, MouseEvent, PointerEvent } from 'react';
 import type { ProfilePost } from '@/modules/profile/types/profile.types';
 import * as motion from 'framer-motion/client';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { ChatBubbleIcon, EditIcon, HeartIcon, ImageIcon, JourneyIcon } from '@/modules/common/icons';
+import { PostDetailModal } from '@/modules/profile/components/PostDetailModal';
 import { PostEditModal } from '@/modules/profile/components/PostEditModal';
 import { ProfilePostMediaCarousel } from '@/modules/profile/components/ProfilePostMediaCarousel';
 
@@ -19,8 +21,10 @@ export const ProfilePostsTab = (props: ProfilePostsTabProps) => {
   const { isLoading = false, isOwnProfile = true, ownerName, posts } = props;
   const contentPaddingClass = isOwnProfile ? 'pb-12' : 'px-4 pb-12 sm:px-6';
   const [editingPost, setEditingPost] = useState<ProfilePost | null>(null);
+  const [selectedPost, setSelectedPost] = useState<ProfilePost | null>(null);
   const [deletedPostIds, setDeletedPostIds] = useState<Set<string>>(() => new Set());
   const [editedDescriptions, setEditedDescriptions] = useState<Record<string, string>>({});
+  const lastTapRef = useRef<{ postId: string; time: number } | null>(null);
 
   const visiblePosts = useMemo(() => posts
     .filter(post => !deletedPostIds.has(post.id))
@@ -46,6 +50,45 @@ export const ProfilePostsTab = (props: ProfilePostsTabProps) => {
     setEditingPost(null);
   };
 
+  const isInteractiveTarget = (target: EventTarget | null): boolean => (
+    target instanceof Element
+    && Boolean(target.closest('a, button, input, select, textarea, [data-ignore-post-open]'))
+  );
+
+  const handlePostDoubleClick = (event: MouseEvent<HTMLElement>, post: ProfilePost) => {
+    if (isInteractiveTarget(event.target)) {
+      return;
+    }
+
+    setSelectedPost(post);
+  };
+
+  const handlePostPointerUp = (event: PointerEvent<HTMLElement>, post: ProfilePost) => {
+    if (event.pointerType === 'mouse' || isInteractiveTarget(event.target)) {
+      return;
+    }
+
+    const now = event.timeStamp;
+    const lastTap = lastTapRef.current;
+
+    if (lastTap && lastTap.postId === post.id && now - lastTap.time < 350) {
+      lastTapRef.current = null;
+      setSelectedPost(post);
+      return;
+    }
+
+    lastTapRef.current = { postId: post.id, time: now };
+  };
+
+  const handlePostKeyDown = (event: KeyboardEvent<HTMLElement>, post: ProfilePost) => {
+    if (isInteractiveTarget(event.target) || (event.key !== 'Enter' && event.key !== ' ')) {
+      return;
+    }
+
+    event.preventDefault();
+    setSelectedPost(post);
+  };
+
   return (
     <>
       <div className={`flex w-full flex-col items-start gap-4 ${contentPaddingClass}`}>
@@ -64,14 +107,19 @@ export const ProfilePostsTab = (props: ProfilePostsTabProps) => {
               )
             : visiblePosts.length > 0
               ? (
-                  <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
+                  <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
                     {visiblePosts.map((post, index) => (
                       <motion.div
                         key={post.id}
+                        aria-label="Open post details"
                         animate={{ opacity: 1, scale: 1 }}
-                        className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg"
+                        className="group relative cursor-zoom-in touch-manipulation overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:outline-none"
                         initial={{ opacity: 0, scale: 0.9 }}
+                        tabIndex={0}
                         transition={{ delay: index * 0.05, duration: 0.3 }}
+                        onDoubleClick={event => handlePostDoubleClick(event, post)}
+                        onKeyDown={event => handlePostKeyDown(event, post)}
+                        onPointerUp={event => handlePostPointerUp(event, post)}
                       >
                         <div className="relative aspect-square bg-gray-100">
                           {post.mediaUrls && post.mediaUrls.length > 0
@@ -93,6 +141,7 @@ export const ProfilePostsTab = (props: ProfilePostsTabProps) => {
                                   <button
                                     aria-label="Edit post"
                                     className="profile-post-action-button flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all hover:scale-105 hover:shadow-lg active:scale-95 sm:h-10 sm:w-10"
+                                    data-ignore-post-open
                                     type="button"
                                     onClick={() => setEditingPost(post)}
                                   >
@@ -108,6 +157,7 @@ export const ProfilePostsTab = (props: ProfilePostsTabProps) => {
                               <div className="profile-post-journey-strip border-b px-3 py-2">
                                 <Link
                                   className="profile-post-journey-link flex items-center gap-2 text-xs transition-colors"
+                                  data-ignore-post-open
                                   href={`/journey/${post.journey.id}`}
                                 >
                                   <JourneyIcon className="profile-post-journey-icon h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
@@ -161,6 +211,16 @@ export const ProfilePostsTab = (props: ProfilePostsTabProps) => {
               onClose={() => setEditingPost(null)}
               onDeleted={() => handleDeleted(editingPost.id)}
               onSaved={description => handleSaved(editingPost.id, description)}
+            />
+          )
+        : null}
+
+      {selectedPost
+        ? (
+            <PostDetailModal
+              key={selectedPost.id}
+              post={selectedPost}
+              onClose={() => setSelectedPost(null)}
             />
           )
         : null}

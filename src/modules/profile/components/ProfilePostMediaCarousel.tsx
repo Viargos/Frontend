@@ -26,10 +26,10 @@ export function ProfilePostMediaCarousel(props: ProfilePostMediaCarouselProps) {
         <Image
           alt="Post media"
           className="object-cover"
+          quality={70}
           fill
-          sizes="(max-width: 640px) 100vw, 25vw"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
           src={mediaUrls[0]!}
-          unoptimized
         />
       </div>
     );
@@ -55,9 +55,9 @@ export function ProfilePostMediaCarousel(props: ProfilePostMediaCarouselProps) {
             className="object-cover select-none"
             draggable={false}
             fill
-            sizes="(max-width: 640px) 100vw, 25vw"
+            quality={70}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
             src={currentUrl}
-            unoptimized
           />
         </motion.div>
 

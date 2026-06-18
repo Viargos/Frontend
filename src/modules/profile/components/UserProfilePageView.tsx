@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation';
-import { getServerProfileById } from '../services/profile.server';
 import { profileIdSchema } from '../validations/profile.validation';
-import { ProfileContent } from './ProfileContent';
+import { ProfileQueryView } from './ProfileQueryView';
 
 type UserProfilePageViewProps = {
   params: Promise<{ userId: string }>;
@@ -15,18 +14,5 @@ export async function UserProfilePageView(props: UserProfilePageViewProps) {
     notFound();
   }
 
-  let profile;
-  try {
-    profile = await getServerProfileById(userId);
-  } catch {
-    notFound();
-  }
-
-  return (
-    <ProfileContent
-      heading={`${profile.user.username}'s Profile`}
-      isOwnProfile={false}
-      profile={profile}
-    />
-  );
+  return <ProfileQueryView isOwnProfile={false} userId={userId} />;
 }

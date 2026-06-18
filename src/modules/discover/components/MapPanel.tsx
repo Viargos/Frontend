@@ -17,8 +17,8 @@ type MapPanelProps = {
   isSidebarOpen: boolean;
   journeys: DiscoverJourney[];
   onOpenJourneyDetails: (journey: DiscoverJourney) => void;
+  onExpandSearchRadius: () => void;
   onRefreshLocation: () => void;
-  onSearchGlobal: () => void;
   onSelectJourney: (journey: DiscoverJourney) => void;
   onToggleAutoSearch: () => void;
   onToggleSidebar: () => void;
@@ -33,9 +33,9 @@ export const MapPanel = (props: MapPanelProps) => {
     isLoadingLocation,
     isSidebarOpen,
     journeys,
+    onExpandSearchRadius,
     onOpenJourneyDetails,
     onRefreshLocation,
-    onSearchGlobal,
     onSelectJourney,
     onToggleAutoSearch,
     onToggleSidebar,
@@ -247,15 +247,6 @@ export const MapPanel = (props: MapPanelProps) => {
               : null}
           </div>
 
-          <div className="pointer-events-none relative h-full w-full p-4">
-            <div className="pointer-events-auto max-w-xs rounded-2xl border border-white/60 bg-white/80 p-3 shadow-sm backdrop-blur-sm">
-              <p className="text-xs font-medium text-gray-700">
-                {coordinates
-                  ? `Map Center: ${coordinates.latitude.toFixed(4)}, ${coordinates.longitude.toFixed(4)}`
-                  : 'Waiting for location...'}
-              </p>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -263,8 +254,8 @@ export const MapPanel = (props: MapPanelProps) => {
         autoSearch={autoSearch}
         isLoadingLocation={isLoadingLocation}
         isSidebarOpen={isSidebarOpen}
+        onExpandSearchRadius={onExpandSearchRadius}
         onRefreshLocation={onRefreshLocation}
-        onSearchGlobal={onSearchGlobal}
         onToggleAutoSearch={onToggleAutoSearch}
         onToggleSidebar={onToggleSidebar}
       />
