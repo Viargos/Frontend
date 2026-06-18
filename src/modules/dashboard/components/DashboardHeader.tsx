@@ -4,21 +4,15 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { useAuthSession } from '@/modules/auth';
-import { useTheme } from '@/modules/common';
-import { AddPostIcon, CreateJourneyIcon, MoonIcon, SunIcon } from '@/modules/common/icons';
+import { AddPostIcon, CreateJourneyIcon } from '@/modules/common/icons';
 import { useUserSearch } from '@/modules/search';
-import { BellIcon, SearchIcon, UserProfileIcon } from './dashboard-icons';
+import { SearchIcon } from './dashboard-icons';
 import { DashboardCreatePostModal } from './DashboardCreatePostModal';
-
-const notifications: Array<{ id: string; message: string; read: boolean; time: string }> = [];
 
 export const DashboardHeader = () => {
   const router = useRouter();
-  const { session, signOut } = useAuthSession();
-  const { isDark, toggleTheme } = useTheme();
+  const { session } = useAuthSession();
   const searchRef = useRef<HTMLDivElement | null>(null);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [showCreatePostModal, setShowCreatePostModal] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -206,28 +200,6 @@ export const DashboardHeader = () => {
 
         <div className={`flex items-center gap-2 transition-all duration-300 ${isSearchExpanded ? 'max-[639px]:pointer-events-none max-[639px]:hidden max-[639px]:scale-95 max-[639px]:opacity-0 sm:pointer-events-auto sm:scale-100 sm:opacity-100' : 'pointer-events-auto scale-100 opacity-100'}`}>
           <button
-            aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-            aria-pressed={isDark}
-            className="shadow-button inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3.5 py-2 font-manrope text-sm leading-5 font-semibold text-gray-900 transition-colors hover:bg-gray-50"
-            type="button"
-            onClick={toggleTheme}
-          >
-            {isDark
-              ? (
-                  <>
-                    <SunIcon className="h-4 w-4" size={18} />
-                    <span className="hidden lg:inline">Light</span>
-                  </>
-                )
-              : (
-                  <>
-                    <MoonIcon className="h-4 w-4" size={18} />
-                    <span className="hidden lg:inline">Dark</span>
-                  </>
-                )}
-          </button>
-
-          <button
             aria-label="Create Post"
             className="shadow-button inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3.5 py-2 font-manrope text-sm leading-5 font-semibold text-gray-900 transition-colors hover:bg-gray-50"
             type="button"
@@ -250,106 +222,6 @@ export const DashboardHeader = () => {
             </span>
             <span className="hidden lg:inline">Create Journey</span>
           </button>
-
-          <div className="relative">
-            <button aria-label="Open notifications" className="relative cursor-pointer p-2 text-gray-900 transition-colors hover:text-gray-700" type="button" onClick={() => setShowNotifications(previous => !previous)}>
-              <BellIcon className="h-6 w-6" />
-            </button>
-
-            {showNotifications
-              ? (
-                  <div className="absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
-                    <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
-                      <h3 className="font-semibold text-gray-900">Notifications</h3>
-                    </div>
-
-                    <div className="max-h-96 overflow-y-auto">
-                      {notifications.length > 0
-                        ? null
-                        : (
-                            <div className="px-4 py-8 text-center">
-                              <BellIcon className="mx-auto mb-4 h-12 w-12 text-gray-300" />
-                              <p className="text-sm text-gray-500">No new notifications</p>
-                            </div>
-                          )}
-                    </div>
-                  </div>
-                )
-              : null}
-          </div>
-
-          <div className="relative">
-            <button
-              aria-label="Open user menu"
-              className="h-10 w-10 cursor-pointer overflow-hidden rounded-full border-2 border-gray-300 transition-colors hover:border-gray-400 focus:border-[#160E53] focus:ring-2 focus:ring-[#160E53] focus:outline-none"
-              type="button"
-              onClick={() => setShowDropdown(previous => !previous)}
-            >
-              {session.user?.profileImage
-                ? (
-                    <Image alt={session.user.username || 'User'} className="h-full w-full object-cover" height={40} src={session.user.profileImage} unoptimized width={40} />
-                  )
-                : (
-                    <div className="flex h-full w-full items-center justify-center bg-[#160E53] font-medium text-white">
-                      {session.user?.username?.charAt(0).toUpperCase() || 'U'}
-                    </div>
-                  )}
-            </button>
-
-            {showDropdown
-              ? (
-                  <div className="absolute right-0 z-50 mt-2 w-64 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
-                    <div className="border-b border-gray-100 px-4 py-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-full border-2 border-gray-200">
-                          {session.user?.profileImage
-                            ? <Image alt={session.user.username || 'User'} className="h-full w-full object-cover" height={48} src={session.user.profileImage} unoptimized width={48} />
-                            : (
-                                <div className="flex h-full w-full items-center justify-center bg-[#160E53] text-lg font-medium text-white">
-                                  {session.user?.username?.charAt(0).toUpperCase() || 'U'}
-                                </div>
-                              )}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="truncate font-semibold text-gray-900">{session.user?.username || 'User'}</div>
-                          <div className="truncate text-sm text-gray-500">{session.user?.email || 'No email'}</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="py-2">
-                      <button
-                        className="flex w-full cursor-pointer items-center px-4 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-50"
-                        type="button"
-                        onClick={() => {
-                          setShowDropdown(false);
-                          router.push('/profile');
-                        }}
-                      >
-                        <UserProfileIcon className="mr-3 h-4 w-4" />
-                        View Profile
-                      </button>
-
-                      <div className="mt-2 border-t border-gray-100 pt-2">
-                        <button
-                          className="flex w-full cursor-pointer items-center px-4 py-2 text-left text-sm text-blue-600 transition-colors hover:bg-blue-50"
-                          type="button"
-                          onClick={async () => {
-                            setShowDropdown(false);
-                            await signOut();
-                            router.push('/');
-                            router.refresh();
-                          }}
-                        >
-                          <span className="mr-3 text-blue-600"></span>
-                          Logout
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )
-              : null}
-          </div>
         </div>
       </div>
 

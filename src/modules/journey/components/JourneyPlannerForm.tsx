@@ -60,36 +60,42 @@ const MAX_PLACE_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
 const PLACE_TYPE_CONFIG: Array<{
   description: string;
   icon: JSX.Element;
+  statLabel: string;
   title: string;
   type: PlaceType | 'NOTES';
 }> = [
   {
     description: 'Where the traveler stayed, checked in, and checked out.',
     icon: <HotelIcon className="h-5 w-5" />,
+    statLabel: 'Linked stays',
     title: 'Stay',
     type: PlaceType.STAY,
   },
   {
     description: 'Highlights, attractions, and experiences for the day.',
     icon: <TreeIcon className="h-5 w-5" />,
+    statLabel: 'Places',
     title: 'Places to go',
     type: PlaceType.ACTIVITY,
   },
   {
     description: 'Restaurants, cafes, and memorable food stops.',
     icon: <UtensilsIcon className="h-5 w-5" />,
+    statLabel: 'Food stops',
     title: 'Food',
     type: PlaceType.FOOD,
   },
   {
     description: 'Flights, trains, cabs, and other transport details.',
     icon: <CarIcon className="h-5 w-5" />,
+    statLabel: 'Transport',
     title: 'Transport',
     type: PlaceType.TRANSPORT,
   },
   {
     description: 'Day-level notes, reminders, and context.',
     icon: <FileTextIcon className="h-5 w-5" />,
+    statLabel: 'Notes',
     title: 'Notes',
     type: 'NOTES',
   },
@@ -369,7 +375,8 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
   const notesRef = useRef<HTMLTextAreaElement | null>(null);
   const coverInputRef = useRef<HTMLInputElement | null>(null);
   const dayNavigatorRef = useRef<HTMLDivElement | null>(null);
-  const { createJourney, isCreatingJourney, isUploadingJourneyCoverImage, isUploadingJourneyPlaceMedia, updateJourney, uploadJourneyCoverImage, uploadJourneyPlaceMedia } = useJourneyActions();
+  const placeEditorRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const { createJourney, isCreatingJourney, isUpdatingJourney, isUploadingJourneyCoverImage, isUploadingJourneyPlaceMedia, updateJourney, uploadJourneyCoverImage, uploadJourneyPlaceMedia } = useJourneyActions();
   const mapLoader = useGoogleMapsLoader('journey-planner-map-loader');
   const {
     activeDayOptions,
@@ -394,6 +401,7 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
   const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(initialJourney?.coverImage ?? null);
   const [expandedPlaces, setExpandedPlaces] = useState<Record<string, boolean>>({});
   const [isReviewOpen, setIsReviewOpen] = useState(false);
+  const [pendingScrollPlaceId, setPendingScrollPlaceId] = useState<string | null>(null);
 
   useEffect(() => {
     const nextActiveDayId = values.days.some(day => day.id === activeDayId)
@@ -445,7 +453,36 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
     return base;
   }, [activeDay]);
 
-  const isSubmitting = isCreatingJourney || isUploadingJourneyCoverImage || isUploadingJourneyPlaceMedia;
+  const activeDayCategorySections = [
+    { items: groupedPlaces[PlaceType.STAY], title: 'Stay', type: PlaceType.STAY },
+    { items: groupedPlaces[PlaceType.ACTIVITY], title: 'Places to go', type: PlaceType.ACTIVITY },
+    { items: groupedPlaces[PlaceType.FOOD], title: 'Food', type: PlaceType.FOOD },
+    { items: groupedPlaces[PlaceType.TRANSPORT], title: 'Transport', type: PlaceType.TRANSPORT },
+  ];
+  const visibleActiveDaySections = activeDayCategorySections.filter(section => section.items.length > 0);
+  const activeDayPhotoCount = activeDay?.places.reduce((sum, place) => sum + place.media.length, 0) ?? 0;
+  const activeDayLinkedStayCount = activeDay?.places.filter(place => (place.bookingEndDayNumber ?? activeDay.dayNumber) > activeDay.dayNumber || (place.bookingStartDayNumber ?? activeDay.dayNumber) < activeDay.dayNumber).length ?? 0;
+
+  useEffect(() => {
+    if (!pendingScrollPlaceId) {
+      return;
+    }
+
+    const placeEditor = placeEditorRefs.current[pendingScrollPlaceId];
+    if (!placeEditor) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      placeEditor.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+      setPendingScrollPlaceId(null);
+    });
+  }, [pendingScrollPlaceId, values.days]);
+
+  const isSubmitting = isCreatingJourney || isUpdatingJourney || isUploadingJourneyCoverImage || isUploadingJourneyPlaceMedia;
 
   const totalPhotos = useMemo(
     () => values.days.reduce((sum, day) => sum + day.places.reduce((placeSum, place) => placeSum + place.media.length, 0), 0),
@@ -537,12 +574,17 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
     }
 
     if (type === 'NOTES') {
-      notesRef.current?.focus();
+      notesRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+      notesRef.current?.focus({ preventScroll: true });
       return;
     }
 
     const nextPlaceId = addPlace(activeDay.id, type);
     setExpandedPlaces(prev => ({ ...prev, [nextPlaceId]: true }));
+    setPendingScrollPlaceId(nextPlaceId);
   };
 
   const scrollDayNavigator = (direction: 'left' | 'right') => {
@@ -652,7 +694,13 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
     const typeConfig = PLACE_TYPE_CONFIG.find(config => config.type === place.type);
 
     return (
-      <div className="journey-planner-card rounded-3xl border" key={place.id}>
+      <div
+        className="journey-planner-card scroll-mt-6 rounded-3xl border"
+        key={place.id}
+        ref={(node) => {
+          placeEditorRefs.current[place.id] = node;
+        }}
+      >
         <div className="flex items-center justify-between gap-3 border-b px-5 py-4">
           <button
             className="flex min-w-0 flex-1 items-center gap-3 text-left"
@@ -1014,49 +1062,47 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
             {activeDay
               ? (
                   <>
-                    <section className="journey-planner-card rounded-[28px] border p-5 sm:p-6">
-                      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                    <section className="journey-planner-card rounded-[28px] border p-5 sm:p-8">
+                      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
                         <div>
                           <p className="journey-planner-label text-xs font-semibold tracking-[0.22em] uppercase">Active day</p>
                           <h2 className="journey-planner-title mt-2 text-2xl font-semibold tracking-tight">{formatDisplayDate(activeDay.date)}</h2>
                           <p className="journey-planner-copy mt-2 text-sm">Add each part of the day as the trip unfolded.</p>
                         </div>
 
-                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                          <div className="journey-planner-subcard rounded-2xl border px-4 py-3">
-                            <p className="journey-planner-label text-xs font-medium tracking-wide uppercase">Items</p>
-                            <p className="journey-planner-title mt-1 text-lg font-semibold">{activeDay.places.length}</p>
+                        <div className="grid min-w-full gap-3 sm:grid-cols-3 lg:min-w-[520px]">
+                          <div className="journey-planner-metric rounded-2xl border px-4 py-3">
+                            <p className="journey-planner-label text-xs font-semibold tracking-wide uppercase">Items</p>
+                            <p className="journey-planner-title mt-1 text-xl font-semibold">{activeDay.places.length}</p>
                           </div>
-                          <div className="journey-planner-subcard rounded-2xl border px-4 py-3">
-                            <p className="journey-planner-label text-xs font-medium tracking-wide uppercase">Photos</p>
-                            <p className="journey-planner-title mt-1 text-lg font-semibold">
-                              {activeDay.places.reduce((sum, place) => sum + place.media.length, 0)}
-                            </p>
+                          <div className="journey-planner-metric rounded-2xl border px-4 py-3">
+                            <p className="journey-planner-label text-xs font-semibold tracking-wide uppercase">Photos</p>
+                            <p className="journey-planner-title mt-1 text-xl font-semibold">{activeDayPhotoCount}</p>
                           </div>
-                          <div className="journey-planner-subcard rounded-2xl border px-4 py-3">
-                            <p className="journey-planner-label text-xs font-medium tracking-wide uppercase">Linked stays</p>
-                            <p className="journey-planner-title mt-1 text-lg font-semibold">
-                              {activeDay.places.filter(place => (place.bookingEndDayNumber ?? activeDay.dayNumber) > activeDay.dayNumber || (place.bookingStartDayNumber ?? activeDay.dayNumber) < activeDay.dayNumber).length}
-                            </p>
+                          <div className="journey-planner-metric rounded-2xl border px-4 py-3">
+                            <p className="journey-planner-label text-xs font-semibold tracking-wide uppercase">Linked stays</p>
+                            <p className="journey-planner-title mt-1 text-xl font-semibold">{activeDayLinkedStayCount}</p>
                           </div>
                         </div>
                       </div>
 
-                      <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+                      <div className="mt-6 space-y-4">
                         {PLACE_TYPE_CONFIG.map(item => (
                           <button
-                            className="journey-planner-subcard rounded-3xl border p-4 text-left transition-all hover:-translate-y-0.5"
+                            className="journey-planner-action-card group flex w-full items-center gap-4 rounded-3xl border px-4 py-4 text-left transition-all hover:-translate-y-0.5 sm:gap-6 sm:px-6 sm:py-5"
                             key={item.title}
                             onClick={() => handleAddCategory(item.type)}
                             type="button"
                           >
-                            <div className="journey-planner-icon-tile flex h-11 w-11 items-center justify-center rounded-2xl">
+                            <div className="journey-planner-icon-tile flex h-16 w-16 shrink-0 items-center justify-center rounded-3xl sm:h-[72px] sm:w-[72px]">
                               {item.icon}
                             </div>
-                            <h3 className="journey-planner-title mt-4 text-base font-semibold">{item.title}</h3>
-                            <p className="journey-planner-copy mt-1 text-sm leading-6">{item.description}</p>
-                            <div className="journey-planner-accent-link mt-4 inline-flex items-center gap-2 text-sm font-medium">
-                              <PlusIcon className="h-4 w-4" />
+                            <div className="min-w-0 flex-1">
+                              <h3 className="journey-planner-title text-lg font-semibold">{item.title}</h3>
+                              <p className="journey-planner-copy mt-1 text-sm leading-6 sm:text-base">{item.description}</p>
+                            </div>
+                            <div className="journey-planner-accent-link ml-auto hidden shrink-0 items-center gap-3 text-sm font-semibold sm:inline-flex sm:text-base">
+                              {item.type === 'NOTES' ? <FileTextIcon className="h-5 w-5" /> : <PlusIcon className="h-5 w-5" />}
                               {item.type === 'NOTES' ? 'Open notes' : 'Add item'}
                             </div>
                           </button>
@@ -1064,23 +1110,20 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
                       </div>
                     </section>
 
-                    {[
-                      { items: groupedPlaces[PlaceType.STAY], title: 'Stay' },
-                      { items: groupedPlaces[PlaceType.ACTIVITY], title: 'Places to go' },
-                      { items: groupedPlaces[PlaceType.FOOD], title: 'Food' },
-                      { items: groupedPlaces[PlaceType.TRANSPORT], title: 'Transport' },
-                    ].map(section => (
+                    {visibleActiveDaySections.map(section => (
                       <section className="journey-planner-card rounded-[28px] border p-5 sm:p-6" key={section.title}>
                         <div className="flex items-center justify-between gap-4">
                           <div>
                             <p className="journey-planner-label text-xs font-semibold tracking-[0.22em] uppercase">{section.title}</p>
                             <h3 className="journey-planner-title mt-2 text-xl font-semibold tracking-tight">
-                              {section.items.length > 0 ? `${section.items.length} planned` : `No ${section.title.toLowerCase()} added yet`}
+                              {section.items.length}
+                              {' '}
+                              planned
                             </h3>
                           </div>
                           <button
                             className="journey-planner-soft-button inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors"
-                            onClick={() => handleAddCategory(section.items[0]?.type ?? (section.title === 'Stay' ? PlaceType.STAY : section.title === 'Food' ? PlaceType.FOOD : section.title === 'Transport' ? PlaceType.TRANSPORT : PlaceType.ACTIVITY))}
+                            onClick={() => handleAddCategory(section.type)}
                             type="button"
                           >
                             <PlusIcon className="h-4 w-4" />
@@ -1091,17 +1134,7 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
                         </div>
 
                         <div className="mt-5 space-y-4">
-                          {section.items.length > 0
-                            ? section.items.map(renderPlaceEditor)
-                            : (
-                                <div className="journey-planner-empty-state rounded-3xl border border-dashed px-5 py-6 text-sm">
-                                  No
-                                  {' '}
-                                  {section.title.toLowerCase()}
-                                  {' '}
-                                  added for this day yet.
-                                </div>
-                              )}
+                          {section.items.map(renderPlaceEditor)}
                         </div>
                       </section>
                     ))}

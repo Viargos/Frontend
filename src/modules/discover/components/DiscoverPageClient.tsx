@@ -33,6 +33,7 @@ const DEFAULT_PARITY_CONFIG: DiscoverParityConfig = {
 };
 
 type DiscoverPageClientProps = {
+  initialLocationQuery?: string;
   parityConfig?: DiscoverParityConfig;
 };
 
@@ -73,6 +74,7 @@ function matchesSearchQuery(item: DiscoverFeedItem, query: string) {
 }
 
 export const DiscoverPageClient = (props: DiscoverPageClientProps) => {
+  const initialLocationQuery = props.initialLocationQuery?.trim() ?? '';
   const parityConfig = props.parityConfig ?? DEFAULT_PARITY_CONFIG;
   const {
     coordinates,
@@ -92,7 +94,7 @@ export const DiscoverPageClient = (props: DiscoverPageClientProps) => {
   const [manualSidebarOpen, setManualSidebarOpen] = useState<boolean | null>(null);
   const [showFilters, setShowFilters] = useState(() => parityConfig.forceFilters ?? false);
   const [autoSearch, setAutoSearch] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(initialLocationQuery);
   const selectedItemId = useDiscoverStore(state => state.selectedItemId);
   const setHoveredItemId = useDiscoverStore(state => state.setHoveredItemId);
   const setSelectedItemId = useDiscoverStore(state => state.setSelectedItemId);

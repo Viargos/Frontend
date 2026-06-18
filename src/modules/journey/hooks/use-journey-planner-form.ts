@@ -6,6 +6,7 @@ import type { JourneyCreateInput, JourneyDayInput, JourneyPlaceInput, JourneyPla
 import { useMemo, useState } from 'react';
 import { createClientId, todayIsoDate } from '@/modules/journey/helpers/journey.helper';
 import { journeyCreateSchema } from '@/modules/journey/validations/journey.validation';
+import { toast } from '@/modules/common';
 
 type PlannerState = JourneyCreateInput & {
   endDate: string;
@@ -520,12 +521,16 @@ export function useJourneyPlannerForm(initialJourney?: JourneyDetail) {
 
   const validate = (): boolean => {
     if (!values.title.trim()) {
-      setError('Journey title is required.');
+      const msg = 'Journey title is required.';
+      setError(msg);
+      toast.error(msg);
       return false;
     }
 
     if (!values.startDate || !values.endDate) {
-      setError('Please choose a start and end date for the journey.');
+      const msg = 'Please choose a start and end date for the journey.';
+      setError(msg);
+      toast.error(msg);
       return false;
     }
 
@@ -537,7 +542,9 @@ export function useJourneyPlannerForm(initialJourney?: JourneyDetail) {
     });
 
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? 'Invalid journey data');
+      const msg = parsed.error.issues[0]?.message ?? 'Invalid journey data';
+      setError(msg);
+      toast.error(msg);
       return false;
     }
 

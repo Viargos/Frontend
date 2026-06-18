@@ -97,17 +97,35 @@ function JourneyPillLink(props: { journeyId: string }) {
   );
 }
 
-function PostLocationLabel(props: { location: string; title?: string }) {
-  const { location, title } = props;
+function getDiscoverLocationHref(location: string) {
+  return `/discover?location=${encodeURIComponent(location)}`;
+}
+
+function PostLocationLabel(props: { isExploreLink?: boolean; location: string; title?: string }) {
+  const { isExploreLink = true, location, title } = props;
+
+  if (!isExploreLink) {
+    return (
+      <p
+        className="dashboard-post-accent flex max-w-full min-w-0 items-center gap-1.5 text-xs"
+        title={title ?? location}
+      >
+        <MapPinIcon className="h-3.5 w-3.5 shrink-0" />
+        <span className="truncate">{location}</span>
+      </p>
+    );
+  }
 
   return (
-    <p
-      className="dashboard-post-accent flex max-w-[45%] shrink-0 items-center gap-1.5 text-xs sm:max-w-[50%]"
+    <Link
+      aria-label={`Explore ${location}`}
+      className="dashboard-post-accent flex max-w-full min-w-0 items-center gap-1.5 text-xs transition-opacity hover:opacity-80"
+      href={getDiscoverLocationHref(location)}
       title={title ?? location}
     >
       <MapPinIcon className="h-3.5 w-3.5 shrink-0" />
       <span className="truncate">{location}</span>
-    </p>
+    </Link>
   );
 }
 
@@ -186,6 +204,61 @@ function MediaPost(props: PostLayoutProps) {
     post,
     timeAgo,
   } = props;
+  const journeyLabel = post.location ?? post.journey?.title;
+
+  if (post.journey) {
+    return (
+      <>
+        <div className="relative">
+          <DashboardMediaCarousel media={post.media} />
+
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-24 bg-linear-to-t from-black/70 to-transparent" />
+
+          <div className="absolute inset-x-3 bottom-3 z-20">
+            <Link
+              className="group/avatar flex min-w-0 items-center gap-2.5"
+              href={`/profile/${post.user.username}`}
+            >
+              <UserAvatar
+                profileImage={post.user.profileImage}
+                ring="white"
+                size="sm"
+                username={post.user.username}
+              />
+              <span className="truncate text-sm font-semibold text-white drop-shadow-md transition-all group-hover/avatar:underline">
+                {post.user.username}
+              </span>
+            </Link>
+          </div>
+        </div>
+
+        <div className="dashboard-post-body px-4 pt-4 pb-3">
+          <div className="mb-3 flex items-start justify-between gap-4">
+            <div className="min-w-0 space-y-2">
+              {journeyLabel
+                ? (
+                    <PostLocationLabel
+                      isExploreLink={Boolean(post.location)}
+                      location={journeyLabel}
+                      title={`${journeyLabel} - ${timeAgo}`}
+                    />
+                  )
+                : null}
+
+              <p className="dashboard-post-muted flex items-center gap-1.5 text-xs">
+                <ClockIcon className="h-3.5 w-3.5 shrink-0" />
+                {timeAgo}
+              </p>
+            </div>
+
+            <JourneyPillLink journeyId={post.journey.id} />
+          </div>
+
+          <p className="dashboard-post-text text-sm leading-relaxed">{post.description}</p>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -212,37 +285,21 @@ function MediaPost(props: PostLayoutProps) {
 
           {post.location
             ? (
-                <div
-                  className="dashboard-post-floating-chip flex max-w-[45%] shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs text-white"
+                <Link
+                  aria-label={`Explore ${post.location}`}
+                  className="dashboard-post-floating-chip flex max-w-[70%] shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs text-white transition-opacity hover:opacity-90 sm:max-w-[60%]"
+                  href={getDiscoverLocationHref(post.location)}
                   title={post.location}
                 >
                   <MapPinIcon className="h-3.5 w-3.5 shrink-0 text-white" />
                   <span className="truncate">{post.location}</span>
-                </div>
+                </Link>
               )
             : null}
         </div>
       </div>
 
       <div className="dashboard-post-body px-4 pt-4 pb-1">
-        {post.journey && (
-          <div className="mb-2.5">
-            <div className="flex items-center justify-between gap-3">
-              <span
-                className="dashboard-post-accent flex min-w-0 items-center gap-1.5 text-xs font-medium"
-                title={post.journey.title}
-              >
-                <MapPinIcon className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate">{post.journey.title}</span>
-              </span>
-              <JourneyPillLink journeyId={post.journey.id} />
-            </div>
-            <p className="dashboard-post-muted mt-1.5 flex items-center gap-1.5 text-xs">
-              <ClockIcon className="h-3.5 w-3.5 shrink-0" />
-              {timeAgo}
-            </p>
-          </div>
-        )}
         <p className="dashboard-post-text text-sm leading-relaxed">{post.description}</p>
       </div>
 
@@ -298,10 +355,12 @@ function TextPost(props: PostLayoutProps) {
               </div>
             </Link>
 
-            <div className="flex shrink-0 flex-col items-end gap-2">
+            <div className="flex max-w-[58%] min-w-0 shrink flex-col items-end gap-2 sm:max-w-[50%]">
               {post.location
                 ? <PostLocationLabel location={post.location} title={`${post.location} - ${timeAgo}`} />
-                : null}
+                : post.journey
+                  ? <PostLocationLabel isExploreLink={false} location={post.journey.title} title={`${post.journey.title} - ${timeAgo}`} />
+                  : null}
               {post.journey
                 ? <JourneyPillLink journeyId={post.journey.id} />
                 : null}

@@ -22,11 +22,11 @@ export const PlaceGroup = (props: PlaceGroupProps) => {
   return (
     <section className="space-y-4">
       <div className="flex items-center gap-3">
-        <h3 className="text-sm font-semibold tracking-[0.18em] text-slate-300 uppercase">{title}</h3>
-        <Badge className="border-white/10 bg-white/[0.06] text-slate-300" variant="muted">
+        <h3 className="journey-planner-label text-sm font-semibold tracking-[0.18em] uppercase">{title}</h3>
+        <Badge variant="muted">
           {places.length}
         </Badge>
-        <div className="h-px flex-1 bg-white/10" />
+        <div className="h-px flex-1 bg-[var(--journey-planner-card-border)]" />
       </div>
 
       <div className="space-y-4 sm:space-y-6">

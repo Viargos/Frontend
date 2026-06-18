@@ -69,7 +69,7 @@ export async function DashboardPageView(props: DashboardPageViewProps) {
   }
 
   return (
-    <div className="min-h-[calc(100vh-200px)] w-full flex-1 p-4 sm:p-6">
+    <div className="min-h-[calc(100vh-200px)] w-full flex-1 px-6 py-4 sm:px-10 sm:py-6 md:px-12 xl:px-16 2xl:px-20">
       <div className="mx-auto w-full max-w-[1440px]">
         <div className="xl:grid xl:grid-cols-[minmax(0,760px)_340px] xl:items-start xl:justify-between xl:gap-10 2xl:grid-cols-[minmax(0,820px)_380px]">
           <DashboardFeed initialFeed={initialFeed} parityState={parityEnabled ? parityState : undefined} />

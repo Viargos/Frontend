@@ -91,7 +91,6 @@ export const profileService = {
 
   async updateProfile(data: {
     username?: string;
-    email?: string;
   }): Promise<void> {
     await httpClient.patch<unknown>('/user/profile', JSON.stringify(data));
   },

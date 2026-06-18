@@ -122,28 +122,28 @@ export const PlaceCard = (props: PlaceCardProps) => {
 
   return (
     <div className="relative flex items-start">
-      <div className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] shadow-[0_12px_30px_-20px_rgba(0,0,0,0.85)] sm:flex">
-        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#f8d775] text-slate-950">
-          <PlaceTypeIcon size={16} type={place.type} />
+      <div className="hidden sm:flex shrink-0">
+        <div className="journey-planner-icon-tile flex h-11 w-11 items-center justify-center rounded-2xl">
+          <PlaceTypeIcon size={18} type={place.type} />
         </div>
       </div>
 
       <div className="w-full min-w-0 flex-1 sm:ml-4 md:ml-5">
-        <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-[0_24px_60px_-36px_rgba(0,0,0,0.9)] transition-all hover:-translate-y-0.5 hover:border-white/15 hover:bg-white/[0.06]">
+        <div className="journey-planner-card overflow-hidden rounded-3xl border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
           <div className="flex flex-col lg:flex-row">
             <div className="relative h-48 w-full shrink-0 bg-slate-900 lg:h-auto lg:w-[220px]">
               {place.media.length > 0 && place.media[0]
                 ? <Image alt={place.name} className="object-cover" fill sizes="(max-width: 1024px) 100vw, 220px" src={place.media[0].url} />
                 : (
-                    <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(180deg,rgba(15,23,42,0.95)_0%,rgba(30,41,59,0.82)_100%)]">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f8d775] text-slate-950 shadow-[0_18px_38px_-24px_rgba(248,215,117,0.8)]">
-                        <PlaceTypeIcon size={22} type={place.type} />
+                    <div className="journey-planner-subcard flex h-full w-full items-center justify-center border-r">
+                      <div className="journey-planner-icon-tile flex h-14 w-14 items-center justify-center rounded-2xl">
+                        <PlaceTypeIcon size={26} type={place.type} />
                       </div>
                     </div>
                   )}
 
               <div className="absolute top-3 left-3 sm:hidden">
-                <Badge className="border-white/20 bg-slate-950/70 text-white backdrop-blur-sm">
+                <Badge className="gap-1.5 border-white/20 bg-slate-950/70 text-white backdrop-blur-sm">
                   {getTypeGlyph(place.type)}
                   {' '}
                   {getTypeLabel(place.type)}
@@ -164,13 +164,13 @@ export const PlaceCard = (props: PlaceCardProps) => {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="hidden sm:flex">
-                    <Badge className="border-[#f8d775]/20 bg-[#f8d775]/10 text-[#f8d775]" variant="muted">
+                    <Badge className="gap-1.5 border-[var(--journey-planner-accent-border)] bg-[var(--journey-planner-accent-soft)] text-[var(--journey-planner-accent)]" variant="muted">
                       <PlaceTypeIcon size={12} type={place.type} />
                       {getTypeLabel(place.type)}
                     </Badge>
                   </div>
 
-                  <h3 className="mt-2 line-clamp-2 text-lg font-semibold tracking-tight text-slate-100">
+                  <h3 className="journey-planner-title mt-2 line-clamp-2 text-lg font-semibold tracking-tight">
                     {place.name}
                   </h3>
                 </div>
@@ -178,7 +178,7 @@ export const PlaceCard = (props: PlaceCardProps) => {
                 {place.media.length > 0
                   ? (
                       <button
-                        className="hidden shrink-0 items-center gap-1 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-sm font-medium text-slate-200 transition-all hover:border-[#f8d775]/30 hover:bg-[#f8d775]/10 hover:text-[#f8d775] sm:inline-flex"
+                        className="journey-planner-soft-button hidden shrink-0 items-center gap-1 rounded-full border px-3 py-1.5 text-sm font-medium transition-all sm:inline-flex"
                         onClick={() => onOpenMedia(place.media, 0)}
                         type="button"
                       >
@@ -192,7 +192,7 @@ export const PlaceCard = (props: PlaceCardProps) => {
               <div className="mt-4 flex flex-wrap gap-2">
                 {bookingRange
                   ? (
-                      <div className="inline-flex items-center gap-2 rounded-full border border-[#f8d775]/15 bg-[#f8d775]/10 px-3 py-1.5 text-xs text-[#f8d775]">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-[var(--journey-planner-accent-border)] bg-[var(--journey-planner-accent-soft)] px-3 py-1.5 text-xs text-[var(--journey-planner-accent)]">
                         <HotelIcon size={12} />
                         <span>{bookingRange}</span>
                       </div>
@@ -201,7 +201,7 @@ export const PlaceCard = (props: PlaceCardProps) => {
 
                 {place.address
                   ? (
-                      <div className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.05] px-3 py-1.5 text-xs text-slate-400">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-[var(--journey-planner-subcard-border)] bg-[var(--journey-planner-subcard-bg)] px-3 py-1.5 text-xs text-[var(--journey-planner-secondary-text)]">
                         <MapPinIcon size={12} />
                         <span className="line-clamp-1">{place.address}</span>
                       </div>
@@ -210,22 +210,21 @@ export const PlaceCard = (props: PlaceCardProps) => {
 
                 {timeRange
                   ? (
-                      <div className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.05] px-3 py-1.5 text-xs text-slate-400">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-[var(--journey-planner-subcard-border)] bg-[var(--journey-planner-subcard-bg)] px-3 py-1.5 text-xs text-[var(--journey-planner-secondary-text)]">
                         <ClockIcon size={12} />
                         <span>{timeRange}</span>
                       </div>
                     )
                   : null}
               </div>
-
               {place.description
-                ? <p className="mt-4 text-sm leading-6 text-slate-400">{place.description}</p>
+                ? <p className="journey-planner-copy mt-4 text-sm leading-6">{place.description}</p>
                 : null}
 
               {place.media.length > 0
                 ? (
                     <button
-                      className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#f8d775] px-4 py-3 text-sm font-medium text-slate-950 transition-colors hover:bg-[#f5cf54] sm:hidden"
+                      className="journey-planner-primary-button mt-4 flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium transition-colors sm:hidden"
                       onClick={() => onOpenMedia(place.media, 0)}
                       type="button"
                     >

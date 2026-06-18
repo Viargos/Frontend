@@ -74,6 +74,7 @@ export function useJourneyActions() {
     createJourney,
     deleteJourney,
     isCreatingJourney: createJourneyMutation.isPending,
+    isUpdatingJourney: updateJourneyMutation.isPending,
     isUploadingJourneyCoverImage: uploadCoverImageMutation.isPending,
     isUploadingJourneyPlaceMedia: uploadPlaceMediaMutation.isPending,
     updateJourney,

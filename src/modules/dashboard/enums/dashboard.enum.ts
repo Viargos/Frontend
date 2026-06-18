@@ -6,4 +6,5 @@ export enum DashboardRoute {
   SETTINGS = '/settings',
   JOURNEYS = '/journeys',
   PLAN_YOUR_JOURNEY = '/plan-your-journey',
+  NOTIFICATIONS = '/notifications',
 }
