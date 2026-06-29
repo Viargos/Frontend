@@ -256,6 +256,16 @@ function MediaPost(props: PostLayoutProps) {
 
           <p className="dashboard-post-text text-sm leading-relaxed">{post.description}</p>
         </div>
+
+        <ActionBar
+          isCommentSectionOpen={isCommentSectionOpen}
+          isLikePending={isLikePending}
+          isLiked={isLiked}
+          commentCount={commentCount}
+          likeCount={likeCount}
+          onCommentClick={onCommentClick}
+          onLikeClick={onLikeClick}
+        />
       </>
     );
   }
