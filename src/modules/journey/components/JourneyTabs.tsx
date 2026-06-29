@@ -39,7 +39,7 @@ export const JourneyTabs = (props: JourneyTabsProps) => {
       {days.map(day => (
         <button
           key={day.id ?? `day-${day.dayNumber}`}
-          className={`min-w-[152px] shrink-0 rounded-2xl border px-4 py-3 text-left transition-all journey-day-chip ${
+          className={`journey-day-chip min-w-[152px] shrink-0 rounded-2xl border px-4 py-3 text-left transition-all ${
             activeDayNumber === day.dayNumber
               ? 'journey-day-chip-active'
               : ''
@@ -56,8 +56,9 @@ export const JourneyTabs = (props: JourneyTabsProps) => {
             <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
               activeDayNumber === day.dayNumber
                 ? 'bg-[var(--journey-planner-accent-soft)] text-[var(--journey-planner-accent)]'
-                : 'bg-[var(--journey-planner-subcard-bg)] text-[var(--journey-planner-muted-text)] border border-[var(--journey-planner-subcard-border)]'
-            }`}>
+                : 'border border-[var(--journey-planner-subcard-border)] bg-[var(--journey-planner-subcard-bg)] text-[var(--journey-planner-muted-text)]'
+            }`}
+            >
               {day.places.length}
               {' '}
               stops

@@ -5,9 +5,9 @@ import * as motion from 'framer-motion/client';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { toast } from '@/modules/common/hooks/use-toast';
 import { ChevronRightIcon, FileTextIcon, JourneyIcon, TrashIcon } from '@/modules/common/icons';
 import { journeyService } from '@/modules/journey/services/journey.service';
-import { toast } from '@/modules/common/hooks/use-toast';
 
 type ProfileJourneyCardProps = {
   index: number;

@@ -2,32 +2,32 @@ import { create } from 'zustand';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
-export interface Toast {
+export type Toast = {
   id: string;
   type: ToastType;
   message: string;
   description?: string;
   duration?: number;
-}
+};
 
-interface ToastState {
+type ToastState = {
   toasts: Toast[];
   addToast: (toast: Omit<Toast, 'id'>) => string;
   removeToast: (id: string) => void;
-}
+};
 
-export const useToastStore = create<ToastState>((set) => ({
+export const useToastStore = create<ToastState>(set => ({
   toasts: [],
   addToast: (toast) => {
     const id = Math.random().toString(36).substring(2, 9);
-    set((state) => ({
+    set(state => ({
       toasts: [...state.toasts, { ...toast, id }],
     }));
     return id;
   },
   removeToast: (id) => {
-    set((state) => ({
-      toasts: state.toasts.filter((t) => t.id !== id),
+    set(state => ({
+      toasts: state.toasts.filter(t => t.id !== id),
     }));
   },
 }));
@@ -48,8 +48,8 @@ export const toast = {
 };
 
 export function useToast() {
-  const toasts = useToastStore((state) => state.toasts);
-  const removeToast = useToastStore((state) => state.removeToast);
+  const toasts = useToastStore(state => state.toasts);
+  const removeToast = useToastStore(state => state.removeToast);
 
   return {
     toasts,

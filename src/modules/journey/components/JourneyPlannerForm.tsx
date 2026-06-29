@@ -6,7 +6,8 @@ import type { JourneyDayInput, JourneyPlaceInput } from '@/modules/journey/types
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { DatePickerField, TimePickerField } from '@/modules/common/components';
+import { toast } from '@/modules/common';
+import { DateRangePickerField, TimePickerField } from '@/modules/common/components';
 import {
   CarIcon,
   ChevronLeftIcon,
@@ -188,8 +189,8 @@ function ReviewModal(props: ReviewModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
-      <div className="journey-planner-card max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-[28px] border shadow-2xl">
-        <div className="relative h-56">
+      <div className="journey-planner-card max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-[28px] border shadow-2xl flex flex-col">
+        <div className="relative h-56 shrink-0">
           <Image alt="Journey cover preview" className="object-cover" fill sizes="1200px" src={coverImageSrc} unoptimized />
           <div className="absolute inset-0 bg-linear-to-t from-slate-950 via-slate-950/40 to-transparent" />
           <button
@@ -211,8 +212,8 @@ function ReviewModal(props: ReviewModalProps) {
           </div>
         </div>
 
-        <div className="journey-planner-shell grid gap-6 overflow-y-auto p-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="space-y-4">
+        <div className="journey-planner-shell grid gap-6 p-6 lg:grid-cols-[minmax(0,1fr)_320px] flex-1 min-h-0 overflow-y-auto lg:overflow-hidden scrollbar-custom">
+          <div className="space-y-4 lg:overflow-y-auto lg:max-h-full lg:pr-1 scrollbar-custom">
             {days.map(day => (
               <div className="journey-planner-card rounded-3xl border p-5" key={day.id}>
                 <div className="flex items-start justify-between gap-4">
@@ -262,7 +263,7 @@ function ReviewModal(props: ReviewModalProps) {
             ))}
           </div>
 
-          <aside className="space-y-4">
+          <aside className="space-y-4 shrink-0">
             <div className="journey-planner-card rounded-3xl border p-5">
               <p className="journey-planner-label text-xs font-semibold tracking-[0.18em] uppercase">Trip range</p>
               <p className="journey-planner-title mt-2 text-lg font-semibold">{formatRange(startDate, endDate)}</p>
@@ -484,10 +485,6 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
 
   const isSubmitting = isCreatingJourney || isUpdatingJourney || isUploadingJourneyCoverImage || isUploadingJourneyPlaceMedia;
 
-  const totalPhotos = useMemo(
-    () => values.days.reduce((sum, day) => sum + day.places.reduce((placeSum, place) => placeSum + place.media.length, 0), 0),
-    [values.days],
-  );
   const isPlacesReady = mapLoader.hasApiKey && mapLoader.isLoaded && !mapLoader.loadError;
 
   const handleCoverChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -670,6 +667,8 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
 
       if (mode === 'create') {
         const createdJourney = await createJourney(payload);
+        setIsReviewOpen(false);
+        toast.success('Created Journey Successfully');
         router.push(`/journey/${createdJourney.id}`);
         return;
       }
@@ -679,6 +678,8 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
       }
 
       const updatedJourney = await updateJourney(initialJourney.id, payload);
+      setIsReviewOpen(false);
+      toast.success('Updated Journey Successfully');
       router.push(`/journey/${updatedJourney.id}`);
       router.refresh();
     } catch (caughtError) {
@@ -776,6 +777,7 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
                     placeholder={timeLabels.end}
                     title={timeLabels.end}
                     value={place.endTime ?? ''}
+                    minTime={place.startTime ?? ''}
                   />
                 </div>
 
@@ -945,28 +947,15 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
 
               <div className="mt-6 grid gap-4">
                 <div>
-                  <label className="journey-planner-copy mb-2 block text-sm font-medium" htmlFor="journey-start-date">Start date</label>
-                  <DatePickerField
+                  <label className="journey-planner-copy mb-2 block text-sm font-medium" htmlFor="journey-date-range">Date range</label>
+                  <DateRangePickerField
                     className="journey-planner-field rounded-2xl"
-                    description="Choose when this journey begins."
-                    id="journey-start-date"
-                    max={values.endDate || undefined}
-                    onChange={nextValue => setDateRange(nextValue, values.endDate)}
-                    title="Select start date"
-                    value={values.startDate}
-                  />
-                </div>
-
-                <div>
-                  <label className="journey-planner-copy mb-2 block text-sm font-medium" htmlFor="journey-end-date">End date</label>
-                  <DatePickerField
-                    className="journey-planner-field rounded-2xl"
-                    description="Choose when this journey wraps up."
-                    id="journey-end-date"
-                    min={values.startDate || undefined}
-                    onChange={nextValue => setDateRange(values.startDate, nextValue)}
-                    title="Select end date"
-                    value={values.endDate}
+                    description="Choose when this journey begins and ends."
+                    id="journey-date-range"
+                    onChange={(start, end) => setDateRange(start, end)}
+                    title="Select date range"
+                    startDate={values.startDate}
+                    endDate={values.endDate}
                   />
                 </div>
 
@@ -1157,12 +1146,8 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
 
           <aside className="space-y-6 xl:sticky xl:top-6 xl:self-start">
             <section className="journey-planner-card rounded-[28px] border p-5 sm:p-6">
-              <p className="journey-planner-label text-xs font-semibold tracking-[0.22em] uppercase">Map preview</p>
-              <h2 className="journey-planner-title mt-2 text-2xl font-semibold tracking-tight">Journey route builds live</h2>
-              <p className="journey-planner-copy mt-2 text-sm">Every stop with coordinates appears on the map while the itinerary is being built.</p>
-
               <div className="journey-planner-subcard mt-5 overflow-hidden rounded-[24px] border">
-                <div className="h-[420px]">
+                <div className="h-[500px]">
                   <JourneyCreateMapPanel
                     days={values.days}
                     hasApiKey={mapLoader.hasApiKey}
@@ -1171,21 +1156,6 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
                   />
                 </div>
               </div>
-            </section>
-
-            <section className="journey-planner-card rounded-[28px] border p-5 sm:p-6">
-              <p className="journey-planner-label text-xs font-semibold tracking-[0.22em] uppercase">Journey health</p>
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="journey-planner-subcard rounded-2xl border p-4">
-                  <p className="journey-planner-label text-xs font-medium tracking-wide uppercase">Days</p>
-                  <p className="journey-planner-title mt-2 text-2xl font-semibold">{values.days.length}</p>
-                </div>
-                <div className="journey-planner-subcard rounded-2xl border p-4">
-                  <p className="journey-planner-label text-xs font-medium tracking-wide uppercase">Photos</p>
-                  <p className="journey-planner-title mt-2 text-2xl font-semibold">{totalPhotos}</p>
-                </div>
-              </div>
-
               <button
                 className="journey-planner-primary-button mt-5 w-full rounded-2xl px-4 py-3 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={isSubmitting}

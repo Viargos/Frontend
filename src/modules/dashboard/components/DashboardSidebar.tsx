@@ -192,7 +192,7 @@ export const DashboardSidebar = (props: DashboardSidebarProps) => {
                 'absolute z-50 rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-150 dark:border-slate-800 dark:bg-slate-950',
                 collapsed
                   ? 'bottom-4 left-full ml-3 w-44'
-                  : 'right-2 bottom-full left-2 mb-2',
+                  : 'left-full ml-3 w-44 bottom-2 lg:right-2 lg:bottom-full lg:left-2 lg:mb-2 lg:ml-0 lg:w-auto',
               )}
             >
               <Link
@@ -235,8 +235,10 @@ export const DashboardSidebar = (props: DashboardSidebarProps) => {
             type="button"
             onClick={() => setShowPopup(!showPopup)}
             className={cn(
-              "flex items-center justify-between rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors text-left focus:outline-none",
-              collapsed ? "mx-auto h-10 w-10 p-0 justify-center" : "w-full p-2"
+              "flex items-center rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors text-left focus:outline-none",
+              collapsed
+                ? "mx-auto h-10 w-10 p-0 justify-center"
+                : "mx-auto h-10 w-10 p-0 justify-center lg:w-full lg:p-2 lg:h-auto lg:justify-between"
             )}
           >
             <div className="flex items-center min-w-0">
@@ -253,7 +255,7 @@ export const DashboardSidebar = (props: DashboardSidebarProps) => {
               )}
 
               {!collapsed && (
-                <div className="ml-3 min-w-0">
+                <div className="ml-3 min-w-0 hidden lg:block">
                   <p className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100 leading-tight">
                     {user.username.toUpperCase()}
                   </p>
@@ -265,7 +267,7 @@ export const DashboardSidebar = (props: DashboardSidebarProps) => {
             </div>
 
             {!collapsed && (
-              <span className="text-gray-400 dark:text-slate-500 font-bold px-1 text-lg">⋯</span>
+              <span className="text-gray-400 dark:text-slate-500 font-bold px-1 text-lg hidden lg:inline">⋯</span>
             )}
           </button>
         </div>

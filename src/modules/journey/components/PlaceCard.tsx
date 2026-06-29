@@ -122,7 +122,7 @@ export const PlaceCard = (props: PlaceCardProps) => {
 
   return (
     <div className="relative flex items-start">
-      <div className="hidden sm:flex shrink-0">
+      <div className="hidden shrink-0 sm:flex">
         <div className="journey-planner-icon-tile flex h-11 w-11 items-center justify-center rounded-2xl">
           <PlaceTypeIcon size={18} type={place.type} />
         </div>

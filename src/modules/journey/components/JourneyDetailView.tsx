@@ -255,7 +255,7 @@ export const JourneyDetailView = (props: JourneyDetailViewProps) => {
           </section>
 
           <section className="journey-planner-card rounded-[28px] border p-5 sm:p-6">
-            <JourneyPostsSection journeyImageSrc={journey.coverImage} journeyTitle={journey.title} mode="list" />
+            <JourneyPostsSection journeyId={journey.id} journeyImageSrc={journey.coverImage} journeyTitle={journey.title} />
           </section>
         </div>
 
