@@ -12,4 +12,5 @@ export const DASHBOARD_NAV_ITEMS = [
   { label: 'Messages', href: DashboardRoute.MESSAGES, icon: 'messages' },
   { label: 'Plan Your Journey', href: DashboardRoute.PLAN_YOUR_JOURNEY, icon: 'plan', badge: 'Coming Soon' },
   { label: 'Settings', href: DashboardRoute.SETTINGS, icon: 'settings' },
+  { label: 'Notifications', href: DashboardRoute.NOTIFICATIONS, icon: 'notifications' },
 ] as const;

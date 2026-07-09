@@ -3,6 +3,9 @@ import { Manrope, Outfit } from 'next/font/google';
 import Script from 'next/script';
 import { AppProviders } from '@/app/providers';
 import '@/styles/global.css';
+import 'primereact/resources/themes/lara-light-indigo/theme.css';
+import 'primereact/resources/primereact.min.css';
+import 'primeicons/primeicons.css';
 
 const manrope = Manrope({
   display: 'swap',

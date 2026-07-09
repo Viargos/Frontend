@@ -6,8 +6,8 @@ import { usePathname } from 'next/navigation';
 import { DASHBOARD_NAV_ITEMS } from '@/modules/dashboard/constants/dashboard.constants';
 import { ChatBubbleIcon, ExploreIcon, HomeIcon, SettingsIcon, UserProfileIcon } from './dashboard-icons';
 
-function renderIcon(icon: (typeof DASHBOARD_NAV_ITEMS)[number]['icon']) {
-  const className = 'w-6 h-6';
+function renderIcon(icon: (typeof DASHBOARD_NAV_ITEMS)[number]['icon'], active: boolean) {
+  const className = active ? 'h-6 w-6 text-[var(--surface-2)]' : 'h-6 w-6 text-[var(--surface-inverse)]';
 
   switch (icon) {
     case 'home':
@@ -43,11 +43,11 @@ export const DashboardBottomNav = () => {
           return (
             <Link
               key={item.href}
-              className={`flex flex-col items-center justify-center rounded-xl p-3 transition-all duration-200 ${active ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}
+              className={`flex flex-col items-center justify-center rounded-xl p-3 transition-all duration-200 ${active ? 'bg-blue-50 text-[var(--surface-2)]' : 'text-[var(--surface-inverse)] hover:bg-gray-100'}`}
               href={item.href}
             >
               <motion.div transition={{ duration: 0.1 }} whileTap={{ scale: 0.9 }}>
-                {renderIcon(item.icon)}
+                {renderIcon(item.icon, active)}
               </motion.div>
 
               {active

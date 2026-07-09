@@ -2,10 +2,13 @@ import type { JourneyDetailDto } from '@/modules/journey/dto/journey-detail.dto'
 import type { CreateJourneyRequestDto, JourneyListItemDto } from '@/modules/journey/dto/journey.dto';
 import type { JourneyDetail } from '@/modules/journey/types/journey-detail.types';
 import type { JourneyCreateInput, JourneyListItem } from '@/modules/journey/types/journey.types';
+import type { DashboardPostDto } from '@/modules/dashboard/dto/dashboard.dto';
+import type { DashboardPost } from '@/modules/dashboard/types/dashboard.types';
 import { httpClient } from '@/lib/api/http-client';
 import { unwrapEnvelope } from '@/modules/common/mappers';
 import { mapJourneyDetail } from '@/modules/journey/mappers/journey-detail.mapper';
 import { mapCreateJourneyInputToDto, mapJourneyList } from '@/modules/journey/mappers/journey.mapper';
+import { mapPost } from '@/modules/dashboard/mappers/dashboard.mapper';
 
 async function parseResponse<T>(path: string, options?: { body?: string; method?: 'DELETE' | 'GET' | 'PATCH' | 'POST' }): Promise<T> {
   const payload = await httpClient.request<unknown>(path, {
@@ -95,5 +98,10 @@ export const journeyService = {
 
     const raw = unwrapEnvelope<{ imageUrl: string }>(response).data;
     return raw.imageUrl;
+  },
+
+  async getPosts(journeyId: string): Promise<DashboardPost[]> {
+    const dtos = await parseResponse<DashboardPostDto[]>(`/posts/journey/${journeyId}`);
+    return dtos.map(mapPost);
   },
 };

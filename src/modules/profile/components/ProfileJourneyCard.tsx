@@ -5,7 +5,9 @@ import * as motion from 'framer-motion/client';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { toast } from '@/modules/common/hooks/use-toast';
 import { ChevronRightIcon, FileTextIcon, JourneyIcon, TrashIcon } from '@/modules/common/icons';
+import { journeyService } from '@/modules/journey/services/journey.service';
 
 type ProfileJourneyCardProps = {
   index: number;
@@ -88,7 +90,7 @@ export const ProfileJourneyCard = (props: ProfileJourneyCardProps) => {
 
           {isOwnProfile
             ? (
-                <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5 opacity-100 transition-opacity duration-200 sm:top-3 sm:right-3 sm:gap-2 sm:opacity-0 sm:group-hover:opacity-100">
+                <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5 opacity-100 transition-opacity duration-200 sm:top-3 sm:right-3 sm:gap-2">
                   <button
                     aria-label="Edit journey"
                     onClick={(event) => {
@@ -235,12 +237,18 @@ export const ProfileJourneyCard = (props: ProfileJourneyCardProps) => {
                     Cancel
                   </button>
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       setIsDeleting(true);
-                      setTimeout(() => {
-                        setIsDeleting(false);
+                      try {
+                        await journeyService.delete(journey.id);
+                        toast.success('Journey deleted successfully');
+                        router.refresh();
                         setShowDeleteConfirm(false);
-                      }, 300);
+                      } catch (error) {
+                        toast.error(error instanceof Error ? error.message : 'Failed to delete journey');
+                      } finally {
+                        setIsDeleting(false);
+                      }
                     }}
                     disabled={isDeleting}
                     className="flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"

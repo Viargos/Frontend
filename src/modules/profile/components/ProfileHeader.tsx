@@ -282,7 +282,7 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
           {isOwnProfile
             ? (
                 <button
-                  className="min-w-[120px] rounded-md border border-[#160E53] bg-[#160E53] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#241A7A]"
+                  className="min-w-[120px] rounded-md border border-transparent bg-[#160E53] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#241A7A]"
                   type="button"
                   onClick={() => router.push('/settings')}
                 >
@@ -295,7 +295,7 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
             ? (
                 <div className="flex items-center gap-3">
                   <button
-                    className="min-w-[100px] rounded-md border border-[#160E53] bg-[#160E53] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#241A7A] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="min-w-[100px] rounded-md border border-transparent bg-[#160E53] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#241A7A] disabled:cursor-not-allowed disabled:opacity-60"
                     type="button"
                     onClick={() => router.push(`/messages?userId=${encodeURIComponent(profile.user.id)}`)}
                   >
@@ -305,7 +305,7 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
                     className={`min-w-[100px] rounded-md border px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
                       isFollowing
                         ? 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
-                        : 'border-[#160E53] bg-[#160E53] text-white hover:bg-[#241A7A]'
+                        : 'border-transparent bg-[#160E53] text-white hover:bg-[#241A7A]'
                     }`}
                     disabled={isFollowPending}
                     type="button"

@@ -1,6 +1,14 @@
 import type { DiscoverParityConfig } from '@/modules/discover';
 import { DiscoverPageClient } from '@/modules/discover';
 
+function getSearchParamValue(value: string | string[] | undefined) {
+  if (Array.isArray(value)) {
+    return value[0] ?? '';
+  }
+
+  return value ?? '';
+}
+
 function parseParityConfig(searchParams: Record<string, string | string[] | undefined>): DiscoverParityConfig {
   const parityEnabled = process.env.PARITY === 'true' && searchParams.parityFixtures === '1';
   const stateParam = typeof searchParams.parityState === 'string' ? searchParams.parityState : 'default';
@@ -40,6 +48,7 @@ function parseParityConfig(searchParams: Record<string, string | string[] | unde
 export default async function DiscoverPage(props: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const searchParams = await props.searchParams;
   const parityConfig = parseParityConfig(searchParams);
+  const initialLocationQuery = getSearchParamValue(searchParams.location).trim();
 
-  return <DiscoverPageClient parityConfig={parityConfig} />;
+  return <DiscoverPageClient key={initialLocationQuery} initialLocationQuery={initialLocationQuery} parityConfig={parityConfig} />;
 }

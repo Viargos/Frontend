@@ -234,6 +234,7 @@ export function EditProfileModal(props: EditProfileModalProps) {
                         Email
                       </label>
                       <Input
+                        disabled
                         id="ep-email"
                         placeholder="you@example.com"
                         type="email"

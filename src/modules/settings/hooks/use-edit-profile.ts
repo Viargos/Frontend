@@ -50,10 +50,6 @@ export function useEditProfile(options: UseEditProfileOptions) {
         payload.username = values.username;
       }
 
-      if (values.email) {
-        payload.email = values.email;
-      }
-
       return profileService.updateProfile(payload);
     },
     onSuccess: () => {

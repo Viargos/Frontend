@@ -14,7 +14,7 @@ import type {
   DashboardProfileRecommendation,
 } from '@/modules/dashboard/types/dashboard.types';
 
-function mapPost(dto: DashboardPostDto): DashboardPost {
+export function mapPost(dto: DashboardPostDto): DashboardPost {
   if (!dto.user || typeof dto.user.id !== 'string' || typeof dto.user.username !== 'string') {
     throw new Error('Invalid dashboard post user payload');
   }
