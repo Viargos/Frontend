@@ -612,7 +612,7 @@ const DashboardPostCardComponent = (props: DashboardPostCardProps) => {
   return (
     <motion.article
       animate={{ opacity: 1, y: 0 }}
-      className="dashboard-post-card overflow-hidden rounded-xl border transition-all duration-50 hover:shadow-xl"
+      className="dashboard-post-card overflow-hidden border-b transition-colors duration-150"
       initial={{ opacity: 0, y: 20 }}
       transition={{ duration: 0.35, ease: 'easeOut' }}
     >

@@ -19,7 +19,7 @@ function JourneyCover(props: Pick<DashboardJourneyRecommendation, 'coverImage' |
     return (
       <Image
         alt={title}
-        className="h-12 w-12 rounded-2xl object-cover"
+        className="h-12 w-12 rounded-xl object-cover"
         height={48}
         src={coverImage}
         unoptimized
@@ -29,7 +29,7 @@ function JourneyCover(props: Pick<DashboardJourneyRecommendation, 'coverImage' |
   }
 
   return (
-    <div className="dashboard-recommendation-avatar flex h-12 w-12 items-center justify-center rounded-2xl border bg-[#160E53]/8 text-sm font-semibold text-[#160E53]">
+    <div className="dashboard-recommendation-avatar flex h-12 w-12 items-center justify-center rounded-xl border bg-[#160E53]/8 text-sm font-semibold text-[#160E53]">
       {title.charAt(0).toUpperCase()}
     </div>
   );
@@ -40,7 +40,7 @@ export const JourneyItem = (props: JourneyItemProps) => {
 
   return (
     <Link
-      className="dashboard-recommendation-item group flex items-start gap-3 rounded-2xl border border-transparent px-3 py-3 transition-all duration-200 hover:border-white/8 hover:bg-white/[0.04]"
+      className="dashboard-recommendation-item group flex items-start gap-3 rounded-xl border border-transparent px-3 py-3 transition-all duration-200 hover:border-white/8 hover:bg-white/[0.04]"
       href={`/journey/${journey.id}`}
     >
       <JourneyCover coverImage={journey.coverImage} title={journey.title} />

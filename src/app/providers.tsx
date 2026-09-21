@@ -1,9 +1,9 @@
 'use client';
 
 import type { PropsWithChildren } from 'react';
-import { QueryProvider } from '@/lib/react-query/query-provider';
-import { AppShell, ThemeProvider } from '@/modules/common';
 import { PrimeReactProvider } from 'primereact/api';
+import { QueryProvider } from '@/lib/react-query/query-provider';
+import { AppShell, ThemeBackgroundProvider, ThemeProvider } from '@/modules/common';
 
 export function AppProviders(props: PropsWithChildren) {
   const { children } = props;
@@ -12,7 +12,9 @@ export function AppProviders(props: PropsWithChildren) {
     <PrimeReactProvider>
       <QueryProvider>
         <ThemeProvider>
-          <AppShell>{children}</AppShell>
+          <ThemeBackgroundProvider>
+            <AppShell>{children}</AppShell>
+          </ThemeBackgroundProvider>
         </ThemeProvider>
       </QueryProvider>
     </PrimeReactProvider>

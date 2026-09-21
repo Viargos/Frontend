@@ -11,9 +11,9 @@ export const RightPanelContainer = (props: RightPanelContainerProps) => {
   const { children, className, contentClassName } = props;
 
   return (
-    <aside className={cn('w-full xl:ml-auto xl:max-w-[340px] 2xl:max-w-[380px]', className)}>
+    <aside className={cn('w-full xl:max-w-[340px] 2xl:max-w-[380px]', className)}>
       <div className={cn(
-        'dashboard-right-panel rounded-[28px] border p-3 backdrop-blur-xl transition-colors duration-200',
+        'dashboard-right-panel space-y-4 transition-colors duration-200',
         contentClassName,
       )}
       >

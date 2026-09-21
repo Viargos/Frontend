@@ -189,7 +189,7 @@ function ReviewModal(props: ReviewModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
-      <div className="journey-planner-card max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-[28px] border shadow-2xl flex flex-col">
+      <div className="journey-planner-card flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-[28px] border shadow-2xl">
         <div className="relative h-56 shrink-0">
           <Image alt="Journey cover preview" className="object-cover" fill sizes="1200px" src={coverImageSrc} unoptimized />
           <div className="absolute inset-0 bg-linear-to-t from-slate-950 via-slate-950/40 to-transparent" />
@@ -212,8 +212,8 @@ function ReviewModal(props: ReviewModalProps) {
           </div>
         </div>
 
-        <div className="journey-planner-shell grid gap-6 p-6 lg:grid-cols-[minmax(0,1fr)_320px] flex-1 min-h-0 overflow-y-auto lg:overflow-hidden scrollbar-custom">
-          <div className="space-y-4 lg:overflow-y-auto lg:max-h-full lg:pr-1 scrollbar-custom">
+        <div className="journey-planner-shell scrollbar-custom grid min-h-0 flex-1 gap-6 overflow-y-auto p-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:overflow-hidden">
+          <div className="scrollbar-custom space-y-4 lg:max-h-full lg:overflow-y-auto lg:pr-1">
             {days.map(day => (
               <div className="journey-planner-card rounded-3xl border p-5" key={day.id}>
                 <div className="flex items-start justify-between gap-4">
@@ -263,7 +263,7 @@ function ReviewModal(props: ReviewModalProps) {
             ))}
           </div>
 
-          <aside className="space-y-4 shrink-0">
+          <aside className="shrink-0 space-y-4">
             <div className="journey-planner-card rounded-3xl border p-5">
               <p className="journey-planner-label text-xs font-semibold tracking-[0.18em] uppercase">Trip range</p>
               <p className="journey-planner-title mt-2 text-lg font-semibold">{formatRange(startDate, endDate)}</p>

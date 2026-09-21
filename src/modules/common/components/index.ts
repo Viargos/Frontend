@@ -3,6 +3,8 @@ export * from './AppShell';
 export * from './OverlayModal';
 export * from './ShellErrorBoundary';
 export * from './ShellLoadingBoundary';
+export * from './ThemeBackgroundProvider';
+export * from './ThemeBackgroundSurface';
 export * from './ThemeProvider';
 export * from './Toaster';
 export * from './ui';

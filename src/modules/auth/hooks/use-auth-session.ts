@@ -8,6 +8,7 @@ import { useAuthProfile } from '@/modules/auth/hooks/use-auth-profile';
 import { authQueryKeys } from '@/modules/auth/query-keys';
 import { authService } from '@/modules/auth/services/auth.service';
 import { PUBLIC_PATH_PREFIXES } from '@/modules/common/constants';
+import { deactivateCurrentBrowserSubscription } from '@/modules/notifications';
 
 const INITIAL_AUTH_SESSION: AuthSession = {
   isAuthenticated: false,
@@ -83,6 +84,7 @@ export function useAuthSession() {
 
   const signOut = useCallback(async () => {
     try {
+      await deactivateCurrentBrowserSubscription().catch(() => undefined);
       await authService.logout();
     } finally {
       clearSession();

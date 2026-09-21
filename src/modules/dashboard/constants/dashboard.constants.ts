@@ -10,7 +10,7 @@ export const DASHBOARD_NAV_ITEMS = [
   { label: 'Explore', href: DashboardRoute.DISCOVER, icon: 'explore' },
   { label: 'Profile', href: DashboardRoute.PROFILE, icon: 'profile' },
   { label: 'Messages', href: DashboardRoute.MESSAGES, icon: 'messages' },
-  { label: 'Plan Your Journey', href: DashboardRoute.PLAN_YOUR_JOURNEY, icon: 'plan', badge: 'Coming Soon' },
+  { label: 'Plan Your Journey', href: DashboardRoute.PLAN_YOUR_JOURNEY, icon: 'plan', badge: undefined },
   { label: 'Settings', href: DashboardRoute.SETTINGS, icon: 'settings' },
   { label: 'Notifications', href: DashboardRoute.NOTIFICATIONS, icon: 'notifications' },
 ] as const;

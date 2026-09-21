@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from '@/modules/common/hooks/use-toast';
 import { ChevronRightIcon, FileTextIcon, JourneyIcon, TrashIcon } from '@/modules/common/icons';
-import { journeyService } from '@/modules/journey/services/journey.service';
+import { useJourneyActions } from '@/modules/journey/api';
 
 type ProfileJourneyCardProps = {
   index: number;
@@ -21,6 +21,7 @@ export const ProfileJourneyCard = (props: ProfileJourneyCardProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [imageError, setImageError] = useState(false);
   const router = useRouter();
+  const { deleteJourney } = useJourneyActions();
 
   const handleClick = () => {
     router.push(`/journey/${journey.id}`);
@@ -240,7 +241,7 @@ export const ProfileJourneyCard = (props: ProfileJourneyCardProps) => {
                     onClick={async () => {
                       setIsDeleting(true);
                       try {
-                        await journeyService.delete(journey.id);
+                        await deleteJourney(journey.id);
                         toast.success('Journey deleted successfully');
                         router.refresh();
                         setShowDeleteConfirm(false);

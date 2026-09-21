@@ -1,5 +1,5 @@
-import { PlanYourJourneyPageView } from '@/modules/journey';
+import { TripsPageView } from '@/modules/trips';
 
 export default function PlanYourJourneyPage() {
-  return <PlanYourJourneyPageView />;
+  return <TripsPageView />;
 }

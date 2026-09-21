@@ -4,6 +4,7 @@ import type {
   DashboardJourneyRecommendation,
 } from '../types/dashboard.types';
 import { redirect } from 'next/navigation';
+import { ThemeBackgroundSurface } from '@/modules/common';
 import {
   getDashboardParityFixture,
   getDashboardPopularJourneyParityFixture,
@@ -69,15 +70,17 @@ export async function DashboardPageView(props: DashboardPageViewProps) {
   }
 
   return (
-    <div className="min-h-[calc(100vh-200px)] w-full flex-1 px-6 py-4 sm:px-10 sm:py-6 md:px-12 xl:px-16 2xl:px-20">
-      <div className="mx-auto w-full max-w-[1440px]">
-        <div className="xl:grid xl:grid-cols-[minmax(0,760px)_340px] xl:items-start xl:justify-between xl:gap-10 2xl:grid-cols-[minmax(0,820px)_380px]">
-          <DashboardFeed initialFeed={initialFeed} parityState={parityEnabled ? parityState : undefined} />
-          <div className="hidden xl:sticky xl:top-6 xl:block xl:h-fit xl:self-start">
-            <DashboardRecommendationsPanel initialJourneys={initialJourneys} />
-          </div>
-        </div>
+    <ThemeBackgroundSurface
+      viewportPinned
+      className="min-h-screen w-full flex-1"
+      contentClassName="dashboard-page-grid min-h-screen"
+    >
+      <section className="min-w-0 border-x border-gray-200 bg-white xl:col-start-2">
+        <DashboardFeed initialFeed={initialFeed} parityState={parityEnabled ? parityState : undefined} />
+      </section>
+      <div className="scrollbar-hide hidden px-2 py-4 xl:sticky xl:top-0 xl:col-start-4 xl:block xl:h-screen xl:self-start xl:overflow-y-auto">
+        <DashboardRecommendationsPanel initialJourneys={initialJourneys} />
       </div>
-    </div>
+    </ThemeBackgroundSurface>
   );
 }

@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -63,17 +65,21 @@
   --dashboard-post-card-bg: rgba(255, 255, 255, 0.52);
   --dashboard-post-card-border: rgba(148, 163, 184, 0.32);
   --dashboard-post-card-shadow: 0 24px 60px -42px rgba(15, 23, 42, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.78);
-  --dashboard-post-glass-bg: linear-gradient(135deg,
-      rgba(255, 255, 255, 0.78) 0%,
-      rgba(248, 250, 252, 0.58) 56%,
-      rgba(239, 246, 255, 0.66) 100%);
+  --dashboard-post-glass-bg: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.78) 0%,
+    rgba(248, 250, 252, 0.58) 56%,
+    rgba(239, 246, 255, 0.66) 100%
+  );
   --dashboard-post-glass-border: rgba(255, 255, 255, 0.7);
   --dashboard-post-glass-highlight: rgba(255, 255, 255, 0.78);
-  --dashboard-post-liquid-line: linear-gradient(90deg,
-      transparent 0%,
-      rgba(22, 14, 83, 0.22) 28%,
-      rgba(14, 165, 233, 0.18) 62%,
-      transparent 100%);
+  --dashboard-post-liquid-line: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(22, 14, 83, 0.22) 28%,
+    rgba(14, 165, 233, 0.18) 62%,
+    transparent 100%
+  );
   --dashboard-post-body-bg: var(--dashboard-post-glass-bg);
   --dashboard-post-action-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(248, 250, 252, 0.48) 100%);
   --dashboard-post-comment-bg: rgba(255, 255, 255, 0.54);
@@ -296,17 +302,21 @@ html[data-theme='dark'] {
   --dashboard-post-card-bg: rgba(32, 37, 45, 0.54);
   --dashboard-post-card-border: rgba(255, 255, 255, 0.12);
   --dashboard-post-card-shadow: 0 26px 64px -38px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  --dashboard-post-glass-bg: linear-gradient(135deg,
-      rgba(39, 45, 54, 0.78) 0%,
-      rgba(22, 26, 32, 0.68) 52%,
-      rgba(31, 41, 55, 0.58) 100%);
+  --dashboard-post-glass-bg: linear-gradient(
+    135deg,
+    rgba(39, 45, 54, 0.78) 0%,
+    rgba(22, 26, 32, 0.68) 52%,
+    rgba(31, 41, 55, 0.58) 100%
+  );
   --dashboard-post-glass-border: rgba(255, 255, 255, 0.12);
   --dashboard-post-glass-highlight: rgba(255, 255, 255, 0.08);
-  --dashboard-post-liquid-line: linear-gradient(90deg,
-      transparent 0%,
-      rgba(248, 215, 117, 0.34) 26%,
-      rgba(96, 165, 250, 0.18) 62%,
-      transparent 100%);
+  --dashboard-post-liquid-line: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(248, 215, 117, 0.34) 26%,
+    rgba(96, 165, 250, 0.18) 62%,
+    transparent 100%
+  );
   --dashboard-post-body-bg: var(--dashboard-post-glass-bg);
   --dashboard-post-action-bg: linear-gradient(135deg, rgba(39, 45, 54, 0.58) 0%, rgba(22, 26, 32, 0.48) 100%);
   --dashboard-post-comment-bg: rgba(255, 255, 255, 0.06);
@@ -387,10 +397,12 @@ html[data-theme='dark'] {
   --discover-card-selected-border: rgba(248, 215, 117, 0.32);
   --discover-card-selected-ring: rgba(248, 215, 117, 0.2);
   --discover-card-selected-shadow: 0 30px 70px -36px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.09);
-  --discover-card-media-bg: linear-gradient(135deg,
-      rgba(248, 215, 117, 0.12),
-      rgba(56, 189, 248, 0.1),
-      rgba(32, 37, 45, 0.96));
+  --discover-card-media-bg: linear-gradient(
+    135deg,
+    rgba(248, 215, 117, 0.12),
+    rgba(56, 189, 248, 0.1),
+    rgba(32, 37, 45, 0.96)
+  );
   --discover-card-empty-media-bg:
     radial-gradient(circle at top left, rgba(248, 215, 117, 0.18), transparent 40%),
     linear-gradient(135deg, rgba(39, 45, 54, 0.94), rgba(22, 26, 32, 0.88), rgba(56, 189, 248, 0.1));
@@ -1010,29 +1022,33 @@ html[data-theme='dark'] .date-time-picker-selected-mark {
   color: var(--date-time-picker-selected-muted) !important;
 }
 
+.dashboard-feed-composer {
+  background-color: var(--surface-0) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-primary);
+}
+
 .dashboard-post-card {
   position: relative;
   isolation: isolate;
-  background: var(--dashboard-post-card-bg) !important;
+  background: var(--surface-0) !important;
   border-color: var(--dashboard-post-card-border) !important;
-  box-shadow: var(--dashboard-post-card-shadow);
+  box-shadow: none;
   color: var(--dashboard-post-primary-text);
-  backdrop-filter: blur(20px) saturate(1.18);
-  -webkit-backdrop-filter: blur(20px) saturate(1.18);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.dashboard-post-card:hover {
+  background: var(--surface-1) !important;
+  box-shadow: none !important;
 }
 
 .dashboard-post-card::before {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  content: '';
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.16), transparent 34%),
-    linear-gradient(315deg, rgba(255, 255, 255, 0.08), transparent 38%);
+  display: none;
 }
 
-.dashboard-post-card>* {
+.dashboard-post-card > * {
   position: relative;
   z-index: 1;
 }
@@ -1040,23 +1056,16 @@ html[data-theme='dark'] .date-time-picker-selected-mark {
 .dashboard-post-body {
   position: relative;
   overflow: hidden;
-  background: var(--dashboard-post-body-bg) !important;
-  border-top: 1px solid var(--dashboard-post-glass-border);
-  box-shadow: inset 0 1px 0 var(--dashboard-post-glass-highlight);
-  backdrop-filter: blur(18px) saturate(1.22);
-  -webkit-backdrop-filter: blur(18px) saturate(1.22);
+  background: transparent !important;
+  border-top: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .dashboard-post-body::before,
 .dashboard-post-action-bar::before {
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  height: 1px;
-  pointer-events: none;
-  content: '';
-  background: var(--dashboard-post-liquid-line);
+  display: none;
 }
 
 .dashboard-post-divider {
@@ -1098,11 +1107,11 @@ html[data-theme='dark'] .dashboard-post-journey-pill {
 .dashboard-post-action-bar {
   position: relative;
   overflow: hidden;
-  background: var(--dashboard-post-action-bg) !important;
+  background: transparent !important;
   border-color: var(--dashboard-post-card-border) !important;
-  box-shadow: inset 0 1px 0 var(--dashboard-post-glass-highlight);
-  backdrop-filter: blur(18px) saturate(1.22);
-  -webkit-backdrop-filter: blur(18px) saturate(1.22);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .dashboard-post-action-button {
@@ -1217,6 +1226,14 @@ input.no-focus-ring:focus {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
   /* Safari and Chrome */
+}
+
+.dashboard-scrollbar-hidden {
+  scrollbar-width: none;
+}
+
+.dashboard-scrollbar-hidden::-webkit-scrollbar {
+  display: none;
 }
 
 /* Custom scrollbar utility */
@@ -1493,16 +1510,70 @@ html[data-theme='dark'] .dashboard-sidebar-item-active .dashboard-sidebar-toolti
 }
 
 .dashboard-right-panel {
-  background: var(--dashboard-panel-bg) !important;
-  border-color: var(--dashboard-panel-border) !important;
-  box-shadow: var(--dashboard-panel-shadow);
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none;
   color: var(--dashboard-text-primary);
+}
+
+@media (width >= 80rem) {
+  .dashboard-page-grid {
+    display: grid;
+    grid-template-columns:
+      max(0px, calc((100% - 1120px) / 2))
+      minmax(0, 650px)
+      32px
+      minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+[data-custom-background='true'] .dashboard-right-section,
+[data-custom-background='true'] .dashboard-right-search-input {
+  background-color: rgb(255 255 255 / 92%) !important;
+  border-color: rgb(255 255 255 / 58%) !important;
+  backdrop-filter: blur(14px);
+  color: #111827 !important;
+}
+
+[data-custom-background='true'] .dashboard-section-title,
+[data-custom-background='true'] .dashboard-recommendation-title {
+  color: #111827 !important;
+}
+
+[data-custom-background='true'] .dashboard-section-description,
+[data-custom-background='true'] .dashboard-recommendation-description,
+[data-custom-background='true'] .dashboard-category-label,
+[data-custom-background='true'] .dashboard-recommendation-muted,
+[data-custom-background='true'] .dashboard-right-search-input::placeholder,
+[data-custom-background='true'] .dashboard-right-search-icon {
+  color: #4b5563 !important;
 }
 
 .dashboard-right-section {
   background: var(--dashboard-section-bg) !important;
   border-color: var(--dashboard-section-border) !important;
   box-shadow: var(--dashboard-section-shadow);
+}
+
+.dashboard-right-search-input {
+  background-color: var(--dashboard-section-bg);
+  border-color: var(--dashboard-section-border);
+  color: var(--dashboard-text-primary);
+  box-shadow: inset 0 0 0 1px transparent;
+}
+
+.dashboard-right-search-input::placeholder {
+  color: var(--dashboard-text-muted);
+}
+
+.dashboard-right-search-input:focus {
+  border-color: var(--dashboard-panel-border);
+  box-shadow: 0 0 0 3px var(--dashboard-accent-soft);
+}
+
+.dashboard-right-search-icon {
+  color: var(--dashboard-text-muted);
 }
 
 .dashboard-section-title,
@@ -1791,7 +1862,7 @@ html[data-theme='dark'] select {
   color: var(--text-primary);
 }
 
-.journey-details-section-heading>div {
+.journey-details-section-heading > div {
   background-color: var(--discover-card-selected-border);
 }
 
@@ -1971,7 +2042,7 @@ html[data-theme='dark'] select {
   padding: 0 !important;
 }
 
-.p-datepicker-calendar td>span {
+.p-datepicker-calendar td > span {
   display: flex !important;
   align-items: stretch !important;
   justify-content: stretch !important;
@@ -1990,36 +2061,36 @@ html[data-theme='dark'] select {
 }
 
 /* Day states */
-.p-datepicker-calendar td>span:not(.p-disabled):not(.p-highlight):hover {
+.p-datepicker-calendar td > span:not(.p-disabled):not(.p-highlight):hover {
   background-color: var(--date-time-picker-tile-hover-bg) !important;
   border-color: var(--date-time-picker-accent-border) !important;
   color: var(--date-time-picker-primary-text) !important;
 }
 
-.p-datepicker-calendar td.p-datepicker-other-month>span {
+.p-datepicker-calendar td.p-datepicker-other-month > span {
   background-color: var(--date-time-picker-tile-outside-bg) !important;
   color: var(--date-time-picker-muted-text) !important;
   opacity: 0.6 !important;
 }
 
-.p-datepicker-calendar td>span.p-highlight {
+.p-datepicker-calendar td > span.p-highlight {
   background-color: var(--date-time-picker-accent) !important;
   border-color: var(--date-time-picker-accent) !important;
   color: var(--date-time-picker-accent-text) !important;
   box-shadow: 0 18px 36px -24px var(--date-time-picker-accent) !important;
 }
 
-.p-datepicker-calendar td>span.p-highlight:hover {
+.p-datepicker-calendar td > span.p-highlight:hover {
   background-color: var(--date-time-picker-accent-hover) !important;
   border-color: var(--date-time-picker-accent-hover) !important;
   color: var(--date-time-picker-accent-text) !important;
 }
 
-.p-datepicker-calendar td>span.p-datepicker-today {
+.p-datepicker-calendar td > span.p-datepicker-today {
   border-color: var(--date-time-picker-accent) !important;
 }
 
-.p-datepicker-calendar td>span.p-disabled {
+.p-datepicker-calendar td > span.p-disabled {
   background-color: var(--date-time-picker-tile-disabled-bg) !important;
   border-color: var(--date-time-picker-tile-disabled-border) !important;
   color: var(--date-time-picker-tile-disabled-text) !important;

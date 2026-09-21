@@ -59,7 +59,7 @@ export const ProfileItem = (props: ProfileItemProps) => {
 
   return (
     <div className={cn(
-      'dashboard-recommendation-item group flex items-start gap-3 rounded-2xl border border-transparent px-3 py-3 transition-all duration-200 hover:border-white/8 hover:bg-white/[0.04]',
+      'dashboard-recommendation-item group flex items-start gap-3 rounded-xl border border-transparent px-3 py-3 transition-all duration-200 hover:border-white/8 hover:bg-white/[0.04]',
       profile.isFollowing ? 'dashboard-recommendation-item-active bg-white/[0.05]' : undefined,
     )}
     >

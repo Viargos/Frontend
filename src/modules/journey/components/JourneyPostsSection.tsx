@@ -16,7 +16,7 @@ export const JourneyPostsSection = (props: JourneyPostsSectionProps) => {
     journeyImageSrc,
     journeyTitle,
   } = props;
-  
+
   const { posts, isLoading, isError, error } = useJourneyPosts(journeyId);
   const billboardImageSrc = journeyImageSrc || '/london.png';
 
@@ -115,4 +115,3 @@ export const JourneyPostsSection = (props: JourneyPostsSectionProps) => {
     </div>
   );
 };
-

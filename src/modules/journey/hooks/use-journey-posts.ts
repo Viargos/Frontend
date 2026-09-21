@@ -1,6 +1,6 @@
 'use client';
 
-import type { DashboardPost } from '@/modules/dashboard/types/dashboard.types';
+import type { DashboardPost } from '@/modules/dashboard/api';
 import { useQuery } from '@tanstack/react-query';
 import { appConfig } from '@/lib/app-config';
 import { journeyQueryKeys } from '@/modules/journey/query-keys';

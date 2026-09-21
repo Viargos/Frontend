@@ -1,0 +1,16 @@
+export const tripQueryKeys = {
+  activity: (tripId: string) => ['trips', tripId, 'activity'] as const,
+  all: ['trips'] as const,
+  comments: (tripId: string) => ['trips', tripId, 'comments'] as const,
+  days: (tripId: string) => ['trips', tripId, 'days'] as const,
+  detail: (tripId: string) => ['trips', tripId] as const,
+  findings: (tripId: string) => ['trips', tripId, 'findings'] as const,
+  inbox: (tripId: string, filters?: { search?: string; status?: string; tag?: string }) => ['trips', tripId, 'inbox', filters] as const,
+  items: (tripId: string) => ['trips', tripId, 'items'] as const,
+  list: () => ['trips', 'list'] as const,
+  members: (tripId: string) => ['trips', tripId, 'members'] as const,
+  offline: (tripId: string) => ['trips', tripId, 'offline'] as const,
+  proposals: (tripId: string) => ['trips', tripId, 'proposals'] as const,
+  readiness: (tripId: string) => ['trips', tripId, 'readiness'] as const,
+  votes: (tripId: string) => ['trips', tripId, 'votes'] as const,
+};
