@@ -37,7 +37,9 @@ export function DateRangePickerField(props: DateRangePickerFieldProps) {
   const fieldId = id ?? generatedId;
 
   const displayValue = useMemo(() => {
-    if (!startDate && !endDate) return '';
+    if (!startDate && !endDate) {
+      return '';
+    }
     const startLabel = startDate ? formatDateLabel(startDate) : '';
     const endLabel = endDate ? formatDateLabel(endDate) : '';
     if (startLabel && endLabel) {

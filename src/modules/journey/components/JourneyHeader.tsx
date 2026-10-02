@@ -1,6 +1,6 @@
 import type { JourneyDetail } from '@/modules/journey/types/journey-detail.types';
 import Image from 'next/image';
-import { Badge, CalendarIcon, ClipboardListIcon, ImageIcon } from '@/modules/common';
+import { Badge, CalendarIcon, ClipboardListIcon, ImageIcon, useRandomCoverImage } from '@/modules/common';
 
 type JourneyHeaderProps = {
   journey: JourneyDetail;
@@ -9,7 +9,8 @@ type JourneyHeaderProps = {
 
 export const JourneyHeader = (props: JourneyHeaderProps) => {
   const { journey, onBack } = props;
-  const coverImageSrc = journey.coverImage ?? '/london.png';
+  const fallbackCover = useRandomCoverImage();
+  const coverImageSrc = journey.coverImage ?? fallbackCover;
   const totalPlaces = journey.days.reduce((sum, day) => sum + day.places.length, 0);
   const totalMedia = journey.days.reduce(
     (sum, day) => sum + day.places.reduce((placeSum, place) => placeSum + place.media.length, 0),

@@ -3,7 +3,7 @@
 import type { JourneyFilterState } from '@/modules/discover/components/FilterPanel';
 import type { DiscoverFeedItem } from '@/modules/discover/types/discover-ui.types';
 import type { DiscoverCoordinates, DiscoverJourney } from '@/modules/discover/types/discover.types';
-import { ExploreIcon, MapPinIcon, NavigationIcon, RefreshCwIcon, SearchIcon, XIcon } from '@/modules/common/icons';
+import { ExploreIcon, MapPinIcon, NavigationIcon, RefreshCwIcon, XIcon } from '@/modules/common/icons';
 import { DiscoverFeed } from '@/modules/discover/components/DiscoverFeed';
 import { DiscoverFilterChips } from '@/modules/discover/components/DiscoverFilterChips';
 import { FilterPanel } from '@/modules/discover/components/FilterPanel';
@@ -25,7 +25,6 @@ type DiscoverSidebarProps = {
   onClearQuery: () => void;
   onFiltersChange: (filters: JourneyFilterState) => void;
   onJourneySelect: (journey: DiscoverJourney) => void;
-  onQueryChange: (value: string) => void;
   onResetRadius: () => void;
   onRadiusChange: (radius: number) => void;
   onResetFilters: () => void;
@@ -70,7 +69,6 @@ export const DiscoverSidebar = (props: DiscoverSidebarProps) => {
     onClearQuery,
     onFiltersChange,
     onJourneySelect,
-    onQueryChange,
     onResetRadius,
     onRadiusChange,
     onResetFilters,
@@ -148,17 +146,6 @@ export const DiscoverSidebar = (props: DiscoverSidebarProps) => {
             </button>
           </div>
         </div>
-
-        <label className="relative mb-4 block">
-          <SearchIcon className="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-gray-400" />
-          <input
-            className="h-11 w-full rounded-full border border-black/5 bg-white pr-4 pl-11 text-sm text-gray-900 shadow-[0_8px_28px_rgba(15,23,42,0.06)] transition outline-none focus:border-[#160E53]/20 focus:ring-4 focus:ring-[#160E53]/8"
-            placeholder="Search places, journeys, creators, or tags"
-            type="search"
-            value={searchQuery}
-            onChange={event => onQueryChange(event.target.value)}
-          />
-        </label>
 
         <DiscoverFilterChips chips={chips} />
 

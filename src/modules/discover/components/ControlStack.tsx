@@ -4,23 +4,23 @@ import * as motion from 'framer-motion/client';
 import { ChevronRightIcon, ExploreIcon, GlobeIcon, NavigationIcon, RefreshCwIcon } from '@/modules/common/icons';
 
 type ControlStackProps = {
-  autoSearch: boolean;
+  showSearch: boolean;
   isLoadingLocation: boolean;
   isSidebarOpen: boolean;
   onExpandSearchRadius: () => void;
   onRefreshLocation: () => void;
-  onToggleAutoSearch: () => void;
+  onToggleSearch: () => void;
   onToggleSidebar: () => void;
 };
 
 export const ControlStack = (props: ControlStackProps) => {
   const {
-    autoSearch,
+    showSearch,
     isLoadingLocation,
     isSidebarOpen,
     onExpandSearchRadius,
     onRefreshLocation,
-    onToggleAutoSearch,
+    onToggleSearch,
     onToggleSidebar,
   } = props;
 
@@ -58,14 +58,14 @@ export const ControlStack = (props: ControlStackProps) => {
 
       <motion.button
         animate={{ opacity: 1, x: 0 }}
-        className={`rounded-lg p-3 shadow-lg transition-all duration-200 hover:shadow-xl ${autoSearch ? 'bg-[#160E53]' : 'bg-white'}`}
+        className={`rounded-lg p-3 shadow-lg transition-all duration-200 hover:shadow-xl ${showSearch ? 'bg-[#160E53]' : 'bg-white'}`}
         initial={{ opacity: 0, x: 20 }}
         transition={{ delay: 0.2 }}
-        onClick={onToggleAutoSearch}
-        title={autoSearch ? 'Auto-search: ON' : 'Auto-search: OFF'}
+        onClick={onToggleSearch}
+        title={showSearch ? 'Hide Search' : 'Show Search'}
         type="button"
       >
-        <ExploreIcon aria-hidden="true" className={`h-5 w-5 ${autoSearch ? 'text-white' : 'text-gray-600'}`} />
+        <ExploreIcon aria-hidden="true" className={`h-5 w-5 ${showSearch ? 'text-white' : 'text-gray-600'}`} />
       </motion.button>
 
       <motion.button

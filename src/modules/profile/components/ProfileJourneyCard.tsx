@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from '@/modules/common/hooks/use-toast';
 import { ChevronRightIcon, FileTextIcon, JourneyIcon, TrashIcon } from '@/modules/common/icons';
-import { journeyService } from '@/modules/journey/services/journey.service';
+import { journeyService } from '@/modules/journey';
 
 type ProfileJourneyCardProps = {
   index: number;

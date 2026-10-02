@@ -54,7 +54,7 @@ async function requestBrowserCoordinates(): Promise<DiscoverCoordinates | null> 
   });
 }
 
-export function useDiscover() {
+export function useDiscover(search?: string) {
   const [coordinates, setCoordinates] = useState<DiscoverCoordinates | null>(null);
   const [radius, setRadius] = useState(DISCOVER_DEFAULT_RADIUS_KM);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
@@ -66,12 +66,13 @@ export function useDiscover() {
       latitude: coordinates!.latitude,
       longitude: coordinates!.longitude,
       radius,
+      search,
     }),
-    queryKey: [...discoverQueryKeys.journeys(), coordinates?.latitude ?? 0, coordinates?.longitude ?? 0, radius],
+    queryKey: [...discoverQueryKeys.journeys(), coordinates?.latitude ?? 0, coordinates?.longitude ?? 0, radius, search],
     staleTime: appConfig.reactQuery.staleTimeMs,
   });
 
-  const resolveCoordinates = useCallback(async (preferDeviceLocation = false) => {
+  const resolveCoordinates = useCallback(async (preferDeviceLocation = true) => {
     setIsLoadingLocation(true);
     setLocationError(null);
 
@@ -87,6 +88,9 @@ export function useDiscover() {
 
       try {
         const fallback = await discoverService.getCurrentLocation();
+        if (fallback.latitude === 0 && fallback.longitude === 0) {
+          throw new Error('Location fallback returned default coordinates');
+        }
         setCoordinates(fallback);
       } catch {
         const browserCoordinates = await requestBrowserCoordinates();
@@ -101,6 +105,9 @@ export function useDiscover() {
     } catch (caught) {
       try {
         const fallback = await discoverService.getCurrentLocation();
+        if (fallback.latitude === 0 && fallback.longitude === 0) {
+          throw new Error('Location fallback returned default coordinates');
+        }
         setCoordinates(fallback);
       } catch {
         setLocationError(caught instanceof Error ? caught.message : 'Unable to determine location');

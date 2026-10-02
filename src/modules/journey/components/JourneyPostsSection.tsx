@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { Badge, ImageIcon } from '@/modules/common';
+import { Badge, ImageIcon, useRandomCoverImage } from '@/modules/common';
 import { useJourneyPosts } from '@/modules/journey/hooks/use-journey-posts';
 
 type JourneyPostsSectionProps = {
@@ -16,9 +16,10 @@ export const JourneyPostsSection = (props: JourneyPostsSectionProps) => {
     journeyImageSrc,
     journeyTitle,
   } = props;
-  
+
   const { posts, isLoading, isError, error } = useJourneyPosts(journeyId);
-  const billboardImageSrc = journeyImageSrc || '/london.png';
+  const fallbackCover = useRandomCoverImage();
+  const billboardImageSrc = journeyImageSrc || fallbackCover;
 
   if (isLoading) {
     return (
@@ -115,4 +116,3 @@ export const JourneyPostsSection = (props: JourneyPostsSectionProps) => {
     </div>
   );
 };
-

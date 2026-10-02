@@ -4,7 +4,7 @@ export function getProfileParityFixture(): UserProfile {
   return {
     recentJourneys: [
       {
-        coverImage: '/london.png',
+        coverImage: '/cover1.png',
         createdAt: '2026-02-10T10:00:00.000Z',
         daysCount: 3,
         description: 'City walk and food spots',
@@ -20,7 +20,7 @@ export function getProfileParityFixture(): UserProfile {
         description: 'Great trip and amazing weather.',
         id: 'post-profile-1',
         likeCount: 12,
-        mediaUrls: ['/london.png'],
+        mediaUrls: ['/cover1.png'],
       },
     ],
     relationship: {

@@ -24,6 +24,7 @@ export const discoverService = {
     longitude: number;
     radius?: number;
     limit?: number;
+    search?: string;
   }): Promise<DiscoverJourney[]> {
     const params = new URLSearchParams({
       latitude: String(input.latitude),
@@ -31,6 +32,10 @@ export const discoverService = {
       longitude: String(input.longitude),
       radius: String(input.radius ?? DISCOVER_DEFAULT_RADIUS_KM),
     });
+
+    if (input.search) {
+      params.append('search', input.search);
+    }
 
     const journeys = await parseEnvelope<DiscoverJourneyDto[]>(`/journeys/nearby?${params.toString()}`);
     return journeys.map(mapDiscoverJourney);

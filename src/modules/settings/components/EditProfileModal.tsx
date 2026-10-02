@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import Image from 'next/image';
 import { useRef } from 'react';
-import { Button, Input, OverlayModal, Skeleton } from '@/modules/common';
+import { Button, Input, OverlayModal, Skeleton, useRandomCoverImage } from '@/modules/common';
 import { CameraIcon, SpinnerIcon, XIcon } from '@/modules/common/icons';
 import { profileQueryKeys, profileService, useProfileImages } from '@/modules/profile/api';
 import { useEditProfile } from '@/modules/settings/hooks/use-edit-profile';
@@ -61,6 +61,7 @@ export function EditProfileModal(props: EditProfileModalProps) {
 
   const { register, formState: { errors } } = form;
   const user = profile?.user;
+  const fallbackCover = useRandomCoverImage();
 
   return (
     <OverlayModal ariaLabel="Edit profile" className="max-w-lg overflow-hidden" onClose={onClose}>
@@ -101,7 +102,7 @@ export function EditProfileModal(props: EditProfileModalProps) {
                         alt="Profile banner"
                         className="h-full w-full object-cover"
                         height={144}
-                        src="/london.png"
+                        src={fallbackCover}
                         width={600}
                       />
                     )}

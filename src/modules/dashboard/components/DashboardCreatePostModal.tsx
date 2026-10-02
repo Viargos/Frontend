@@ -4,8 +4,10 @@ import type { ChangeEvent } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import * as motion from 'framer-motion/client';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuthSession } from '@/modules/auth';
+import { toast } from '@/modules/common';
 import { OverlayModal } from '@/modules/common/components';
 import {
   ChevronLeftIcon,
@@ -16,6 +18,7 @@ import {
   MapPinIcon,
   XIcon,
 } from '@/modules/common/icons';
+import { useGoogleMapsLoader } from '@/modules/common/infra';
 import { useCreatePost, usePostCreationJourneys } from '@/modules/dashboard/hooks';
 import { JourneyDropdown } from './JourneyDropdown';
 
@@ -129,16 +132,26 @@ function SelectTypeStep(props: {
 
 export const DashboardCreatePostModal = (props: DashboardCreatePostModalProps) => {
   const { isOpen, onClose } = props;
+  const router = useRouter();
   const { session } = useAuthSession();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const autocompleteRef = useRef<{
+    autocomplete: google.maps.places.Autocomplete;
+    listener: google.maps.MapsEventListener;
+  } | null>(null);
   const mediaDraftsRef = useRef<MediaDraft[]>([]);
   const [step, setStep] = useState<Step>('select-type');
   const [selectedType, setSelectedType] = useState<PostType>('journey-linked');
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
+  const [latitude, setLatitude] = useState<number | undefined>(undefined);
+  const [longitude, setLongitude] = useState<number | undefined>(undefined);
   const [selectedJourneyId, setSelectedJourneyId] = useState('');
   const [localError, setLocalError] = useState<string | null>(null);
   const [mediaDrafts, setMediaDrafts] = useState<MediaDraft[]>([]);
+
+  const mapLoader = useGoogleMapsLoader();
+  const isPlacesReady = mapLoader.hasApiKey && mapLoader.isLoaded && !mapLoader.loadError;
 
   const { createPost, createPostError, isCreatingPost } = useCreatePost({ user: session.user });
   const {
@@ -157,6 +170,8 @@ export const DashboardCreatePostModal = (props: DashboardCreatePostModalProps) =
     setSelectedType('journey-linked');
     setDescription('');
     setLocation('');
+    setLatitude(undefined);
+    setLongitude(undefined);
     setSelectedJourneyId('');
     setLocalError(null);
     setMediaDrafts((previousDrafts) => {
@@ -186,6 +201,55 @@ export const DashboardCreatePostModal = (props: DashboardCreatePostModalProps) =
     }
   }, []);
 
+  const locationInputRef = useCallback((node: HTMLInputElement | null) => {
+    if (autocompleteRef.current) {
+      const mapsApi = window.google?.maps;
+      if (mapsApi) {
+        mapsApi.event.removeListener(autocompleteRef.current.listener);
+        mapsApi.event.clearInstanceListeners(autocompleteRef.current.autocomplete);
+      }
+      autocompleteRef.current = null;
+    }
+
+    if (!node || !isPlacesReady || typeof window === 'undefined') {
+      return;
+    }
+
+    const mapsApi = window.google?.maps;
+    if (!mapsApi?.places?.Autocomplete) {
+      return;
+    }
+
+    const autocomplete = new mapsApi.places.Autocomplete(node, {
+      fields: ['formatted_address', 'geometry', 'name'],
+      types: ['establishment', 'geocode'],
+    });
+
+    const listener = autocomplete.addListener('place_changed', () => {
+      const selectedPlace = autocomplete.getPlace();
+      const geomLocation = selectedPlace.geometry?.location;
+      const address = selectedPlace.formatted_address ?? selectedPlace.name ?? node.value;
+
+      setLocation(address);
+      setLatitude(geomLocation?.lat());
+      setLongitude(geomLocation?.lng());
+    });
+
+    autocompleteRef.current = { autocomplete, listener };
+  }, [isPlacesReady]);
+
+  useEffect(() => {
+    return () => {
+      if (autocompleteRef.current) {
+        const mapsApi = window.google?.maps;
+        if (mapsApi) {
+          mapsApi.event.removeListener(autocompleteRef.current.listener);
+          mapsApi.event.clearInstanceListeners(autocompleteRef.current.autocomplete);
+        }
+      }
+    };
+  }, []);
+
   const handleTypeSelect = useCallback((type: PostType) => {
     setSelectedType(type);
     setStep('create-post');
@@ -196,6 +260,8 @@ export const DashboardCreatePostModal = (props: DashboardCreatePostModalProps) =
     setStep('select-type');
     setDescription('');
     setLocation('');
+    setLatitude(undefined);
+    setLongitude(undefined);
     setSelectedJourneyId('');
     setLocalError(null);
     setMediaDrafts((previousDrafts) => {
@@ -266,12 +332,16 @@ export const DashboardCreatePostModal = (props: DashboardCreatePostModalProps) =
         journeyId: selectedType === 'journey-linked' ? selectedJourneyId : undefined,
         journeyTitle: selectedType === 'journey-linked' ? selectedJourney?.title : undefined,
         location: selectedType === 'standalone' ? location.trim() : undefined,
+        latitude: selectedType === 'standalone' ? latitude : undefined,
+        longitude: selectedType === 'standalone' ? longitude : undefined,
         mediaFiles: mediaDrafts.map(media => media.file),
         mediaPreviewUrls: mediaDrafts.map(media => media.previewUrl),
       });
 
       handleReset();
       onClose();
+      toast.success('Post created successfully');
+      router.push('/dashboard');
     } catch (error) {
       setLocalError(error instanceof Error ? error.message : 'Unable to create post.');
     }
@@ -377,6 +447,8 @@ export const DashboardCreatePostModal = (props: DashboardCreatePostModalProps) =
                                 <MapPinIcon className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
                                 <input
                                   id="create-post-location"
+                                  ref={locationInputRef}
+                                  autoComplete="off"
                                   className="h-11 w-full rounded-lg border border-gray-300 pr-3 pl-9 text-sm text-gray-900 transition-colors outline-none focus:border-[#160E53] focus:ring-1 focus:ring-[#160E53]"
                                   disabled={isCreatingPost}
                                   placeholder="Add location"

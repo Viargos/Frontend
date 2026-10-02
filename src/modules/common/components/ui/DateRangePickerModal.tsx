@@ -1,9 +1,9 @@
 'use client';
 
+import { Calendar } from 'primereact/calendar';
 import { useMemo, useState } from 'react';
 import { CalendarIcon, CheckIcon, XIcon } from '@/modules/common/icons';
 import { OverlayModal } from '../OverlayModal';
-import { Calendar } from 'primereact/calendar';
 import {
   formatDateLabel,
   formatDateValue,
@@ -21,6 +21,12 @@ type DateRangePickerModalProps = {
   endDate?: string;
 };
 
+type CalendarDateMeta = {
+  day: number;
+  month: number;
+  year: number;
+};
+
 export function DateRangePickerModal(props: DateRangePickerModalProps) {
   const { allowClear = true, description, onClose, onSelect, title, startDate = '', endDate = '' } = props;
   const todayValue = getTodayDateValue();
@@ -28,13 +34,12 @@ export function DateRangePickerModal(props: DateRangePickerModalProps) {
   const [draftEndDate, setDraftEndDate] = useState(endDate);
 
   const draftDates = useMemo(() => {
-    const dates: (Date | null)[] = [];
-    if (draftStartDate) {
-      const parsedStart = parseDateValue(draftStartDate);
-      dates.push(parsedStart);
-    } else {
-      dates.push(null);
+    if (!draftStartDate) {
+      return null;
     }
+    const dates: (Date | null)[] = [];
+    const parsedStart = parseDateValue(draftStartDate);
+    dates.push(parsedStart);
     if (draftEndDate) {
       const parsedEnd = parseDateValue(draftEndDate);
       dates.push(parsedEnd);
@@ -60,11 +65,11 @@ export function DateRangePickerModal(props: DateRangePickerModalProps) {
     return null;
   };
 
-  const dateTemplate = (dateMeta: any) => {
+  const dateTemplate = (dateMeta: CalendarDateMeta) => {
     const startOrEnd = isStartOrEndDate(dateMeta);
 
     return (
-      <div className="relative flex flex-col items-start justify-between w-full h-full p-3 text-left">
+      <div className="relative flex h-full w-full flex-col items-start justify-between p-3 text-left">
         <span className="text-sm font-semibold">{dateMeta.day}</span>
         {startOrEnd && (
           <span className="date-time-picker-selected-mark absolute right-3 bottom-3 inline-flex h-7 w-7 items-center justify-center rounded-full">
@@ -76,7 +81,9 @@ export function DateRangePickerModal(props: DateRangePickerModalProps) {
   };
 
   const formatDisplayRange = (start?: string, end?: string): string => {
-    if (!start && !end) return 'No range selected';
+    if (!start && !end) {
+      return 'No range selected';
+    }
     const startLabel = start ? formatDateLabel(start) : 'Select start date';
     const endLabel = end ? formatDateLabel(end) : 'Select end date';
     return `${startLabel} – ${endLabel}`;
@@ -116,7 +123,7 @@ export function DateRangePickerModal(props: DateRangePickerModalProps) {
             <p className="date-time-picker-rail-muted text-xs font-semibold tracking-[0.18em] uppercase">
               Selected Range
             </p>
-            <p className="mt-3 text-xl font-semibold tracking-tight leading-7">
+            <p className="mt-3 text-xl leading-7 font-semibold tracking-tight">
               {formatDisplayRange(draftStartDate, draftEndDate)}
             </p>
             <p className="date-time-picker-rail-muted mt-2 text-sm">
@@ -127,7 +134,7 @@ export function DateRangePickerModal(props: DateRangePickerModalProps) {
           </div>
         </aside>
 
-        <section className="date-time-picker-panel p-5 sm:p-6 flex flex-col justify-between">
+        <section className="date-time-picker-panel flex flex-col justify-between p-5 sm:p-6">
           <div className="flex-1">
             <Calendar
               value={draftDates}
@@ -162,19 +169,21 @@ export function DateRangePickerModal(props: DateRangePickerModalProps) {
                 <CalendarIcon className="h-4 w-4" />
                 Today
               </button>
-              {allowClear ? (
-                <button
-                  className="date-time-picker-action-button inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors"
-                  onClick={() => {
-                    setDraftStartDate('');
-                    setDraftEndDate('');
-                  }}
-                  type="button"
-                >
-                  <XIcon className="h-4 w-4" />
-                  Clear
-                </button>
-              ) : null}
+              {allowClear
+                ? (
+                    <button
+                      className="date-time-picker-action-button inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors"
+                      onClick={() => {
+                        setDraftStartDate('');
+                        setDraftEndDate('');
+                      }}
+                      type="button"
+                    >
+                      <XIcon className="h-4 w-4" />
+                      Clear
+                    </button>
+                  )
+                : null}
             </div>
 
             <div className="flex flex-wrap justify-end gap-2">
@@ -186,10 +195,10 @@ export function DateRangePickerModal(props: DateRangePickerModalProps) {
                 Cancel
               </button>
               <button
-                className="date-time-picker-primary-button rounded-full px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={!draftStartDate || !draftEndDate}
+                className="date-time-picker-primary-button rounded-full px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={!draftStartDate}
                 onClick={() => {
-                  onSelect(draftStartDate, draftEndDate);
+                  onSelect(draftStartDate, draftEndDate || draftStartDate);
                   onClose();
                 }}
                 type="button"

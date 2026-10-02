@@ -77,6 +77,8 @@ function matchesSearchQuery(item: DiscoverFeedItem, query: string) {
 export const DiscoverPageClient = (props: DiscoverPageClientProps) => {
   const initialLocationQuery = props.initialLocationQuery?.trim() ?? '';
   const parityConfig = props.parityConfig ?? DEFAULT_PARITY_CONFIG;
+  const [searchQuery, setSearchQuery] = useState(initialLocationQuery);
+
   const {
     coordinates,
     error,
@@ -86,7 +88,7 @@ export const DiscoverPageClient = (props: DiscoverPageClientProps) => {
     radius,
     refresh,
     updateRadius,
-  } = useDiscover();
+  } = useDiscover(searchQuery);
 
   const disableMotion = parityConfig.enabled;
   const [selectedJourney, setSelectedJourney] = useState<DiscoverJourney | null>(null);
@@ -94,8 +96,7 @@ export const DiscoverPageClient = (props: DiscoverPageClientProps) => {
   const [modalJourney, setModalJourney] = useState<DiscoverJourney | null>(null);
   const [manualSidebarOpen, setManualSidebarOpen] = useState<boolean | null>(null);
   const [showFilters, setShowFilters] = useState(() => parityConfig.forceFilters ?? false);
-  const [autoSearch, setAutoSearch] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(initialLocationQuery);
+  const [showSearch, setShowSearch] = useState(false);
   const selectedItemId = useDiscoverStore(state => state.selectedItemId);
   const setHoveredItemId = useDiscoverStore(state => state.setHoveredItemId);
   const setSelectedItemId = useDiscoverStore(state => state.setSelectedItemId);
@@ -141,28 +142,37 @@ export const DiscoverPageClient = (props: DiscoverPageClientProps) => {
   }, [updateRadius]);
 
   const filteredJourneys = useMemo(() => journeys.filter((journey) => {
-    if (filters.createdWithin === 'all') {
-      return true;
+    if (filters.createdWithin !== 'all') {
+      const journeyDate = new Date(journey.createdAt);
+      const now = new Date();
+      const daysDiff = Math.floor((now.getTime() - journeyDate.getTime()) / (1000 * 60 * 60 * 24));
+
+      if (filters.createdWithin === 'week' && daysDiff > 7) {
+        return false;
+      }
+
+      if (filters.createdWithin === 'month' && daysDiff > 30) {
+        return false;
+      }
+
+      if (filters.createdWithin === 'year' && daysDiff > 365) {
+        return false;
+      }
     }
 
     const journeyDate = new Date(journey.createdAt);
-    const now = new Date();
-    const daysDiff = Math.floor((now.getTime() - journeyDate.getTime()) / (1000 * 60 * 60 * 24));
+    const journeyDateStr = journeyDate.toISOString().split('T')[0] ?? '';
 
-    if (filters.createdWithin === 'week' && daysDiff > 7) {
+    if (filters.dateRange.from && journeyDateStr < filters.dateRange.from) {
       return false;
     }
 
-    if (filters.createdWithin === 'month' && daysDiff > 30) {
-      return false;
-    }
-
-    if (filters.createdWithin === 'year' && daysDiff > 365) {
+    if (filters.dateRange.to && journeyDateStr > filters.dateRange.to) {
       return false;
     }
 
     return true;
-  }), [filters.createdWithin, journeys]);
+  }), [filters.createdWithin, filters.dateRange.from, filters.dateRange.to, journeys]);
 
   const discoverJourneys = useMemo(() => (parityConfig.state === 'empty'
     ? []
@@ -194,7 +204,6 @@ export const DiscoverPageClient = (props: DiscoverPageClientProps) => {
   const activeSelectedJourney = forcedJourney ?? (selectedJourneyStillVisible ? selectedJourney : null);
   const activeModalJourney = forcedJourney ?? modalJourney;
   const activeModalOpen = forcedJourney !== null || isJourneyModalOpen;
-  const autoSearchEnabled = parityConfig.enabled ? false : autoSearch;
 
   useEffect(() => {
     const nextSelectedItemId = forcedJourney?.id ?? activeSelectedJourney?.id ?? null;
@@ -245,12 +254,15 @@ export const DiscoverPageClient = (props: DiscoverPageClientProps) => {
     void updateRadius(DISCOVER_MAX_RADIUS_KM);
   }, [updateRadius]);
 
-  const handleToggleAutoSearch = useCallback(() => {
-    if (parityConfig.enabled) {
-      return;
-    }
-    setAutoSearch(previous => !previous);
-  }, [parityConfig.enabled]);
+  const handleToggleSearch = useCallback(() => {
+    setShowSearch((previous) => {
+      const next = !previous;
+      if (!next) {
+        setSearchQuery('');
+      }
+      return next;
+    });
+  }, []);
   const handleClearDateRange = useCallback(() => {
     setFilters(previous => ({
       ...previous,
@@ -313,7 +325,6 @@ export const DiscoverPageClient = (props: DiscoverPageClientProps) => {
     <DiscoverShell hasSelection={selectedItemId !== null} itemCount={visibleFeedItems.length}>
       <main className="flex min-h-0 flex-1 overflow-hidden" data-parity="discover-main-layout">
         <MapPanel
-          autoSearch={autoSearchEnabled}
           coordinates={coordinates}
           feedItems={visibleFeedItems}
           isLoadingLocation={isLoadingLocation}
@@ -327,8 +338,11 @@ export const DiscoverPageClient = (props: DiscoverPageClientProps) => {
           onRefreshLocation={handleRefreshLocation}
           onExpandSearchRadius={handleExpandSearchRadius}
           onSelectJourney={handleMapJourneySelect}
-          onToggleAutoSearch={handleToggleAutoSearch}
           onToggleSidebar={toggleSidebar}
+          showSearch={showSearch}
+          onToggleSearch={handleToggleSearch}
+          searchQuery={searchQuery}
+          onQueryChange={setSearchQuery}
         />
 
         <DiscoverSidebar
@@ -348,7 +362,6 @@ export const DiscoverPageClient = (props: DiscoverPageClientProps) => {
           onCloseSidebar={closeSidebar}
           onFiltersChange={handleFiltersChange}
           onJourneySelect={setSelectedJourney}
-          onQueryChange={setSearchQuery}
           onResetRadius={handleResetRadius}
           onRadiusChange={handleRadiusChange}
           onResetFilters={handleResetFilters}

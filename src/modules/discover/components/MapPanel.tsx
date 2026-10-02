@@ -2,7 +2,10 @@
 
 import type { DiscoverFeedItem } from '@/modules/discover/types/discover-ui.types';
 import type { DiscoverCoordinates, DiscoverJourney } from '@/modules/discover/types/discover.types';
+import { AnimatePresence } from 'framer-motion';
+import * as motion from 'framer-motion/client';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { SearchIcon } from '@/modules/common/icons';
 import { ControlStack } from '@/modules/discover/components/ControlStack';
 import { DiscoverMap } from '@/modules/discover/components/DiscoverMap';
 import { DEFAULT_MAP_CENTER, useGoogleMapsLoader } from '@/modules/discover/infra';
@@ -10,7 +13,6 @@ import { mapDiscoverFeedItems } from '@/modules/discover/mappers/discover-feed.m
 import { useDiscoverStore } from '@/modules/discover/store/discover.store';
 
 type MapPanelProps = {
-  autoSearch: boolean;
   coordinates: DiscoverCoordinates | null;
   feedItems: DiscoverFeedItem[];
   isLoadingLocation: boolean;
@@ -20,14 +22,16 @@ type MapPanelProps = {
   onExpandSearchRadius: () => void;
   onRefreshLocation: () => void;
   onSelectJourney: (journey: DiscoverJourney) => void;
-  onToggleAutoSearch: () => void;
   onToggleSidebar: () => void;
   selectedJourney: DiscoverJourney | null;
+  showSearch: boolean;
+  onToggleSearch: () => void;
+  searchQuery: string;
+  onQueryChange: (value: string) => void;
 };
 
 export const MapPanel = (props: MapPanelProps) => {
   const {
-    autoSearch,
     coordinates,
     feedItems,
     isLoadingLocation,
@@ -37,9 +41,12 @@ export const MapPanel = (props: MapPanelProps) => {
     onOpenJourneyDetails,
     onRefreshLocation,
     onSelectJourney,
-    onToggleAutoSearch,
     onToggleSidebar,
     selectedJourney,
+    showSearch,
+    onToggleSearch,
+    searchQuery,
+    onQueryChange,
   } = props;
   const { hasApiKey, isLoaded, loadError } = useGoogleMapsLoader('discover-map-loader');
   const mapRef = useRef<google.maps.Map | null>(null);
@@ -250,13 +257,36 @@ export const MapPanel = (props: MapPanelProps) => {
         </div>
       </div>
 
+      <AnimatePresence>
+        {showSearch && (
+          <motion.div
+            animate={{ opacity: 1, y: 0 }}
+            className="absolute top-4 left-4 z-10 w-80 max-w-sm sm:w-96"
+            exit={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            <label className="relative block">
+              <SearchIcon className="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <input
+                className="h-12 w-full rounded-2xl border border-slate-200 bg-white pr-4 pl-11 text-sm text-gray-900 shadow-lg transition outline-none focus:border-[#160E53]/20 focus:ring-4 focus:ring-[#160E53]/8"
+                placeholder="Search places, journeys, creators, or tags"
+                type="search"
+                value={searchQuery}
+                onChange={event => onQueryChange(event.target.value)}
+              />
+            </label>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <ControlStack
-        autoSearch={autoSearch}
+        showSearch={showSearch}
         isLoadingLocation={isLoadingLocation}
         isSidebarOpen={isSidebarOpen}
         onExpandSearchRadius={onExpandSearchRadius}
         onRefreshLocation={onRefreshLocation}
-        onToggleAutoSearch={onToggleAutoSearch}
+        onToggleSearch={onToggleSearch}
         onToggleSidebar={onToggleSidebar}
       />
     </div>

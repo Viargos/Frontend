@@ -2,7 +2,7 @@
 
 import * as motion from 'framer-motion/client';
 import { useState } from 'react';
-import { DatePickerField } from '@/modules/common/components';
+import { DateRangePickerField } from '@/modules/common/components';
 import { ExploreIcon, XIcon } from '@/modules/common/icons';
 import { DISCOVER_MAX_RADIUS_KM, DISCOVER_MIN_RADIUS_KM } from '@/modules/discover/constants/discover.constants';
 
@@ -234,43 +234,24 @@ export const FilterPanel = (props: FilterPanelProps) => {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-semibold text-[#160E53]" htmlFor="discover-date-from">
+              <label className="mb-2 block text-sm font-semibold text-[#160E53]" htmlFor="discover-date-range">
                 Journey Date Range
               </label>
-              <div className="space-y-2">
-                <DatePickerField
-                  className="rounded-lg"
-                  description="Choose the first date travelers should be included in the results."
-                  id="discover-date-from"
-                  max={filters.dateRange.to || undefined}
-                  onChange={nextValue => updateFilters({
-                    ...filters,
-                    dateRange: {
-                      ...filters.dateRange,
-                      from: nextValue,
-                    },
-                  })}
-                  placeholder="Select start date"
-                  title="Filter from date"
-                  value={filters.dateRange.from}
-                />
-                <DatePickerField
-                  className="rounded-lg"
-                  description="Choose the latest journey date travelers should be included in the results."
-                  id="discover-date-to"
-                  min={filters.dateRange.from || undefined}
-                  onChange={nextValue => updateFilters({
-                    ...filters,
-                    dateRange: {
-                      ...filters.dateRange,
-                      to: nextValue,
-                    },
-                  })}
-                  placeholder="Select end date"
-                  title="Filter to date"
-                  value={filters.dateRange.to}
-                />
-              </div>
+              <DateRangePickerField
+                className="rounded-lg"
+                description="Choose the date range travelers should be included in the results."
+                id="discover-date-range"
+                onChange={(start, end) => updateFilters({
+                  ...filters,
+                  dateRange: {
+                    from: start,
+                    to: end,
+                  },
+                })}
+                title="Select date range"
+                startDate={filters.dateRange.from}
+                endDate={filters.dateRange.to}
+              />
             </div>
           </div>
         </FilterSection>

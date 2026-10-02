@@ -1,9 +1,9 @@
 'use client';
 
+import { Calendar } from 'primereact/calendar';
 import { useMemo, useState } from 'react';
 import { CalendarIcon, CheckIcon, XIcon } from '@/modules/common/icons';
 import { OverlayModal } from '../OverlayModal';
-import { Calendar } from 'primereact/calendar';
 import {
   formatDateLabel,
   formatDateValue,
@@ -23,6 +23,12 @@ type DatePickerModalProps = {
   value?: string;
 };
 
+type CalendarDateMeta = {
+  day: number;
+  month: number;
+  year: number;
+};
+
 export function DatePickerModal(props: DatePickerModalProps) {
   const { allowClear = true, description, max, min, onClose, onSelect, title, value } = props;
   const todayValue = getTodayDateValue();
@@ -35,21 +41,25 @@ export function DatePickerModal(props: DatePickerModalProps) {
   const draftDate = useMemo(() => parseDateValue(draftValue), [draftValue]);
 
   const isDateSelected = (d: { day: number; month: number; year: number }) => {
-    if (!draftValue) return false;
+    if (!draftValue) {
+      return false;
+    }
     const parsed = parseDateValue(draftValue);
-    if (!parsed) return false;
+    if (!parsed) {
+      return false;
+    }
     return (
-      parsed.getDate() === d.day &&
-      parsed.getMonth() === d.month &&
-      parsed.getFullYear() === d.year
+      parsed.getDate() === d.day
+      && parsed.getMonth() === d.month
+      && parsed.getFullYear() === d.year
     );
   };
 
-  const dateTemplate = (dateMeta: any) => {
+  const dateTemplate = (dateMeta: CalendarDateMeta) => {
     const isSelected = isDateSelected(dateMeta);
 
     return (
-      <div className="relative flex flex-col items-start justify-between w-full h-full p-3 text-left">
+      <div className="relative flex h-full w-full flex-col items-start justify-between p-3 text-left">
         <span className="text-sm font-semibold">{dateMeta.day}</span>
         {/* {dateMeta.today && (
           <span
@@ -115,7 +125,7 @@ export function DatePickerModal(props: DatePickerModalProps) {
           </div>
         </aside>
 
-        <section className="date-time-picker-panel p-5 sm:p-6 flex flex-col justify-between">
+        <section className="date-time-picker-panel flex flex-col justify-between p-5 sm:p-6">
           <div className="flex-1">
             <Calendar
               value={draftDate}
@@ -143,16 +153,18 @@ export function DatePickerModal(props: DatePickerModalProps) {
                 <CalendarIcon className="h-4 w-4" />
                 Today
               </button>
-              {allowClear ? (
-                <button
-                  className="date-time-picker-action-button inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors"
-                  onClick={() => setDraftValue('')}
-                  type="button"
-                >
-                  <XIcon className="h-4 w-4" />
-                  Clear
-                </button>
-              ) : null}
+              {allowClear
+                ? (
+                    <button
+                      className="date-time-picker-action-button inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors"
+                      onClick={() => setDraftValue('')}
+                      type="button"
+                    >
+                      <XIcon className="h-4 w-4" />
+                      Clear
+                    </button>
+                  )
+                : null}
             </div>
 
             <div className="flex flex-wrap justify-end gap-2">

@@ -113,7 +113,9 @@ export const authService = {
 
   async resetPassword(payload: ResetPasswordRequestDto): Promise<void> {
     await requestBff<ResetPasswordResponseDto>('/auth/reset-password', {
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        newPassword: payload.newPassword,
+      }),
       method: 'POST',
     });
   },

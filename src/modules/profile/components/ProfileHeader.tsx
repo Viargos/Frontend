@@ -5,6 +5,7 @@ import * as motion from 'framer-motion/client';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useRef } from 'react';
+import { useRandomCoverImage } from '@/modules/common';
 import { CameraIcon, MapPinIcon, SpinnerIcon, XIcon } from '@/modules/common/icons';
 import { useFollowUser } from '@/modules/profile/hooks';
 import { useProfileImages } from '@/modules/profile/hooks/use-profile-images';
@@ -34,6 +35,7 @@ const StatItem = (props: StatItemProps) => {
 export const ProfileHeader = (props: ProfileHeaderProps) => {
   const { heading, isOwnProfile = true, profile } = props;
   const router = useRouter();
+  const fallbackCover = useRandomCoverImage();
 
   const profileFileInputRef = useRef<HTMLInputElement>(null);
   const bannerFileInputRef = useRef<HTMLInputElement>(null);
@@ -84,7 +86,7 @@ export const ProfileHeader = (props: ProfileHeaderProps) => {
                 alt="Profile background"
                 className="h-full w-full object-cover"
                 height={224}
-                src="/london.png"
+                src={fallbackCover}
                 width={800}
               />
             )}

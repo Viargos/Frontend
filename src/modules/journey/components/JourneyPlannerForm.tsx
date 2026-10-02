@@ -6,8 +6,8 @@ import type { JourneyDayInput, JourneyPlaceInput } from '@/modules/journey/types
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { toast } from '@/modules/common';
-import { DateRangePickerField, TimePickerField } from '@/modules/common/components';
+import { toast, useRandomCoverImage } from '@/modules/common';
+import { cn, DateRangePickerField, TimePickerField } from '@/modules/common/components';
 import {
   CarIcon,
   ChevronLeftIcon,
@@ -189,7 +189,7 @@ function ReviewModal(props: ReviewModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
-      <div className="journey-planner-card max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-[28px] border shadow-2xl flex flex-col">
+      <div className="journey-planner-card flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-[28px] border shadow-2xl">
         <div className="relative h-56 shrink-0">
           <Image alt="Journey cover preview" className="object-cover" fill sizes="1200px" src={coverImageSrc} unoptimized />
           <div className="absolute inset-0 bg-linear-to-t from-slate-950 via-slate-950/40 to-transparent" />
@@ -212,8 +212,8 @@ function ReviewModal(props: ReviewModalProps) {
           </div>
         </div>
 
-        <div className="journey-planner-shell grid gap-6 p-6 lg:grid-cols-[minmax(0,1fr)_320px] flex-1 min-h-0 overflow-y-auto lg:overflow-hidden scrollbar-custom">
-          <div className="space-y-4 lg:overflow-y-auto lg:max-h-full lg:pr-1 scrollbar-custom">
+        <div className="journey-planner-shell scrollbar-custom grid min-h-0 flex-1 gap-6 overflow-y-auto p-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:overflow-hidden">
+          <div className="scrollbar-custom space-y-4 lg:max-h-full lg:overflow-y-auto lg:pr-1">
             {days.map(day => (
               <div className="journey-planner-card rounded-3xl border p-5" key={day.id}>
                 <div className="flex items-start justify-between gap-4">
@@ -263,7 +263,7 @@ function ReviewModal(props: ReviewModalProps) {
             ))}
           </div>
 
-          <aside className="space-y-4 shrink-0">
+          <aside className="shrink-0 space-y-4">
             <div className="journey-planner-card rounded-3xl border p-5">
               <p className="journey-planner-label text-xs font-semibold tracking-[0.18em] uppercase">Trip range</p>
               <p className="journey-planner-title mt-2 text-lg font-semibold">{formatRange(startDate, endDate)}</p>
@@ -373,6 +373,7 @@ function PlaceLocationField(props: PlaceLocationFieldProps) {
 export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
   const { initialJourney, mode } = props;
   const router = useRouter();
+  const fallbackCover = useRandomCoverImage();
   const notesRef = useRef<HTMLTextAreaElement | null>(null);
   const coverInputRef = useRef<HTMLInputElement | null>(null);
   const dayNavigatorRef = useRef<HTMLDivElement | null>(null);
@@ -395,6 +396,7 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
     updatePlaceMedia,
     validate,
     values,
+    conflictingPlaceIds,
   } = useJourneyPlannerForm(initialJourney);
 
   const [activeDayId, setActiveDayId] = useState(values.days[0]?.id ?? '');
@@ -403,23 +405,19 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
   const [expandedPlaces, setExpandedPlaces] = useState<Record<string, boolean>>({});
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [pendingScrollPlaceId, setPendingScrollPlaceId] = useState<string | null>(null);
+  const activeDay = values.days.find(day => day.id === activeDayId) ?? values.days[0];
+  const selectedActiveDayId = activeDay?.id ?? '';
 
+  // Center active day chip horizontally
   useEffect(() => {
-    const nextActiveDayId = values.days.some(day => day.id === activeDayId)
-      ? activeDayId
-      : values.days[0]?.id;
-
-    if (!nextActiveDayId || !dayNavigatorRef.current) {
-      return;
+    const activeDayButton = dayNavigatorRef.current?.querySelector<HTMLElement>(`[data-day-id="${selectedActiveDayId}"]`);
+    if (activeDayButton && dayNavigatorRef.current) {
+      dayNavigatorRef.current.scrollTo({
+        behavior: 'smooth',
+        left: activeDayButton.offsetLeft - (dayNavigatorRef.current.clientWidth - activeDayButton.clientWidth) / 2,
+      });
     }
-
-    const activeDayButton = dayNavigatorRef.current.querySelector<HTMLElement>(`[data-day-id="${nextActiveDayId}"]`);
-    activeDayButton?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'nearest',
-      inline: 'center',
-    });
-  }, [activeDayId, values.days]);
+  }, [selectedActiveDayId]);
 
   useEffect(() => {
     return () => {
@@ -428,8 +426,6 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
       }
     };
   }, [coverPreviewUrl]);
-
-  const activeDay = values.days.find(day => day.id === activeDayId) ?? values.days[0];
 
   const groupedPlaces = useMemo(() => {
     const base = {
@@ -693,10 +689,14 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
     const bookingStart = place.bookingStartDayNumber ?? activeDay?.dayNumber ?? 1;
     const bookingEnd = place.bookingEndDayNumber ?? activeDay?.dayNumber ?? 1;
     const typeConfig = PLACE_TYPE_CONFIG.find(config => config.type === place.type);
+    const isConflicting = conflictingPlaceIds.includes(place.id);
 
     return (
       <div
-        className="journey-planner-card scroll-mt-6 rounded-3xl border"
+        className={cn(
+          'journey-planner-card scroll-mt-6 rounded-3xl border transition-all',
+          isConflicting ? 'border-red-500 ring-2 ring-red-500/10' : '',
+        )}
         key={place.id}
         ref={(node) => {
           placeEditorRefs.current[place.id] = node;
@@ -744,6 +744,30 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
                 </div>
 
                 <div className="md:col-span-2">
+                  <label className="journey-planner-copy mb-2 block text-sm font-medium" htmlFor={`${place.id}-address`}>Location</label>
+                  <PlaceLocationField
+                    isPlacesReady={isPlacesReady}
+                    onAddressChange={value => updatePlaceField(activeDay!.id, place.id, 'address', value)}
+                    onLocationSelect={(location) => {
+                      updatePlaceField(activeDay!.id, place.id, 'address', location.address);
+
+                      if (location.name) {
+                        updatePlaceField(activeDay!.id, place.id, 'name', location.name);
+                      }
+
+                      if (location.latitude !== undefined) {
+                        updatePlaceField(activeDay!.id, place.id, 'latitude', location.latitude);
+                      }
+
+                      if (location.longitude !== undefined) {
+                        updatePlaceField(activeDay!.id, place.id, 'longitude', location.longitude);
+                      }
+                    }}
+                    place={place}
+                  />
+                </div>
+
+                <div className="md:col-span-2">
                   <label className="journey-planner-copy mb-2 block text-sm font-medium" htmlFor={`${place.id}-description`}>Description</label>
                   <textarea
                     className="journey-planner-field min-h-24 w-full rounded-2xl border px-4 py-3 text-sm transition outline-none"
@@ -781,29 +805,11 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
                   />
                 </div>
 
-                <div className="md:col-span-2">
-                  <label className="journey-planner-copy mb-2 block text-sm font-medium" htmlFor={`${place.id}-address`}>Location</label>
-                  <PlaceLocationField
-                    isPlacesReady={isPlacesReady}
-                    onAddressChange={value => updatePlaceField(activeDay!.id, place.id, 'address', value)}
-                    onLocationSelect={(location) => {
-                      updatePlaceField(activeDay!.id, place.id, 'address', location.address);
-
-                      if (location.name) {
-                        updatePlaceField(activeDay!.id, place.id, 'name', location.name);
-                      }
-
-                      if (location.latitude !== undefined) {
-                        updatePlaceField(activeDay!.id, place.id, 'latitude', location.latitude);
-                      }
-
-                      if (location.longitude !== undefined) {
-                        updatePlaceField(activeDay!.id, place.id, 'longitude', location.longitude);
-                      }
-                    }}
-                    place={place}
-                  />
-                </div>
+                {isConflicting && (
+                  <div className="rounded-2xl border border-red-200 bg-red-50/50 px-4 py-3 text-sm font-semibold text-red-500 md:col-span-2 dark:border-red-900/30 dark:bg-red-950/20">
+                    This time slot overlaps with another itinerary item. Please choose a different time.
+                  </div>
+                )}
 
                 <div>
                   <label className="journey-planner-copy mb-2 block text-sm font-medium" htmlFor={`${place.id}-booking-start`}>Booked from day</label>
@@ -894,7 +900,7 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
                 fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 70vw"
-                src={coverPreviewUrl ?? '/london.png'}
+                src={coverPreviewUrl ?? fallbackCover}
                 unoptimized
               />
               <div className="absolute inset-0 bg-linear-to-r from-slate-950/85 via-slate-950/55 to-slate-950/15" />
@@ -1170,7 +1176,7 @@ export function JourneyPlannerForm(props: JourneyPlannerFormProps) {
       </div>
 
       <ReviewModal
-        coverImageSrc={coverPreviewUrl ?? initialJourney?.coverImage ?? '/london.png'}
+        coverImageSrc={coverPreviewUrl ?? initialJourney?.coverImage ?? fallbackCover}
         days={values.days}
         endDate={values.endDate}
         isOpen={isReviewOpen}

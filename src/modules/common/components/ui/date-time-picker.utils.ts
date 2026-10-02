@@ -44,7 +44,11 @@ export function parseDateValue(value?: string | null): Date | null {
     return null;
   }
 
-  const [yearValue, monthValue, dayValue] = value.split('-');
+  const datePart = value.split('T')[0];
+  if (!datePart) {
+    return null;
+  }
+  const [yearValue, monthValue, dayValue] = datePart.split('-');
   const year = parseNumber(yearValue ?? '');
   const month = parseNumber(monthValue ?? '');
   const day = parseNumber(dayValue ?? '');

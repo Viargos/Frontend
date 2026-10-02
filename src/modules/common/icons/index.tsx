@@ -222,8 +222,8 @@ export const GlobeIllustration = (props: SVGProps<SVGSVGElement>) => (
 );
 
 export const MapRouteIllustration = (props: SVGProps<SVGSVGElement>) => (
-  <svg fill="none" viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg" {...props}>
-    <rect fill="#F8FAFC" height="220" rx="16" width="320" />
+  <svg fill="none" viewBox="0 0 320 400" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <rect fill="#F8FAFC" height="400" rx="16" width="320" />
     <path
       d="M38 168C75 82 120 82 160 130C195 172 241 172 282 62"
       stroke="#2563EB"

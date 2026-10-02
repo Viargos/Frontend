@@ -5,7 +5,7 @@ import type { JourneyDetail } from '@/modules/journey/types/journey-detail.types
 import type { JourneyCreateInput, JourneyDayInput, JourneyPlaceInput, JourneyPlaceMediaInput } from '@/modules/journey/types/journey.types';
 import { useMemo, useState } from 'react';
 import { toast } from '@/modules/common';
-import { createClientId, todayIsoDate } from '@/modules/journey/helpers/journey.helper';
+import { createClientId, createDeterministicId, todayIsoDate } from '@/modules/journey/helpers/journey.helper';
 import { journeyCreateSchema } from '@/modules/journey/validations/journey.validation';
 
 type PlannerState = JourneyCreateInput & {
@@ -27,6 +27,38 @@ type EditablePlaceField
     | 'type';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+
+function parseTimeToDate(timeStr: string): Date | null {
+  if (!timeStr) {
+    return null;
+  }
+  const [hoursStr, minutesStr] = timeStr.split(':');
+  const hours = Number(hoursStr);
+  const minutes = Number(minutesStr);
+  if (hoursStr === undefined || minutesStr === undefined || Number.isNaN(hours) || Number.isNaN(minutes)) {
+    return null;
+  }
+  return new Date(2000, 0, 1, hours, minutes, 0, 0);
+}
+
+function placesOverlap(a: JourneyPlaceInput, b: JourneyPlaceInput): boolean {
+  if (a.id === b.id) {
+    return false;
+  }
+  if (!a.startTime || !a.endTime || !b.startTime || !b.endTime) {
+    return false;
+  }
+  const startA = parseTimeToDate(a.startTime);
+  const endA = parseTimeToDate(a.endTime);
+  const startB = parseTimeToDate(b.startTime);
+  const endB = parseTimeToDate(b.endTime);
+
+  if (!startA || !endA || !startB || !endB) {
+    return false;
+  }
+
+  return startA < endB && endA > startB;
+}
 
 function toIsoDate(date: Date): string {
   const year = date.getFullYear();
@@ -70,11 +102,13 @@ function createPlace(type: PlaceType, dayNumber: number): JourneyPlaceInput {
   };
 }
 
-function createDay(dayNumber: number, date: string): JourneyDayInput {
+function createDay(dayNumber: number, date: string, stable = false): JourneyDayInput {
   return {
     date,
     dayNumber,
-    id: createClientId('day'),
+    // Use a deterministic ID during SSR initial-state so server and client
+    // produce identical markup. New days added at runtime use a random UUID.
+    id: stable ? createDeterministicId('day', date) : createClientId('day'),
     notes: '',
     places: [],
   };
@@ -120,7 +154,7 @@ function generateDays(startDate: string, endDate: string, existingDays?: Journey
             order: place.order ?? placeIndex,
           })),
         }
-      : createDay(index, isoDate));
+      : createDay(index, isoDate, true));
   }
 
   return normalizeBookingGroups(nextDays);
@@ -261,7 +295,7 @@ function createInitialState(initialJourney?: JourneyDetail): PlannerState {
     const today = todayIsoDate();
     return {
       coverImage: '',
-      days: [createDay(1, today)],
+      days: [createDay(1, today, true)],
       description: '',
       endDate: today,
       startDate: today,
@@ -278,12 +312,16 @@ function createInitialState(initialJourney?: JourneyDetail): PlannerState {
     days: sortedDays.map((day, dayIndex) => ({
       date: day.date,
       dayNumber: dayIndex + 1,
-      id: day.id ?? createClientId('day'),
+      // Prefer server-provided ID; fall back to a date-based deterministic ID
+      // so hydration is stable even when the server omits the id field.
+      id: day.id ?? createDeterministicId('day', day.date),
       notes: day.notes ?? '',
       places: day.places.map((place, placeIndex) => ({
         address: place.address,
         bookingEndDayNumber: place.bookingEndDayNumber ?? day.dayNumber,
-        bookingGroupId: place.bookingGroupId ?? createClientId('booking'),
+        // Deterministic fallback: seed from place index + day date so it
+        // survives SSR → hydration unchanged.
+        bookingGroupId: place.bookingGroupId ?? createDeterministicId('booking', `${day.date}-${placeIndex}`),
         bookingStartDayNumber: place.bookingStartDayNumber ?? day.dayNumber,
         description: place.description ?? '',
         endTime: place.endTime ?? '',
@@ -314,6 +352,24 @@ function createInitialState(initialJourney?: JourneyDetail): PlannerState {
 export function useJourneyPlannerForm(initialJourney?: JourneyDetail) {
   const [values, setValues] = useState<PlannerState>(() => createInitialState(initialJourney));
   const [error, setError] = useState<string | null>(null);
+
+  const conflictingPlaceIds = useMemo(() => {
+    const ids = new Set<string>();
+    values.days.forEach((day) => {
+      const places = day.places;
+      for (let i = 0; i < places.length; i++) {
+        for (let j = i + 1; j < places.length; j++) {
+          const a = places[i]!;
+          const b = places[j]!;
+          if (placesOverlap(a, b)) {
+            ids.add(a.id);
+            ids.add(b.id);
+          }
+        }
+      }
+    });
+    return Array.from(ids);
+  }, [values.days]);
 
   const activeDayOptions = useMemo(
     () => values.days.map(day => ({ date: day.date, dayNumber: day.dayNumber, id: day.id })),
@@ -534,6 +590,13 @@ export function useJourneyPlannerForm(initialJourney?: JourneyDetail) {
       return false;
     }
 
+    if (conflictingPlaceIds.length > 0) {
+      const msg = 'This time slot overlaps with another itinerary item. Please choose a different time.';
+      setError(msg);
+      toast.error(msg);
+      return false;
+    }
+
     const parsed = journeyCreateSchema.safeParse({
       coverImage: values.coverImage,
       days: values.days,
@@ -569,5 +632,6 @@ export function useJourneyPlannerForm(initialJourney?: JourneyDetail) {
     removePlace,
     validate,
     values,
+    conflictingPlaceIds,
   };
 }
