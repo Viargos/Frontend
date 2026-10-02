@@ -1,5 +1,5 @@
-import { PlanYourJourneySkeleton } from '@/modules/journey';
+import { TripStatePanel } from '@/modules/trips/components/TripStatePanel';
 
 export default function RouteLoading() {
-  return <PlanYourJourneySkeleton />;
+  return <div className="p-5 sm:p-8"><TripStatePanel kind="loading" /></div>;
 }

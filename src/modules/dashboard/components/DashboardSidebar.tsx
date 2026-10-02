@@ -6,25 +6,26 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { useAuthSession } from '@/modules/auth';
 import { cn } from '@/modules/common/components/ui/cn';
+import { AddPostIcon } from '@/modules/common/icons';
 import { DASHBOARD_NAV_ITEMS } from '@/modules/dashboard/constants/dashboard.constants';
+import { NotificationBell } from '@/modules/notifications';
 import {
   BellIcon,
   ChatBubbleIcon,
-  ChevronLeftIcon,
   ClipboardListIcon,
   ExploreIcon,
   HomeIcon,
   SettingsIcon,
   UserProfileIcon,
 } from './dashboard-icons';
+import { DashboardCreatePostModal } from './DashboardCreatePostModal';
 
 type DashboardSidebarProps = {
   collapsed: boolean;
-  onToggle: () => void;
 };
 
 function renderIcon(icon: (typeof DASHBOARD_NAV_ITEMS)[number]['icon']) {
-  const className = 'h-5 w-5';
+  const className = 'h-6 w-6';
 
   switch (icon) {
     case 'home':
@@ -47,11 +48,12 @@ function renderIcon(icon: (typeof DASHBOARD_NAV_ITEMS)[number]['icon']) {
 }
 
 export const DashboardSidebar = (props: DashboardSidebarProps) => {
-  const { collapsed, onToggle } = props;
+  const { collapsed } = props;
   const pathname = usePathname();
   const router = useRouter();
   const { session, signOut } = useAuthSession();
   const user = session.user;
+  const [showCreatePostModal, setShowCreatePostModal] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -81,15 +83,24 @@ export const DashboardSidebar = (props: DashboardSidebarProps) => {
   const showTooltips = collapsed;
 
   return (
-    <div className="dashboard-sidebar relative flex h-full flex-col bg-white shadow-[4px_0_12px_-2px_rgba(0,0,0,0.08)]">
-      <button
-        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        className="absolute top-6 -right-3 z-50 hidden h-6 w-6 items-center justify-center rounded-full border border-gray-300 bg-white shadow-md transition-colors hover:bg-gray-100 lg:flex"
-        type="button"
-        onClick={onToggle}
-      >
-        <ChevronLeftIcon className={`h-3 w-3 text-gray-600 transition-transform duration-200 ${collapsed ? 'rotate-180' : ''}`} />
-      </button>
+    <div className="dashboard-sidebar relative flex h-full flex-col bg-white">
+      <div className={cn('flex h-18 shrink-0 items-center px-3 lg:px-5', collapsed ? 'justify-center' : 'justify-center lg:justify-start')}>
+        <Link aria-label="Go to dashboard" className="inline-flex items-center rounded-full p-2 transition-colors hover:bg-gray-100" href="/dashboard">
+          <Image alt="Viargos" className={cn('theme-logo h-10 w-10', collapsed ? 'block' : 'block lg:hidden')} height={40} src="/viargos.svg" width={40} />
+          {!collapsed
+            ? (
+                <Image
+                  alt="Viargos"
+                  className="theme-logo hidden lg:block"
+                  height={32}
+                  src="/viargos_full.svg"
+                  style={{ width: 'auto', height: 'auto' }}
+                  width={130}
+                />
+              )
+            : null}
+        </Link>
+      </div>
 
       <nav className="flex-1 p-2 lg:p-4">
         <ul className="space-y-2">
@@ -99,8 +110,8 @@ export const DashboardSidebar = (props: DashboardSidebarProps) => {
             return (
               <li key={item.href}>
                 <Link
-                  className={`dashboard-sidebar-item group relative flex items-center ${collapsed ? 'justify-center' : 'justify-center lg:justify-start'} rounded-md px-2 py-3 text-sm font-medium transition-colors lg:px-3 lg:py-2 ${
-                    active ? 'dashboard-sidebar-item-active bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200 hover:text-gray-900'
+                  className={`dashboard-sidebar-item group relative flex items-center ${collapsed ? 'justify-center' : 'justify-center lg:justify-start'} rounded-full px-2 py-3 text-base transition-colors lg:px-3 ${
+                    active ? 'font-semibold text-gray-950 dark:text-slate-100' : 'font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-950 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
                   }`}
                   href={item.href}
                   title={item.label}
@@ -128,6 +139,19 @@ export const DashboardSidebar = (props: DashboardSidebarProps) => {
             );
           })}
         </ul>
+
+        <button
+          aria-label="Create post"
+          className={cn(
+            'mt-5 flex h-12 w-full items-center justify-center rounded-full bg-[#160E53] text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#241a7a] active:scale-[0.98]',
+            collapsed ? 'px-0' : 'px-4',
+          )}
+          type="button"
+          onClick={() => setShowCreatePostModal(true)}
+        >
+          <AddPostIcon className={cn('h-5 w-5', collapsed ? '' : 'lg:hidden')} size={20} />
+          <span className={collapsed ? 'hidden' : 'hidden lg:inline'}>Post</span>
+        </button>
       </nav>
 
       {settingsItem || notificationsItem
@@ -135,33 +159,19 @@ export const DashboardSidebar = (props: DashboardSidebarProps) => {
             <div className="space-y-1 p-2 lg:p-4">
               {notificationsItem
                 ? (
-                    <Link
-                      className={`dashboard-sidebar-item group relative flex items-center ${collapsed ? 'justify-center' : 'justify-center lg:justify-start'} rounded-md px-2 py-3 text-sm font-medium transition-colors lg:px-3 lg:py-2 ${
-                        pathname === notificationsItem.href ? 'dashboard-sidebar-item-active bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200 hover:text-gray-900'
-                      }`}
-                      href={notificationsItem.href}
-                      title={notificationsItem.label}
-                    >
-                      <span className={collapsed ? '' : 'lg:mr-3'}>{renderIcon(notificationsItem.icon)}</span>
-                      <span className={collapsed ? 'hidden' : 'hidden lg:inline'}>{notificationsItem.label}</span>
-
-                      {showTooltips
-                        ? (
-                            <span className="dashboard-sidebar-tooltip pointer-events-none absolute top-1/2 left-full z-50 ml-3 -translate-y-1/2 rounded-md bg-gray-900 px-3 py-1.5 text-xs whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
-                              {notificationsItem.label}
-                              <span className="absolute top-1/2 right-full -translate-y-1/2 border-4 border-transparent border-r-gray-900" />
-                            </span>
-                          )
-                        : null}
-                    </Link>
+                    <NotificationBell
+                      active={pathname === notificationsItem.href}
+                      collapsed={collapsed}
+                      label={notificationsItem.label}
+                    />
                   )
                 : null}
 
               {settingsItem
                 ? (
                     <Link
-                      className={`dashboard-sidebar-item group relative flex items-center ${collapsed ? 'justify-center' : 'justify-center lg:justify-start'} rounded-md px-2 py-3 text-sm font-medium transition-colors lg:px-3 lg:py-2 ${
-                        pathname === settingsItem.href ? 'dashboard-sidebar-item-active bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200 hover:text-gray-900'
+                      className={`dashboard-sidebar-item group relative flex items-center ${collapsed ? 'justify-center' : 'justify-center lg:justify-start'} rounded-full px-2 py-3 text-base transition-colors lg:px-3 ${
+                        pathname === settingsItem.href ? 'font-semibold text-gray-950 dark:text-slate-100' : 'font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-950 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
                       }`}
                       href={settingsItem.href}
                       title={settingsItem.label}
@@ -281,6 +291,8 @@ export const DashboardSidebar = (props: DashboardSidebarProps) => {
             </div>
           )
         : null}
+
+      <DashboardCreatePostModal isOpen={showCreatePostModal} onClose={() => setShowCreatePostModal(false)} />
     </div>
   );
 };

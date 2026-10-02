@@ -11,3 +11,4 @@ export * from './DashboardPostCardSkeleton';
 export * from './DashboardShell';
 export * from './DashboardSidebar';
 export * from './JourneyDropdown';
+export * from './NotificationsPageClient';

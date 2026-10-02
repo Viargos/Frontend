@@ -5,13 +5,15 @@ import * as motion from 'framer-motion/client';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useAuthSession } from '@/modules/auth';
-import { useTheme } from '@/modules/common';
+import { useTheme, useThemeBackground } from '@/modules/common';
 import { MODAL_SURFACE_BASE_CLASS, MODAL_TRANSITION_DURATION_SECONDS, OVERLAY_BASE_CLASS } from '@/modules/common/constants';
+import { NotificationSettings } from '@/modules/notifications';
 import { EditProfileModal } from '@/modules/settings/components/EditProfileModal';
 import { SettingsHeader } from '@/modules/settings/components/SettingsHeader';
 import { SettingsItem } from '@/modules/settings/components/SettingsItem';
 import { SettingsSection } from '@/modules/settings/components/SettingsSection';
 import { SettingsToggle } from '@/modules/settings/components/SettingsToggle';
+import { ThemeBackgroundSelector } from '@/modules/settings/components/ThemeBackgroundSelector';
 import { SETTINGS_FEATURES, SETTINGS_LINK_AVAILABILITY } from '@/modules/settings/constants';
 import { useSettings } from '@/modules/settings/hooks/use-settings';
 
@@ -30,6 +32,7 @@ export const SettingsPageClient = () => {
   const router = useRouter();
   const { session, signOut } = useAuthSession();
   const { isDark, setTheme } = useTheme();
+  const { selectedBackground } = useThemeBackground();
   const { setToggle, toggles } = useSettings();
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
@@ -96,6 +99,11 @@ export const SettingsPageClient = () => {
   };
 
   const buildIcon = (label: string): ReactNode => <SettingsGlyphIcon label={label} />;
+  const focusThemeBackgroundSelector = () => {
+    const selector = document.getElementById('theme-background-selector');
+    selector?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    selector?.focus({ preventScroll: true });
+  };
 
   return (
     <motion.div
@@ -163,41 +171,7 @@ export const SettingsPageClient = () => {
           </SettingsSection>
 
           <SettingsSection title="Notifications">
-            <SettingsToggle
-              icon={buildIcon('N')}
-              label="Push Notifications"
-              description="Receive notifications about your activity"
-              checked={getToggleValue('push-notifications', true)}
-              onChange={checked => setToggle('push-notifications', checked)}
-            />
-            <SettingsToggle
-              icon={buildIcon('M')}
-              label="Email Notifications"
-              description="Get updates via email"
-              checked={getToggleValue('email-notifications', true)}
-              onChange={checked => setToggle('email-notifications', checked)}
-            />
-            <SettingsToggle
-              icon={buildIcon('H')}
-              label="Likes & Comments"
-              description="Get notified when someone likes or comments"
-              checked={getToggleValue('likes-comments', true)}
-              onChange={checked => setToggle('likes-comments', checked)}
-            />
-            <SettingsToggle
-              icon={buildIcon('C')}
-              label="Messages"
-              description="Get notified about new messages"
-              checked={getToggleValue('message-notifications', true)}
-              onChange={checked => setToggle('message-notifications', checked)}
-            />
-            <SettingsToggle
-              icon={buildIcon('F')}
-              label="New Followers"
-              description="Get notified when someone follows you"
-              checked={getToggleValue('new-followers', true)}
-              onChange={checked => setToggle('new-followers', checked)}
-            />
+            <NotificationSettings />
           </SettingsSection>
 
           <SettingsSection title="Preferences">
@@ -209,6 +183,12 @@ export const SettingsPageClient = () => {
               onChange={checked => setTheme(checked ? 'dark' : 'light')}
             />
             <SettingsItem
+              icon={buildIcon('B')}
+              label="Change Background"
+              description={selectedBackground?.name ?? 'Automatic light and dark background'}
+              onClick={focusThemeBackgroundSelector}
+            />
+            <SettingsItem
               icon={buildIcon('L')}
               label="Language"
               description="Coming soon"
@@ -217,6 +197,8 @@ export const SettingsPageClient = () => {
               rightContent={comingSoonNode}
             />
           </SettingsSection>
+
+          <ThemeBackgroundSelector />
 
           <SettingsSection title="Help & Support">
             <SettingsItem

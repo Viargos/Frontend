@@ -1,11 +1,11 @@
-import type { DashboardPost, DashboardPostDto } from '@/modules/dashboard';
+import type { DashboardPost, DashboardPostDto } from '@/modules/dashboard/api';
 import type { JourneyDetailDto } from '@/modules/journey/dto/journey-detail.dto';
 import type { CreateJourneyRequestDto, JourneyListItemDto } from '@/modules/journey/dto/journey.dto';
 import type { JourneyDetail } from '@/modules/journey/types/journey-detail.types';
 import type { JourneyCreateInput, JourneyListItem } from '@/modules/journey/types/journey.types';
 import { httpClient } from '@/lib/api/http-client';
 import { unwrapEnvelope } from '@/modules/common/mappers';
-import { mapPost } from '@/modules/dashboard';
+import { mapPost } from '@/modules/dashboard/api';
 import { mapJourneyDetail } from '@/modules/journey/mappers/journey-detail.mapper';
 import { mapCreateJourneyInputToDto, mapJourneyList } from '@/modules/journey/mappers/journey.mapper';
 
@@ -59,11 +59,11 @@ export const journeyService = {
   async update(journeyId: string, payload: JourneyUpdatePayload): Promise<JourneyDetail> {
     const body = payload.days
       ? JSON.stringify(mapCreateJourneyInputToDto({
-          coverImage: payload.coverImage,
-          days: payload.days,
-          description: payload.description,
-          title: payload.title ?? '',
-        }))
+        coverImage: payload.coverImage,
+        days: payload.days,
+        description: payload.description,
+        title: payload.title ?? '',
+      }))
       : JSON.stringify(payload);
 
     const dto = await parseResponse<JourneyDetailDto>(`/journeys/${journeyId}`, {

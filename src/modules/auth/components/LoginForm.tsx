@@ -3,7 +3,6 @@
 import type { AuthSigninResult } from '@/modules/auth/types/auth.types';
 import type { LoginSchemaValues } from '@/modules/auth/validations/auth.validation';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAuthActions } from '@/modules/auth/hooks/use-auth-actions';
@@ -40,9 +39,6 @@ export const LoginForm = (props: LoginFormProps) => {
   const inputClassName = isDark
     ? 'h-10 w-full rounded-lg border border-[#465060] bg-[#20262f] px-3 text-sm text-[#f6f7fb] placeholder:text-[#8a95a6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b8c7ff] disabled:cursor-not-allowed disabled:opacity-50'
     : 'h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50';
-  const passwordInputClassName = isDark
-    ? 'h-10 w-full rounded-lg border border-[#465060] bg-[#20262f] py-0 pr-11 pl-3 text-sm text-[#f6f7fb] placeholder:text-[#8a95a6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b8c7ff] disabled:cursor-not-allowed disabled:opacity-50'
-    : 'h-10 w-full rounded-lg border border-gray-300 bg-white py-0 pr-11 pl-3 text-sm text-gray-900 placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50';
   const labelClassName = isDark ? 'mb-1 block text-sm text-[#d8deea]' : 'mb-1 block text-sm text-gray-700';
   const linkClassName = isDark
     ? 'text-[#c7d2fe] transition hover:text-white'
@@ -50,7 +46,9 @@ export const LoginForm = (props: LoginFormProps) => {
   const submitClassName = isDark
     ? 'w-full bg-[#eef2ff] text-[#111827] hover:bg-[#dbe4ff]'
     : 'w-full';
-  const passwordToggleClassName = 'auth-password-toggle absolute top-1/2 right-2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md transition disabled:cursor-not-allowed disabled:opacity-50';
+  const passwordToggleClassName = isDark
+    ? 'border-[#596273] bg-transparent text-[#c7d2fe] hover:bg-white/10 hover:text-white'
+    : undefined;
 
   const onSubmit = async (values: LoginSchemaValues) => {
     onErrorChange(null);
@@ -88,26 +86,25 @@ export const LoginForm = (props: LoginFormProps) => {
 
       <div>
         <label className={labelClassName} htmlFor="login-password">Password</label>
-        <div className="relative">
+        <div className="flex gap-2">
           <input
             autoComplete="current-password"
-            className={passwordInputClassName}
+            className={inputClassName}
             disabled={isSubmitting}
             id="login-password"
             placeholder="Enter your password"
             type={showPassword ? 'text' : 'password'}
             {...register('password')}
           />
-          <button
-            aria-label={showPassword ? 'Hide password' : 'Show password'}
-            aria-pressed={showPassword}
+          <Button
             className={passwordToggleClassName}
             disabled={isSubmitting}
             type="button"
+            variant="outline"
             onClick={() => setShowPassword(prev => !prev)}
           >
-            {showPassword ? <EyeOff aria-hidden="true" size={18} /> : <Eye aria-hidden="true" size={18} />}
-          </button>
+            {showPassword ? 'Hide' : 'Show'}
+          </Button>
         </div>
         {errors.password ? <p className="mt-1 text-xs text-red-400">{errors.password.message}</p> : null}
       </div>

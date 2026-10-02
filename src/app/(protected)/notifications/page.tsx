@@ -1,5 +1,5 @@
-import { NotificationsPageClient } from '@/modules/notifications';
+import { NotificationCentrePage } from '@/modules/notifications';
 
 export default function NotificationsPage() {
-  return <NotificationsPageClient />;
+  return <NotificationCentrePage />;
 }

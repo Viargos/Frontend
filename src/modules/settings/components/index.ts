@@ -8,3 +8,4 @@ export * from './SettingsPageClient';
 export * from './SettingsPageSkeleton';
 export * from './SettingsSection';
 export * from './SettingsToggle';
+export * from './ThemeBackgroundSelector';

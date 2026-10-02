@@ -1,5 +1,6 @@
 'use client';
 
+import type { CalendarProps } from 'primereact/calendar';
 import { Calendar } from 'primereact/calendar';
 import { useMemo, useState } from 'react';
 import { CalendarIcon, CheckIcon, XIcon } from '@/modules/common/icons';
@@ -19,12 +20,6 @@ type DateRangePickerModalProps = {
   title: string;
   startDate?: string;
   endDate?: string;
-};
-
-type CalendarDateMeta = {
-  day: number;
-  month: number;
-  year: number;
 };
 
 export function DateRangePickerModal(props: DateRangePickerModalProps) {
@@ -65,7 +60,9 @@ export function DateRangePickerModal(props: DateRangePickerModalProps) {
     return null;
   };
 
-  const dateTemplate = (dateMeta: CalendarDateMeta) => {
+  const dateTemplate = (
+    dateMeta: Parameters<NonNullable<CalendarProps['dateTemplate']>>[0],
+  ) => {
     const startOrEnd = isStartOrEndDate(dateMeta);
 
     return (
@@ -196,7 +193,7 @@ export function DateRangePickerModal(props: DateRangePickerModalProps) {
               </button>
               <button
                 className="date-time-picker-primary-button rounded-full px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={!draftStartDate}
+                disabled={!draftStartDate || !draftEndDate}
                 onClick={() => {
                   onSelect(draftStartDate, draftEndDate || draftStartDate);
                   onClose();

@@ -23,7 +23,7 @@ export const CategorySection = (props: CategorySectionProps) => {
   }
 
   return (
-    <section className="dashboard-right-section rounded-[24px] border px-2 py-3">
+    <section className="dashboard-right-section rounded-2xl border px-4 py-4">
       <SectionHeader
         description="Browse a few focused creator clusters."
         title="By category"

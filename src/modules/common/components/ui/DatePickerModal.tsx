@@ -1,5 +1,6 @@
 'use client';
 
+import type { CalendarProps } from 'primereact/calendar';
 import { Calendar } from 'primereact/calendar';
 import { useMemo, useState } from 'react';
 import { CalendarIcon, CheckIcon, XIcon } from '@/modules/common/icons';
@@ -21,12 +22,6 @@ type DatePickerModalProps = {
   onSelect: (value: string) => void;
   title: string;
   value?: string;
-};
-
-type CalendarDateMeta = {
-  day: number;
-  month: number;
-  year: number;
 };
 
 export function DatePickerModal(props: DatePickerModalProps) {
@@ -55,7 +50,9 @@ export function DatePickerModal(props: DatePickerModalProps) {
     );
   };
 
-  const dateTemplate = (dateMeta: CalendarDateMeta) => {
+  const dateTemplate = (
+    dateMeta: Parameters<NonNullable<CalendarProps['dateTemplate']>>[0],
+  ) => {
     const isSelected = isDateSelected(dateMeta);
 
     return (

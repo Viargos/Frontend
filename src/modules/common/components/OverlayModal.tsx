@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { MODAL_SURFACE_BASE_CLASS, OVERLAY_BASE_CLASS } from '@/modules/common/constants';
 
 type OverlayModalProps = {
@@ -29,8 +30,13 @@ export function OverlayModal(props: OverlayModalProps) {
   const { ariaLabel, children, className, onClose } = props;
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const previousActiveElementRef = useRef<HTMLElement | null>(null);
+  const portalTarget = typeof document === 'undefined' ? null : document.body;
 
   useEffect(() => {
+    if (!portalTarget) {
+      return undefined;
+    }
+
     previousActiveElementRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
     const previousOverflow = document.body.style.overflow;
@@ -89,9 +95,13 @@ export function OverlayModal(props: OverlayModalProps) {
       document.body.style.overflow = previousOverflow;
       previousActiveElementRef.current?.focus();
     };
-  }, [onClose]);
+  }, [onClose, portalTarget]);
 
-  return (
+  if (!portalTarget) {
+    return null;
+  }
+
+  return createPortal(
     <div className={`${OVERLAY_BASE_CLASS} p-4`}>
       <button
         aria-label="Close dialog overlay"
@@ -110,6 +120,7 @@ export function OverlayModal(props: OverlayModalProps) {
       >
         {children}
       </div>
-    </div>
+    </div>,
+    portalTarget,
   );
 }
