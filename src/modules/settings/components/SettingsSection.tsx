@@ -1,26 +1,21 @@
-import type { ReactNode } from 'react';
-
 type SettingsSectionProps = {
-  children: ReactNode;
+  children: React.ReactNode;
   title?: string;
 };
 
 export const SettingsSection = (props: SettingsSectionProps) => {
-  const { children, title } = props;
-  const titleNode = title
-    ? (
-        <h3 className="px-4 py-3 text-xs font-semibold tracking-wider text-gray-500 uppercase">
-          {title}
-        </h3>
-      )
-    : null;
-
   return (
-    <div className="flex flex-col">
-      {titleNode}
-      <div className="divide-y divide-gray-200 border-y border-gray-200 bg-white">
-        {children}
+    <section className="flex min-w-0 flex-col bg-[var(--surface-0)]">
+      {props.title
+        ? (
+            <h3 className="px-5 pt-6 pb-3 text-base font-bold text-[var(--text-primary)] sm:px-6">
+              {props.title}
+            </h3>
+          )
+        : null}
+      <div className="min-w-0 divide-y divide-[var(--border-subtle)] border-b border-[var(--border-subtle)]">
+        {props.children}
       </div>
-    </div>
+    </section>
   );
 };

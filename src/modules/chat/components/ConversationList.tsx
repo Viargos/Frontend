@@ -1,170 +1,132 @@
 'use client';
 
 import type { ChatConversation } from '@/modules/chat/types/chat.types';
-import * as motion from 'framer-motion/client';
-import { useMemo, useState } from 'react';
+import { ChevronDown, MessageCirclePlus, Search, X } from 'lucide-react';
+import { useState } from 'react';
 import { ConversationItem } from '@/modules/chat/components/ConversationItem';
-import { ChatBubbleIcon, ExploreIcon } from '@/modules/common/icons';
+import { CONVERSATION_COPY } from '@/modules/chat/constants/conversation-copy';
 
-type ConversationListProps = {
+export function ConversationList(props: {
   conversations: ChatConversation[];
   isLoading: boolean;
+  onNewChat: () => void;
   onSelect: (conversationId: string) => void;
   selectedConversationId: string | null;
-};
-
-export const ConversationList = (props: ConversationListProps) => {
-  const { conversations, isLoading, onSelect, selectedConversationId } = props;
+}) {
   const [searchQuery, setSearchQuery] = useState('');
-
-  const unreadCount = useMemo(
-    () => conversations.reduce((total, conversation) => total + conversation.unreadCount, 0),
-    [conversations],
-  );
-
-  const filteredConversations = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return conversations;
-    }
-
-    const query = searchQuery.toLowerCase();
-    return conversations.filter(conversation => conversation.user.username.toLowerCase().includes(query));
-  }, [conversations, searchQuery]);
-
-  if (isLoading && conversations.length === 0) {
-    return (
-      <div className="flex h-full flex-col overflow-hidden">
-        <div className="flex-shrink-0 border-b border-gray-100 bg-[#160E53] p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <div className="h-6 w-24 animate-pulse rounded-lg bg-white/30" />
-            <div className="flex gap-2">
-              <div className="h-7 w-12 animate-pulse rounded-lg bg-white/20" />
-              <div className="h-7 w-12 animate-pulse rounded-lg bg-white/20" />
-            </div>
-          </div>
-          <div className="h-10 animate-pulse rounded-xl bg-white/95" />
-        </div>
-
-        <div className="flex-1 space-y-3 p-4">
-          {[1, 2, 3, 4, 5].map(index => (
-            <motion.div
-              key={index}
-              className="flex items-center space-x-3 rounded-xl bg-gray-50 p-3"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <div className="h-12 w-12 animate-pulse rounded-full bg-gray-200" />
-              <div className="flex-1 space-y-2">
-                <div className="h-4 w-3/4 animate-pulse rounded bg-gray-200" />
-                <div className="h-3 w-1/2 animate-pulse rounded bg-gray-200" />
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  const totalConversations = conversations.length;
+  const [showUnreadOnly, setShowUnreadOnly] = useState(false);
+  const query = searchQuery.trim().toLowerCase();
+  const filteredConversations = props.conversations.filter(conversation => (
+    (!showUnreadOnly || conversation.unreadCount > 0)
+    && conversation.user.username.toLowerCase().includes(query)
+  ));
+  const emptyTitle = query
+    ? CONVERSATION_COPY.noResults
+    : showUnreadOnly ? CONVERSATION_COPY.noUnread : CONVERSATION_COPY.emptyTitle;
+  const emptyDescription = query
+    ? CONVERSATION_COPY.noResultsDescription
+    : showUnreadOnly ? CONVERSATION_COPY.noUnreadDescription : CONVERSATION_COPY.emptyDescription;
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <div className="flex-shrink-0 border-b border-gray-100 bg-gradient-to-br from-[#160E53] to-[#2a1f6f] p-5">
-        <div className="flex items-center justify-between">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+      <div className="shrink-0 px-5 pt-4 pb-3">
+        <div className="flex h-9 items-center justify-between gap-3">
+          <h1 className="text-xl font-bold tracking-tight text-[var(--text-primary)]">{CONVERSATION_COPY.title}</h1>
           <div className="flex items-center gap-2">
-            <span className="h-5 w-5 text-white"></span>
-            <h2 className="text-lg font-semibold text-white">Messages</h2>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 rounded-lg bg-white/10 px-2.5 py-1">
-              <span className="h-4 w-4 text-white/80"></span>
-              <span className="text-sm font-medium text-white">{totalConversations}</span>
+            <div className="relative">
+              <select
+                aria-label={CONVERSATION_COPY.filter}
+                className="h-9 appearance-none rounded-full border border-[var(--border-subtle)] bg-[var(--surface-0)] pr-8 pl-4 text-sm font-medium text-[var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2"
+                value={showUnreadOnly ? 'unread' : 'all'}
+                onChange={event => setShowUnreadOnly(event.target.value === 'unread')}
+              >
+                <option value="all">{CONVERSATION_COPY.all}</option>
+                <option value="unread">{CONVERSATION_COPY.unread}</option>
+              </select>
+              <ChevronDown aria-hidden="true" className="pointer-events-none absolute top-2.5 right-3 size-4 text-[var(--text-secondary)]" />
             </div>
-            {unreadCount > 0
-              ? (
-                  <div className="flex items-center gap-1.5 rounded-lg bg-red-500/20 px-2.5 py-1">
-                    <div className="h-2 w-2 rounded-full bg-red-400" />
-                    <span className="text-sm font-medium text-white">{unreadCount}</span>
-                  </div>
-                )
-              : null}
+            <button
+              aria-label={CONVERSATION_COPY.newChat}
+              className="flex size-9 items-center justify-center rounded-full bg-[var(--surface-2)] text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-3)] focus-visible:outline-2 focus-visible:outline-offset-2"
+              type="button"
+              onClick={props.onNewChat}
+            >
+              <MessageCirclePlus aria-hidden="true" className="size-5" strokeWidth={1.8} />
+            </button>
           </div>
         </div>
 
         <div className="relative mt-4">
-          <ExploreIcon className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+          <Search aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-[var(--text-muted)]" />
           <input
+            aria-label={CONVERSATION_COPY.search}
+            className="h-11 w-full rounded-full border border-transparent bg-[var(--surface-2)] pr-10 pl-10 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--text-muted)] focus:outline-none"
+            placeholder={CONVERSATION_COPY.search}
             type="text"
-            placeholder="Search conversations..."
             value={searchQuery}
             onChange={event => setSearchQuery(event.target.value)}
-            className="w-full rounded-xl border-none bg-white/95 py-2.5 pr-10 pl-10 text-gray-900 placeholder-gray-500 transition-all focus:ring-2 focus:ring-white/50 focus:outline-none"
           />
           {searchQuery
             ? (
                 <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute top-1/2 right-3 -translate-y-1/2 transform rounded-full p-1 transition-colors hover:bg-gray-100"
+                  aria-label={CONVERSATION_COPY.clearSearch}
+                  className="absolute top-1/2 right-2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-[var(--text-muted)] hover:bg-[var(--surface-3)] focus-visible:outline-2"
                   type="button"
+                  onClick={() => setSearchQuery('')}
                 >
-                  <span className="h-4 w-4 text-gray-400" aria-hidden="true">×</span>
+                  <X aria-hidden="true" className="size-4" />
                 </button>
               )
             : null}
         </div>
       </div>
 
-      <div className="flex-1 space-y-2 overflow-y-auto p-4">
-        {filteredConversations.length === 0
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-2">
+        {props.isLoading && props.conversations.length === 0
           ? (
-              <div className="flex h-full flex-col items-center justify-center px-4 text-gray-500">
-                <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-gray-300">
-                  <ChatBubbleIcon className="h-8 w-8" />
-                </div>
-                <p className="mb-1 text-sm font-medium text-gray-700">
-                  {searchQuery ? 'No conversations found' : 'No conversations yet'}
-                </p>
-                <p className="text-center text-xs text-gray-500">
-                  {searchQuery ? 'Try adjusting your search' : 'Start a conversation to see it here'}
-                </p>
+              <div aria-busy="true" className="space-y-1">
+                {[1, 2, 3, 4, 5].map(index => (
+                  <div key={index} className="flex items-center gap-3 px-3 py-3">
+                    <div className="size-12 shrink-0 rounded-full bg-[var(--surface-2)] motion-safe:animate-pulse" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 w-2/3 rounded bg-[var(--surface-2)] motion-safe:animate-pulse" />
+                      <div className="h-3 w-full rounded bg-[var(--surface-2)] motion-safe:animate-pulse" />
+                    </div>
+                  </div>
+                ))}
               </div>
             )
-          : (
-              <motion.div
-                className="space-y-2"
-                initial="hidden"
-                animate="visible"
-                variants={{
-                  visible: {
-                    transition: { staggerChildren: 0.05 },
-                  },
-                }}
-              >
-                {filteredConversations.map(conversation => (
-                  <motion.div
-                    key={conversation.id}
-                    variants={{
-                      hidden: { opacity: 0, y: 20 },
-                      visible: { opacity: 1, y: 0 },
-                    }}
-                  >
+          : filteredConversations.length === 0
+            ? (
+                <div className="px-5 py-12">
+                  <h2 className="text-lg font-bold text-[var(--text-primary)]">{emptyTitle}</h2>
+                  <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">{emptyDescription}</p>
+                  {!query && !showUnreadOnly
+                    ? (
+                        <button
+                          className="mt-5 rounded-full bg-[var(--surface-inverse)] px-5 py-2.5 text-sm font-semibold text-[var(--text-inverse)] hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)]"
+                          type="button"
+                          onClick={props.onNewChat}
+                        >
+                          {CONVERSATION_COPY.newChat}
+                        </button>
+                      )
+                    : null}
+                </div>
+              )
+            : (
+                <div className="space-y-1">
+                  {filteredConversations.map(conversation => (
                     <ConversationItem
+                      key={conversation.id}
                       conversation={conversation}
-                      isActive={selectedConversationId === conversation.id}
-                      onClick={() => onSelect(conversation.id)}
+                      isActive={props.selectedConversationId === conversation.id}
+                      onClick={() => props.onSelect(conversation.id)}
                     />
-                  </motion.div>
-                ))}
-              </motion.div>
-            )}
+                  ))}
+                </div>
+              )}
       </div>
-
-      {/* keep old error block position below header and above list when error pattern is needed */}
-      {/*
-        Structural lock scope: this component mirrors old list/header/item hierarchy.
-        Network error surfaces remain handled by parent hook state.
-      */}
     </div>
   );
-};
+}

@@ -27,7 +27,6 @@ export async function ChatPageView(props: ChatPageViewProps) {
 
   return (
     <ChatPageClient
-      disableAutoSelect={parityEnabled}
       initialConversations={initialConversations}
       initialTargetUserId={initialTargetUserId}
     />

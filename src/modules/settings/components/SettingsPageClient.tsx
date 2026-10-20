@@ -1,292 +1,88 @@
 'use client';
 
-import type { ReactNode } from 'react';
-import * as motion from 'framer-motion/client';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 import { useAuthSession } from '@/modules/auth';
-import { useTheme, useThemeBackground } from '@/modules/common';
-import { MODAL_SURFACE_BASE_CLASS, MODAL_TRANSITION_DURATION_SECONDS, OVERLAY_BASE_CLASS } from '@/modules/common/constants';
-import { NotificationSettings } from '@/modules/notifications';
+import { OverlayModal } from '@/modules/common/components/OverlayModal';
 import { EditProfileModal } from '@/modules/settings/components/EditProfileModal';
-import { SettingsHeader } from '@/modules/settings/components/SettingsHeader';
-import { SettingsItem } from '@/modules/settings/components/SettingsItem';
-import { SettingsSection } from '@/modules/settings/components/SettingsSection';
-import { SettingsToggle } from '@/modules/settings/components/SettingsToggle';
-import { ThemeBackgroundSelector } from '@/modules/settings/components/ThemeBackgroundSelector';
-import { SETTINGS_FEATURES, SETTINGS_LINK_AVAILABILITY } from '@/modules/settings/constants';
-import { useSettings } from '@/modules/settings/hooks/use-settings';
+import { SettingsCategoryContent } from '@/modules/settings/components/SettingsCategoryContent';
+import { SettingsCategoryNavigation } from '@/modules/settings/components/SettingsCategoryNavigation';
+import { SETTINGS_CATEGORIES, SETTINGS_COPY } from '@/modules/settings/constants/settings-copy';
 
-const SettingsGlyphIcon = (props: { label: string }) => {
-  return (
-    <span
-      aria-hidden="true"
-      className="inline-flex h-5 w-5 items-center justify-center text-xs font-semibold"
-    >
-      {props.label}
-    </span>
-  );
-};
-
-export const SettingsPageClient = () => {
+export function SettingsPageClient() {
   const router = useRouter();
-  const { session, signOut } = useAuthSession();
-  const { isDark, setTheme } = useTheme();
-  const { selectedBackground } = useThemeBackground();
-  const { setToggle, toggles } = useSettings();
+  const searchParams = useSearchParams();
+  const { signOut } = useAuthSession();
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
-  const emailLabel = session.user?.email ?? 'Not set';
-  const emailVerificationLabel = session.user?.email ? 'Verified' : '';
-  const handleLogout = async () => {
-    await signOut();
-    router.push('/');
-  };
-  const emailRightContent = (
-    <span className="text-sm text-gray-500">
-      {emailVerificationLabel}
-    </span>
-  );
-  const comingSoonNode = <span className="text-xs font-medium text-gray-500">Soon</span>;
-  const logoutModal = isLogoutOpen
-    ? (
-        <div className={OVERLAY_BASE_CLASS}>
-          <div
-            aria-hidden="true"
-            className="absolute inset-0"
-            onClick={() => setIsLogoutOpen(false)}
-          />
-          <motion.div
-            animate={{ opacity: 1, y: 0 }}
-            aria-labelledby="logout-dialog-title"
-            aria-modal="true"
-            className={`${MODAL_SURFACE_BASE_CLASS} relative mx-4 max-h-[90vh] max-w-md overflow-y-auto`}
-            initial={{ opacity: 0, y: 12 }}
-            role="dialog"
-            transition={{ duration: MODAL_TRANSITION_DURATION_SECONDS }}
-          >
-            <div className="p-6">
-              <h2 className="mb-2 text-xl font-semibold text-gray-900" id="logout-dialog-title">Log Out</h2>
-              <p className="mb-6 text-gray-600">Are you sure you want to log out?</p>
-              <div className="flex justify-end gap-3">
-                <button
-                  className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-                  type="button"
-                  onClick={() => setIsLogoutOpen(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="rounded-lg border border-red-600 bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
-                  type="button"
-                  onClick={async () => {
-                    setIsLogoutOpen(false);
-                    await handleLogout();
-                  }}
-                >
-                  Log Out
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      )
-    : null;
+  const navigationRef = useRef<HTMLElement>(null);
+  const detailRef = useRef<HTMLDivElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const selectedCategory = SETTINGS_CATEGORIES.find(category => category.id === searchParams.get('category'));
+  const category = selectedCategory ?? SETTINGS_CATEGORIES[0];
+  const previousCategoryRef = useRef(selectedCategory);
 
-  const getToggleValue = (id: string, defaultValue: boolean) => {
-    const existingToggle = toggles.find(toggle => toggle.id === id);
-    return existingToggle?.checked ?? defaultValue;
-  };
+  useEffect(() => {
+    if (new URL(document.URL).hash === '#theme-background-selector' && !searchParams.has('category')) {
+      router.replace('/settings?category=display#theme-background-selector', { scroll: false });
+    }
+  }, [router, searchParams]);
 
-  const buildIcon = (label: string): ReactNode => <SettingsGlyphIcon label={label} />;
-  const focusThemeBackgroundSelector = () => {
-    const selector = document.getElementById('theme-background-selector');
-    selector?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    selector?.focus({ preventScroll: true });
-  };
+  useEffect(() => {
+    detailRef.current?.scrollTo({ top: 0 });
+    if (selectedCategory) {
+      headingRef.current?.focus({ preventScroll: true });
+    } else if (previousCategoryRef.current) {
+      navigationRef.current?.querySelector<HTMLAnchorElement>(`a[href="/settings?category=${previousCategoryRef.current.id}"]`)?.focus({ preventScroll: true });
+    }
+    previousCategoryRef.current = selectedCategory;
+  }, [selectedCategory]);
 
   return (
-    <motion.div
-      animate={{ opacity: 1 }}
-      className="min-h-screen bg-gray-50"
-      initial={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <div className="mx-auto max-w-2xl">
-        <SettingsHeader title="Settings" />
-
-        <div className="space-y-6 py-4">
-          <SettingsSection title="Account">
-            <SettingsItem
-              icon={buildIcon('U')}
-              label="Edit Profile"
-              description="Update your profile information and photo"
-              onClick={() => setIsEditProfileOpen(true)}
-            />
-            <SettingsItem
-              icon={buildIcon('K')}
-              label="Change Password"
-              description={SETTINGS_FEATURES.changePassword ? 'Update your password to keep your account secure' : 'Coming soon'}
-              disabled={!SETTINGS_FEATURES.changePassword}
-              href={SETTINGS_FEATURES.changePassword ? '/settings/change-password' : undefined}
-              rightContent={SETTINGS_FEATURES.changePassword ? undefined : comingSoonNode}
-            />
-            <SettingsItem
-              icon={buildIcon('M')}
-              label="Email"
-              description={emailLabel}
-              rightContent={emailRightContent}
-            />
-            <SettingsItem
-              icon={buildIcon('P')}
-              label="Phone Number"
-              description="Not set"
-            />
-          </SettingsSection>
-
-          <SettingsSection title="Privacy & Security">
-            <SettingsItem
-              icon={buildIcon('L')}
-              label="Privacy"
-              description="Coming soon"
-              disabled={!SETTINGS_LINK_AVAILABILITY.privacy}
-              href={SETTINGS_LINK_AVAILABILITY.privacy ? '/settings/privacy' : undefined}
-              rightContent={comingSoonNode}
-            />
-            <SettingsToggle
-              icon={buildIcon('E')}
-              label="Private Account"
-              description="Only approved followers can see your content"
-              checked={getToggleValue('private-account', false)}
-              onChange={checked => setToggle('private-account', checked)}
-            />
-            <SettingsItem
-              icon={buildIcon('B')}
-              label="Blocked Accounts"
-              description="Coming soon"
-              disabled={!SETTINGS_LINK_AVAILABILITY.blockedAccounts}
-              href={SETTINGS_LINK_AVAILABILITY.blockedAccounts ? '/settings/blocked' : undefined}
-              rightContent={comingSoonNode}
-            />
-          </SettingsSection>
-
-          <SettingsSection title="Notifications">
-            <NotificationSettings />
-          </SettingsSection>
-
-          <SettingsSection title="Preferences">
-            <SettingsToggle
-              icon={buildIcon('T')}
-              label="Theme"
-              description={isDark ? 'Dark mode enabled' : 'Light mode enabled'}
-              checked={isDark}
-              onChange={checked => setTheme(checked ? 'dark' : 'light')}
-            />
-            <SettingsItem
-              icon={buildIcon('B')}
-              label="Change Background"
-              description={selectedBackground?.name ?? 'Automatic light and dark background'}
-              onClick={focusThemeBackgroundSelector}
-            />
-            <SettingsItem
-              icon={buildIcon('L')}
-              label="Language"
-              description="Coming soon"
-              disabled={!SETTINGS_LINK_AVAILABILITY.language}
-              href={SETTINGS_LINK_AVAILABILITY.language ? '/settings/language' : undefined}
-              rightContent={comingSoonNode}
-            />
-          </SettingsSection>
-
-          <ThemeBackgroundSelector />
-
-          <SettingsSection title="Help & Support">
-            <SettingsItem
-              icon={buildIcon('?')}
-              label="Help Center"
-              description="Coming soon"
-              disabled={!SETTINGS_LINK_AVAILABILITY.helpCenter}
-              href={SETTINGS_LINK_AVAILABILITY.helpCenter ? '/help' : undefined}
-              rightContent={comingSoonNode}
-            />
-            <SettingsItem
-              icon={buildIcon('M')}
-              label="Contact Us"
-              description="Coming soon"
-              disabled={!SETTINGS_LINK_AVAILABILITY.contact}
-              href={SETTINGS_LINK_AVAILABILITY.contact ? '/contact' : undefined}
-              rightContent={comingSoonNode}
-            />
-            <SettingsItem
-              icon={buildIcon('I')}
-              label="Terms of Service"
-              description="Coming soon"
-              disabled={!SETTINGS_LINK_AVAILABILITY.termsOfService}
-              href={SETTINGS_LINK_AVAILABILITY.termsOfService ? '/terms' : undefined}
-              rightContent={comingSoonNode}
-            />
-            <SettingsItem
-              icon={buildIcon('I')}
-              label="Privacy Policy"
-              description="Coming soon"
-              disabled={!SETTINGS_LINK_AVAILABILITY.privacyPolicy}
-              href={SETTINGS_LINK_AVAILABILITY.privacyPolicy ? '/privacy' : undefined}
-              rightContent={comingSoonNode}
-            />
-          </SettingsSection>
-
-          <SettingsSection title="About">
-            <SettingsItem
-              icon={buildIcon('I')}
-              label="App Version"
-              description="1.0.0"
-              rightContent={null}
-            />
-            <SettingsItem
-              icon={buildIcon('I')}
-              label="What's New"
-              description="Coming soon"
-              disabled={!SETTINGS_LINK_AVAILABILITY.whatsNew}
-              href={SETTINGS_LINK_AVAILABILITY.whatsNew ? '/whats-new' : undefined}
-              rightContent={comingSoonNode}
-            />
-          </SettingsSection>
-
-          <SettingsSection>
-            <SettingsItem
-              icon={buildIcon('O')}
-              label="Log Out"
-              variant="danger"
-              onClick={() => setIsLogoutOpen(true)}
-            />
-          </SettingsSection>
-
-          <SettingsSection>
-            <SettingsItem
-              icon={buildIcon('D')}
-              label="Delete Account"
-              description="Coming soon"
-              variant="danger"
-              disabled={!SETTINGS_LINK_AVAILABILITY.deleteAccount}
-              href={SETTINGS_LINK_AVAILABILITY.deleteAccount ? '/settings/delete-account' : undefined}
-              rightContent={comingSoonNode}
-            />
-          </SettingsSection>
-
-          <div className="px-4 pb-8 text-center text-xs text-gray-400">
-            <p> 2026 Viargos. All rights reserved.</p>
-            <p className="mt-1">Made with love for travelers</p>
-          </div>
+    <div className="flex h-[calc(100dvh-5rem)] min-h-0 w-full overflow-hidden bg-[var(--surface-0)] sm:h-dvh" data-settings-layout>
+      <aside ref={navigationRef} className={`${selectedCategory ? 'hidden md:flex' : 'flex'} h-full min-h-0 w-full shrink-0 flex-col border-r border-[var(--border-subtle)] md:w-80 xl:w-[400px]`}>
+        <SettingsCategoryNavigation selectedCategory={category.id} />
+      </aside>
+      <section aria-labelledby="settings-category-heading" className={`${selectedCategory ? 'flex' : 'hidden md:flex'} h-full min-h-0 min-w-0 flex-1 flex-col`}>
+        <header className="flex h-16 shrink-0 items-center gap-3 border-b border-[var(--border-subtle)] px-5">
+          <Link
+            aria-label={SETTINGS_COPY.back}
+            className="-ml-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--text-primary)] hover:bg-[var(--surface-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] md:hidden"
+            href="/settings"
+            scroll={false}
+          >
+            <ArrowLeft aria-hidden="true" className="h-5 w-5" />
+          </Link>
+          <h2 ref={headingRef} className="text-xl font-bold tracking-tight text-[var(--text-primary)] outline-none" id="settings-category-heading" tabIndex={-1}>{category.label}</h2>
+        </header>
+        <div ref={detailRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-8" data-settings-detail-scroll>
+          <p className="px-5 py-5 text-sm leading-6 text-[var(--text-muted)]">{category.description}</p>
+          <SettingsCategoryContent category={category.id} onEditProfile={() => setIsEditProfileOpen(true)} onLogout={() => setIsLogoutOpen(true)} />
         </div>
-      </div>
-
-      {logoutModal}
-
-      {isEditProfileOpen
-        ? (
-            <EditProfileModal onClose={() => setIsEditProfileOpen(false)} />
-          )
-        : null}
-    </motion.div>
+      </section>
+      {isLogoutOpen && (
+        <OverlayModal ariaLabel={SETTINGS_COPY.logout} className="max-w-md p-6" onClose={() => setIsLogoutOpen(false)}>
+          <h2 className="text-xl font-semibold text-[var(--text-primary)]">{SETTINGS_COPY.logout}</h2>
+          <p className="mt-2 text-sm text-[var(--text-secondary)]">{SETTINGS_COPY.logoutConfirmation}</p>
+          <div className="mt-6 flex justify-end gap-3">
+            <button className="rounded-full border border-[var(--border-subtle)] px-5 py-2 text-sm font-semibold text-[var(--text-primary)] hover:bg-[var(--surface-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)]" type="button" onClick={() => setIsLogoutOpen(false)}>{SETTINGS_COPY.cancel}</button>
+            <button
+              className="rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+              type="button"
+              onClick={async () => {
+                setIsLogoutOpen(false);
+                await signOut();
+                router.push('/');
+              }}
+            >
+              {SETTINGS_COPY.logout}
+            </button>
+          </div>
+        </OverlayModal>
+      )}
+      {isEditProfileOpen && <EditProfileModal onClose={() => setIsEditProfileOpen(false)} />}
+    </div>
   );
-};
+}

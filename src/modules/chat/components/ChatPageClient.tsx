@@ -1,46 +1,22 @@
 'use client';
 
 import type { ChatConversation } from '@/modules/chat/types/chat.types';
-import * as motion from 'framer-motion/client';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ConversationList } from '@/modules/chat/components/ConversationList';
 import { MessagePane } from '@/modules/chat/components/MessagePane';
+import { NewConversationPicker } from '@/modules/chat/components/NewConversationPicker';
+import { CONVERSATION_COPY } from '@/modules/chat/constants/conversation-copy';
 import { useChat } from '@/modules/chat/hooks/use-chat';
-import { ChatBubbleIcon } from '@/modules/common/icons';
 
-type ChatPageClientProps = {
-  disableAutoSelect?: boolean;
+export function ChatPageClient(props: {
   initialConversations: ChatConversation[];
   initialTargetUserId?: string;
-};
-
-function subscribeToViewport(callback: () => void): () => void {
-  const mediaQuery = window.matchMedia('(min-width: 768px)');
-  mediaQuery.addEventListener('change', callback);
-  return () => {
-    mediaQuery.removeEventListener('change', callback);
-  };
-}
-
-function getClientViewportSnapshot(): boolean {
-  return window.matchMedia('(min-width: 768px)').matches;
-}
-
-function getServerViewportSnapshot(): boolean {
-  return false;
-}
-
-export const ChatPageClient = (props: ChatPageClientProps) => {
-  const { disableAutoSelect = false, initialConversations, initialTargetUserId } = props;
+}) {
   const router = useRouter();
   const [isChatWindowOpen, setIsChatWindowOpen] = useState(false);
+  const [isNewChatOpen, setIsNewChatOpen] = useState(false);
   const handledTargetUserIdRef = useRef<string | null>(null);
-  const isDesktop = useSyncExternalStore(
-    subscribeToViewport,
-    getClientViewportSnapshot,
-    getServerViewportSnapshot,
-  );
   const {
     conversations,
     currentUser,
@@ -58,117 +34,102 @@ export const ChatPageClient = (props: ChatPageClientProps) => {
     selectConversation,
     sendMessage,
     startConversation,
-  } = useChat(initialConversations, {
-    autoSelectFirstConversation: isDesktop && !disableAutoSelect,
+  } = useChat(props.initialConversations, {
+    autoSelectFirstConversation: false,
   });
 
   useEffect(() => {
-    if (!isUnauthorized) {
-      return;
+    if (isUnauthorized) {
+      router.replace('/');
     }
-
-    router.replace('/');
   }, [isUnauthorized, router]);
 
   useEffect(() => {
-    if (!initialTargetUserId || isLoadingConversations) {
+    if (!props.initialTargetUserId || isLoadingConversations) {
       return;
     }
 
-    if (handledTargetUserIdRef.current === initialTargetUserId) {
+    if (handledTargetUserIdRef.current === props.initialTargetUserId) {
       return;
     }
 
-    handledTargetUserIdRef.current = initialTargetUserId;
-
-    void startConversation(initialTargetUserId).then(() => {
+    handledTargetUserIdRef.current = props.initialTargetUserId;
+    void startConversation(props.initialTargetUserId).then(() => {
       setIsChatWindowOpen(true);
     }).catch(() => {
       handledTargetUserIdRef.current = null;
     });
-  }, [initialTargetUserId, isLoadingConversations, startConversation]);
+  }, [props.initialTargetUserId, isLoadingConversations, startConversation]);
 
-  const handleChatSelect = useCallback((conversationId: string) => {
-    selectConversation(conversationId);
-    setIsChatWindowOpen(true);
-  }, [selectConversation]);
-
-  const handleBackToChatList = useCallback(() => {
+  function openNewChat() {
+    setIsNewChatOpen(true);
     setIsChatWindowOpen(false);
-  }, []);
-
-  const showConversationBootstrapEmpty = conversations.length === 0 && !isLoadingConversations && !error;
+  }
 
   return (
-    <div className="flex h-[calc(100vh-9rem)] flex-col overflow-hidden sm:h-[calc(100vh-4rem)]">
-      <motion.div
-        animate={{ opacity: 1, y: 0 }}
-        className="flex-1 overflow-hidden p-4 sm:p-6 lg:p-8"
-        initial={{ opacity: 0, y: 20 }}
-      >
-        <div className="mx-auto h-full max-w-7xl overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-          {error && !isLoadingConversations
-            ? (
-                <div className="flex h-full items-center justify-center p-6">
-                  <div className="w-full max-w-md rounded-lg border border-red-200 bg-red-50 p-5 text-center">
-                    <p className="text-sm text-red-700">{error}</p>
-                    <button
-                      className="mt-3 rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
-                      type="button"
-                      onClick={() => void refreshConversations()}
-                    >
-                      Retry
-                    </button>
-                  </div>
-                </div>
-              )
-            : showConversationBootstrapEmpty
-              ? (
-                  <div className="flex h-full items-center justify-center p-8">
-                    <div className="max-w-md text-center">
-                      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-gray-400">
-                        <ChatBubbleIcon className="h-8 w-8" />
-                      </div>
-                      <h2 className="mb-2 text-2xl font-bold text-gray-900">Start your first conversation</h2>
-                      <p className="text-gray-600">
-                        Connect with travelers, share experiences, and plan your next adventure together.
-                      </p>
-                    </div>
-                  </div>
-                )
-              : (
-                  <div className="flex h-full">
-                    <div
-                      className={`${
-                        isChatWindowOpen ? 'hidden md:flex' : 'flex'
-                      } w-full flex-col border-r border-gray-200 md:w-96`}
-                    >
-                      <ConversationList
-                        conversations={conversations}
-                        isLoading={isLoadingConversations}
-                        selectedConversationId={selectedConversation?.id ?? null}
-                        onSelect={handleChatSelect}
-                      />
-                    </div>
+    <div className="flex h-[calc(100dvh-5rem)] min-h-0 w-full flex-col overflow-hidden bg-[var(--surface-0)] sm:h-dvh">
+      {error && !isLoadingConversations
+        ? (
+            <div className="flex shrink-0 items-center justify-between gap-4 border-b border-[var(--border-subtle)] bg-[var(--surface-1)] px-5 py-3 text-sm text-[var(--text-secondary)]" role="alert">
+              <p>{error}</p>
+              <button
+                className="shrink-0 rounded-full px-3 py-1 font-semibold text-[var(--text-primary)] hover:bg-[var(--surface-hover)] focus-visible:outline-2 focus-visible:outline-offset-2"
+                type="button"
+                onClick={() => void refreshConversations()}
+              >
+                {CONVERSATION_COPY.refresh}
+              </button>
+            </div>
+          )
+        : null}
 
-                    <MessagePane
-                      isChatWindowOpen={isChatWindowOpen}
-                      conversation={selectedConversation}
-                      currentUser={currentUser}
-                      hasOlderMessages={hasOlderMessages}
-                      isFetchingOlderMessages={isFetchingOlderMessages}
-                      isLoading={isLoadingMessages}
-                      loadOlderMessages={loadOlderMessages}
-                      messages={messages}
-                      onBackToChatList={handleBackToChatList}
-                      onRetryMessage={retryMessage}
-                      onSendMessage={sendMessage}
-                      showBackButton={true}
-                    />
-                  </div>
-                )}
-        </div>
-      </motion.div>
+      <div className="flex min-h-0 min-w-0 flex-1">
+        <aside
+          aria-label={CONVERSATION_COPY.title}
+          className={`${isChatWindowOpen ? 'hidden md:flex' : 'flex'} min-h-0 w-full shrink-0 flex-col border-r border-[var(--border-subtle)] md:w-80 xl:w-[400px]`}
+        >
+          {isNewChatOpen
+            ? (
+                <NewConversationPicker
+                  currentUserId={currentUser?.id}
+                  onBack={() => setIsNewChatOpen(false)}
+                  onStartConversation={async (userId) => {
+                    await startConversation(userId);
+                    setIsNewChatOpen(false);
+                    setIsChatWindowOpen(true);
+                  }}
+                />
+              )
+            : (
+                <ConversationList
+                  conversations={conversations}
+                  isLoading={isLoadingConversations}
+                  selectedConversationId={selectedConversation?.id ?? null}
+                  onNewChat={openNewChat}
+                  onSelect={(conversationId) => {
+                    selectConversation(conversationId);
+                    setIsChatWindowOpen(true);
+                  }}
+                />
+              )}
+        </aside>
+
+        <MessagePane
+          isChatWindowOpen={isChatWindowOpen}
+          conversation={selectedConversation}
+          currentUser={currentUser}
+          hasOlderMessages={hasOlderMessages}
+          isFetchingOlderMessages={isFetchingOlderMessages}
+          isLoading={isLoadingMessages}
+          loadOlderMessages={loadOlderMessages}
+          messages={messages}
+          onBackToChatList={() => setIsChatWindowOpen(false)}
+          onNewChat={openNewChat}
+          onRetryMessage={retryMessage}
+          onSendMessage={sendMessage}
+          showBackButton
+        />
+      </div>
     </div>
   );
-};
+}

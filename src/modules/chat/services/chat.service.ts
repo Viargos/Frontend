@@ -5,6 +5,7 @@ import type {
   ChatMessagesDto,
   ChatSendMessageDto,
   ChatSendMessageRequestDto,
+  ChatUserDto,
 } from '@/modules/chat/dto/chat.dto';
 import type { ChatConversation, ChatMessage, ChatMessageQuery, ChatUser } from '@/modules/chat/types/chat.types';
 import { httpClient } from '@/lib/api/http-client';
@@ -73,6 +74,12 @@ export const chatService = {
   async getCurrentUser(): Promise<ChatUser> {
     const dto = await readData<ChatMeDto>('/chat/me');
     return mapChatUser(dto.user);
+  },
+
+  async searchUsers(query: string): Promise<ChatUser[]> {
+    const params = new URLSearchParams({ q: query.trim(), limit: '30', offset: '0' });
+    const dto = await readData<{ users: ChatUserDto[] }>(`/chat/users/search?${params.toString()}`);
+    return dto.users.map(mapChatUser);
   },
 
   async getMessages(conversationId: string, query?: ChatMessageQuery): Promise<ChatMessage[]> {

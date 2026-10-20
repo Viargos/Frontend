@@ -59,11 +59,11 @@ export const journeyService = {
   async update(journeyId: string, payload: JourneyUpdatePayload): Promise<JourneyDetail> {
     const body = payload.days
       ? JSON.stringify(mapCreateJourneyInputToDto({
-        coverImage: payload.coverImage,
-        days: payload.days,
-        description: payload.description,
-        title: payload.title ?? '',
-      }))
+          coverImage: payload.coverImage,
+          days: payload.days,
+          description: payload.description,
+          title: payload.title ?? '',
+        }))
       : JSON.stringify(payload);
 
     const dto = await parseResponse<JourneyDetailDto>(`/journeys/${journeyId}`, {

@@ -419,17 +419,24 @@ test('settings smoke (password feature disabled + logout)', async ({ context, pa
   });
 
   await page.goto('/settings');
+  await page.getByRole('navigation', { name: 'Settings categories' }).getByRole('link', { name: 'Your account', exact: true }).click();
 
-  await expect(page.getByText('Change Password')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Your account', exact: true })).toBeVisible();
 
-  const changePasswordItem = page.locator('div.flex.items-center.justify-between.px-4.py-4').filter({
-    has: page.getByText('Change Password', { exact: true }),
-  }).first();
+  const changePasswordItem = page.locator('[aria-disabled="true"]').filter({
+    has: page.getByText('Change password', { exact: true }),
+  });
 
+  await expect(changePasswordItem).toBeVisible();
   await expect(changePasswordItem).toContainText('Coming soon');
 
-  await page.getByRole('button', { name: 'Log Out' }).first().click();
-  await page.getByRole('button', { name: 'Log Out' }).nth(1).click();
+  await page.getByRole('button', { name: /Log out Sign out of Viargos/ }).click();
+
+  const logoutDialog = page.getByRole('dialog', { name: 'Log out', exact: true });
+
+  await expect(logoutDialog).toBeVisible();
+
+  await logoutDialog.getByRole('button', { name: 'Log out', exact: true }).click();
 
   await expect(page).toHaveURL('/');
 

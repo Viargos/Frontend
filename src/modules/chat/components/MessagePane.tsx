@@ -1,12 +1,12 @@
 'use client';
 
 import type { ChatConversation, ChatMessage, ChatUser } from '@/modules/chat/types/chat.types';
-import * as motion from 'framer-motion/client';
 import Image from 'next/image';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { ChatHeader } from '@/modules/chat/components/ChatHeader';
 import { MessageBubble } from '@/modules/chat/components/MessageBubble';
 import { MessageComposer } from '@/modules/chat/components/MessageComposer';
+import { CHAT_COPY } from '@/modules/chat/constants/chat-copy';
 import { ChatBubbleIcon } from '@/modules/common/icons';
 
 type MessagePaneProps = {
@@ -19,6 +19,7 @@ type MessagePaneProps = {
   loadOlderMessages: () => Promise<void>;
   messages: ChatMessage[];
   onBackToChatList?: () => void;
+  onNewChat?: () => void;
   onRetryMessage: (messageId: string) => void;
   onSendMessage: (content: string) => Promise<void>;
   showBackButton?: boolean;
@@ -35,20 +36,20 @@ function MessageSkeleton(props: MessageSkeletonProps) {
   const { isOwn, width1, width2 } = props;
   const directionClassName = isOwn ? 'justify-end' : 'justify-start';
   const rowClassName = isOwn ? 'flex-row-reverse space-x-reverse' : '';
-  const bubbleClassName = isOwn ? 'bg-primary-blue/20' : 'bg-gray-100';
-  const lineClassName = isOwn ? 'bg-primary-blue/30' : 'bg-gray-200';
-  const timeClassName = isOwn ? 'bg-primary-blue/20' : 'bg-gray-200';
+  const bubbleClassName = isOwn ? 'bg-[var(--surface-2)]' : 'bg-[var(--surface-1)]';
+  const lineClassName = isOwn ? 'bg-[var(--surface-3)]' : 'bg-[var(--surface-2)]';
+  const timeClassName = isOwn ? 'bg-[var(--surface-2)]' : 'bg-[var(--surface-2)]';
 
   return (
     <div className={`flex ${directionClassName}`}>
       <div className={`flex max-w-xs items-end space-x-2 lg:max-w-md ${rowClassName}`}>
-        {!isOwn ? <div className="h-6 w-6 flex-shrink-0 animate-pulse rounded-full bg-gray-200" /> : null}
+        {!isOwn ? <div className="h-6 w-6 flex-shrink-0 animate-pulse rounded-full bg-[var(--surface-2)] motion-reduce:animate-none" /> : null}
         <div className={`rounded-2xl px-4 py-3 ${bubbleClassName}`}>
           <div className="space-y-2">
-            <div className={`h-3 animate-pulse rounded ${lineClassName}`} style={{ width: `${width1}px` }} />
-            <div className={`h-3 animate-pulse rounded ${lineClassName}`} style={{ width: `${width2}px` }} />
+            <div className={`h-3 animate-pulse rounded motion-reduce:animate-none ${lineClassName}`} style={{ width: `${width1}px` }} />
+            <div className={`h-3 animate-pulse rounded motion-reduce:animate-none ${lineClassName}`} style={{ width: `${width2}px` }} />
           </div>
-          <div className={`mt-2 h-2 w-8 animate-pulse rounded ${timeClassName}`} />
+          <div className={`mt-2 h-2 w-8 animate-pulse rounded motion-reduce:animate-none ${timeClassName}`} />
         </div>
       </div>
     </div>
@@ -59,7 +60,7 @@ function formatDate(value: string): string {
   const dateObj = new Date(value);
 
   if (Number.isNaN(dateObj.getTime())) {
-    return 'Today';
+    return CHAT_COPY.today;
   }
 
   const today = new Date();
@@ -67,11 +68,11 @@ function formatDate(value: string): string {
   yesterday.setDate(yesterday.getDate() - 1);
 
   if (dateObj.toDateString() === today.toDateString()) {
-    return 'Today';
+    return CHAT_COPY.today;
   }
 
   if (dateObj.toDateString() === yesterday.toDateString()) {
-    return 'Yesterday';
+    return CHAT_COPY.yesterday;
   }
 
   return new Intl.DateTimeFormat('en-US', {
@@ -197,25 +198,36 @@ export const MessagePane = (props: MessagePaneProps) => {
 
   if (!conversation) {
     return (
-      <section className={`flex-1 flex-col ${isChatWindowOpen ? 'flex' : 'hidden md:flex'}`}>
-        <div className="flex h-full flex-col items-center justify-center px-6 text-center text-gray-500">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-gray-400">
-            <ChatBubbleIcon className="h-8 w-8" />
+      <section className={`min-h-0 min-w-0 flex-1 flex-col bg-[var(--surface-0)] ${isChatWindowOpen ? 'flex' : 'hidden md:flex'}`}>
+        <div className="flex h-full flex-col items-center justify-center px-6 py-8 text-center">
+          <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-[var(--surface-2)] text-[var(--text-primary)] xl:size-24">
+            <ChatBubbleIcon aria-hidden="true" className="size-10 xl:size-12" />
           </div>
-          <h3 className="mb-2 text-lg font-medium text-gray-900">
-            No conversation selected
-          </h3>
-          <p className="text-sm">
-            Select a conversation from the list to start chatting
+          <h2 className="text-xl font-bold tracking-tight text-[var(--text-primary)]">
+            {CHAT_COPY.emptyTitle}
+          </h2>
+          <p className="mt-2 max-w-[290px] text-sm leading-6 text-[var(--text-secondary)]">
+            {CHAT_COPY.emptyDescription}
           </p>
+          {props.onNewChat
+            ? (
+                <button
+                  className="mt-6 rounded-full bg-[var(--surface-inverse)] px-5 py-2.5 text-sm font-semibold text-[var(--text-inverse)] transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--text-primary)] motion-reduce:transition-none"
+                  onClick={props.onNewChat}
+                  type="button"
+                >
+                  {CHAT_COPY.newChat}
+                </button>
+              )
+            : null}
         </div>
       </section>
     );
   }
 
   return (
-    <section className={`flex-1 flex-col ${isChatWindowOpen ? 'flex' : 'hidden md:flex'}`}>
-      <div className="flex h-full flex-col overflow-hidden">
+    <section className={`min-h-0 min-w-0 flex-1 flex-col bg-[var(--surface-0)] ${isChatWindowOpen ? 'flex' : 'hidden md:flex'}`}>
+      <div className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden">
         <ChatHeader
           chat={conversation.user}
           onBackToChatList={onBackToChatList}
@@ -224,9 +236,9 @@ export const MessagePane = (props: MessagePaneProps) => {
 
         {isLoading
           ? (
-              <div className="flex-1 space-y-4 overflow-hidden p-4">
+              <div className="min-h-0 flex-1 space-y-4 overflow-hidden p-4 sm:p-6">
                 <div className="my-4 flex items-center justify-center">
-                  <div className="h-5 w-16 animate-pulse rounded-full bg-gray-100" />
+                  <div className="h-5 w-16 animate-pulse rounded-full bg-[var(--surface-2)] motion-reduce:animate-none" />
                 </div>
 
                 <div className="space-y-3">
@@ -238,78 +250,59 @@ export const MessagePane = (props: MessagePaneProps) => {
             )
           : (
               <div
-                className="flex-1 space-y-4 overflow-y-auto bg-gray-50 p-4"
+                className="min-h-0 min-w-0 flex-1 space-y-6 overflow-x-hidden overflow-y-auto overscroll-contain p-4 sm:p-6"
                 onScroll={handleMessageScroll}
                 ref={messageScrollContainerRef}
               >
                 {isFetchingOlderMessages
                   ? (
                       <div className="flex justify-center">
-                        <span className="rounded-full bg-gray-200 px-3 py-1 text-xs font-medium text-gray-500">Fetching earlier messages</span>
+                        <span className="px-3 py-1 text-xs text-[var(--text-muted)]">{CHAT_COPY.fetchingMessages}</span>
                       </div>
                     )
                   : null}
                 {groupedEntries.length === 0
                   ? (
-                      <div className="flex h-full min-h-[400px] items-center justify-center p-8">
-                        <motion.div
-                          className="max-w-md text-center"
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ duration: 0.5 }}
-                        >
-                          <motion.div
-                            className="relative mx-auto mb-6 h-24 w-24"
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ delay: 0.2, type: 'spring' }}
-                          >
+                      <div className="flex min-h-full items-center justify-center px-2 py-8">
+                        <div className="max-w-xs text-center">
+                          <div className="relative mx-auto mb-5 size-20">
                             {conversation.user.profileImage
                               ? (
                                   <Image
                                     alt={conversation.user.username}
-                                    className="rounded-full border-4 border-blue-100 object-cover shadow-lg"
+                                    className="rounded-full object-cover"
                                     fill
-                                    sizes="96px"
+                                    sizes="80px"
                                     src={conversation.user.profileImage}
                                   />
                                 )
                               : (
-                                  <div className="flex h-full w-full items-center justify-center rounded-full border-4 border-blue-100 bg-[#160E53] text-3xl font-bold text-white shadow-lg">
+                                  <div className="bg-primary-blue flex h-full w-full items-center justify-center rounded-full text-3xl font-bold text-white">
                                     {conversation.user.username.charAt(0).toUpperCase()}
                                   </div>
                                 )}
 
                             {conversation.user.isOnline
                               ? (
-                                  <div className="absolute right-1 bottom-1 h-6 w-6 rounded-full border-4 border-white bg-green-500 shadow-sm" />
+                                  <div className="absolute right-0.5 bottom-0.5 size-4 rounded-full border-[3px] border-[var(--surface-0)] bg-emerald-500" />
                                 )
                               : null}
-                          </motion.div>
+                          </div>
 
-                          <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3 }}
-                          >
-                            <h3 className="mb-2 text-2xl font-bold text-gray-900">
-                              {conversation.user.username}
-                            </h3>
-                            <p className="mb-6 leading-relaxed text-gray-600">
-                              This is the beginning of your conversation with
-                              {' '}
-                              <span className="font-semibold text-blue-600">{conversation.user.username}</span>
-                              . Say hi and start your travel story.
-                            </p>
-                          </motion.div>
-                        </motion.div>
+                          <h3 className="text-xl font-bold [overflow-wrap:anywhere] text-[var(--text-primary)]">
+                            {conversation.user.username}
+                          </h3>
+                          <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
+                            {CHAT_COPY.conversationBeginning}
+                          </p>
+                        </div>
                       </div>
                     )
                   : (
                       groupedEntries.map(([dateKey, dayMessages]) => (
                         <div key={dateKey}>
-                          <div className="mb-4 flex justify-center">
-                            <span className="rounded-full bg-gray-200 px-3 py-1 text-xs font-medium text-gray-500">
+                          <div className="mb-5 flex justify-center">
+                            <span className="px-3 py-1 text-xs text-[var(--text-muted)]">
                               {dateKey}
                             </span>
                           </div>

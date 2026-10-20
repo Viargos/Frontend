@@ -1,59 +1,59 @@
+import { CHAT_COPY } from '@/modules/chat/constants/chat-copy';
 import { Skeleton } from '@/modules/common';
 
 export function ChatSkeleton() {
   return (
-    <div aria-busy="true" className="flex h-[calc(100vh-9rem)] flex-col overflow-hidden sm:h-[calc(100vh-4rem)]" role="status">
-      <div className="flex-1 overflow-hidden p-4 sm:p-6 lg:p-8">
-        <div className="mx-auto flex h-full max-w-7xl overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-          <div className="flex w-full flex-col border-r border-gray-200 md:w-96">
-            <div className="flex-shrink-0 border-b border-gray-100 bg-[#160E53] p-5">
-              <Skeleton className="h-6 w-28 bg-white/30" />
-              <Skeleton className="mt-4 h-10 w-full rounded-xl bg-white/90" />
-            </div>
-            <div className="flex-1 space-y-2 p-4">
-              {Array.from({ length: 6 }).map((_, index) => (
-                <div className="flex items-center gap-3 rounded-xl bg-gray-50 p-3" key={`chat-conversation-skeleton-${index + 1}`}>
-                  <Skeleton className="h-12 w-12 rounded-full" />
-                  <div className="min-w-0 flex-1 space-y-2">
-                    <Skeleton className="h-4 w-2/3" />
-                    <Skeleton className="h-3 w-1/2" />
-                  </div>
-                </div>
-              ))}
-            </div>
+    <div
+      aria-busy="true"
+      aria-label={CHAT_COPY.loadingConversations}
+      className="flex h-[calc(100dvh-5rem)] min-h-0 overflow-hidden bg-[var(--surface-0)] sm:h-dvh motion-reduce:[&_*]:animate-none"
+      role="status"
+    >
+      <div className="flex min-h-0 w-full shrink-0 flex-col border-r border-[var(--border-subtle)] md:w-80 xl:w-[400px]">
+        <div className="shrink-0 px-5 pt-5 pb-4">
+          <div className="flex h-8 items-center justify-between">
+            <Skeleton className="h-6 w-20 bg-[var(--surface-2)]" />
+            <Skeleton className="size-8 rounded-full bg-[var(--surface-2)]" />
           </div>
-
-          <div className="hidden min-w-0 flex-1 flex-col md:flex">
-            <div className="flex h-16 items-center justify-between border-b border-gray-100 px-4">
-              <div className="flex items-center gap-3">
-                <Skeleton className="h-10 w-10 rounded-full" />
-                <div className="space-y-1">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-3 w-16" />
-                </div>
-              </div>
-              <Skeleton className="h-8 w-20 rounded-lg" />
-            </div>
-
-            <div className="flex-1 space-y-4 overflow-hidden bg-gray-50 p-4">
-              {Array.from({ length: 8 }).map((_, index) => {
-                const isOwn = index % 2 === 0;
-
-                return (
-                  <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`} key={`chat-message-skeleton-${index + 1}`}>
-                    <Skeleton className={`h-10 rounded-2xl ${isOwn ? 'w-40' : 'w-52'}`} />
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="border-t border-gray-100 bg-white p-3">
-              <div className="flex items-center gap-2 rounded-full border-2 border-gray-200 p-2">
-                <Skeleton className="h-9 flex-1 rounded-full" />
-                <Skeleton className="h-10 w-10 rounded-full" />
+          <Skeleton className="mt-5 h-10 w-full rounded-full bg-[var(--surface-2)]" />
+        </div>
+        <div className="min-h-0 flex-1 space-y-1 overflow-hidden px-2">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div className="flex items-center gap-3 px-3 py-3.5" key={`chat-conversation-skeleton-${index + 1}`}>
+              <Skeleton className="size-12 shrink-0 rounded-full bg-[var(--surface-2)]" />
+              <div className="min-w-0 flex-1 space-y-2">
+                <Skeleton className="h-3.5 w-2/3 bg-[var(--surface-2)]" />
+                <Skeleton className="h-3 w-5/6 bg-[var(--surface-2)]" />
               </div>
             </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="hidden min-h-0 min-w-0 flex-1 flex-col md:flex">
+        <div className="flex h-[73px] shrink-0 items-center gap-3 border-b border-[var(--border-subtle)] px-6">
+          <Skeleton className="size-10 rounded-full bg-[var(--surface-2)]" />
+          <div className="space-y-2">
+            <Skeleton className="h-3.5 w-24 bg-[var(--surface-2)]" />
+            <Skeleton className="h-3 w-16 bg-[var(--surface-2)]" />
           </div>
+        </div>
+
+        <div className="min-h-0 flex-1 space-y-5 overflow-hidden p-6">
+          {Array.from({ length: 6 }).map((_, index) => {
+            const isOwn = index % 2 === 0;
+
+            return (
+              <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`} key={`chat-message-skeleton-${index + 1}`}>
+                <Skeleton className={`h-12 max-w-[75%] rounded-2xl bg-[var(--surface-2)] ${isOwn ? 'w-40' : 'w-52'}`} />
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="shrink-0 border-t border-[var(--border-subtle)] px-6 py-3">
+          <Skeleton className="h-[54px] w-full rounded-full bg-[var(--surface-2)]" />
+          <Skeleton className="mx-auto mt-2 h-2.5 w-48 bg-[var(--surface-2)]" />
         </div>
       </div>
     </div>

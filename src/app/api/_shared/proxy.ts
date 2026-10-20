@@ -111,14 +111,28 @@ export async function proxyToBackend(options: ProxyRequestOptions): Promise<Resp
     }
   }
 
-  const backendResponse = await fetch(url, {
-    body: options.body ?? null,
-    credentials: 'include',
-    headers,
-    method: options.method ?? options.request.method,
-  });
+  let backendResponse: Response;
+  let rawBody: string;
 
-  const rawBody = await backendResponse.text();
+  try {
+    backendResponse = await fetch(url, {
+      body: options.body ?? null,
+      credentials: 'include',
+      headers,
+      method: options.method ?? options.request.method,
+    });
+    rawBody = await backendResponse.text();
+  } catch {
+    return NextResponse.json(
+      {
+        error: 'BACKEND_UNAVAILABLE',
+        message: 'The backend service is unavailable.',
+        statusCode: 503,
+      },
+      { status: 503 },
+    );
+  }
+
   const parsedBody: unknown = rawBody
     ? (() => {
         try {

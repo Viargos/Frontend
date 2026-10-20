@@ -117,7 +117,7 @@ const DashboardFeedComposer = () => {
               />
             )
           : (
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-900 text-sm font-bold text-white">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#160E53] text-sm font-bold text-white">
                 {user?.username?.charAt(0).toUpperCase() ?? 'V'}
               </span>
             )}

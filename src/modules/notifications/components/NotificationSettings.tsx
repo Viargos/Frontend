@@ -69,9 +69,9 @@ export function NotificationSettings() {
 
   if (isLoading || !preferences) {
     return (
-      <div aria-label="Loading notification settings" className="space-y-3 p-4">
+      <div aria-label="Loading notification settings" className="space-y-3 px-5 py-4">
         {[0, 1, 2].map(item => (
-          <div key={item} className="h-14 animate-pulse rounded-xl bg-slate-100" />
+          <div key={item} className="h-14 rounded-lg bg-[var(--surface-1)] motion-safe:animate-pulse" />
         ))}
       </div>
     );
@@ -91,19 +91,19 @@ export function NotificationSettings() {
 
   return (
     <>
-      <div className="px-4 py-4">
-        <div className="flex items-start gap-3 rounded-xl border border-indigo-100 bg-indigo-50/70 p-4 dark:border-indigo-900/50 dark:bg-indigo-950/20">
-          <BellRing className="mt-0.5 h-5 w-5 shrink-0 text-[#160E53] dark:text-indigo-300" />
+      <div className="border-b border-[var(--border-subtle)] px-5 py-5">
+        <div className="flex items-start gap-3">
+          <BellRing className="mt-0.5 h-5 w-5 shrink-0 text-[var(--text-secondary)]" />
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-slate-900 dark:text-white">
+            <p className="text-sm font-semibold text-[var(--text-primary)]">
               Browser notification permission
             </p>
-            <p className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-300">
+            <p className="mt-1 text-xs leading-5 text-[var(--text-secondary)]">
               Viargos asks the browser only after you choose Enable. Notifications
               can arrive while this tab is inactive, as long as the browser is
               running.
             </p>
-            <span className="mt-2 inline-flex rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-600 shadow-sm dark:bg-slate-900 dark:text-slate-300">
+            <span className="mt-2 inline-flex rounded-full bg-[var(--surface-1)] px-2.5 py-1 text-[11px] font-medium text-[var(--text-muted)]">
               {statusLabel}
             </span>
           </div>
@@ -111,7 +111,7 @@ export function NotificationSettings() {
 
         {permissionStatus === 'denied'
           ? (
-              <div className="mt-3 flex gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200">
+              <div className="mt-4 flex gap-2 border-l-2 border-[var(--border-subtle)] py-1 pl-3 text-xs leading-5 text-[var(--text-secondary)]">
                 <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
                 <p>
                   Your browser is blocking notifications. Open the site controls
@@ -124,7 +124,7 @@ export function NotificationSettings() {
 
         {!browserConfigurationAvailable && permissionStatus !== 'denied'
           ? (
-              <div className="mt-3 flex gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs leading-5 text-slate-600">
+              <div className="mt-4 flex gap-2 border-l-2 border-[var(--border-subtle)] py-1 pl-3 text-xs leading-5 text-[var(--text-secondary)]">
                 <Info className="mt-0.5 h-4 w-4 shrink-0" />
                 This browser or the Viargos push service is not currently available.
                 In-app notifications will continue to work.
@@ -141,7 +141,7 @@ export function NotificationSettings() {
         onChange={enabled => void setBrowserNotificationsEnabled(enabled)}
       />
 
-      <div className="bg-slate-50 px-4 py-2 text-[11px] font-semibold tracking-wide text-slate-500 uppercase">
+      <div className="px-5 pt-6 pb-2 text-sm font-semibold text-[var(--text-primary)]">
         Categories
       </div>
       {CATEGORY_SETTINGS.map(category => (
@@ -155,13 +155,13 @@ export function NotificationSettings() {
           })}
         />
       ))}
-      <div className="flex gap-2 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-900 dark:bg-amber-950/20 dark:text-amber-200">
+      <div className="flex gap-2 bg-[var(--surface-1)] px-5 py-4 text-xs leading-5 text-[var(--text-secondary)]">
         <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
         Critical security alerts are clearly identified and may require immediate
         attention. The master browser switch always remains under your control.
       </div>
 
-      <div className="bg-slate-50 px-4 py-2 text-[11px] font-semibold tracking-wide text-slate-500 uppercase">
+      <div className="px-5 pt-6 pb-2 text-sm font-semibold text-[var(--text-primary)]">
         Frequency and behaviour
       </div>
       <SettingsToggle
@@ -186,12 +186,12 @@ export function NotificationSettings() {
       />
       {preferences.quietHoursEnabled
         ? (
-            <div className="grid grid-cols-2 gap-3 px-4 py-4">
-              <label className="text-xs font-medium text-slate-600">
+            <div className="grid grid-cols-2 gap-3 px-5 py-4">
+              <label className="min-w-0 text-xs font-medium text-[var(--text-secondary)]">
                 Start
                 <input
                   aria-label="Quiet hours start"
-                  className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#160E53] focus:ring-2 focus:ring-indigo-100 focus:outline-none"
+                  className="mt-1 block min-h-10 w-full min-w-0 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-0)] px-2 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--text-primary)] focus:ring-1 focus:ring-[var(--text-primary)] focus:outline-none"
                   type="time"
                   value={preferences.quietHoursStart}
                   onChange={event => save({
@@ -199,11 +199,11 @@ export function NotificationSettings() {
                   })}
                 />
               </label>
-              <label className="text-xs font-medium text-slate-600">
+              <label className="min-w-0 text-xs font-medium text-[var(--text-secondary)]">
                 End
                 <input
                   aria-label="Quiet hours end"
-                  className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#160E53] focus:ring-2 focus:ring-indigo-100 focus:outline-none"
+                  className="mt-1 block min-h-10 w-full min-w-0 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-0)] px-2 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--text-primary)] focus:ring-1 focus:ring-[var(--text-primary)] focus:outline-none"
                   type="time"
                   value={preferences.quietHoursEnd}
                   onChange={event => save({
@@ -211,14 +211,14 @@ export function NotificationSettings() {
                   })}
                 />
               </label>
-              <div className="col-span-2 flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
-                <span className="truncate">
+              <div className="col-span-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-[var(--text-muted)]">
+                <span className="min-w-0 break-words">
                   Timezone:
                   {' '}
                   {preferences.timezone}
                 </span>
                 <button
-                  className="ml-3 shrink-0 font-semibold text-[#160E53]"
+                  className="shrink-0 rounded px-1 py-2 font-semibold text-[var(--text-primary)] hover:bg-[var(--surface-hover)] focus-visible:outline-2 focus-visible:outline-offset-2"
                   type="button"
                   onClick={() => save({
                     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,

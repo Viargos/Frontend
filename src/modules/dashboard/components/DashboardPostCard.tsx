@@ -75,7 +75,7 @@ function UserAvatar(props: {
 
   return (
     <div
-      className={`${dimensionClassName} flex shrink-0 items-center justify-center rounded-full bg-blue-900 ${ringClassName}`}
+      className={`${dimensionClassName} flex shrink-0 items-center justify-center rounded-full bg-[#160E53] ${ringClassName}`}
     >
       <span className={`font-bold text-white ${textClassName}`}>
         {username.charAt(0).toUpperCase()}
@@ -342,7 +342,7 @@ function TextPost(props: PostLayoutProps) {
   return (
     <>
       <div className="dashboard-post-body flex items-start">
-        <div className="w-1 shrink-0 rounded-l-2xl bg-blue-900" />
+        <div className="w-1 shrink-0 rounded-l-2xl bg-[#160E53]" />
 
         <div className="min-w-0 flex-1 px-4 pt-4 pb-2">
           <div className="mb-3 flex items-start justify-between gap-3">

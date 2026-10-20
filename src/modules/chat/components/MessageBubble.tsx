@@ -2,9 +2,9 @@
 
 import type { ChatMessage } from '@/modules/chat/types/chat.types';
 
-import * as motion from 'framer-motion/client';
 import Image from 'next/image';
 import { memo } from 'react';
+import { CHAT_COPY } from '@/modules/chat/constants/chat-copy';
 import { ClockIcon, RefreshCwIcon } from '@/modules/common/icons';
 
 type MessageBubbleProps = {
@@ -19,7 +19,7 @@ type MessageBubbleProps = {
 function formatTime(value: string): string {
   const dateObj = new Date(value);
   if (Number.isNaN(dateObj.getTime())) {
-    return 'now';
+    return CHAT_COPY.now;
   }
 
   return new Intl.DateTimeFormat('en-US', {
@@ -32,23 +32,20 @@ function formatTime(value: string): string {
 export const MessageBubble = memo((props: MessageBubbleProps) => {
   const { chatAvatar, chatName, isOwnMessage, message, onRetry, showAvatar } = props;
   const directionClassName = isOwnMessage ? 'justify-end' : 'justify-start';
-  const rowClassName = isOwnMessage ? 'flex-row-reverse space-x-reverse' : '';
-  const bubbleClassName = isOwnMessage ? 'bg-primary-blue text-white' : 'bg-gray-100 text-gray-900';
-  const metaClassName = isOwnMessage ? 'text-indigo-100' : 'text-gray-500';
+  const rowClassName = isOwnMessage ? 'flex-row-reverse' : '';
+  const bubbleClassName = isOwnMessage
+    ? 'rounded-br-md bg-primary-blue text-white'
+    : 'rounded-bl-md bg-[var(--surface-2)] text-[var(--text-primary)]';
+  const metaClassName = isOwnMessage ? 'text-white/75' : 'text-[var(--text-muted)]';
 
   return (
-    <motion.div
-      animate={{ opacity: 1, y: 0 }}
-      className={`flex ${directionClassName}`}
-      initial={{ opacity: 0, y: 20 }}
-      transition={{ duration: 0.3 }}
-    >
-      <div className={`flex max-w-xs items-end space-x-2 lg:max-w-md ${rowClassName}`}>
+    <div className={`flex min-w-0 ${directionClassName}`}>
+      <div className={`flex max-w-[90%] min-w-0 items-end gap-2 lg:max-w-[75%] ${rowClassName}`}>
         {!isOwnMessage && showAvatar
           ? (
               <div className="relative h-6 w-6 flex-shrink-0 overflow-hidden rounded-full">
                 <Image
-                  alt={chatName || 'User'}
+                  alt={chatName || CHAT_COPY.user}
                   className="object-cover"
                   fill
                   sizes="24px"
@@ -64,8 +61,8 @@ export const MessageBubble = memo((props: MessageBubbleProps) => {
             )
           : null}
 
-        <div className={`rounded-2xl px-4 py-2 ${bubbleClassName}`}>
-          <p className="text-sm">{message.content}</p>
+        <div className={`min-w-0 rounded-2xl px-4 py-2.5 ${bubbleClassName}`}>
+          <p className="text-sm leading-relaxed [overflow-wrap:anywhere] whitespace-pre-wrap">{message.content}</p>
           <div className={`mt-1 flex items-center gap-1 text-xs ${metaClassName}`}>
             <span>{formatTime(message.createdAt)}</span>
             {isOwnMessage && message.status === 'pending'
@@ -76,20 +73,20 @@ export const MessageBubble = memo((props: MessageBubbleProps) => {
             {isOwnMessage && message.status === 'failed'
               ? (
                   <button
-                    aria-label="Retry sending message"
-                    className="inline-flex items-center gap-1 rounded px-1 text-[10px] text-red-200 underline hover:text-red-100"
+                    aria-label={CHAT_COPY.retryMessage}
+                    className="inline-flex items-center gap-1 rounded px-1 text-[10px] text-red-200 underline hover:text-red-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
                     type="button"
                     onClick={() => onRetry?.(message.id)}
                   >
                     <RefreshCwIcon className="h-3 w-3" size={12} />
-                    Retry
+                    {CHAT_COPY.retry}
                   </button>
                 )
               : null}
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 });
 

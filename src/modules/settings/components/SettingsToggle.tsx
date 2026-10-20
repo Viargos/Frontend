@@ -1,5 +1,7 @@
 'use client';
 
+import { useId } from 'react';
+
 type SettingsToggleProps = {
   checked: boolean;
   description?: string;
@@ -9,36 +11,34 @@ type SettingsToggleProps = {
 };
 
 export const SettingsToggle = (props: SettingsToggleProps) => {
-  const { checked, description, icon, label, onChange } = props;
-  const backgroundClassName = checked ? 'bg-[#160E53]' : 'bg-gray-200';
-  const thumbClassName = checked ? 'translate-x-5' : 'translate-x-0';
-  const descriptionNode = description
-    ? (
-        <div className="mt-0.5 text-xs text-gray-500">{description}</div>
-      )
-    : null;
+  const id = useId();
+  const backgroundClassName = props.checked ? 'bg-[var(--surface-inverse)]' : 'bg-[var(--surface-3)]';
+  const thumbClassName = props.checked ? 'translate-x-5' : 'translate-x-0';
 
   return (
-    <div className="flex items-center justify-between px-4 py-4 hover:bg-gray-50">
-      <div className="flex flex-1 items-center gap-3">
-        {icon ? <div className="flex-shrink-0 text-gray-600">{icon}</div> : null}
-        <div>
-          <div className="text-sm font-medium text-gray-900">{label}</div>
-          {descriptionNode}
+    <div className="flex min-w-0 items-center justify-between gap-5 px-5 py-5 transition-colors hover:bg-[var(--surface-hover)] motion-reduce:transition-none sm:px-6">
+      <div className="flex min-w-0 flex-1 items-center gap-4">
+        {props.icon ? <div aria-hidden="true" className="shrink-0 text-[var(--text-secondary)]">{props.icon}</div> : null}
+        <div className="min-w-0 flex-1">
+          <div className="text-[15px] leading-6 font-medium [overflow-wrap:anywhere] text-[var(--text-primary)]" id={`${id}-label`}>{props.label}</div>
+          {props.description
+            ? <div className="mt-1 text-[13px] leading-5 [overflow-wrap:anywhere] text-[var(--text-muted)]" id={`${id}-description`}>{props.description}</div>
+            : null}
         </div>
       </div>
 
       <button
         role="switch"
-        aria-checked={checked}
-        aria-label={label}
-        onClick={() => onChange(!checked)}
-        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-[#160E53] focus:ring-offset-2 focus:outline-none ${backgroundClassName}`}
+        aria-checked={props.checked}
+        aria-describedby={props.description ? `${id}-description` : undefined}
+        aria-labelledby={`${id}-label`}
+        onClick={() => props.onChange(!props.checked)}
+        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--text-primary)] motion-reduce:transition-none ${backgroundClassName}`}
         type="button"
       >
         <span
           aria-hidden="true"
-          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${thumbClassName}`}
+          className={`pointer-events-none inline-block size-5 rounded-full bg-[var(--surface-0)] shadow-sm transition-transform motion-reduce:transition-none ${thumbClassName}`}
         />
       </button>
     </div>

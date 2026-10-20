@@ -1,6 +1,8 @@
 'use client';
 
+import { SendHorizontal } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { CHAT_COPY } from '@/modules/chat/constants/chat-copy';
 
 type MessageComposerProps = {
   disabled?: boolean;
@@ -11,7 +13,6 @@ export const MessageComposer = (props: MessageComposerProps) => {
   const { disabled, onSubmit } = props;
   const [messageInput, setMessageInput] = useState('');
   const [isSending, setIsSending] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
@@ -58,19 +59,16 @@ export const MessageComposer = (props: MessageComposerProps) => {
   };
 
   const hasContent = messageInput.trim().length > 0;
-  const formClassName = isFocused
-    ? 'border-primary-blue bg-white shadow-lg'
-    : 'border-gray-200 bg-gray-50';
-  const sendButtonClassName = hasContent && !isSending
-    ? 'bg-[#160E53] text-white shadow-md hover:bg-[#241A7A] hover:shadow-lg active:scale-95'
-    : 'bg-gray-200 text-gray-400 cursor-not-allowed';
+  const sendButtonClassName = hasContent && !disabled && !isSending
+    ? 'bg-primary-blue text-white hover:opacity-90'
+    : 'cursor-not-allowed bg-[var(--surface-2)] text-[var(--text-muted)]';
 
   return (
-    <div className="sticky bottom-0 z-10 flex-shrink-0 border-t border-gray-100 bg-white">
-      <div className="px-3 py-2 sm:px-4 sm:py-3">
+    <div className="z-10 shrink-0 border-t border-[var(--border-subtle)] bg-[var(--surface-0)] pb-[env(safe-area-inset-bottom)]">
+      <div className="px-4 py-3 sm:px-6">
         <form
           onSubmit={handleSubmit}
-          className={`flex items-end gap-2 rounded-full border-2 p-1.5 transition-all duration-200 sm:gap-3 sm:p-2 ${formClassName}`}
+          className="flex items-end gap-2 rounded-3xl border border-transparent bg-[var(--surface-1)] p-1.5 transition-colors focus-within:border-[var(--text-primary)] focus-within:bg-[var(--surface-0)] motion-reduce:transition-none"
         >
           <div className="min-w-0 flex-1">
             <textarea
@@ -78,10 +76,9 @@ export const MessageComposer = (props: MessageComposerProps) => {
               value={messageInput}
               onChange={event => setMessageInput(event.target.value)}
               onKeyDown={handleKeyDown}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-              placeholder="Type a message..."
-              className="w-full resize-none border-0 bg-transparent px-3 py-2 text-sm leading-tight text-gray-900 placeholder-gray-400 focus:ring-0 focus:outline-none sm:px-4 sm:py-2.5 sm:text-base"
+              aria-label={CHAT_COPY.messageLabel}
+              placeholder={CHAT_COPY.messagePlaceholder}
+              className="block w-full resize-none border-0 bg-transparent px-3 py-2.5 text-sm leading-5 text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:ring-0 focus:outline-none"
               rows={1}
               disabled={disabled || isSending}
               style={{ maxHeight: '120px' }}
@@ -89,26 +86,25 @@ export const MessageComposer = (props: MessageComposerProps) => {
           </div>
 
           <button
-            aria-label="Send message"
+            aria-label={isSending ? CHAT_COPY.sendingMessage : CHAT_COPY.sendMessage}
             type="submit"
             disabled={!hasContent || disabled || isSending}
-            className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full transition-all duration-200 sm:h-11 sm:w-11 ${sendButtonClassName}`}
+            className={`flex size-10 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] motion-reduce:transition-none ${sendButtonClassName}`}
           >
             {isSending
               ? (
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white sm:h-5 sm:w-5" />
+                  <div aria-hidden="true" className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent motion-reduce:animate-none" />
                 )
               : (
-                  <span className="inline-flex h-4 w-4 rotate-45 items-center justify-center text-xs leading-none sm:h-5 sm:w-5">➤</span>
+                  <SendHorizontal aria-hidden="true" size={18} />
                 )}
           </button>
         </form>
 
-        <p className="mt-1.5 hidden text-center text-[10px] text-gray-400 sm:block">
-          Press Enter to send • Shift + Enter for new line
+        <p className="mt-2 hidden text-center text-[10px] text-[var(--text-muted)] sm:block">
+          {CHAT_COPY.keyboardHint}
         </p>
       </div>
-      <div className="h-safe-area-inset-bottom bg-white" />
     </div>
   );
 };
